@@ -1,0 +1,57 @@
+[
+  {
+    "number": 12,
+    "url": "https://github.com/nishanthturnstile/aarili/issues/12",
+    "title": "[W0 0.2.1a] Bootstrap one verified owner and the initial protected shop",
+    "blockedBy": 6,
+    "blockerState": "closed",
+    "acceptanceCriteria": 8,
+    "bodyMatches": true,
+    "readyForAgent": true,
+    "nativeEdgeVerified": true
+  },
+  {
+    "number": 13,
+    "url": "https://github.com/nishanthturnstile/aarili/issues/13",
+    "title": "[W0 0.2.1b] Recover owner access and enforce session re-authentication",
+    "blockedBy": 12,
+    "blockerState": "open",
+    "acceptanceCriteria": 7,
+    "bodyMatches": true,
+    "readyForAgent": true,
+    "nativeEdgeVerified": true
+  },
+  {
+    "number": 14,
+    "url": "https://github.com/nishanthturnstile/aarili/issues/14",
+    "title": "[W0 0.2.1c] Link allow-listed Google identity without opening signup",
+    "blockedBy": 13,
+    "blockerState": "open",
+    "acceptanceCriteria": 7,
+    "bodyMatches": true,
+    "readyForAgent": true,
+    "nativeEdgeVerified": true
+  },
+  {
+    "number": 15,
+    "url": "https://github.com/nishanthturnstile/aarili/issues/15",
+    "title": "[W0 0.2.2] Enforce transaction-local shop context and prove forced RLS",
+    "blockedBy": 14,
+    "blockerState": "open",
+    "acceptanceCriteria": 9,
+    "bodyMatches": true,
+    "readyForAgent": true,
+    "nativeEdgeVerified": true
+  },
+  {
+    "number": 16,
+    "url": "https://github.com/nishanthturnstile/aarili/issues/16",
+    "title": "[W0 0.2.3] Prove atomic idempotent commands, conflicts and protected history",
+    "blockedBy": 15,
+    "blockerState": "open",
+    "acceptanceCriteria": 10,
+    "bodyMatches": true,
+    "readyForAgent": true,
+    "nativeEdgeVerified": true
+  }
+]

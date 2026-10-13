@@ -1,0 +1,54 @@
+# [W0 0.2.3] Prove atomic idempotent commands, conflicts and protected history
+
+**Status:** Draft awaiting owner approval. Proposed publication label: `ready-for-agent`.
+
+**Wave / phase / source slice:** Wave 0 → Phase 0.2 — Protect Identity, Tenancy and Business Commands → 0.2.3 — Establish the Command, Audit and Conflict Contract.
+
+## What to build
+
+A synthetic protected-record command demonstrates the shared foundation for later business mutations: authorized shop access, complete input validation, version conflicts, one attributable audit event, replay-safe responses and protected finalized history. Concurrent submissions and injected failures cannot create duplicate or partially committed changes.
+
+## Blocked by
+
+- Proposed **0.2.2 — Enforce transaction-local shop context and prove forced RLS**. It must merge first; use its published issue number/native blocker.
+
+## Sources and expected outcome
+
+- [Roadmap](https://github.com/nishanthturnstile/aarili/blob/main/docs/Boutique_Business_Management_Implementation_Roadmap.md): 0.2.3; 0.3.2 owns actual durable jobs and outbound suppression.
+- [Product plan](https://github.com/nishanthturnstile/aarili/blob/main/docs/Boutique_Business_Management_Final_Product_Plan.md): TRU-06/TRU-12; USE-08; AC-55; TRU-01/AC-38; §27 provenance and corrections; §§29.1, 30.1 and 33. TRU-08/AC-52 constrain the later privacy exception. Synthetic proofs establish foundations; full order, measurement, money, stock, custody, approval and erasure workflows remain their named business slices.
+- [Architecture](https://github.com/nishanthturnstile/aarili/blob/main/docs/Architecture_and_Technology_Decisions.md): §§6.1–6.4, 7.3, 8.1–8.3, 8.5, 11.4, 12.4 and 15.
+
+## Scope
+
+Introduce the real framework-free core command boundary and repository interfaces, extend existing Zod/error contracts and typed Hono clients, and add reviewed tenant idempotency/audit schema plus one small synthetic record/version fixture. Install the exemplar's record schema only through dev/test fixtures, outside production application migrations. Use a dev/test-only operational interface for the exemplar; its routes/data must be unavailable as a new product capability in production. Do not create business entities to demonstrate infrastructure.
+
+The command has create/edit/finalize or linked-correction operations only as needed to prove the contract. It uses `withShop()` and one transaction, a canonical request binding and persisted response, optimistic version checks, audit attribution and database protection of finalized rows. Keep eventual queue operations able to enlist in the same transaction; do not install pg-boss or build an outbox/worker now.
+
+Out of scope: orders, customers, money arithmetic/journal, bills, stock, measurements, custody, approval workflows, draft autosave, UI conflict comparison, exports, real erasure, production queueing, external-effect ledger, worker/restore suppression and any outbound send.
+
+## Acceptance criteria
+
+- [ ] **E1 — Approved request path:** The Node-runtime web mount delegates to thin `@hono/zod-openapi` handlers that validate and authorize, then call framework-free core services using the current shop transaction. Every repository operation, audit write and idempotency write uses that transaction. Business rules do not enter route/UI files; no business Server Action, Next dependency in API/core, vendor SDK in core or browser server import.
+- [ ] **E2 — Shared contract and errors:** Separate incomplete draft schemas from complete command validation where used; never turn an empty amount/measurement into zero. Schema-derived response/error contracts and per-module compiled clients have runtime validation and meaningful negative type tests. OpenAPI is generated in dev/CI and interactive API documentation is not exposed in production. Preserve existing health clients without duplicate handwritten DTOs. Apply the existing exact-origin and PostgreSQL-backed application rate-limit boundary to unsafe command requests. Specify and test authentication/authorization, missing idempotency key, malformed headers, rate rejection and not-found handling as well as the decided statuses below; inaccessible entities disclose no foreign-shop state.
+- [ ] **E3 — Optimistic concurrency:** Editable records have non-null integer versions. GET emits `ETag: "v{n}"`; an update without If-Match returns 428. A stale version returns 412 with the currently authorized state. A genuine domain/finalized-record conflict returns 409; validation failures return 422. Two distinct-key writes with the same starting version produce one successful change and one 412, with no lost update or duplicate audit. No automatic merging; later product UIs own side-by-side comparison.
+- [ ] **E4 — Persisted request binding:** `(shop_id, key)` is unique. Bind the key to the authenticated actor, action and canonical request hash, including relevant target/version precondition. Same key/same actor/action/request replays the committed response; changed payload, action or actor returns 422 and never replays another actor's data. Same key in another shop remains independently isolated. Missing keys on commands fail before effects; define their common error response without misusing version/domain statuses.
+- [ ] **E5 — Retry and serialization:** Concurrent identical requests serialize into exactly one effect/audit and one stored success response. Losing the response after commit and retrying with the same key returns that result even though the original If-Match is now stale. A failed/rolled-back first attempt permits a safe retry. Never return a recorded success for an uncommitted effect or leave an unresolvable in-progress key after rollback/process failure.
+- [ ] **E6 — Atomic rollback:** Inject failures after mutation, audit and response/key persistence, and in another enlisted transaction write; none leaves a partial business effect, audit, response or successful key. Two real transactions prove serialization and rollback. A test-only enlisted write proves the shared transaction boundary, explicitly without claiming pg-boss enqueue/worker behavior; real commit/rollback queue tests are required in 0.3.2 when pg-boss lands.
+- [ ] **E7 — Attributable audit:** Append-only audit includes shop/time, actor type and ID, action/entity, request ID, idempotency key, applicable reason and minimal field changes. Caller-supplied actor/shop values cannot forge provenance. User/system/import/support actor shapes are typed, with only authorized fixture/user entry points enabled now. Runtime can INSERT/SELECT, never ordinary UPDATE/DELETE; retries emit no extra event. Tokens, passwords and unnecessary personal content are excluded. Scoped connection-change/bootstrap provenance from earlier auth tickets is preserved and integrated where applicable.
+- [ ] **E8 — Protected finalized history:** A finalized synthetic version/event cannot be updated/deleted through normal core commands or direct `app_user` SQL. Grants and triggers enforce protection; linked correction appends a new record/event with a reason while preserving the original and its references. Protect audit rows likewise. Runtime cannot assume `app_privacy`, execute broad erasure or bypass protections. Keep provenance separate from redactable values and document the future audited privacy-function/tombstone exception; do not build rights/retention workflows or a blanket erasure bypass now.
+- [ ] **E9 — Tenant and contract negatives:** All new tenant tables pass the 0.2.2 FORCE/read/write catalog gate and shop-led constraints. Cross-shop record IDs, audit references and idempotency replays disclose no foreign state or response. Malformed DTO/ETag/key, unauthorized requests and unsafe origin fail before effects; concurrent finalization/correction attempts cannot rewrite history. Unit/property checks cover deterministic request canonicalization and actor/action/target binding without replacing database tests.
+- [ ] **E10 — Lifetime, exposure and reproducibility:** Record the architecture's 30-day idempotency-key lifetime and implement/test cutoff selection without an active worker. Actual scheduled purging belongs to durable/retention work later; future durable money/reference constraints must outlive keys. Exemplar routes/data are isolated to synthetic dev/test and absent from the production product surface. Native Windows and Linux run the same reviewed migrations and real command suite; auth, browser smoke and production builds remain green.
+
+## Research and decisions during implementation
+
+The status mappings, request-bound keys, 30-day lifetime, append-only history and single-transaction architecture are already decided. Lock strategy, deterministic hash encoding, replay storage, validation ordering, repository interfaces and ETag parsing are implementation details with negative/concurrency tests. Resolve/fetch current Hono/Zod/Drizzle/PostgreSQL docs for actual APIs when implementing; investigate any concrete pinned compatibility failure before a major/library substitution.
+
+Do not add a queue abstraction, provider ledger, business audit values, domain exceptions or policy numbers without an existing requirement. Production/domain-specific trigger and privacy-function coverage expands when each relevant table arrives. No new owner decision blocks this synthetic foundation's scope.
+
+## Migration, isolation, history and recovery
+
+Reviewed SQL adds constraints, forced policies, narrow grants and triggers under migration/advisory locking. Evolve the existing shared error contracts compatibly rather than introducing another API architecture. No direct runtime table ownership or backup/privacy credential. Failed transactions preserve clean retry; committed replay protects against network loss, not restored-database external effects. Restore epoch, quarantine, money freeze and kill switch remain 0.3.2 prerequisites before real sends, and the live restoration drill remains the product release gate. Application rollback requires compatible schema; finalized records are never deleted to undo an implementation.
+
+## Verification and completion evidence
+
+Run actual `pnpm verify`, `pnpm test:ui` and `pnpm audit --audit-level low`; add real Testcontainers PostgreSQL replay/version/audit/trigger tests and targeted unit/property/type/OpenAPI checks to existing CI. Report E1–E10 separately, including concurrent duplicate/different-key writes, changed binding, lost response, rollback, role denial, cross-shop and finalized-history evidence. Existing browser smoke/axe continues; no synthetic product screen or full business conflict UI is needed. Require the three existing hosted checks, a focused `codex/` branch in the existing checkout, deliberate owner review and integrated-main verification after an authorised merge. Publication does not authorize implementation, merge, deployment or live data.

@@ -1,0 +1,42 @@
+[
+  {
+    "draft": "01-owner-bootstrap.md",
+    "number": 12,
+    "title": "[W0 0.2.1a] Bootstrap one verified owner and the initial protected shop",
+    "url": "https://github.com/nishanthturnstile/aarili/issues/12",
+    "blockedBy": 6,
+    "bodyFile": "C:\\Users\\Nishanth Murugan\\projects\\nishanth - projects win\\aarili\\.scratch\\phase-0.2\\published\\01-owner-bootstrap.md"
+  },
+  {
+    "draft": "02-owner-recovery.md",
+    "number": 13,
+    "title": "[W0 0.2.1b] Recover owner access and enforce session re-authentication",
+    "url": "https://github.com/nishanthturnstile/aarili/issues/13",
+    "blockedBy": 12,
+    "bodyFile": "C:\\Users\\Nishanth Murugan\\projects\\nishanth - projects win\\aarili\\.scratch\\phase-0.2\\published\\02-owner-recovery.md"
+  },
+  {
+    "draft": "03-explicit-google-linking.md",
+    "number": 14,
+    "title": "[W0 0.2.1c] Link allow-listed Google identity without opening signup",
+    "url": "https://github.com/nishanthturnstile/aarili/issues/14",
+    "blockedBy": 13,
+    "bodyFile": "C:\\Users\\Nishanth Murugan\\projects\\nishanth - projects win\\aarili\\.scratch\\phase-0.2\\published\\03-explicit-google-linking.md"
+  },
+  {
+    "draft": "04-shop-context-rls.md",
+    "number": 15,
+    "title": "[W0 0.2.2] Enforce transaction-local shop context and prove forced RLS",
+    "url": "https://github.com/nishanthturnstile/aarili/issues/15",
+    "blockedBy": 14,
+    "bodyFile": "C:\\Users\\Nishanth Murugan\\projects\\nishanth - projects win\\aarili\\.scratch\\phase-0.2\\published\\04-shop-context-rls.md"
+  },
+  {
+    "draft": "05-command-audit-conflicts.md",
+    "number": 16,
+    "title": "[W0 0.2.3] Prove atomic idempotent commands, conflicts and protected history",
+    "url": "https://github.com/nishanthturnstile/aarili/issues/16",
+    "blockedBy": 15,
+    "bodyFile": "C:\\Users\\Nishanth Murugan\\projects\\nishanth - projects win\\aarili\\.scratch\\phase-0.2\\published\\05-command-audit-conflicts.md"
+  }
+]
