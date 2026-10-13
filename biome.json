@@ -41,5 +41,13 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["scripts/local-infra.mjs"],
+      "linter": {
+        "rules": { "suspicious": { "noUndeclaredEnvVars": "off" } }
+      }
+    }
+  ]
 }

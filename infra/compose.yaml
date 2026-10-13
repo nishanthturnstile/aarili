@@ -1,0 +1,52 @@
+name: aarili-local
+services:
+  postgres:
+    image: postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
+    environment:
+      POSTGRES_DB: aarili
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    ports:
+      - "127.0.0.1:${AARILI_PG_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init-postgres.sh:/docker-entrypoint-initdb.d/10-aarili.sh:ro
+    secrets: [admin_password, owner_password, user_password]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d aarili"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [local]
+  s3:
+    image: dxflrs/garage:v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020
+    command: [/garage, server, --single-node, --default-bucket]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_DEFAULT_ACCESS_KEY:?Run pnpm infra:init}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_DEFAULT_SECRET_KEY:?Run pnpm infra:init}
+      GARAGE_DEFAULT_BUCKET: aarili-synthetic
+    ports:
+      - "127.0.0.1:${AARILI_S3_PORT:-53900}:3900"
+    volumes:
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+      - ./.local/garage.toml:/etc/garage.toml:ro
+    healthcheck:
+      test: [CMD, /garage, status]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [local]
+secrets:
+  admin_password:
+    file: ./.local/admin_password
+  owner_password:
+    file: ./.local/owner_password
+  user_password:
+    file: ./.local/user_password
+volumes:
+  postgres_data:
+  garage_meta:
+  garage_data:
+networks:
+  local:
