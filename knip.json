@@ -5,6 +5,7 @@
       "entry": [
         "scripts/*.mjs",
         "scripts/test-support/owner-restart.mjs",
+        "scripts/test-support/owner-recovery-process.mjs",
         "tests/*.test.ts",
         "tests/*.test.mjs"
       ],

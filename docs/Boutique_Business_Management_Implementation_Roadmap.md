@@ -119,9 +119,18 @@ implements only protected synthetic owner admission, verification/sign-in and
 initial shop/membership. Its first-table RLS prerequisite, recovery runbook and
 acceptance evidence are recorded in
 [Issue_12_Owner_Bootstrap_Evidence.md](agents/Issue_12_Owner_Bootstrap_Evidence.md).
-Google linking, broader account recovery/re-authentication, general command
-contracts and comprehensive tenancy remain subsequent scoped outcomes. This
+Google linking, general command contracts and comprehensive tenancy remain
+subsequent scoped outcomes. This
 does not satisfy full BIZ-01 onboarding or authorize outbound email/live use.
+
+**0.2.1 recovery/session traceability:** [Issue #13](https://github.com/nishanthturnstile/aarili/issues/13)
+adds synthetic owner password recovery, database session termination and a
+shared recent-authentication guard demonstrated by an effect-free probe.
+[Issue_13_Owner_Recovery_Evidence.md](agents/Issue_13_Owner_Recovery_Evidence.md)
+maps B1–B7 and records the approved numeric policy, atomic reset/retry evidence,
+bilingual accessible UI and compatible recovery. Real auth email still requires
+0.3.2 suppression guards and domain/DNS/provider approval; TRU-09's broader
+account/team lifecycle and AC-57 remain later scope.
 
 ##### Vertical Slice 0.2.2 — Enforce Shop Context and Forced RLS
 

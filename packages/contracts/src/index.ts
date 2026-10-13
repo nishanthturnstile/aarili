@@ -21,6 +21,8 @@ export const apiErrorSchema = z.strictObject({
       "INVALID_VERIFICATION",
       "MAIL_UNAVAILABLE",
       "UNAUTHENTICATED",
+      "AUTHENTICATION_STALE",
+      "INVALID_RESET",
       "REQUEST_CONFLICT",
       "VALIDATION_FAILED",
       "UNSAFE_ORIGIN",
@@ -36,6 +38,9 @@ export type ApiError = z.infer<typeof apiErrorSchema>;
 export {
   ownerActionSchema,
   ownerShopSchema,
+  reauthenticationSchema,
+  recoveryRequestSchema,
+  recoveryResetSchema,
   resendCommandSchema,
   setupCommandSchema,
   signInCommandSchema,

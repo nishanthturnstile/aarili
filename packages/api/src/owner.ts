@@ -4,6 +4,9 @@ import {
   apiErrorSchema,
   ownerActionSchema,
   ownerShopSchema,
+  reauthenticationSchema,
+  recoveryRequestSchema,
+  recoveryResetSchema,
   resendCommandSchema,
   setupCommandSchema,
   signInCommandSchema,
@@ -80,13 +83,19 @@ export function createOwnerRoutes(owner: OwnerAuth) {
         { error: { code: "UNSAFE_ORIGIN", message: "Request origin denied" } },
         403,
       );
-    const limiter = c.req.path.endsWith("/resend")
-      ? owner.resendLimit
-      : c.req.path.endsWith("/verify")
-        ? owner.verifyLimit
-        : c.req.path.includes("/setup")
-          ? owner.setupLimit
-          : undefined;
+    const limiter = c.req.path.endsWith("/recovery/request")
+      ? owner.recoveryLimit
+      : c.req.path.endsWith("/recovery/reset")
+        ? owner.redemptionLimit
+        : c.req.path.endsWith("/reauthenticate")
+          ? owner.reauthLimit
+          : c.req.path.endsWith("/resend")
+            ? owner.resendLimit
+            : c.req.path.endsWith("/verify")
+              ? owner.verifyLimit
+              : c.req.path.includes("/setup")
+                ? owner.setupLimit
+                : undefined;
     if (limiter) {
       const retry = await limiter();
       if (retry) {
@@ -105,6 +114,48 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     await next();
   });
   const routes = app
+    .openapi(
+      command("/owner/recovery/request", recoveryRequestSchema),
+      async (c) => {
+        await owner.requestRecovery(c.req.valid("json").email);
+        return c.json({ state: "recovery-requested" as const }, 200);
+      },
+    )
+    .openapi(
+      command("/owner/recovery/reset", recoveryResetSchema),
+      async (c) => {
+        await owner.resetPassword(c.req.valid("json"));
+        return c.json({ state: "password-reset" as const }, 200);
+      },
+    )
+    .openapi(
+      command("/owner/reauthenticate", reauthenticationSchema),
+      async (c) => {
+        const headers = await owner.reauthenticate(
+          c.req.raw.headers,
+          c.req.valid("json").password,
+        );
+        return sessionResponse(
+          c.json({ state: "reauthenticated" as const }, 200),
+          headers,
+        );
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/owner/sensitive-probe",
+        responses: actionResponses,
+      }),
+      async (c) => {
+        // Synthetic auth is the only mounted adapter. No business command/effect.
+        const result = await owner.withRecentOwner(
+          c.req.raw.headers,
+          async () => ({ state: "probe-accepted" as const }),
+        );
+        return sessionResponse(c.json(result.data, 200), result.headers);
+      },
+    )
     .openapi(command("/owner/setup", setupCommandSchema), async (c) => {
       const key = c.req.header("Idempotency-Key");
       if (!key || !z.uuid().safeParse(key).success)

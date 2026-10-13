@@ -1,5 +1,34 @@
 export const ownerMessages = {
   en: {
+    recovery: "Recover your password",
+    reset: "Set a new password",
+    reauthenticate: "Confirm your password",
+    recoveryHelp: "Enter your owner email to request a password reset code.",
+    resetHelp:
+      "Paste the code from your reset email and choose a new password.",
+    reauthenticateHelp:
+      "Enter your current password to confirm recent access. This confirmation lasts five minutes.",
+    recoveryRequested:
+      "If this is the verified owner email, a reset code has been sent. If it does not arrive, you can request another.",
+    passwordReset:
+      "Password updated. Your previous sessions have ended. Sign in with your new password.",
+    newPassword: "New password",
+    resetCode: "Password reset code",
+    requestReset: "Request reset code",
+    resetPassword: "Update password",
+    confirmPassword: "Confirm password",
+    forgotPassword: "Forgot your password?",
+    haveResetCode: "I have a reset code",
+    requestAnotherReset: "Request another reset code",
+    reauthenticateLink: "Confirm recent access",
+    expired: "Your session has ended. Sign in again to continue.",
+    stale:
+      "Confirm your password before continuing with this sensitive request.",
+    badReset:
+      "This reset code is invalid, expired or already used. Request another code.",
+    probeHelp: "Synthetic access check only. No business records are changed.",
+    checkRecent: "Check recent access",
+    recentAccepted: "Recent authentication confirmed. The access check passed.",
     validation:
       "Check the required fields and follow the hints, then try again.",
     setup: "Set up your owner account",
@@ -56,6 +85,35 @@ export const ownerMessages = {
       "Owner setup is unavailable. Ask your operator to check the synthetic configuration.",
   },
   ta: {
+    recovery: "கடவுச்சொல்லை மீட்டெடுக்கவும்",
+    reset: "புதிய கடவுச்சொல்லை அமைக்கவும்",
+    reauthenticate: "கடவுச்சொல்லை உறுதிசெய்யவும்",
+    recoveryHelp: "கடவுச்சொல் மீட்புக் குறியீட்டைப் பெற உரிமையாளரின் மின்னஞ்சலை உள்ளிடவும்.",
+    resetHelp:
+      "மீட்பு மின்னஞ்சலில் உள்ள குறியீட்டை ஒட்டி, புதிய கடவுச்சொல்லைத் தேர்ந்தெடுக்கவும்.",
+    reauthenticateHelp:
+      "அண்மைய அணுகலை உறுதிசெய்ய தற்போதைய கடவுச்சொல்லை உள்ளிடவும். இந்த உறுதிப்படுத்தல் ஐந்து நிமிடங்களுக்கு செல்லும்.",
+    recoveryRequested:
+      "இது உறுதிசெய்யப்பட்ட உரிமையாளரின் மின்னஞ்சல் எனில், மீட்புக் குறியீடு அனுப்பப்பட்டுள்ளது. வரவில்லை எனில் மீண்டும் கோரலாம்.",
+    passwordReset:
+      "கடவுச்சொல் மாற்றப்பட்டது. முந்தைய அமர்வுகள் முடிந்தன. புதிய கடவுச்சொல்லுடன் உள்நுழையவும்.",
+    newPassword: "புதிய கடவுச்சொல்",
+    resetCode: "கடவுச்சொல் மீட்புக் குறியீடு",
+    requestReset: "மீட்புக் குறியீட்டைக் கோரு",
+    resetPassword: "கடவுச்சொல்லை மாற்று",
+    confirmPassword: "கடவுச்சொல்லை உறுதிசெய்",
+    forgotPassword: "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
+    haveResetCode: "என்னிடம் மீட்புக் குறியீடு உள்ளது",
+    requestAnotherReset: "மீண்டும் மீட்புக் குறியீட்டைக் கோரு",
+    reauthenticateLink: "அண்மைய அணுகலை உறுதிசெய்",
+    expired: "உங்கள் அமர்வு முடிந்தது. தொடர மீண்டும் உள்நுழையவும்.",
+    stale: "இந்த முக்கியமான கோரிக்கையைத் தொடரும் முன் கடவுச்சொல்லை உறுதிசெய்யவும்.",
+    badReset:
+      "மீட்புக் குறியீடு தவறானது, காலாவதியானது அல்லது பயன்படுத்தப்பட்டது. புதிய குறியீட்டைக் கோரவும்.",
+    probeHelp: "சோதனை அணுகல் சரிபார்ப்பு மட்டுமே. வணிகப் பதிவுகள் மாற்றப்படாது.",
+    checkRecent: "அண்மைய அணுகலைச் சரிபார்",
+    recentAccepted:
+      "அண்மைய உள்நுழைவு உறுதிசெய்யப்பட்டது. அணுகல் சரிபார்ப்பு வெற்றி பெற்றது.",
     validation:
       "தேவையான புலங்களையும் குறிப்புகளையும் சரிபார்த்து மீண்டும் முயற்சி செய்யவும்.",
     setup: "உரிமையாளர் கணக்கை அமைக்கவும்",

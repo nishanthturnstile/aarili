@@ -3,9 +3,14 @@
 import {
   completeOwnerShop,
   OwnerRequestError,
+  onOwnerInvalidation,
   ownerSession,
+  probeRecentOwner,
   readOwnerShop,
+  reauthenticateOwner,
+  requestOwnerRecovery,
   resendOwnerVerification,
+  resetOwnerPassword,
   setupOwner,
   verifyOwner,
 } from "@aarili/api/client";
@@ -20,7 +25,13 @@ import { NextIntlClientProvider, useTranslations } from "next-intl";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { ownerMessages } from "./owner-messages";
 
-type Mode = "setup" | "sign-in" | "owner";
+type Mode =
+  | "setup"
+  | "sign-in"
+  | "owner"
+  | "recovery"
+  | "reset"
+  | "reauthenticate";
 export function OwnerFlow({ mode }: { mode: Mode }) {
   const [locale, setLocale] = useState<"ta" | "en">("ta");
   return (
@@ -57,20 +68,41 @@ function Flow({ mode }: { mode: Mode }) {
   const key = useRef<string | undefined>(undefined);
   const lastInput = useRef("");
   useEffect(() => {
+    // Recovery uses pasted codes, never URL tokens or redirect parameters. Strip
+    // accidental transient parameters immediately, including on failed resets.
+    if (mode !== "reset" && mode !== "recovery") return;
+    const strip = () =>
+      window.history.replaceState(null, "", window.location.pathname);
+    strip();
+    window.addEventListener("hashchange", strip);
+    window.addEventListener("popstate", strip);
+    return () => {
+      window.removeEventListener("hashchange", strip);
+      window.removeEventListener("popstate", strip);
+    };
+  }, [mode]);
+  useEffect(() => {
     if (mode !== "owner") return;
     let active = true;
+    const unsubscribe = onOwnerInvalidation(() => {
+      if (active) {
+        setShop(undefined);
+        setFailure("expired");
+      }
+    });
     readOwnerShop()
       .then((result) => {
         if (active) setShop(result);
       })
       .catch(() => {
-        if (active) setFailure("invalid");
+        if (active) setFailure("expired");
       })
       .finally(() => {
         if (active) setLoading(false);
       });
     return () => {
       active = false;
+      unsubscribe();
     };
   }, [mode]);
   useEffect(() => {
@@ -89,17 +121,23 @@ function Flow({ mode }: { mode: Mode }) {
           ? "validation"
           : code === "SETUP_CLOSED" || code === "REQUEST_CONFLICT"
             ? "closed"
-            : code === "INVALID_CREDENTIALS" || code === "UNAUTHENTICATED"
-              ? "invalid"
-              : code === "INVALID_VERIFICATION"
-                ? "badCode"
-                : code === "MAIL_UNAVAILABLE"
-                  ? "mailError"
-                  : code === "RATE_LIMITED"
-                    ? "limited"
-                    : code === "NOT_FOUND"
-                      ? "unavailable"
-                      : "error",
+            : code === "UNAUTHENTICATED"
+              ? "expired"
+              : code === "AUTHENTICATION_STALE"
+                ? "stale"
+                : code === "INVALID_RESET"
+                  ? "badReset"
+                  : code === "INVALID_CREDENTIALS"
+                    ? "invalid"
+                    : code === "INVALID_VERIFICATION"
+                      ? "badCode"
+                      : code === "MAIL_UNAVAILABLE"
+                        ? "mailError"
+                        : code === "RATE_LIMITED"
+                          ? "limited"
+                          : code === "NOT_FOUND"
+                            ? "unavailable"
+                            : "error",
       );
     } finally {
       setBusy(false);
@@ -121,7 +159,7 @@ function Flow({ mode }: { mode: Mode }) {
           autoComplete={autoComplete}
           required
           maxLength={
-            id === "password"
+            id === "password" || id === "newPassword"
               ? 128
               : id === "email"
                 ? 254
@@ -132,7 +170,10 @@ function Flow({ mode }: { mode: Mode }) {
                     : 120
           }
           minLength={
-            id === "password" && mode === "setup" && step === "initial" ? 15 : 1
+            id === "newPassword" ||
+            (id === "password" && mode === "setup" && step === "initial")
+              ? 15
+              : 1
           }
           aria-describedby={hint ? `${id}-hint` : undefined}
         />
@@ -148,6 +189,27 @@ function Flow({ mode }: { mode: Mode }) {
     const data = new FormData(form);
     const value = (name: string) => String(data.get(name) ?? "");
     void run(async () => {
+      if (mode === "recovery") {
+        await requestOwnerRecovery(value("email"));
+        form.reset();
+        setNotice("recoveryRequested");
+        return;
+      }
+      if (mode === "reset") {
+        await resetOwnerPassword({
+          token: value("resetCode"),
+          newPassword: value("newPassword"),
+        });
+        form.reset();
+        setNotice("passwordReset");
+        return;
+      }
+      if (mode === "reauthenticate") {
+        await reauthenticateOwner(value("password"));
+        form.reset();
+        window.location.replace("/owner");
+        return;
+      }
       if (mode === "sign-in") {
         await ownerSession("sign-in/email", {
           email: value("email"),
@@ -198,8 +260,13 @@ function Flow({ mode }: { mode: Mode }) {
       <h1>
         {mode === "setup"
           ? t(step === "verify" ? "verification" : "setup")
-          : t(mode === "owner" ? "owner" : "signIn")}
+          : t(
+              mode === "owner" ? "owner" : mode === "sign-in" ? "signIn" : mode,
+            )}
       </h1>
+      {mode === "recovery" && <p>{t("recoveryHelp")}</p>}
+      {mode === "reset" && <p>{t("resetHelp")}</p>}
+      {mode === "reauthenticate" && <p>{t("reauthenticateHelp")}</p>}
       {mode === "setup" && (
         <>
           <p>{t(step === "verify" ? "verificationHelp" : "intro")}</p>
@@ -235,7 +302,16 @@ function Flow({ mode }: { mode: Mode }) {
       )}
       {mode !== "owner" && (
         <form key={step} method="post" className="owner-form" onSubmit={submit}>
-          {step === "verify" && mode === "setup" ? (
+          {mode === "recovery" ? (
+            field("email", "email", "username")
+          ) : mode === "reset" ? (
+            <>
+              {field("resetCode", "text", "off")}
+              {field("newPassword", "password", "new-password", "passwordHelp")}
+            </>
+          ) : mode === "reauthenticate" ? (
+            field("password", "password", "current-password")
+          ) : step === "verify" && mode === "setup" ? (
             field("code", "text", "off")
           ) : (
             <>
@@ -261,13 +337,19 @@ function Flow({ mode }: { mode: Mode }) {
           <Button type="submit" disabled={busy}>
             {busy
               ? t("working")
-              : mode === "sign-in"
-                ? t("submit")
-                : step === "initial"
-                  ? t("create")
-                  : step === "resume"
-                    ? t("resend")
-                    : t("verify")}
+              : mode === "recovery"
+                ? t("requestReset")
+                : mode === "reset"
+                  ? t("resetPassword")
+                  : mode === "reauthenticate"
+                    ? t("confirmPassword")
+                    : mode === "sign-in"
+                      ? t("submit")
+                      : step === "initial"
+                        ? t("create")
+                        : step === "resume"
+                          ? t("resend")
+                          : t("verify")}
           </Button>
         </form>
       )}
@@ -295,6 +377,21 @@ function Flow({ mode }: { mode: Mode }) {
             <>
               <h2>{shop.name}</h2>
               <p>{t("complete")}</p>
+              <p>{t("probeHelp")}</p>
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    await probeRecentOwner();
+                    setNotice("recentAccepted");
+                  })
+                }
+              >
+                {t("checkRecent")}
+              </Button>
+              <p>
+                <a href="/reauthenticate">{t("reauthenticateLink")}</a>
+              </p>
             </>
           )}
           <Button
@@ -317,6 +414,26 @@ function Flow({ mode }: { mode: Mode }) {
           <a href="/sign-in">{t("signInLink")}</a>
         ) : (
           <a href="/setup">{t("setupLink")}</a>
+        )}
+        {mode === "sign-in" && (
+          <p>
+            <a href="/recovery">{t("forgotPassword")}</a>
+          </p>
+        )}
+        {mode === "recovery" && (
+          <p>
+            <a href="/reset-password">{t("haveResetCode")}</a>
+          </p>
+        )}
+        {mode === "reset" && (
+          <p>
+            <a href="/recovery">{t("requestAnotherReset")}</a>
+          </p>
+        )}
+        {failure === "stale" && (
+          <p>
+            <a href="/reauthenticate">{t("reauthenticateLink")}</a>
+          </p>
         )}
       </footer>
     </section>
