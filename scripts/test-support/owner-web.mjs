@@ -1,17 +1,18 @@
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { once } from "node:events";
-import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, stat } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import pg from "pg";
 import { migrateDatabase } from "../migrate.mjs";
 import { withPostgres } from "./postgres.mjs";
 
 // Each UI language/device scenario gets its own disposable DB + production web
 // process. Migration credentials stay in this fixture, never the web environment.
-export async function withOwnerWeb(run) {
+export async function withOwnerWeb(run, { onFailure, secrets = [] } = {}) {
   return withPostgres(
     async ({ connectionString, migrationConnectionString }) => {
       await migrateDatabase(migrationConnectionString);
@@ -32,6 +33,9 @@ export async function withOwnerWeb(run) {
         SETUP_TOKEN: setupToken,
         AUTH_CAPTURE_DIRECTORY: captureDirectory,
         AARILI_SYNTHETIC_AUTH: "true",
+        // Accidental provider configuration cannot select a transport.
+        RESEND_API_KEY: "synthetic-outbound-disabled-canary",
+        SMTP_URL: "https://invalid.example.test",
         NODE_ENV: "production",
       };
       delete webEnv.MIGRATION_DATABASE_URL;
@@ -54,18 +58,40 @@ export async function withOwnerWeb(run) {
       );
       const exit = once(web, "exit");
       let output = "";
+      const runtime = new pg.Pool({ connectionString });
       web.stdout.on("data", (b) => {
         output += b;
       });
       web.stderr.on("data", (b) => {
         output += b;
       });
-      async function code() {
+      async function code(purpose = "verification") {
         const files = await readdir(captureDirectory);
-        const file = files.at(-1);
-        if (!file) throw new Error("Verification was not captured");
-        return JSON.parse(await readFile(join(captureDirectory, file), "utf8"))
-          .code;
+        const messages = await Promise.all(
+          files.map(async (file) => ({
+            message: JSON.parse(
+              await readFile(join(captureDirectory, file), "utf8"),
+            ),
+            time: (await stat(join(captureDirectory, file))).mtimeMs,
+          })),
+        );
+        const found = messages
+          .filter(
+            ({ message }) => (message.purpose ?? "verification") === purpose,
+          )
+          .sort((a, b) => a.time - b.time)
+          .at(-1);
+        if (!found) throw new Error("Synthetic mail was not captured");
+        return found.message.code;
+      }
+      const privateValues = new Set([setupToken, ...secrets]);
+      async function privateCaptures() {
+        for (const file of await readdir(captureDirectory)) {
+          const message = JSON.parse(
+            await readFile(join(captureDirectory, file), "utf8"),
+          );
+          privateValues.add(message.code);
+        }
       }
       try {
         let ready = false;
@@ -81,12 +107,29 @@ export async function withOwnerWeb(run) {
           await delay(100);
         }
         if (!ready) throw new Error("Synthetic web boot timed out");
-        await run({ origin, setupToken, code });
+        await run({ origin, setupToken, code, runtime });
         if (output.includes(setupToken))
           throw new Error("Setup token entered server logs");
+        await privateCaptures();
+        for (const value of privateValues) {
+          if (output.includes(value))
+            throw new Error("Auth code entered server logs");
+        }
+      } catch (error) {
+        // Hard assertion errors can carry an ARIA snapshot with pasted tokens.
+        // Throw a fresh sanitized error after blanking the page, before the
+        // runner creates error-context/source artifacts or reports the failure.
+        await privateCaptures();
+        await onFailure?.();
+        let message =
+          error instanceof Error ? error.message : "Owner browser check failed";
+        for (const value of privateValues)
+          message = message.replaceAll(value, "[REDACTED]");
+        throw new Error(message);
       } finally {
         web.kill();
         await exit;
+        await runtime.end();
         await rm(captureDirectory, { recursive: true, force: true });
       }
     },

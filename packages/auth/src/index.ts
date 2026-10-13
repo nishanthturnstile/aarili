@@ -7,7 +7,7 @@ import {
 } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
-import { setupCommandSchema } from "@aarili/contracts";
+import { recoveryResetSchema, setupCommandSchema } from "@aarili/contracts";
 import {
   createDatabase,
   type Database,
@@ -34,6 +34,14 @@ const approvedPolicy = {
   signInWindow: 60,
   setupMax: 3,
   setupWindow: 300,
+  resetSeconds: 1800,
+  freshSeconds: 300,
+  recoveryMax: 3,
+  recoveryWindow: 300,
+  redemptionMax: 5,
+  redemptionWindow: 60,
+  reauthMax: 5,
+  reauthWindow: 60,
 };
 type Policy = typeof approvedPolicy;
 export type AuthConfiguration = {
@@ -41,11 +49,23 @@ export type AuthConfiguration = {
   origin: string;
   secret: string;
   setupToken: string;
-  capture: (message: { email: string; code: string }) => Promise<void>;
-  policy?: Policy;
+  capture: (message: {
+    email: string;
+    code: string;
+    purpose?: "reset";
+  }) => Promise<void>;
+  policy?: Partial<Policy>;
+  now?: () => Date;
   // Injection point for rollback evidence; runtime never configures it.
   checkpoint?: (
-    step: "identity" | "credential" | "reservation" | "verified" | "shop",
+    step:
+      | "identity"
+      | "credential"
+      | "reservation"
+      | "verified"
+      | "shop"
+      | "reset"
+      | "reauthenticated",
   ) => Promise<void>;
 };
 type BootstrapRow = {
@@ -65,6 +85,8 @@ export class OwnerAccessError extends Error {
       | "INVALID_VERIFICATION"
       | "MAIL_UNAVAILABLE"
       | "UNAUTHENTICATED"
+      | "AUTHENTICATION_STALE"
+      | "INVALID_RESET"
       | "REQUEST_CONFLICT",
   ) {
     super(code);
@@ -93,6 +115,22 @@ export type OwnerAuth = {
   setupLimit: () => Promise<number>;
   resendLimit: () => Promise<number>;
   verifyLimit: () => Promise<number>;
+  recoveryLimit: () => Promise<number>;
+  redemptionLimit: () => Promise<number>;
+  reauthLimit: () => Promise<number>;
+  requestRecovery: (email: string) => Promise<void>;
+  resetPassword: (input: {
+    token: string;
+    newPassword: string;
+  }) => Promise<void>;
+  reauthenticate: (headers: Headers, password: string) => Promise<Headers>;
+  withRecentOwner: <T>(
+    headers: Headers,
+    run: (
+      tx: Transaction,
+      actor: { userId: string; shopId: string },
+    ) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   origin: string;
   close: () => Promise<void>;
 };
@@ -110,7 +148,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   )
     throw new Error("HTTP is loopback-only");
   if (configuration.secret.length < 32) throw new Error("Auth secret required");
-  const policy = configuration.policy ?? approvedPolicy;
+  const policy = { ...approvedPolicy, ...configuration.policy };
+  const now = configuration.now ?? (() => new Date());
   const { db, pool } = createDatabase(configuration.connectionString);
   let runtimeReady: Promise<void> | undefined;
   async function ready() {
@@ -142,10 +181,29 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         requireEmailVerification: true,
         minPasswordLength: policy.passwordMin,
         maxPasswordLength: policy.passwordMax,
+        resetPasswordTokenExpiresIn: policy.resetSeconds,
+        revokeSessionsOnPasswordReset: true,
+        sendResetPassword: async ({ user, token }) => {
+          const pending = await state();
+          if (!user.emailVerified || user.id !== pending.user_id) return;
+          // Capture opaque code only, never the library's URL. Delivery happens
+          // after reservation, without holding a transaction during mail/humans.
+          try {
+            await configuration.capture({
+              email: user.email,
+              code: token,
+              purpose: "reset",
+            });
+          } catch {
+            // Same public response for unknown addresses and failed capture.
+            // Requesting another code is safe; the old password stays intact.
+          }
+        },
       },
       session: {
         expiresIn: policy.sessionSeconds,
         updateAge: policy.updateSeconds,
+        freshAge: policy.freshSeconds,
         cookieCache: { enabled: false },
       },
       account: { accountLinking: { enabled: false } },
@@ -196,6 +254,35 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     "owner-verify",
   );
   const checkpoint = configuration.checkpoint ?? (async () => {});
+  const recoveryLimit = createAbuseLimiter(
+    pool,
+    policy.recoveryMax,
+    policy.recoveryWindow,
+    "owner-recovery",
+  );
+  const redemptionLimit = createAbuseLimiter(
+    pool,
+    policy.redemptionMax,
+    policy.redemptionWindow,
+    "owner-reset",
+  );
+  const reauthLimit = createAbuseLimiter(
+    pool,
+    policy.reauthMax,
+    policy.reauthWindow,
+    "owner-reauth",
+  );
+  // Serialize credential reads/session creation with reset/re-authentication.
+  // Otherwise an old-password sign-in could create a session AFTER revocation.
+  async function credentialTransaction<T>(
+    run: (tx: Transaction) => Promise<T>,
+  ) {
+    await ready();
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(120023)`);
+      return run(tx);
+    });
+  }
   async function state(tx: Database | Transaction = db) {
     const result = await tx.execute(
       sql`select user_id, completed_at, shop_id, admission_key, request_hash from owner_bootstrap where singleton`,
@@ -327,16 +414,133 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       await checkpoint("verified");
     });
   }
-  async function identity(headers: Headers) {
+  async function identity(
+    headers: Headers,
+    resolver = auth,
+    database: Database | Transaction = db,
+  ) {
     await ready();
     const { response: resolved, headers: responseHeaders } =
-      await auth.api.getSession({ headers, returnHeaders: true });
+      await resolver.api.getSession({ headers, returnHeaders: true });
     if (
       !resolved?.user.emailVerified ||
-      resolved.user.id !== (await state()).user_id
+      resolved.user.id !== (await state(database)).user_id
     )
       throw new OwnerAccessError("UNAUTHENTICATED");
-    return { userId: resolved.user.id, headers: responseHeaders };
+    return {
+      userId: resolved.user.id,
+      sessionId: resolved.session.id,
+      headers: responseHeaders,
+    };
+  }
+  async function requestRecovery(email: string) {
+    await ready();
+    const pending = await state();
+    const found = await (await auth.$context).internalAdapter.findUserByEmail(
+      email,
+    );
+    // Only the reserved verified owner is eligible; no account provisioning.
+    // The unknown-address branch retains the library's dummy lookup behavior.
+    const eligible =
+      found?.user.emailVerified && found.user.id === pending.user_id;
+    if (!eligible) {
+      await (await auth.$context).internalAdapter.findVerificationValue(
+        "dummy-verification-token",
+      );
+      return;
+    }
+    await auth.api.requestPasswordReset({ body: { email } });
+  }
+  async function resetPassword(input: { token: string; newPassword: string }) {
+    input = recoveryResetSchema.parse(input);
+    await credentialTransaction(async (tx) => {
+      // 1.7.7 only wraps token consumption in its own transaction. Explicitly
+      // bind ALL native writes to this outer tx; API throws roll it back.
+      const bound = library(tx);
+      const ctx = await bound.$context;
+      const verification = await ctx.internalAdapter.findVerificationValue(
+        `reset-password:${input.token}`,
+      );
+      const pending = await state(tx);
+      const user =
+        verification &&
+        (await ctx.internalAdapter.findUserById(verification.value));
+      if (
+        !verification ||
+        verification.expiresAt.getTime() <= now().getTime() ||
+        !user?.emailVerified ||
+        user.id !== pending.user_id
+      )
+        throw new OwnerAccessError("INVALID_RESET");
+      await bound.api.resetPassword({ body: input });
+      // Invalidate other outstanding codes as well as every pre-reset session.
+      await tx.execute(
+        sql`delete from auth_verification where value=${user.id} and identifier like 'reset-password:%'`,
+      );
+      await checkpoint("reset");
+    });
+  }
+  async function reauthenticate(headers: Headers, password: string) {
+    return credentialTransaction(async (tx) => {
+      const bound = library(tx);
+      const current = await identity(headers, bound, tx);
+      const live = await tx.execute(
+        sql`select 1 from auth_session where id=${current.sessionId}::uuid and expires_at>${now()} for update`,
+      );
+      if (!live.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
+      const ctx = await bound.$context;
+      const user = await ctx.internalAdapter.findUserById(current.userId);
+      if (!user) throw new OwnerAccessError("UNAUTHENTICATED");
+      const result = await bound.api
+        .signInEmail({
+          headers,
+          body: { email: user.email, password },
+          returnHeaders: true,
+        })
+        .catch(() => {
+          throw new OwnerAccessError("INVALID_CREDENTIALS");
+        });
+      await tx.execute(
+        sql`delete from auth_session where id=${current.sessionId}::uuid`,
+      );
+      await checkpoint("reauthenticated");
+      return result.headers;
+    });
+  }
+  async function withRecentOwner<T>(
+    headers: Headers,
+    run: (
+      tx: Transaction,
+      actor: { userId: string; shopId: string },
+    ) => Promise<T>,
+  ) {
+    const current = await identity(headers);
+    const pending = await state();
+    if (!pending.shop_id) throw new OwnerAccessError("UNAUTHENTICATED");
+    const shopId = pending.shop_id;
+    const data = await withShop(db, current.userId, shopId, async (tx) => {
+      // Check database state again in the protected transaction, locking against
+      // concurrent revocation. Never accept a client time/id or cached session.
+      const live = await tx.execute(
+        sql`select created_at, expires_at from auth_session where id=${current.sessionId}::uuid and user_id=${current.userId}::uuid for share`,
+      );
+      const row = live.rows[0] as
+        | { created_at: string; expires_at: string }
+        | undefined;
+      const time = now().getTime();
+      if (
+        !row ||
+        !Number.isFinite(time) ||
+        !Number.isFinite(new Date(row.expires_at).getTime()) ||
+        new Date(row.expires_at).getTime() <= time
+      )
+        throw new OwnerAccessError("UNAUTHENTICATED");
+      const age = time - new Date(row.created_at).getTime();
+      if (!Number.isFinite(age) || age < 0 || age >= policy.freshSeconds * 1000)
+        throw new OwnerAccessError("AUTHENTICATION_STALE");
+      return run(tx, { userId: current.userId, shopId });
+    });
+    return { data, headers: current.headers };
   }
   async function complete(headers: Headers) {
     const { userId, headers: responseHeaders } = await identity(headers);
@@ -371,15 +575,35 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return { data, headers: responseHeaders };
   }
   return {
-    auth: { handler: (request) => guard(() => auth.handler(request)) },
+    auth: {
+      handler: (request) => {
+        const path = new URL(request.url).pathname;
+        const allowed =
+          (request.method === "POST" &&
+            ["/api/auth/sign-in/email", "/api/auth/sign-out"].includes(path)) ||
+          (request.method === "GET" && path === "/api/auth/get-session");
+        if (!allowed)
+          return Promise.resolve(new Response(null, { status: 404 }));
+        return path.endsWith("/sign-in/email")
+          ? credentialTransaction((tx) => library(tx).handler(request))
+          : guard(() => auth.handler(request));
+      },
+    },
     admit,
     resend,
     verify,
     complete,
     ownerShop,
+    requestRecovery,
+    resetPassword,
+    reauthenticate,
+    withRecentOwner,
     setupLimit: () => guard(setupLimit),
     resendLimit: () => guard(resendLimit),
     verifyLimit: () => guard(verifyLimit),
+    recoveryLimit: () => guard(recoveryLimit),
+    redemptionLimit: () => guard(redemptionLimit),
+    reauthLimit: () => guard(reauthLimit),
     origin: configuration.origin,
     close: () => pool.end(),
   };

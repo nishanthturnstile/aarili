@@ -4,7 +4,9 @@ Scope: Wave 0 / 0.2.1a; product §4, TRU-01, BIZ-01 foundation,
 USE-01/02/09; architecture §§6.5, 8.1–8.2, 11.1–11.2, 11.4, 12.4.
 This is the owner identity and first-shop foundation, not full onboarding or a
 pilot/live activation decision. Google, reset/re-authentication, invitations,
-workers and outbound email are excluded.
+workers and outbound email are excluded from this bootstrap slice. Issue #13's
+separate [recovery/session runbook](Owner_Recovery_Runbook.md) adds synthetic
+password recovery and recent authentication without enabling outbound email.
 
 ## Prepare a synthetic environment
 
