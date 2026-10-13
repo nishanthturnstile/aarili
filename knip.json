@@ -2,11 +2,12 @@
   "$schema": "https://unpkg.com/knip@6.41.0/schema.json",
   "workspaces": {
     ".": {
-      "entry": ["scripts/*.mjs", "tests/*.test.ts"],
-      "project": ["scripts/**/*.mjs", "tests/**/*.ts"],
+      "entry": ["scripts/*.mjs", "tests/*.test.ts", "tests/*.test.mjs"],
+      "project": ["scripts/**/*.mjs", "tests/**/*.{ts,mjs}"],
       "ignore": ["tests/fixtures/**"]
     },
     "apps/web": {
+      "ignoreExportsUsedInFile": true,
       "project": ["src/**/*.{ts,tsx,css}"]
     },
     "apps/worker": {

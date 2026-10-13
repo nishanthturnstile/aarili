@@ -185,7 +185,9 @@ export function checkBoundaries(sources) {
         !workspace &&
         !specifier.startsWith(".") &&
         !specifier.startsWith("@/") &&
-        !/^(react|react-dom|next|zod|hono\/client)(\/|$)/.test(specifier) &&
+        !/^(react|react-dom|next|zod|hono\/client|@tanstack\/react-query)(\/|$)/.test(
+          specifier,
+        ) &&
         !(
           file.startsWith("packages/ui/") &&
           /^(?:@base-ui\/react\/(?:button|input|dialog)|class-variance-authority|clsx|tailwind-merge|lucide-react)$/.test(

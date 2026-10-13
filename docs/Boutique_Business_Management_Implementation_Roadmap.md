@@ -89,6 +89,12 @@ Each slice delivers schema/migrations where needed, core policies, validated API
 
 ##### Vertical Slice 0.1.2 — Run a Health Path through CI
 
+Implementation split: approved issue #5 (**0.1.2a**) covers runnable database
+readiness, typed health UI and local Windows/Linux PostgreSQL/browser evidence;
+issue #6 covers CI and delivery checks after #5 merges. See
+[issue #5 evidence](agents/Issue_5_Database_Health_Evidence.md). This does not
+complete the parent slice or the later AC-38/AC-55 integrity gates.
+
 - **Scope:** Mandatory prerequisite; architecture §§12.2, 12.4, 15.
 - **Outcome:** An actual web/Hono health path reaches PostgreSQL. GitHub Actions runs Biome, Knip, typecheck, Vitest/property tests, Testcontainers, production build and initial phone/tablet/desktop Playwright/axe smoke tests. Add checks as real behaviours land; no dummy passing checks. Pin Actions to SHAs, audit dependencies and configure Renovate/security handling.
 - **Dependencies:** 0.1.1; authenticated GitHub configuration when enabling required checks.

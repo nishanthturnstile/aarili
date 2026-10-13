@@ -1,0 +1,72 @@
+import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
+import { connect } from "node:net";
+import { setTimeout as delay } from "node:timers/promises";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import pg from "pg";
+
+// Same reviewed image as local infra; no fixed host bindings, volumes or reuse.
+const image =
+  "postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c";
+
+async function isOpen(host, port) {
+  return new Promise((resolve) => {
+    const socket = connect({ host, port });
+    const finish = (open) => {
+      socket.destroy();
+      resolve(open);
+    };
+    socket.setTimeout(500, () => finish(false));
+    socket.once("connect", () => finish(true));
+    socket.once("error", () => finish(false));
+  });
+}
+
+export async function withPostgres(run) {
+  const password = randomBytes(24).toString("hex");
+  const container = await new PostgreSqlContainer(image)
+    .withDatabase("aarili_health_test")
+    .withPassword(password)
+    .withStartupTimeout(120000)
+    .start();
+  const host = container.getHost();
+  const port = container.getMappedPort(5432);
+  console.info(
+    `0.1.2a disposable PostgreSQL ready: ${host}:${port}; container ${container.getId().slice(0, 12)}`,
+  );
+  let stopped = false;
+  async function stop() {
+    if (stopped) return;
+    await container.stop({ timeout: 10000, remove: true, removeVolumes: true });
+    stopped = true;
+    for (let attempt = 0; attempt < 30 && (await isOpen(host, port)); attempt++)
+      await delay(100);
+    assert.equal(
+      await isOpen(host, port),
+      false,
+      "Disposable PostgreSQL port remains open after cleanup",
+    );
+    console.info(`0.1.2a disposable PostgreSQL cleaned: ${host}:${port}`);
+  }
+  try {
+    const admin = new pg.Client({
+      connectionString: container.getConnectionUri(),
+      connectionTimeoutMillis: 2000,
+    });
+    try {
+      await admin.connect();
+      assert.equal((await admin.query("SELECT 1 AS ready")).rows[0].ready, 1);
+      // Generated hex only; admin credentials exist solely in this disposable fixture.
+      await admin.query(
+        `CREATE ROLE app_user LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`,
+      );
+    } finally {
+      await admin.end();
+    }
+    const url = new URL(container.getConnectionUri());
+    url.username = "app_user";
+    return await run({ connectionString: url.toString(), host, port, stop });
+  } finally {
+    await stop();
+  }
+}

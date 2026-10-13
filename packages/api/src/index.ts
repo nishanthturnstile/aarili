@@ -1,4 +1,8 @@
-import { apiErrorSchema, healthResponseSchema } from "@aarili/contracts";
+import {
+  apiErrorSchema,
+  healthResponseSchema,
+  healthUnavailableSchema,
+} from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 
 const healthRoute = createRoute({
@@ -6,21 +10,42 @@ const healthRoute = createRoute({
   path: "/healthz",
   responses: {
     200: {
-      description: "Process liveness only; not database readiness.",
+      description: "Application and PostgreSQL readiness.",
       content: { "application/json": { schema: healthResponseSchema } },
+    },
+    503: {
+      description: "Database is unavailable, unconfigured or timed out.",
+      content: { "application/json": { schema: healthUnavailableSchema } },
     },
   },
 });
 
-export function createApi() {
+export function createApi(checkDatabase: () => Promise<boolean>) {
   const app = new OpenAPIHono()
     .basePath("/api")
-    .openapi(healthRoute, (c) =>
-      c.json(
+    .openapi(healthRoute, async (c) => {
+      c.header("Cache-Control", "no-store");
+      let ready = false;
+      try {
+        ready = await checkDatabase();
+      } catch {
+        /* Never expose driver/configuration errors. */
+      }
+      if (!ready)
+        return c.json(
+          healthUnavailableSchema.parse({
+            error: {
+              code: "DATABASE_UNAVAILABLE",
+              message: "Database is unavailable",
+            },
+          }),
+          503,
+        );
+      return c.json(
         healthResponseSchema.parse({ status: "ok", service: "aarili-web" }),
         200,
-      ),
-    );
+      );
+    });
   app.notFound((c) =>
     c.json(
       apiErrorSchema.parse({

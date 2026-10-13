@@ -5,6 +5,12 @@ export const healthResponseSchema = z.strictObject({
   status: z.literal("ok"),
   service: z.literal("aarili-web"),
 });
+export const healthUnavailableSchema = z.strictObject({
+  error: z.strictObject({
+    code: z.literal("DATABASE_UNAVAILABLE"),
+    message: z.literal("Database is unavailable"),
+  }),
+});
 export const apiErrorSchema = z.strictObject({
   error: z.strictObject({
     code: z.enum(["NOT_FOUND", "INTERNAL_ERROR"]),
