@@ -2,26 +2,30 @@
 
 **Target document:** `docs/Boutique_Business_Management_Implementation_Roadmap.md`  
 **Planning baseline:** [Boutique Business Management Final Product Plan](Boutique_Business_Management_Final_Product_Plan.md), dated 12 October 2026  
-**Status:** Complete implementation-planning baseline. Product implementation and software acceptance remain pending.
+**Technical baseline:** [Architecture and Technology Decisions](Architecture_and_Technology_Decisions.md), dated 12 October 2026
+**Status:** Proposed for owner review. No implementation or GitHub Issue generation is authorised by this document alone.
 
 ## 1. Roadmap purpose and planning basis
 
-This roadmap translates the complete product plan into **3 waves, 24 phases and 85 vertical slices**. It covers all **241 numbered functional requirements** and all **66 product acceptance scenarios**.
+This roadmap translates both source documents into **4 waves (0–3), 29 phases and 98 vertical slices**: 13 prerequisite foundation slices and the existing 85 business slices. It assigns delivery responsibility for all **241 numbered functional requirements** and all **66 product acceptance scenarios**, together with the architecture obligations. These are planning coverage claims, not software test results.
 
 The implementation should progressively establish the boutique’s authoritative business record: who ordered and wears each garment, what was agreed, where the materials are, what must happen next, when the garment was promised, and what money remains outstanding.
 
 The first wave delivers a complete owner-operated custom-stitching and alteration workflow. The second expands that workflow to teams, independent boutiques, purchasing, retail, customer participation and reviewed assistance. The third adds validated pattern generation, contextual intelligence and conditional platform integrations.
 
-The roadmap defines functional delivery and acceptance. It does not select architecture, technology, database structures, APIs, infrastructure, implementation effort or development dates.
+The hierarchy is **Wave → Phase → Functionality → Vertical Slice**. Functionality headings group related outcomes; stable slice IDs identify implementable/verifiable increments. Foundation slices have executable operational outcomes rather than user screens. Product behaviour/release scope takes precedence from the product plan; technical constraints come from the architecture. This document neither changes either baseline nor estimates effort or development dates.
 
 ### 1.1 Scope classifications
 
 - **Essential:** Required to satisfy the committed founding-pilot scope or a mandatory prerequisite of that scope.
-- **Enhancement:** Part of the complete product baseline, delivered after the MVP.
+- **Phase 1 Should:** Non-blocking pilot enhancement; may move to Wave 2. Minimum correctness needed by a Must still ships with that Must.
+- **Later baseline:** Part of the complete product, with provisional Phase 2/3 allocation; not an optional extension.
 - **Conditional baseline capability:** Part of the product plan, but activated only when its business need, configuration, permissions or validation prerequisites are satisfied.
 - **Optional extension:** Outside the committed baseline and excluded from these implementation waves.
 
 Source-plan **Phase 1** corresponds to roadmap **Wave 1**. Roadmap phases are smaller business-capability groups; their numbering does not replace the source plan’s release commitments.
+
+Wave 0 is mandatory prerequisite work within the Phase 1 effort, not a new product release. It may progress incrementally along its dependency graph; do not wait for every infrastructure slice before starting an unrelated safe synthetic business slice. Use only synthetic records until the Wave 1 live gate. The original 85 IDs are preserved for future tickets.
 
 ### 1.2 Assumptions and scope decisions
 
@@ -64,7 +68,134 @@ Every slice includes its complete user interaction, authoritative record changes
 - Show failed saves, uploads and external actions honestly; preserve recoverable work and the promised manual path.
 - Test applicable exceptions as well as normal completion. A form alone does not complete a slice.
 
-Earlier increments use practice or reviewed test records. **No live pilot starts until the complete Wave 1 readiness gate passes.**
+Earlier increments use isolated synthetic or practice records. **No live pilot starts until the complete Wave 1 readiness gate passes.**
+
+Each slice delivers schema/migrations where needed, core policies, validated API/typed client, UI or operational interface, audit/jobs/documents and tests for its own outcome. A later integration is not required to verify the base slice; disabled future entry points must be explicit. Source/scenario ownership is recorded in §6 and the explicit requirement register. All business slices inherit the 0.2.2 tenant and 0.2.3 command safeguards. Upload, draft, money and document slices additionally depend on their specific foundation below.
+
+## Wave 0 — Mandatory Foundations for Synthetic Development
+
+**Objective:** Establish the smallest runnable, testable modular monolith and protect data before business features accumulate. Architecture §§4–15 govern these slices. No future-only packages, production customer records or speculative services are introduced.
+
+### Phase 0.1 — Establish the Workspace and Verification Path
+
+#### Functionality — Reproducible builds and reviewable delivery
+
+##### Vertical Slice 0.1.1 — Resolve Compatibility and Bootstrap the Workspace
+
+- **Scope:** Mandatory prerequisite; architecture §§4–6, 11.4, 12.4.
+- **Outcome:** Pin Node 24, TypeScript 6.x strict, pnpm and compatible exact P1 versions; create pnpm/Turborepo web/worker and the minimal real package boundaries. Commit lockfile, Biome/Knip/config, safe environment examples, local PostgreSQL/S3-emulator Compose and README commands. Enforce the §6.2 import matrix. Verify Base UI/Table 9 recipes; no RC adoption or Radix mixing. Create module folders/packages when first needed.
+- **Dependencies:** Roadmap approval. No dependency on cloud provisioning.
+- **Verification:** Clean frozen-lockfile install, workspace typecheck/lint and web/worker production build; negative import-boundary example is rejected. Confirm required engines/peers and PostgreSQL extensions; record any baseline conflict before changing versions.
+
+##### Vertical Slice 0.1.2 — Run a Health Path through CI
+
+- **Scope:** Mandatory prerequisite; architecture §§12.2, 12.4, 15.
+- **Outcome:** An actual web/Hono health path reaches PostgreSQL. GitHub Actions runs Biome, Knip, typecheck, Vitest/property tests, Testcontainers, production build and initial phone/tablet/desktop Playwright/axe smoke tests. Add checks as real behaviours land; no dummy passing checks. Pin Actions to SHAs, audit dependencies and configure Renovate/security handling.
+- **Dependencies:** 0.1.1; authenticated GitHub configuration when enabling required checks.
+- **Verification:** Run locally and in CI on a review branch; database outage makes health fail; no server secrets in browser output. Require the actual check names on main once the workflow exists, then confirm protection. No remote change occurs in this planning task.
+
+### Phase 0.2 — Protect Identity, Tenancy and Business Commands
+
+#### Functionality — Controlled owner access and tenant transactions
+
+##### Vertical Slice 0.2.1 — Bootstrap and Recover the Owner Account
+
+- **Scope:** Mandatory prerequisite; architecture §§6.5, 11.1, 11.4; TRU-01, BIZ-01.
+- **Outcome:** Protected one-time setup, verified email/password and explicitly linked allow-listed Google sign-in. Resend serves auth email only. Database sessions, exact trusted origins, secure cookies, CSRF/origin checks, database-backed rate limits and recent re-authentication for sensitive actions. Environment-specific OAuth clients; public/implicit signup/linking closed.
+- **Dependencies:** 0.1.2. Synthetic/local email adapter first; production domain/OAuth/email DNS before live activation.
+- **Verification:** Concurrent bootstrap attempts produce one owner; setup flag permanently closes bootstrap; unapproved Google accounts cannot sign up/link. Test logout/reset/session expiry, unsafe-origin rejection and re-authentication against synthetic/local mail capture. Actual outbound auth email is enabled only after the shared suppression guards in 0.3.2; replayed restore jobs cannot bypass them. Do not base authority on proxy.ts.
+
+##### Vertical Slice 0.2.2 — Enforce Shop Context and Forced RLS
+
+- **Scope:** Mandatory prerequisite from the first tenant table; architecture §§8.1–8.2, 11.2; TRU-01, AC-38.
+- **Outcome:** Separate app_owner/app_user/backup/privacy roles; shop and own-membership policy bootstrap; `withShop()` transaction-local user/shop/actor settings. Non-null shop_id, composite tenant foreign keys, shop-led uniqueness/indexes, FORCE RLS read/write policies. Auth identities and pg-boss remain confined exceptions.
+- **Dependencies:** 0.2.1.
+- **Verification:** Two synthetic shops; guessed IDs, missing/empty context, cross-shop writes/links, rollback, pooled-connection reuse and switching all fail closed. CI introspects all tenant tables for FORCE plus read/write policies. Repeat leak tests whenever a repository/search/export/media/job/AI path is added.
+
+#### Functionality — Atomic, attributable and retry-safe mutations
+
+##### Vertical Slice 0.2.3 — Establish the Command, Audit and Conflict Contract
+
+- **Scope:** Mandatory prerequisite; architecture §§6.4, 8.3, 8.5; TRU-06/TRU-12, USE-08, AC-55.
+- **Outcome:** Thin zod-openapi routes and framework-free core services share one transaction and error shape. Version/ETag/If-Match and actor/action/request-bound idempotency commit with business changes, audit and job records. Runtime grants/triggers protect finalised history as each table arrives; explicit privacy functions are the only erasure exception.
+- **Dependencies:** 0.2.2.
+- **Verification:** A synthetic protected-record command proves 428/412/409/422, same-key replay, changed-payload rejection, concurrent duplicate serialization and rollback with no partial audit/effect. Contract/OpenAPI generation and per-module compiled clients pass CI. Finalised history refuses ordinary mutation.
+
+### Phase 0.3 — Establish Exact Money and Durable Work
+
+#### Functionality — Financial arithmetic and journal invariants
+
+##### Vertical Slice 0.3.1 — Verify Money, Quantities and Posting Primitives
+
+- **Scope:** Mandatory prerequisite; architecture §8.4; FIN-05/12/21, AC-17/49/58/61.
+- **Outcome:** Integer paise arithmetic and exact wire representation, checked safe-integer conversions from bigint, integer-mm material quantities, deterministic FIN-05 allocation including paise remainders and zero-charge unallocated credit. Small balanced posting journal and derived deposits/receivables/refund liabilities; source locks, durable UTR uniqueness, document-number locking and correction links added with the relevant business tables.
+- **Dependencies:** 0.2.3.
+- **Verification:** Property tests prove conservation/balancing, deterministic tie order, arbitrary retries/reversals, paise/zero/single-line inputs and quantity costs. Concurrent allocations/issue numbers cannot overdraw/reuse. Accountant reviews posting mappings before live use; fixtures never establish tax law.
+
+#### Functionality — Transactional jobs and suppression of external effects
+
+##### Vertical Slice 0.3.2 — Execute Durable Jobs and Establish Restore Guards
+
+- **Scope:** Mandatory prerequisite; architecture §§10.2, 13.2.
+- **Outcome:** pg-boss 12 setup under migration role, Drizzle transaction enqueue, ID/version-only payloads, singleton keys, retries/dead letters, per-shop jobs and Asia/Kolkata schedules. Prod worker/dev in-process mode share handlers. Kill switch, restore epoch/quarantine, practice suppression and money freeze exist before any external-effect path; provider effect ledger is extended only with P2 messaging.
+- **Dependencies:** 0.2.3.
+- **Verification:** Commit makes one job runnable; rollback makes none. Duplicate delivery, revoked authority and changed state do not repeat business effects. Old restore-epoch jobs and disabled outbound state cannot send email/messages; money commands honour freeze. Graceful shutdown and oldest-job/dead-letter checks work.
+
+### Phase 0.4 — Establish Responsive Capture and Private Outputs
+
+#### Functionality — Bilingual navigation, server drafts and observable use
+
+##### Vertical Slice 0.4.1 — Build the Responsive Bilingual Shell
+
+- **Scope:** Mandatory prerequisite; architecture §§7, 9.1–9.2, 12.5; USE-01/02/09, product §28 and §1.6 cost-to-serve.
+- **Outcome:** Tamil/English catalogues and versioned bilingual business vocabulary; self-hosted Noto Tamil; deliberate phone/tablet/desktop navigation and accessible Base UI controls. In-memory shop-keyed Query cache; nuqs safe filters only. Minimal manifest/service worker caches only static offline fallback. Establish search-key/glossary functions, private product_event instrumentation, per-shop media/usage/support effort and scrubbed pino/Sentry without replay.
+- **Dependencies:** 0.2.2. Telemetry/Sentry adapters configured without live PII.
+- **Verification:** 360px Tamil, keyboard/focus/44px targets, locale change, shop/logout cache reset, IME input and offline notice. Assert no API/authenticated-page caching, browser-persisted business data, PII in URLs/logs or third-party behavioural tracking. Unit-test Tamil/Tanglish/phone key folding; recall tuning happens before pilot.
+
+##### Vertical Slice 0.4.2 — Save, Resume and Promote a Server Draft
+
+- **Scope:** Mandatory prerequisite; architecture §7.3; USE-03/04/08, AC-40.
+- **Outcome:** Recoverable synthetic draft using separate incomplete/complete Zod schemas, stable UUID and idempotent/versioned writes. Debounced IME-safe saves, resume list, Saving/Saved/Not saved/Checking outcome states, explicit current-state validation at promotion, retention flags and in-memory failed-save values.
+- **Dependencies:** 0.2.3, 0.4.1.
+- **Verification:** Lost save response and repeated promotion create one record; reconnect retries the same command. Reload, reopening and second-device resume recover committed values; unsaved on-screen values are honestly labelled. No offline persistence or copying of approvals. Order-specific fields land in 1.2.1.
+
+#### Functionality — Private files and immutable bilingual documents
+
+##### Vertical Slice 0.4.3 — Process and Authorise Private Media
+
+- **Scope:** Mandatory prerequisite; architecture §§10.1, 11.5; TRU-03/05/07, USE-07, AC-39/53.
+- **Outcome:** Consent-aware upload purpose/subject lifecycle for reference photos, sketches/documents, manual pattern files and supplied voice notes; private immutable shop keys, short signed PUT/GET links, content/type/size validation, checksums, quarantine/failure states and orphan cleanup. Images additionally use client re-encoding, pixel limits and sharp thumbnails; document/audio paths have explicit supported formats and do not execute uploaded content. Publication is a separate permission command developed with gallery, not an upload side effect.
+- **Dependencies:** 0.2.2–0.2.3, 0.3.2; approved synthetic consent fixtures.
+- **Verification:** Cross-shop signed-link/upload access denied; invalid/mismatched files quarantined, EXIF/GPS stripped, notebook legibility and HEIC support measured. Minor uploads require guardian authority. Private fitting/minor publication prohibited at the data/policy seam before gallery activation. Integration with live intake consent is verified again when 1.1.3 adds that workflow; it is not a prerequisite of the synthetic media harness.
+
+##### Vertical Slice 0.4.4 — Render and Share a Versioned Tamil PDF
+
+- **Scope:** Mandatory prerequisite; architecture §9.3; USE-07, COM-04/06, AC-64 job-slip portion.
+- **Outcome:** Worker Chromium rendering of immutable document models with embedded fonts, hash/template/font revisions, A4 default/A3 option and no network access to user URLs. Concurrency one/on-demand lifecycle, non-root sandbox validation, preview and explicit pending/failed/retry status. Owner-triggered Android file share and desktop download plus wa.me text; prepared/marked-sent only.
+- **Dependencies:** 0.3.2, 0.4.3, 0.4.1.
+- **Verification:** Reviewed Tamil golden set, page sizes/font loading and blocked remote fetch. Renderer failure does not roll back the originating command; duplicate job yields one revision artifact. Test mobile share compatibility/fallback and desktop flow. Business-specific bill/job-slip templates follow in Wave 1; no pattern geometry yet.
+
+### Phase 0.5 — Establish Operational and Privacy Recovery
+
+#### Functionality — Reproducible infrastructure and recovery rehearsal
+
+##### Vertical Slice 0.5.1 — Deploy Synthetic Environments and Restore Them
+
+- **Scope:** Mandatory prerequisite; architecture §§12–14, 18; TRU-10, AC-56.
+- **Outcome:** Singapore dev/prod config-as-code, standalone web, prod worker/dev in-process jobs, separate DB/buckets/credentials, locked reviewed migrations and expand/migrate/contract. PITR availability confirmed; app_backup off-site encrypted dumps every 12h, scratch restore verification then upload/hash/heartbeat, nightly immutable media/document copy and B2 lifecycle/no-delete keys. Private age key stays off-platform. Establish outage slips/runbook, alerts, spend limits and compatible rollback.
+- **Dependencies:** 0.1.2, 0.2.2, 0.3.2, 0.4.4. External resource setup occurs only during its authorised implementation slice.
+- **Verification:** Synthetic restore measures RPO/RTO, counts/ledger/document numbers/media hashes, enforces freeze/epoch/kill switch and proves paper reconciliation. Alert before backup age 18h and monitor WAL lag/jobs/cost. Dev never holds live data. Final live-ready drill and seven-day cost review occur in 1.10.4; Pro upgrade precedes all real records.
+
+#### Functionality — Audited erasure, retention and restoration of revocations
+
+##### Vertical Slice 0.5.2 — Enforce Privacy Maintenance without Rewriting Provenance
+
+- **Scope:** Mandatory prerequisite before live use; architecture §§8.3, 11.5, 13; TRU-04/08/12/13, AC-52/53/56.
+- **Outcome:** Versioned notice/consent schema, rights requests and restricted audited app_privacy functions; separate personal values from provenance, erase/redact with tombstones. Retention jobs cover media, audit personal fields, expired exports/drafts; processor register, breach/grievance procedure and approved periods. Backup manifests carry tombstones and later link revocations; off-platform monthly purge handles erased B2 media.
+- **Dependencies:** 0.3.2, 0.4.3, 0.5.1. Synthetic policy first; counsel/owner approval before real data.
+- **Verification:** Runtime cannot invoke unrestricted erasure; authorised rights request removes personal values while required financial provenance remains explained. Withdrawal takes effect; restoring an older dump re-applies newer tombstones. P2 adds a test proving newer share revocations survive restore. Rights-request UI and all module coverage complete in 1.10.2.
+
+**Foundation gate:** A clean checkout runs the actual commands and all implemented safeguard tests. Foundation tests are repeated and expanded as every business table/path lands; they do not certify the later product by themselves.
 
 ---
 
@@ -94,7 +225,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Shop policies, supported services, Simple mode, customers, wearers and consent.  
 **Dependencies:** None; owner approval of initial policies and forms.
 
-#### Vertical Slice 1.1.1 — Configure the Shop and Commitment Policies
+#### Functionality — Business configuration and supported services
+
+##### Vertical Slice 1.1.1 — Configure the Shop and Commitment Policies
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** SET-01, SET-02, SET-05, SET-06, SET-07, SET-08, SET-09, SET-11. Scenarios: AC-44, AC-60, AC-61, AC-62.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make daily work reflect the boutique’s actual operating rules.
 - **Functional requirements:** Configure profile, INR/local timezone, working calendar, payment accounts, vendors, commercial policies, warning windows, category lead times, weekly caps, festival cut-offs and rush charges. Version changes; activate only relevant modules.
@@ -103,7 +240,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Missing policy values remain unresolved. Over-capacity/cut-off acceptance requires a reason; rush charges can be waived explicitly. Changed policies do not silently alter existing work.
 - **Deliverable:** Approved operating configuration and understandable commitment warnings.
 
-#### Vertical Slice 1.1.2 — Configure Services, Templates and Simple Mode
+##### Vertical Slice 1.1.2 — Configure Services, Templates and Simple Mode
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** SET-03, SET-04, SET-10. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Support fast intake without losing garment-specific requirements.
 - **Functional requirements:** Configure approved categories, outfit pieces, add-ons, measurement forms, requirement/task/quality templates and confirmation wording. Default to Simple mode; support per-order and shop-wide detailed mode.
@@ -112,7 +253,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Templates distinguish required and optional work. Owner assignment is automatic in Simple mode. Switching modes preserves all information and history.
 - **Deliverable:** Approved service templates and a usable solo-owner workflow.
 
-#### Vertical Slice 1.1.3 — Register Customers and Authorised Wearers
+#### Functionality — Customer, wearer and guardian registration
+
+##### Vertical Slice 1.1.3 — Register Customers and Authorised Wearers
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** CUS-01, CUS-02, CUS-04, CUS-07, TRU-01, TRU-03, TRU-04, TRU-05, TRU-07, TRU-13. Scenarios: AC-02, AC-39, AC-52, AC-53.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Identify the correct person without confusing payer, wearer or guardian.
 - **Functional requirements:** Create/search minimal customer records; add separate wearers, relationships, language/channel preferences and permissions. Capture Tamil/English notice and consent; protect private assets and shop records.
@@ -127,7 +274,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Quick intake, outfit pieces, packages, service orders, repeat intake and customer history.  
 **Dependencies:** Phase 1.1.
 
-#### Vertical Slice 1.2.1 — Create and Recover a Quick Order
+#### Functionality — Recoverable intake
+
+##### Vertical Slice 1.2.1 — Create and Recover a Quick Order
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-01, ORD-04, ORD-05, ORD-06, ORD-11, USE-03, USE-04, USE-08. Scenarios: AC-40, AC-55, AC-58, AC-59.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Record a new commitment with minimal administrative effort.
 - **Functional requirements:** Provide readable identifiers and the six Simple-mode input groups: customer name/phone, wearer defaulting to the customer, garment type, agreed delivery date, price or “to be quoted”, and optional advance. Generate unresolved checklists and owner assignment. Preserve original/current dates, event dates, priority, creation time and attributable history. Advance recording is added by 1.4.2 without delaying base intake.
@@ -136,7 +289,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Incomplete drafts are recoverable. Lost connectivity shows unsaved changes and preserves typed values on screen. Retry creates no duplicate; conflicting edits are disclosed.
 - **Deliverable:** Reliable online quick-order intake.
 
-#### Vertical Slice 1.2.2 — Group Garments and Track Outfit Pieces
+#### Functionality — Independent outfits, packages and services
+
+##### Vertical Slice 1.2.2 — Group Garments and Track Outfit Pieces
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-02, ORD-03, ORD-13, ORD-14. Scenarios: AC-01, AC-63.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Manage family visits and packages without hiding independent work.
 - **Functional requirements:** Group separate orders under an optional booking; support multiple wearers, shared occasion/event dates and Bridal package pricing. Give every outfit piece its own requirements, measurements, tasks, custody and readiness.
@@ -145,7 +304,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A piece’s blocker does not falsely complete another piece. Booking totals do not duplicate garment revenue. Retail choices stay unavailable in Wave 1.
 - **Deliverable:** Multi-garment bookings and piece-aware outfit orders.
 
-#### Vertical Slice 1.2.3 — Create Alteration and Small-Service Orders
+##### Vertical Slice 1.2.3 — Create Alteration and Small-Service Orders
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-14, JOB-08, JOB-09. Scenarios: AC-50.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Handle lightweight jobs without forcing a full custom-stitching process.
 - **Functional requirements:** Add priced fall/pico/pre-pleating and similar lines with completion state and optional tasks. Create standalone small-service or alteration orders without mandatory full measurements or patterns.
@@ -154,7 +317,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Inapplicable forms/tasks are absent. Customer garments remain traceable property. Multiple add-ons retain separate completion and pricing.
 - **Deliverable:** Lightweight service intake compatible with the main fulfilment workflow.
 
-#### Vertical Slice 1.2.4 — Reuse Orders and Maintain Customer History
+#### Functionality — Repeat intake and identity history
+
+##### Vertical Slice 1.2.4 — Reuse Orders and Maintain Customer History
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** CUS-03, CUS-05, CUS-06, ORD-08, ORD-12, MEA-10, TRU-06, TRU-12. Scenarios: AC-02, AC-58, AC-59.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Accelerate repeat work while preserving historical truth.
 - **Functional requirements:** Duplicate as new; retrieve customer/wearer history; review duplicates and merge only with authorisation. Preserve identifiers, financial links and wearer distinctions. Record corrective identity edits and reviewed relinking.
@@ -169,7 +338,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Design libraries, references, measurements, manual patterns and production documents.  
 **Dependencies:** Phases 1.1–1.2.
 
-#### Vertical Slice 1.3.1 — Capture a Versioned Design Specification
+#### Functionality — Versioned garment inputs
+
+##### Vertical Slice 1.3.1 — Capture a Versioned Design Specification
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-07, DES-01, DES-02, DES-03, DES-04, DES-05, DES-10. Scenarios: AC-07, AC-08.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Replace scattered references with clear garment instructions.
 - **Functional requirements:** Maintain category/type libraries with availability controls. Separate neck type/design and sleeve type/design. Capture garment-specific construction, fit, lining, decoration and restrictions; attach source-linked references, captions and annotations.
@@ -178,7 +353,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Inactive choices remain readable historically but require replacement/reactivation for new work. Reference replacement preserves the previous version. Private references never publish automatically.
 - **Deliverable:** Versioned garment specifications and controlled design libraries.
 
-#### Vertical Slice 1.3.2 — Record and Select Measurement Versions
+##### Vertical Slice 1.3.2 — Record and Select Measurement Versions
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MEA-01, MEA-02, MEA-03, MEA-04, MEA-05, MEA-06, MEA-07, MEA-11. Scenarios: AC-06, AC-07, AC-08.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Preserve accurate wearer-level measurement history.
 - **Functional requirements:** Support approved per-category/piece forms, inches/centimetres, decimals/fractions, visible conversions and field precision. Record measurement source, method, date and measurer; validate missing or implausible values with approved rules.
@@ -187,7 +366,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Revisions do not change historical orders. Reuse shows age/source/context and requires confirmation. Entered, garment-target and derived values are distinguishable; no unapproved formulas or guessed measurements are introduced.
 - **Deliverable:** Authoritative, private measurement versioning.
 
-#### Vertical Slice 1.3.3 — Record a Manual or External Pattern Path
+#### Functionality — Manual production references and identification
+
+##### Vertical Slice 1.3.3 — Record a Manual or External Pattern Path
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** PAT-01, PAT-03. Scenarios: AC-07, AC-08.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Keep production usable without automated drafting.
 - **Functional requirements:** Declare manual, external or validated automated availability for each supported type. Link physical-pattern references, sketches or uploaded outputs with source, version and review status.
@@ -196,7 +381,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Orderable types are not presented as automatically draftable. Imported scale/formula assumptions remain visibly unverified. No unsupported generation is offered.
 - **Deliverable:** Reviewed manual/external production references.
 
-#### Vertical Slice 1.3.4 — Produce Job Slips and Material Labels
+##### Vertical Slice 1.3.4 — Produce Job Slips and Material Labels
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-10, USE-07. Scenarios: AC-64.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Connect physical bags and garments to their instructions.
 - **Functional requirements:** Produce previewable job slips/bag labels with readable order/piece identifiers and permitted production details. Support PDF download and sharing; show upload failures and missing assets.
@@ -211,7 +400,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Rates, quotes, deposits, approval/change control, non-tax billing and financial adjustments.  
 **Dependencies:** Phases 1.1–1.3.
 
-#### Vertical Slice 1.4.1 — Prepare Itemised Estimates and Quotations
+#### Functionality — Quotations and customer deposits
+
+##### Vertical Slice 1.4.1 — Prepare Itemised Estimates and Quotations
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** FIN-01, FIN-02, FIN-03, FIN-04. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Agree a transparent price without confusing revenue and cost.
 - **Functional requirements:** Maintain effective-dated rates for garment labour, materials, add-ons, alterations, Aari and rush work. Produce garment/booking quotes with assumptions, quantities, inclusions, discounts, validity and revisions; distinguish selling price from internal cost.
@@ -220,16 +415,26 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Customer-supplied materials are not charged as shop stock. Bundled/complimentary lines retain real costs. Catalogue changes do not rewrite old quotes; booking and garment charges are counted once.
 - **Deliverable:** Versioned, itemised non-tax quotations.
 
-#### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments
+##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** FIN-05, FIN-10, FIN-11, FIN-12, FIN-13. Scenarios: AC-03, AC-04, AC-17, AC-18, AC-49, AC-60, AC-61, AC-62.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Show what money is genuinely received and which work it funds.
-- **Functional requirements:** Record advances, instalments and split methods; distinguish pending, confirmed, failed and reversed evidence. Confirm cash on receipt and UPI through the owner’s receiving-account check. Detect duplicate UTRs and allocate confirmed money transparently. Apply proportional shares by agreed charge, round each down to whole rupees, and give remaining rupees to the largest-charge line, earliest if tied. Owner reallocation needs a reason before billing; after billing it requires an adjustment. Receipt document generation is layered on by 1.4.4.
+- **Functional requirements:** Record advances, instalments and split methods; distinguish pending, confirmed, failed and reversed evidence. Confirm cash on receipt and UPI through the owner’s receiving-account check. Detect duplicate UTRs and allocate confirmed money transparently. Apply proportional shares by agreed charge, round each down to whole rupees, and give all remaining rupees and paise to the largest-charge line, earliest if tied. Zero total charge leaves unallocated customer credit. Owner reallocation needs a reason before billing; after billing it requires an adjustment. Source locking, balanced postings and durable references accompany this slice. Receipt document generation is layered on by 1.4.4.
 - **Expected user workflow:** Owner records cash/UPI, confirms receipt and reviews allocations; the linked receipt is issued once document generation is available.
 - **Dependencies:** 1.4.1.
-- **Acceptance criteria:** Screenshots remain evidence. Pending money does not settle balances. Default allocation sums exactly; ₹1,000 across three equal ₹700 lines allocates ₹334/₹333/₹333. Allocations cannot exceed confirmed available funds. Excess money remains customer credit.
+- **Acceptance criteria:** Screenshots remain evidence. Pending money does not settle balances. Default allocation sums exactly, including paise sources; ₹1,000 across three equal ₹700 lines allocates ₹334/₹333/₹333. Allocations cannot exceed confirmed available funds under concurrency. Excess money remains customer credit. Test same-key retry after a lost response, stale versions, actor/action/hash mismatch, duplicate UTR and adjustment after billing; no second posting or confirmation is produced.
 - **Deliverable:** Confirmed payments, reviewable allocations and accurate balances.
 
-#### Vertical Slice 1.4.3 — Approve Agreements and Govern Changes
+#### Functionality — Agreements, issue and financial corrections
+
+##### Vertical Slice 1.4.3 — Approve Agreements and Govern Changes
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-09, DES-06, DES-08, DES-09, DES-11, COM-04, COM-06, COM-07, COM-08. Scenarios: AC-05.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Ensure production uses an accepted, current scope.
 - **Functional requirements:** Prepare customer summaries and Tamil/English WhatsApp content; record prepared/marked-sent status and communication history. Capture current design, price and date approval, including staff-attested verbal approval. Assess changes and issue revised agreements. Sharing opens WhatsApp click-to-chat with prefilled text; the owner attaches a PDF/image through the mobile share route or desktop download and marks it sent.
@@ -238,16 +443,24 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A share is not approval. Requests remain pending until accepted. Only affected approvals/work become stale; cut/dispatched work is flagged. Original promises and agreements remain readable. The product does not claim automatic sending or access to private WhatsApp history.
 - **Deliverable:** Approved customer agreements and attributable change control.
 
-#### Vertical Slice 1.4.4 — Issue Non-Tax Bills and Receipts
+##### Vertical Slice 1.4.4 — Issue Non-Tax Bills and Receipts
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** FIN-06, FIN-07, FIN-08, FIN-09, FIN-21. Scenarios: AC-03, AC-04, AC-44.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Create valid business documents and a clear commercial event sequence.
 - **Functional requirements:** Distinguish quote, acknowledgement, payment receipt, bill and adjustment. Use approved identity/numbering/correction rules; preserve issued originals and cancelled numbers. Apply the founding shop’s unregistered regime without GSTIN or tax lines.
 - **Expected user workflow:** Owner issues a receipt or bills the relevant garment/piece/service, normally at handover.
 - **Dependencies:** 1.4.1–1.4.3; approved document configuration.
-- **Acceptance criteria:** Quotes create no obligation; price approval sets expected order value, not revenue/receivable; advances create deposits, not revenue. Billing creates revenue/receivable and applies deposits once. Earlier billing requires a reason. Missing material does not block an otherwise valid document.
+- **Acceptance criteria:** Quotes create no obligation; price approval sets expected order value, not revenue/receivable; advances create deposits, not revenue. Billing creates revenue/receivable and applies deposits once. Earlier billing requires a reason. Missing material does not block an otherwise valid document. Concurrent issuance cannot reuse numbers; voids preserve numbers. Stored revision/hash/template/fonts remain unchanged after configuration edits. A failed PDF shows retry status without reversing the issued bill/payment.
 - **Deliverable:** Controlled non-tax documents and distinguishable expected versus collectible balances.
 
-#### Vertical Slice 1.4.5 — Correct Money and Settle Refund Liabilities
+##### Vertical Slice 1.4.5 — Correct Money and Settle Refund Liabilities
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** FIN-14. Scenarios: AC-19, AC-20, AC-51.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Resolve financial exceptions without rewriting history.
 - **Functional requirements:** Record credits, reversals, approved adjustments and refunds with source obligation, beneficiary, method, authority and settlement status. Separate sale credit, refund liability and actual refund.
@@ -262,7 +475,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Receipts, shared fabric, allocation/consumption, minimal cost evidence, returns and incidents.  
 **Dependencies:** Phases 1.2–1.4.
 
-#### Vertical Slice 1.5.1 — Receive Customer Property and Resolve Material Requirements
+#### Functionality — Customer fabric receipt and custody
+
+##### Vertical Slice 1.5.1 — Receive Customer Property and Resolve Material Requirements
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-01, MAT-02, MAT-04. Scenarios: AC-03, AC-04, AC-50.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Distinguish a material promise from physical receipt.
 - **Functional requirements:** Record fabric, samples and accessories with quantities, dimensions/units, condition, source, receiver and optional photos. Track required, promised, received, usable and shortfall quantities.
@@ -271,7 +490,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Unknown dimensions remain unknown. Customer property does not increase purchased-stock value. Partial/unusable receipt remains visible and blocks only the relevant production action.
 - **Deliverable:** Customer-property receipts and accurate material readiness.
 
-#### Vertical Slice 1.5.2 — Split Shared Fabric and Track Custody
+##### Vertical Slice 1.5.2 — Split Shared Fabric and Track Custody
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-03, MAT-13. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Prevent fabric double-commitment and lost cut pieces.
 - **Functional requirements:** Plan fabric splits across garments/pieces; track cut pieces and remnants separately. Record optional storage locations, current custodian and movement between shop, worker, trial and vendor.
@@ -280,7 +503,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** The same cloth cannot be committed twice. Assignment changes do not imply physical movement. Every dispatched piece and unresolved return remains traceable.
 - **Deliverable:** Piece-level shared-fabric and custody records.
 
-#### Vertical Slice 1.5.3 — Reserve and Consume Shop Materials
+#### Functionality — Shop material consumption and direct costs
+
+##### Vertical Slice 1.5.3 — Reserve and Consume Shop Materials
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-05, MAT-06, MAT-07, MAT-11. Scenarios: AC-23, AC-58, AC-59.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make stock availability and garment material cost trustworthy.
 - **Functional requirements:** Maintain minimal reconciled opening stock, explicit units and purchase unit cost; reserve without consuming. Record issue, actual use, wastage and reusable remnant returns.
@@ -289,7 +518,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Insufficient stock is blocked by default. A ₹100/m issue of 2.2 m costs ₹220 if 0.2 m is unusable, or ₹200 if the remnant is returned as reusable stock. Purchase and consumption are not both charged to the order.
 - **Deliverable:** Minimal accurate stock allocation and material costing.
 
-#### Vertical Slice 1.5.4 — Record Direct Costs and Purchase Evidence
+##### Vertical Slice 1.5.4 — Record Direct Costs and Purchase Evidence
+
+- **Scope:** P1 Must direct-cost evidence (FIN-17); PUR-03 minimal purchase capture is Should, full purchasing P2.
+- **Traceability:** PUR-03, FIN-17. Scenarios: AC-23.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Preserve genuine fulfilment costs without requiring full purchasing.
 - **Functional requirements:** Capture minimal purchase/service evidence, quantities, unit costs and order/stock purpose. Record estimated/actual material, vendor, labour, fulfilment and correction costs; flag missing evidence.
@@ -298,7 +531,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Stock purchases are recognised through consumption for order costing. Vendor charges are not duplicated as purchase and labour costs. Zero-priced work retains its cost.
 - **Deliverable:** Evidence-linked direct costs and completeness indicators.
 
-#### Vertical Slice 1.5.5 — Return Property and Resolve Incidents
+#### Functionality — Property returns and remedies
+
+##### Vertical Slice 1.5.5 — Return Property and Resolve Incidents
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-10, MAT-12. Scenarios: AC-13, AC-14.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Keep property obligations visible after garment completion.
 - **Functional requirements:** Record returned/retained/pending remnants and samples, permission-based disposal, losses, damage, mix-ups and remedies. Link evidence, responsible owner, communication and financial settlement.
@@ -313,7 +552,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Enquiry lifecycle/conversion, owner-recorded appointments and source evidence.  
 **Dependencies:** Phases 1.1–1.4.
 
-#### Vertical Slice 1.6.1 — Capture and Convert an Enquiry
+#### Functionality — Enquiry conversion and owner appointments
+
+##### Vertical Slice 1.6.1 — Capture and Convert an Enquiry
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ENQ-01, ENQ-02, ENQ-03, ENQ-04. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Track prospective work without requiring full intake.
 - **Functional requirements:** Capture minimal request/contact/source information; manage new, contacted, awaiting-information, quoted, follow-up-due, converted and lost/closed states with owner, reason and next action. Preserve unsuccessful quotes.
@@ -322,7 +567,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** No measurements or fabric are required for enquiry capture. Conversion preserves source history and avoids duplicate customers/orders. Enquiry state does not masquerade as production state.
 - **Deliverable:** Lightweight enquiry-to-order conversion.
 
-#### Vertical Slice 1.6.2 — Book Owner-Managed Appointments
+##### Vertical Slice 1.6.2 — Book Owner-Managed Appointments
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ENQ-05, COM-04, COM-06, COM-07, COM-08. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Schedule measurements, consultations, trials and collection.
 - **Functional requirements:** Record appointment type, duration, location, attendee and linked garment/booking using the shop calendar.
@@ -331,7 +580,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Appointments appear against the correct wearer/work. Appointment time and garment delivery promise remain distinct. No customer self-booking is offered.
 - **Deliverable:** Owner-managed appointment scheduling.
 
-#### Vertical Slice 1.6.3 — Preserve Lead Sources and Optional Monthly Spend
+#### Functionality — Acquisition evidence
+
+##### Vertical Slice 1.6.3 — Preserve Lead Sources and Optional Monthly Spend
+
+- **Scope:** P1 Must source evidence; monthly channel spend P1 Should.
+- **Traceability:** ENQ-08, REP-07, REP-08. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Establish evidence before sophisticated attribution.
 - **Functional requirements:** Record walk-in, referral, Google Business Profile/Maps, WhatsApp direct/Status/forwarded, organic Instagram, Click-to-WhatsApp/boosted-post ads, Google Ads, other Instagram/Meta Ads, local directories and other/unknown sources. Keep customer-stated, tracked and manually assigned evidence distinct. Provide optional monthly spend by channel.
@@ -346,7 +601,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Tasks, cutting, blockers, Aari work, external dispatch/return and minimal vendor dues.  
 **Dependencies:** Phases 1.3–1.5.
 
-#### Vertical Slice 1.7.1 — Start and Complete Applicable Production Tasks
+#### Functionality — Owner production and blockers
+
+##### Vertical Slice 1.7.1 — Start and Complete Applicable Production Tasks
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** JOB-01, JOB-02, JOB-03, JOB-04, JOB-05. Scenarios: AC-03, AC-04, AC-11, AC-12, AC-50.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Turn intake into an executable garment workflow.
 - **Functional requirements:** Generate template-dependent tasks, optional/parallel work and Simple-mode milestones. Record assignment, start/completion, timestamps, evidence and approved manual/pattern method.
@@ -355,7 +616,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Cutting is an explicit irreversible checkpoint. Missing applicable approvals/materials/assignment block the action. Owner assignment is valid; differing pre/post-cut embroidery sequences both work.
 - **Deliverable:** Governed owner-operated production.
 
-#### Vertical Slice 1.7.2 — Hold Work and Manage Blockers
+##### Vertical Slice 1.7.2 — Hold Work and Manage Blockers
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-01, ORD-04, ORD-05, ORD-06, ORD-11, JOB-06. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make stalled work actionable.
 - **Functional requirements:** Record reason, accountable owner, next action, review date and schedule impact for holds/blockers. Preserve blocked duration and explicit reopening.
@@ -364,16 +629,26 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Acknowledgement is not resolution. Waiting time is not automatically worker effort. Changing dates preserves the original promise and requires the applicable agreement.
 - **Deliverable:** Owned production exceptions and blocker history.
 
-#### Vertical Slice 1.7.3 — Brief and Dispatch Aari/Embellishment Work
+#### Functionality — Outsourced Aari work and obligations
+
+##### Vertical Slice 1.7.3 — Brief and Dispatch Aari/Embellishment Work
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-09, JOB-16, OPS-01, OPS-04, OPS-11. Scenarios: AC-66.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Manage specialist work and customer panels without a separate ledger.
 - **Functional requirements:** Maintain motif references, placement/coverage, complexity, effort ranges and consumable templates. Price through approved rates; identify shop/customer/artisan supplies. Maintain minimal artisan profiles and shareable briefs. Apply the approved marking/tracing, framing, Aari, removal, quality and stitching sequence appropriate to the garment.
 - **Expected user workflow:** Owner agrees the design/rate, selects the applicable sequence and dispatches exact panels/materials with an expected return.
 - **Dependencies:** 1.3.1, 1.4.1–1.4.3, 1.5.2, 1.7.1.
-- **Acceptance criteria:** Dispatch changes custody only for specified items. Supplies land in the correct cost category. A vendor login is unnecessary; photos remain subject to publication permission.
+- **Acceptance criteria:** Dispatch changes custody only for specified items. The agreed charge and any advance/outstanding due are visible immediately at dispatch; 1.7.4 adds acceptance/payability and final settlement. Supplies land in the correct cost category. A vendor login is unnecessary; photos remain subject to publication permission.
 - **Deliverable:** Complete Aari/external-work briefs and dispatch records.
 
-#### Vertical Slice 1.7.4 — Accept External Returns and Settle Vendor Dues
+##### Vertical Slice 1.7.4 — Accept External Returns and Settle Vendor Dues
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-09, JOB-07, OPS-11. Scenarios: AC-13, AC-14, AC-65, AC-66.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reconcile returned property, accepted work and artisan money.
 - **Functional requirements:** Record reported progress, partial returns, quantities, quality acceptance/rejection, rework/dispute, agreed charge, advances, later payments and outstanding due.
@@ -388,7 +663,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Trials/corrections, quality/readiness, partial collection, cancellation/reopening and stored property.  
 **Dependencies:** Phases 1.4–1.7.
 
-#### Vertical Slice 1.8.1 — Record Trials, Corrections and Fit Outcomes
+#### Functionality — Fit and quality acceptance
+
+##### Vertical Slice 1.8.1 — Record Trials, Corrections and Fit Outcomes
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MEA-08, MEA-09, JOB-08, JOB-09. Scenarios: AC-15, AC-16, AC-50.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Resolve fitting work and preserve contextual learning.
 - **Functional requirements:** Record trial attendance, versions used, feedback, changed measurements, correction cause/chargeability/cost, owner and next action. Save final garment fabric/construction/alterations and distinguish staff-assessed from customer-confirmed fit.
@@ -397,7 +678,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Missed trials flag risk without silently changing dates. Planned fitting differs from avoidable rework. A garment correction never automatically rewrites general body measurements.
 - **Deliverable:** Trial-to-correction workflow and verified fit history.
 
-#### Vertical Slice 1.8.2 — Quality-Check and Mark Valid Readiness
+##### Vertical Slice 1.8.2 — Quality-Check and Mark Valid Readiness
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** JOB-10, JOB-11. Scenarios: AC-15, AC-16, AC-50.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make “ready” a trustworthy event.
 - **Functional requirements:** Run garment/piece-specific checks for construction, finish, defects, closures, accessories and relevant dimensions. Failed checks create corrective tasks; preserve first/current readiness and withdrawal reasons.
@@ -406,7 +691,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Unresolved required trial/quality decisions prevent readiness. Withdrawing readiness preserves the earlier event and its invalidation. Payment or collection is not implied by readiness.
 - **Deliverable:** Quality acceptance and auditable readiness.
 
-#### Vertical Slice 1.8.3 — Hand Over Garments or Pieces and Record Collection
+#### Functionality — Handover, cancellation and residual obligations
+
+##### Vertical Slice 1.8.3 — Hand Over Garments or Pieces and Record Collection
+
+- **Scope:** P1 Must piece/garment collection and credit handover; courier dispatch optional.
+- **Traceability:** ORD-02, ORD-13, JOB-12, JOB-13, FIN-15, COM-04, COM-06, COM-07, COM-08. Scenarios: AC-13, AC-14, AC-21, AC-22, AC-50, AC-63.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Fulfil individual items while preserving the remainder.
 - **Functional requirements:** Record selected garment/piece, recipient, acknowledgement and actual collection time. Issue the applicable bill; apply payment or authorised credit policy. Review outstanding customer property and prepare ready/balance messages.
@@ -415,7 +706,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A salwar top can be handed over while its bottom remains in correction. Unpaid credit remains collectible. Ready, dispatched and received/collected are distinct; optional delivery records do not falsely imply receipt.
 - **Deliverable:** Piece-aware handover and accurate remaining obligations.
 
-#### Vertical Slice 1.8.4 — Cancel, Reopen and Close Work Correctly
+##### Vertical Slice 1.8.4 — Cancel, Reopen and Close Work Correctly
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** ORD-01, ORD-04, ORD-05, ORD-06, ORD-11, JOB-14, JOB-15. Scenarios: AC-21, AC-22, AC-51.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Resolve exceptions without deleting their consequences.
 - **Functional requirements:** Review irreversible work, remaining commitments, charges, refund/credit, vendor dues and property. Reopen through new linked work with a reason. Aggregate booking fulfilment separately from closure.
@@ -424,7 +719,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Cancellation after cutting preserves costs/history. Mixed handed-over/cancelled garments show “fulfilled with cancellations”. Closure requires no unresolved work, money, property, vendor due or issue; prior handover is never erased.
 - **Deliverable:** Governed cancellation, reopening and obligation-based closure.
 
-#### Vertical Slice 1.8.5 — Manage Uncollected Garments and Stored Property
+##### Vertical Slice 1.8.5 — Manage Uncollected Garments and Stored Property
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** SET-12, COM-04, COM-06, COM-07, COM-08. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Prevent forgotten garments or fabric from disappearing operationally.
 - **Functional requirements:** Apply approved holding periods, reminder schedules, final notices and permitted outcomes. Preserve continued storage, charges, authorised disposal/donation and pending obligations.
@@ -439,7 +738,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Search/lists, action home, alerts, daily close and essential reports.  
 **Dependencies:** Phases 1.2–1.8.
 
-#### Vertical Slice 1.9.1 — Search and Filter Linked Work
+#### Functionality — Find and act on daily work
+
+##### Vertical Slice 1.9.1 — Search and Filter Linked Work
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** DAY-03, DAY-04, REP-05. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Locate the right record without reconstructing it.
 - **Functional requirements:** Search customer/wearer, phone fragments, booking/order IDs, garment and material labels. Combine relevant filters; provide reset/saved views and clear empty results. Legacy-reference search is extended when 1.10.1 supplies migrated records.
@@ -448,7 +753,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Tamil script, Latin-typed Tamil and English variations find supported names/terms without merging identities. Search exposes only authorised records.
 - **Deliverable:** Practical cross-workflow search and order lists.
 
-#### Vertical Slice 1.9.2 — Act on Alerts and Complete Daily Close
+##### Vertical Slice 1.9.2 — Act on Alerts and Complete Daily Close
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** FIN-16, DAY-01, DAY-02, DAY-06, DAY-07, DAY-08, DAY-09, DAY-10. Scenarios: AC-27, AC-28, AC-60, AC-61, AC-62.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Give the owner a clear next action.
 - **Functional requirements:** Show due/at-risk work, trials, pending decisions, shortages, vendor returns, quality failures, uncollected items and balances. Support acknowledge, assign, snooze, resolve/reopen and quick actions. Reconcile cash/UPI/bank records against supplied counts/evidence.
@@ -457,7 +766,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Three-day, two-day, tomorrow, today and overdue warnings use shop-local dates; default calendar days can switch to working days with category-specific windows. Slots become overdue when passed, otherwise at working-day end. Snoozed work remains listed. A ₹200 cash shortage uses an adjustment, not rewritten bills. Priority has a visible reason.
 - **Deliverable:** Daily operating workspace and reconciled close.
 
-#### Vertical Slice 1.9.3 — Review Operational and Customer Outcomes
+#### Functionality — Trustworthy operational and financial review
+
+##### Vertical Slice 1.9.3 — Review Operational and Customer Outcomes
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** REP-01, REP-06. Scenarios: AC-15, AC-16, AC-27, AC-28, AC-47.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Evaluate real performance without flattering statistics.
 - **Functional requirements:** Report intake/completion, WIP, blocked duration, original/current-promise readiness, trials, rework, pickup age, repeat demand and basic conversion/service demand.
@@ -466,7 +781,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Revised promises do not improve original-promise results. Unfinished overdue work remains in the denominator. Cancelled-after-due and invalidated readiness remain visible; planned fitting is separate from avoidable rework.
 - **Deliverable:** Essential operational/customer scorecards.
 
-#### Vertical Slice 1.9.4 — Review Sales, Collections and Outstanding Obligations
+##### Vertical Slice 1.9.4 — Review Sales, Collections and Outstanding Obligations
+
+- **Scope:** P1 Must financial positions/dues and cost-completeness; full contribution/overhead analysis later.
+- **Traceability:** REP-02, REP-03, REP-04. Scenarios: AC-01.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Understand what was agreed, billed, collected and remains due.
 - **Functional requirements:** Separate quoted/approved value, invoices, credits, deposits, confirmed collections, expected balance, collectible receivables, customer credit and vendor dues. Show dates, ageing and available direct-cost completeness.
@@ -481,7 +800,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Reviewed migration, data rights, understandable exports, support, recovery, onboarding and pilot validation.  
 **Dependencies:** All Wave 1 capabilities; safeguards are applied throughout development, not postponed to this phase.
 
-#### Vertical Slice 1.10.1 — Import and Reconcile Starting Records
+#### Functionality — Reviewed opening records and privacy rights
+
+##### Vertical Slice 1.10.1 — Import and Reconcile Starting Records
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** MAT-06, MAT-07, MAT-11, USE-05. Scenarios: AC-41, AC-42.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3, 0.3.2, 0.5.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Begin live use without duplicating old business activity.
 - **Functional requirements:** Preview/import customers, measurements, active orders, opening stock and receivables/payables. Preserve source, cut-off, legacy dates and identifiers. Attach notebook photos as unconfirmed records indexed by book/page.
@@ -490,7 +815,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Re-import cannot duplicate opening balances. Historical creation/order dates are distinct. Opening money/stock is not counted again as new-period sales/purchases; notebook photos are not authoritative measurements.
 - **Deliverable:** Reconciled opening records and searchable legacy evidence.
 
-#### Vertical Slice 1.10.2 — Handle Correction, Consent Withdrawal and Data Rights
+##### Vertical Slice 1.10.2 — Handle Correction, Consent Withdrawal and Data Rights
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** CUS-09, TRU-08. Scenarios: AC-52, AC-53.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.2, 0.5.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Resolve privacy requests with honest retention outcomes.
 - **Functional requirements:** Track correction, access/export, erasure, consent withdrawal and archive requests. Apply approved retention to records, media, exports, backups and processors; show grievance routes.
@@ -499,7 +828,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Marketing withdrawal stops marketing use. Permitted measurement/photo deletion or anonymisation is completed; retained financial records are explained. No false claim of total erasure is made.
 - **Deliverable:** Reviewed customer-data lifecycle workflows.
 
-#### Vertical Slice 1.10.3 — Export Linked Records and Request Contextual Support
+#### Functionality — Portability, support and pilot readiness
+
+##### Vertical Slice 1.10.3 — Export Linked Records and Request Contextual Support
+
+- **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
+- **Traceability:** FIN-20, USE-06, BIZ-06. Scenarios: AC-41, AC-42.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.2, 0.5.2. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Preserve portability and resolve problems without unnecessary exposure.
 - **Functional requirements:** Export understandable customers/wearers, orders, measurements/history, patterns where present, bills/payments, stock, costs and permitted media. Provide accountant-linked financial exports and contextual support/feedback status.
@@ -508,7 +843,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Exports declare inclusions/exclusions, date bases and retention limits and retain meaningful links. Routine support does not require an entire private customer dataset.
 - **Deliverable:** Useful data/accountant exports and tracked support requests.
 
-#### Vertical Slice 1.10.4 — Demonstrate Recovery and Pass the Founding-Pilot Gate
+##### Vertical Slice 1.10.4 — Demonstrate Recovery and Pass the Founding-Pilot Gate
+
+- **Scope:** P1 Must live gate; full self-service resettable practice UX P1 Should.
+- **Traceability:** TRU-10, USE-01, USE-02, USE-09, BIZ-01. Scenarios: AC-56, AC-57.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.2, 0.5.2, 0.5.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Establish recoverability and operational readiness before live records.
 - **Functional requirements:** Complete guided setup and a sample journey; approve loss/restoration limits and demonstrate restoration. Provide printable outage intake/payment slips and later reconciliation. Capture baseline and agreed pilot measures.
@@ -544,7 +883,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Staff/external access, shop membership, scoped support and reusable onboarding.  
 **Dependencies:** Wave 1; pilot go/no-go and discovery interviews before external onboarding.
 
-#### Vertical Slice 2.1.1 — Invite Staff and Apply Role Boundaries
+#### Functionality — Delegated access and work
+
+##### Vertical Slice 2.1.1 — Invite Staff and Apply Role Boundaries
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** SET-07, OPS-01, OPS-04, TRU-02, TRU-09. Scenarios: AC-56, AC-57.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Let staff perform their jobs with appropriate authority.
 - **Functional requirements:** Provide the fixed owner/manager/tailor/bookkeeper matrix and owner toggles. Configure worker skills, relationships, availability and active state; support invitations and immediate revocation.
@@ -553,7 +898,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Tailors see assigned work; bookkeepers do not see fitting assets. Discount/refund limits are enforced. Departure stops access while preserving assignments and payables.
 - **Deliverable:** Governed shared-team operation.
 
-#### Vertical Slice 2.1.2 — Share Scoped Work with External Workers
+##### Vertical Slice 2.1.2 — Share Scoped Work with External Workers
+
+- **Scope:** P2 baseline with external login conditional; P1 vendor records need no login.
+- **Traceability:** TRU-02. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Allow artisan participation without general shop access.
 - **Functional requirements:** Expose only shared briefs/pieces, minimum contact information and the worker’s own rates; allow permitted acknowledgement/progress/return reporting.
@@ -562,7 +911,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** External reports cannot confirm shop receipt, quality or payment. Other customers, jobs and margins remain inaccessible.
 - **Deliverable:** Optional external-worker participation.
 
-#### Vertical Slice 2.1.3 — Switch Shops and Govern Support Access
+#### Functionality — Independent shop onboarding and support
+
+##### Vertical Slice 2.1.3 — Switch Shops and Govern Support Access
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** TRU-09, TRU-11, BIZ-03. Scenarios: AC-38.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Support independent boutiques and accountable support.
 - **Functional requirements:** Provide explicit shop membership/current-shop indication; verify ownership transfer. Offer owner-authorised, time/scenario-limited support access and revocation.
@@ -571,7 +926,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Search, media, exports and notifications remain isolated; AI inherits this boundary when introduced. Ownership verification cannot erase history. Membership does not create multi-branch stock/accounting.
 - **Deliverable:** Isolated shop membership and recorded support access.
 
-#### Vertical Slice 2.1.4 — Onboard a Boutique through Reusable Configuration
+##### Vertical Slice 2.1.4 — Onboard a Boutique through Reusable Configuration
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** BIZ-01, BIZ-02. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Adopt the product without a shop-specific product fork.
 - **Functional requirements:** Guide module selection, supported catalogues/prices/templates/calendars/messages, migration and a first sample order. Provide resettable practice mode. Registered-shop activation additionally waits for 2.4.1; unregistered-shop onboarding can be verified independently.
@@ -586,7 +945,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Units/variants, corrections, purchase requests/commitments, partial receipts, bills and returns.  
 **Dependencies:** Phase 1.5 and role controls for delegated actions.
 
-#### Vertical Slice 2.2.1 — Maintain Detailed Stock and Perform Stocktake
+#### Functionality — Detailed stock and purchase commitments
+
+##### Vertical Slice 2.2.1 — Maintain Detailed Stock and Perform Stocktake
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** MAT-06, MAT-07, MAT-11. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Distinguish usable material variants and reconcile actual quantities.
 - **Functional requirements:** Support explicit metre/centimetre/piece/roll/pack conversions, colour/batch/width/condition, damaged/quarantined stock, counted adjustments and write-offs.
@@ -595,7 +960,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Incompatible units cannot convert silently. Roll and length quantities are not double-counted. Negative-stock exceptions require explicit authority and reconciliation.
 - **Deliverable:** Detailed material inventory and stocktake.
 
-#### Vertical Slice 2.2.2 — Raise and Approve a Purchase
+##### Vertical Slice 2.2.2 — Raise and Approve a Purchase
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** MAT-08, PUR-01, PUR-02, PUR-03. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Turn shortages into reviewed replenishment.
 - **Functional requirements:** Maintain suppliers, terms/lead times and shared supplier/vendor identity. Create requests from low stock, shortages or manual needs; record approved purchases, quantities, cost, treatment and expected receipt.
@@ -604,7 +973,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A request is not a purchase. No automatic ordering occurs. Substitution affecting design/price needs approval; unreceived material is not made available.
 - **Deliverable:** Approved purchase commitments and supplier records.
 
-#### Vertical Slice 2.2.3 — Receive Purchases and Record Supplier Bills
+#### Functionality — Supply receipt, payables and returns
+
+##### Vertical Slice 2.2.3 — Receive Purchases and Record Supplier Bills
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** PUR-04, PUR-05, REP-02, REP-04. Scenarios: AC-24.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reconcile physical supply independently from supplier money.
 - **Functional requirements:** Record accepted partial receipts and discrepancies; retain outstanding quantities. Record bills, due dates, credits, payments and disputes with duplicate detection.
@@ -613,7 +988,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Only accepted stock becomes available. Unpaid bills remain payable. Manual/photo/import entries cannot double-count a bill/payment or duplicate a craft obligation.
 - **Deliverable:** Partial purchasing receipts and supplier payable accounting.
 
-#### Vertical Slice 2.2.4 — Return Supplies and Review Replenishment
+##### Vertical Slice 2.2.4 — Return Supplies and Review Replenishment
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** PUR-06, PUR-07, REP-05. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Resolve defective supply and anticipate shortages.
 - **Functional requirements:** Link supplier returns, replacements, credits/refunds and stock effects. Show low stock, upcoming/overdue receipts, consumption, adjustments and open custody.
@@ -628,16 +1007,26 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Assignment, workload, calendars, capacity, rates, settlement and contextual performance.  
 **Dependencies:** Phases 2.1 and 1.7–1.8.
 
-#### Vertical Slice 2.3.1 — Assign, Transfer and Find Team Work
+#### Functionality — Team assignment and scheduling
+
+##### Vertical Slice 2.3.1 — Assign, Transfer and Find Team Work
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** ORD-10, OPS-02, OPS-03. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make task responsibility visible.
 - **Functional requirements:** Provide queued/in-progress/blocked/review/completed workload stacks, task assignment/reassignment reasons and acknowledgement where used. Add access-controlled QR/barcode lookup as an enhancement.
 - **Expected user workflow:** Coordinator assigns/transfers a task; worker opens the permitted brief and updates work.
-- **Dependencies:** 2.1.1–2.1.2, 1.3.4, 1.7.1.
+- **Dependencies:** 2.1.1, 1.3.4, 1.7.1. 2.1.2 is required only for external-worker login/acknowledgement, not internal staff assignment.
 - **Acceptance criteria:** Assignment and custody remain separate. Staff landing shows assigned work. Public scans reveal no private data; inactive workers remain historical.
 - **Deliverable:** Accountable team workload and optional physical lookup.
 
-#### Vertical Slice 2.3.2 — Plan Capacity and Review Commitment Risk
+##### Vertical Slice 2.3.2 — Plan Capacity and Review Commitment Risk
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** OPS-05, OPS-06, OPS-07, DAY-05. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Improve scheduling beyond weekly category caps.
 - **Functional requirements:** Use approved task effort/duration, skills, availability, holidays, dependencies, trial buffers and vendor lead times. Provide list, progress board, day/week scheduling and bottleneck views.
@@ -646,7 +1035,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Missing estimates are disclosed. Active and waiting time differ. Queue movement never silently changes customer promises; authorised risky commitments retain reasons.
 - **Deliverable:** Explainable team scheduling and capacity review.
 
-#### Vertical Slice 2.3.3 — Calculate Labour Dues and Review Accepted Work
+#### Functionality — Approved labour obligations
+
+##### Vertical Slice 2.3.3 — Calculate Labour Dues and Review Accepted Work
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** OPS-08, OPS-09, OPS-10, REP-02, REP-04. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Pay for approved work without duplicated costs.
 - **Functional requirements:** Version piece/time rates; record payable hours, acceptance basis, advances, partial settlement and disputes. Extend the MVP vendor-dues record; report accepted timeliness, rework and utilisation with cause context.
@@ -661,7 +1056,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Conditional GST support, payment aids/imports, overheads and contribution reporting.  
 **Dependencies:** Phase 1.4 and the relevant purchasing/workforce cost records.
 
-#### Vertical Slice 2.4.1 — Activate Reviewed Registered-Shop Billing
+#### Functionality — Billing regimes and payment reconciliation
+
+##### Vertical Slice 2.4.1 — Activate Reviewed Registered-Shop Billing
+
+- **Scope:** P2 baseline; mandatory activation gate before any composition/regular-GST shop.
+- **Traceability:** FIN-06, FIN-07, FIN-08, FIN-09, FIN-21, FIN-20. Scenarios: AC-44.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Onboard composition/regular-GST shops only with supported documents.
 - **Functional requirements:** Add accountant-approved effective classifications, value-dependent rate rules, declarations, tax splits, place of supply, invoice/advance requirements and correction controls. Provide appropriate accountant/Tally-import and GSTR-1 preparation exports.
@@ -670,7 +1071,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Composition bills collect no customer tax; regular-GST documents use reviewed rules. No universal rate/threshold is assumed. E-invoice/e-way-bill restrictions are recorded; those outputs remain external.
 - **Deliverable:** Approved registered-shop billing and financial export support.
 
-#### Vertical Slice 2.4.2 — Assist UPI Collection and Statement Reconciliation
+##### Vertical Slice 2.4.2 — Assist UPI Collection and Statement Reconciliation
+
+- **Scope:** P2 optional payment-aid variant of baseline reconciliation.
+- **Traceability:** FIN-16. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reduce manual matching while retaining human verification.
 - **Functional requirements:** Offer amount/order-reference UPI QR and reviewed bank/UPI statement import. Match references/accounts, fees, pending/reversed events and settlement evidence.
@@ -679,7 +1084,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A QR does not prove payment. Repeated imports do not settle balances twice. Unmatched or ambiguous transactions require review; discrepancies preserve original documents.
 - **Deliverable:** Optional payment aids and reviewed statement reconciliation.
 
-#### Vertical Slice 2.4.3 — Record Overheads and Review Contribution
+#### Functionality — Business costs and contribution
+
+##### Vertical Slice 2.4.3 — Record Overheads and Review Contribution
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** FIN-18, FIN-19, REP-03. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Separate fulfilment economics from cash flow and overall profit.
 - **Functional requirements:** Record rent/utilities/other expenses, owner contributions/withdrawals and account transfers. Show estimated/actual direct contribution, missing costs and optional owner-labour/overhead allocations.
@@ -694,7 +1105,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Variants/stock, reservations, mixed checkout, linked alterations, returns/exchanges and reporting.  
 **Dependencies:** Phases 1.4–1.8 and 2.2; applicable billing regime.
 
-#### Vertical Slice 2.5.1 — Catalogue, Stock and Reserve Retail Variants
+#### Functionality — Exact-variant reservations and checkout
+
+##### Vertical Slice 2.5.1 — Catalogue, Stock and Reserve Retail Variants
+
+- **Scope:** P2 conditional baseline: enable only when retail is required.
+- **Traceability:** RTL-01, RTL-02, RTL-04. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Sell or hold the exact available item.
 - **Functional requirements:** Maintain style/size/colour/SKU/barcode, price/cost/supplier and active status. Track opening/received/reserved/saleable/damaged quantities and reservation expiry/deposit policy.
@@ -703,7 +1120,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Overselling is prevented. Reservation is not sale or handover; cancellation settles deposits. Retail catalogue remains distinct from pattern libraries and mannequin history.
 - **Deliverable:** Exact-variant retail inventory and reservation.
 
-#### Vertical Slice 2.5.2 — Complete Mixed Checkout with Linked Alterations
+##### Vertical Slice 2.5.2 — Complete Mixed Checkout with Linked Alterations
+
+- **Scope:** P2 conditional baseline: retail.
+- **Traceability:** ORD-03, RTL-03, RTL-05. Scenarios: AC-25, AC-26.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Combine retail and services without conflating their fulfilment.
 - **Functional requirements:** Add retail/custom/service lines to a booking with line-level discounts, treatment, costs and status. Link an alteration to its exact retail item, wearer, instructions, date, charge and worker.
@@ -712,7 +1133,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Retail need not undergo custom production. Complimentary alteration preserves real cost. Stock, sale and alteration remain linked without duplicated revenue.
 - **Deliverable:** Complete retail checkout and alteration fulfilment.
 
-#### Vertical Slice 2.5.3 — Return, Exchange and Review Retail Outcomes
+#### Functionality — Retail exceptions and outcomes
+
+##### Vertical Slice 2.5.3 — Return, Exchange and Review Retail Outcomes
+
+- **Scope:** P2 conditional baseline: retail.
+- **Traceability:** RTL-06, RTL-07, RTL-08, REP-05. Scenarios: AC-25, AC-26.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Resolve retail exceptions consistently.
 - **Functional requirements:** Review altered/damaged eligibility and condition; link inbound/outbound exchange, credits/refunds, price differences and appropriate restocking. Review linked alteration/custody/irreversible work; report sales, returns, ageing and contribution.
@@ -727,7 +1154,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Scoped access, customer requests, issues, reminder policies and official messaging.  
 **Dependencies:** Role/privacy controls and the relevant MVP workflows.
 
-#### Vertical Slice 2.6.1 — Open and Revoke a Private Booking View
+#### Functionality — Private customer views and decisions
+
+##### Vertical Slice 2.6.1 — Open and Revoke a Private Booking View
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** COM-01, COM-02, TRU-09. Scenarios: AC-02, AC-54.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Provide useful customer visibility without exposing wider history.
 - **Functional requirements:** Offer branded booking-scoped access with expiry/revocation, approved scope, dates, appointments, selected progress and bills/receipts. Apply wearer/guardian restrictions and owner-assisted contact re-verification.
@@ -736,16 +1169,26 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Expired/revoked links show no order data and offer shop contact. Ordinary links do not expose measurements/fitting photos, margins or unrelated bookings. Phone changes revoke old links.
 - **Deliverable:** Secure customer booking visibility.
 
-#### Vertical Slice 2.6.2 — Review Customer Decisions, Appointments and Issues
+##### Vertical Slice 2.6.2 — Review Customer Decisions, Appointments and Issues
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** CUS-08, ENQ-06, ENQ-07, DES-07, COM-03, COM-11, REP-01, REP-06. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Turn customer responses into governed business actions.
 - **Functional requirements:** Accept/reject specific revisions, acknowledge dates, request appointments/alterations and report issues with evidence. Add granular approvals, appointment conflict/reschedule/cancel/no-show handling, quote-expiry follow-up and owned complaint resolution.
 - **Expected user workflow:** Customer submits a response/request; owner reviews and accepts the resulting action.
 - **Dependencies:** 2.6.1, 1.4.3, 1.6.1–1.6.2, 1.8.1.
-- **Acceptance criteria:** Requests cannot directly change authoritative work. Approvals refer to the exact revision. Closed/converted/opted-out enquiries stop irrelevant follow-up; appointment changes do not silently revise delivery. Internal issue notes are not shared externally or used to label customers unfairly.
+- **Acceptance criteria:** Requests cannot directly change authoritative work. Approvals refer to the exact revision and require step-up confirmation via the approved OTP channel, not just possession of an ordinary booking link. Closed/converted/opted-out enquiries stop irrelevant follow-up; appointment changes do not silently revise delivery. Internal issue notes are not shared externally or used to label customers unfairly.
 - **Deliverable:** Customer decisions and resolved service issues.
 
-#### Vertical Slice 2.6.3 — Configure Reminder Policies
+#### Functionality — Controlled transactional reminders
+
+##### Vertical Slice 2.6.3 — Configure Reminder Policies
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** COM-09. Scenarios: AC-36, AC-37.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Define permitted follow-up before automating it.
 - **Functional requirements:** Configure timing, frequency, quiet hours, escalation, snooze, consent and stop conditions for trials, collections, balances and stored property.
@@ -754,13 +1197,17 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Service and marketing permissions remain separate. Settlement/handover stops the relevant reminder while preserving other obligations. Disputed/uncertain cases return for review.
 - **Deliverable:** Reviewed reminder policies.
 
-#### Vertical Slice 2.6.4 — Send Official Messages with Safe Failure Handling
+##### Vertical Slice 2.6.4 — Send Official Messages with Safe Failure Handling
+
+- **Scope:** P2 conditional baseline: approved provider/number/templates/budget.
+- **Traceability:** COM-05, COM-10, TRU-11. Scenarios: AC-36, AC-37.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Automate only authorised, current transactional messages.
 - **Functional requirements:** Activate supported official messaging after number/template/budget approval. Recheck status, consent, timing, duplication and costs; record delivery/failure and preserve manual fallback.
 - **Expected user workflow:** Owner enables a permitted reminder; product sends only while its conditions remain true.
 - **Dependencies:** 2.6.3; approved WhatsApp Business Platform decision and access.
-- **Acceptance criteria:** Newly confirmed payment suppresses a stale balance reminder. Retries do not duplicate sends. Opt-out/failure/limit is visible; shop work continues and prepared content remains available.
+- **Acceptance criteria:** Newly confirmed payment suppresses a stale balance reminder. Retries use a provider-effect ledger and provider IDs; ambiguous outcomes are reconciled, not blindly resent (a queue cannot guarantee exactly-once external delivery). Kill switch/restore epoch/practice suppression override queued work. Opt-out/failure/limit is visible; shop work continues and prepared content remains available.
 - **Deliverable:** Controlled transactional messaging and cost/failure visibility.
 
 ### Phase 2.7 — Complete the Physical-Mannequin Showcase
@@ -769,7 +1216,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Mannequin history, publishing, public browsing and linked enquiries.  
 **Dependencies:** Privacy/media controls and enquiry capture; independent of Instagram integration.
 
-#### Vertical Slice 2.7.1 — Maintain Mannequins and Publish Costume History
+#### Functionality — Physical mannequin history and public discovery
+
+##### Vertical Slice 2.7.1 — Maintain Mannequins and Publish Costume History
+
+- **Scope:** P2 baseline; may move to P1 as non-blocking Should with all privacy/publish safeguards.
+- **Traceability:** SHO-01, SHO-02, SHO-04, SHO-06. Scenarios: AC-29, AC-39.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Preserve the shop’s changing physical displays.
 - **Functional requirements:** Create any number of identified mannequins; record dated costume photos, fabric/description/notes and cover choice. Support draft/published/archived states, date corrections and withdrawal.
@@ -778,7 +1231,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A fourth mannequin is supported. Changes retain chronology. Private fitting/reference media and minor images cannot appear through incidental upload or publication.
 - **Deliverable:** Controlled physical-mannequin costume history.
 
-#### Vertical Slice 2.7.2 — Browse the Public Showcase and Enquire
+##### Vertical Slice 2.7.2 — Browse the Public Showcase and Enquire
+
+- **Scope:** P2 baseline; may move to P1 Should with 2.7.1 and enquiry prerequisites.
+- **Traceability:** SHO-03, SHO-05. Scenarios: AC-29.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Convert approved display interest into traceable enquiries.
 - **Functional requirements:** Provide a sign-in-free gallery landing, recent uploads, individual mannequin history and image-specific enquiry route. Keep private order services deliberate and separate.
@@ -793,7 +1250,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Formula governance, provenance and shareable calculation sheets.  
 **Dependencies:** Authoritative measurements/design; independent second reviewer for approved derived outputs.
 
-#### Vertical Slice 2.8.1 — Review Formula Versions and Supported Ranges
+#### Functionality — Expert formula governance and calculation output
+
+##### Vertical Slice 2.8.1 — Review Formula Versions and Supported Ranges
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** PAT-02. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Establish expert authority for derived drafting values.
 - **Functional requirements:** Record owner/independent reviewer, approved measurement forms, formula versions, allowable variation, fabric assumptions and validation evidence. Separate draft and approved status.
@@ -802,7 +1265,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Author cannot be sole approver. Unreviewed rules cannot become approved production outputs; unsupported inputs are explicit.
 - **Deliverable:** Expert-reviewed drafting-rule catalogue.
 
-#### Vertical Slice 2.8.2 — Generate and Share a Drafting Calculation Sheet
+##### Vertical Slice 2.8.2 — Generate and Share a Drafting Calculation Sheet
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** PAT-06, PAT-07, PAT-16, PAT-17. Scenarios: AC-65, AC-66.
+- **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Give the owner traceable dimensions for manual drafting.
 - **Functional requirements:** Compute supported dimensions from exact measurement/design/formula versions; record provenance, assumptions and review status. Produce previewable PDF, A4 default and sharing instructions; flag changed-input sheets stale.
@@ -817,7 +1284,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Enablement/evaluation, intake/follow-up, quote checks, reference tagging and document extraction.  
 **Dependencies:** Stable manual workflows; approved processing policy and feature-specific evaluation.
 
-#### Vertical Slice 2.9.1 — Enable, Evaluate and Disable Assistance
+#### Functionality — Assistance policy and measurable reviewed intake
+
+##### Vertical Slice 2.9.1 — Enable, Evaluate and Disable Assistance
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** AI-10. Scenarios: AC-43, AC-45, AC-48.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Introduce AI under explicit product and data-use controls.
 - **Functional requirements:** Explain externally processed content/terms; restrict to authorised minimal records; control capabilities/usage. Record proposals separately from confirmed facts, feedback, reversible undo and manual fallback. Customer content is not used for external-provider training by default; no cross-boutique learning is introduced.
@@ -826,7 +1299,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Non-compliant processing remains disabled. Outage/limit preserves permitted manual work. Evaluation includes review time, critical errors, cost and eventual outcomes; uploaded instructions cannot authorise actions. No AI approval substitutes for validated arithmetic, payment verification or expert drafting approval.
 - **Deliverable:** Governed AI enablement and outcome evaluation.
 
-#### Vertical Slice 2.9.2 — Draft Intake and Ask Relevant Follow-Up Questions
+##### Vertical Slice 2.9.2 — Draft Intake and Ask Relevant Follow-Up Questions
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** AI-01, AI-02. Scenarios: AC-33, AC-34.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reduce entry effort without guessing important facts.
 - **Functional requirements:** Interpret supplied Tamil/English/mixed-language speech, text or notes into draft enquiries/orders. Link values to sources; highlight uncertainty and ask only unresolved checklist questions.
@@ -835,7 +1312,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Uncertain names, numbers, units and dates remain unconfirmed. No measurements or rules are invented. Answered/not-required questions are skipped; repeated attempts create no duplicates.
 - **Deliverable:** Reviewed assisted intake with complete manual alternatives.
 
-#### Vertical Slice 2.9.3 — Review Quote Completeness Suggestions
+#### Functionality — Quote, image and document proposals
+
+##### Vertical Slice 2.9.3 — Review Quote Completeness Suggestions
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** AI-03. Scenarios: AC-33, AC-34.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Find genuine omissions before agreement.
 - **Functional requirements:** Compare requested work/material source with quote inclusions and suggest missing/duplicate charges or unanswered pricing.
@@ -844,7 +1327,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Bundled, complimentary and customer-supplied lines are respected. No charge changes automatically. False suggestions are recorded in evaluation.
 - **Deliverable:** Human-reviewed scope/quote completeness assistance.
 
-#### Vertical Slice 2.9.4 — Structure Supplied Design References
+##### Vertical Slice 2.9.4 — Structure Supplied Design References
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** AI-07. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Speed up clarification of garment choices.
 - **Functional requirements:** Suggest neckline/sleeve/embellishment tags and clarification questions from supplied images; retain source and uncertainty.
@@ -853,12 +1340,16 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Images do not produce authoritative body dimensions, hidden construction or guaranteed fabric quantities. Accepted interpretation still follows normal approval.
 - **Deliverable:** Reviewed design-reference structuring.
 
-#### Vertical Slice 2.9.5 — Extract Reviewed Document Entries
+##### Vertical Slice 2.9.5 — Extract Reviewed Document Entries
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** AI-08. Scenarios: AC-45.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reduce entry effort for bills, expenses and legacy work.
 - **Functional requirements:** Present source beside proposed supplier-bill, expense and legacy-order fields; flag unreadable amounts/dates/references and potential duplicates.
 - **Expected user workflow:** Owner corrects the draft and separately approves the business record.
-- **Dependencies:** 2.9.1, 2.2.3, 2.4.3, 1.10.1.
+- **Dependencies:** 2.9.1, 1.10.1. Supplier-bill extraction additionally needs 2.2.3; expense extraction additionally needs 2.4.3. Each variant may be enabled and verified independently against its manual workflow.
 - **Acceptance criteria:** Financial/opening confirmation requires human review. Repeated extraction does not duplicate records. Instructions embedded in documents cannot change charges or reveal unrelated data.
 - **Deliverable:** Source-linked reviewed document entry.
 
@@ -868,7 +1359,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Attribution policy, campaign inputs, outcomes, contribution and business actions.  
 **Dependencies:** Source-linked enquiries, authoritative finance and cost records.
 
-#### Vertical Slice 2.10.1 — Define Attribution and Enter Campaign Evidence
+#### Functionality — Manual attribution and marketing review
+
+##### Vertical Slice 2.10.1 — Define Attribution and Enter Campaign Evidence
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** REP-08, REP-09. Scenarios: AC-31, AC-32.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make marketing assignment explicit rather than guessed.
 - **Functional requirements:** Configure model/window, repeat enquiries and multi-touch treatment. Enter/import campaign dates, channel, spend and supported metrics with evidence, source definitions and unknown share.
@@ -877,7 +1374,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Multiple touches do not duplicate full order revenue. Platform-reported conversions remain separate from verified orders. Manual data is labelled; unsupported placement splits remain unavailable.
 - **Deliverable:** Reviewable attribution and manual advertising inputs.
 
-#### Vertical Slice 2.10.2 — Review Campaign Outcomes and Create Business Actions
+##### Vertical Slice 2.10.2 — Review Campaign Outcomes and Create Business Actions
+
+- **Scope:** P2 later baseline; activate only with its named business/release gates.
+- **Traceability:** REP-10, REP-11, REP-12, REP-13, REP-14. Scenarios: AC-31, AC-32.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Support human decisions using honest commercial measures.
 - **Functional requirements:** Report qualified enquiries, confirmed orders, attributed net revenue, cost per enquiry/order, ROAS and contribution after advertising. Provide comparisons, freshness/correction history, filters, drill-down and owned review actions.
@@ -892,7 +1393,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Plans/allowances, usage, renewal, exit and record access.  
 **Dependencies:** Validated external onboarding; approved commercial terms. Founding boutique remains free.
 
-#### Vertical Slice 2.11.1 — Explain Plans, Usage and Paid Allowances
+#### Functionality — Paid-shop terms and exit
+
+##### Vertical Slice 2.11.1 — Explain Plans, Usage and Paid Allowances
+
+- **Scope:** P2 conditional baseline: only before paid external shops; founding boutique remains free.
+- **Traceability:** BIZ-04. Scenarios: AC-43.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Prevent hidden limits and uncontrolled service costs.
 - **Functional requirements:** Show selected plan, included users/features, AI/message/media allowances, usage and approved overage. Support internal cost-to-serve review; collect per-shop media, messaging, AI usage and support effort from the pilot onward, even before subscriptions are activated.
@@ -901,7 +1408,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** No unlimited-cost promise is assumed. Limits cannot weaken isolation, financial accuracy or historical records. Founding-shop free use is preserved.
 - **Deliverable:** Clear conditional subscription administration.
 
-#### Vertical Slice 2.11.2 — Renew, Cancel and Export on Exit
+##### Vertical Slice 2.11.2 — Renew, Cancel and Export on Exit
+
+- **Scope:** P2 conditional baseline: paid-shop expiry/exit.
+- **Traceability:** BIZ-05. Scenarios: AC-43.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Preserve trustworthy records during subscription changes.
 - **Functional requirements:** Explain renewal/cancellation, approved grace/read-only states, export period, retention and deletion; expose outstanding business obligations.
@@ -937,7 +1448,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Allowances, geometry, calculation summaries, fabric estimates, printing and production release.  
 **Dependencies:** Phase 2.8, authoritative measurements/design and reviewer-approved specialist scope.
 
-#### Vertical Slice 3.1.1 — Create and Apply Seam-Allowance Presets
+#### Functionality — Approved allowances and computed geometry
+
+##### Vertical Slice 3.1.1 — Create and Apply Seam-Allowance Presets
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** PAT-04, PAT-05. Scenarios: AC-06.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Apply approved allowances appropriate to the garment.
 - **Functional requirements:** Configure category/subcategory-specific seam positions, units and values. Create/use presets, preview mapping and permit order-only overrides without changing reusable versions.
@@ -946,7 +1463,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** No universal or unapproved seam values are inserted. Preset changes preserve historical outputs; overrides remain order-specific.
 - **Deliverable:** Versioned approved allowance selection.
 
-#### Vertical Slice 3.1.2 — Generate and Compare Supported 2D Previews
+##### Vertical Slice 3.1.2 — Generate and Compare Supported 2D Previews
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** PAT-06, PAT-07, PAT-08, PAT-09, PAT-15. Scenarios: AC-06, AC-09, AC-10.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make the computed pattern understandable before release.
 - **Functional requirements:** Generate approved-scope pieces with names, dimensions, cutting/stitching lines, allowances and expert-defined grain/fold/count/orientation markings. Show inputs, formulas, derived values, warnings and regenerated versions.
@@ -955,7 +1476,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Unsupported combinations are blocked. Exploratory output is not cutting approval. Input changes flag unused outputs stale; previously cut output remains recorded. Provenance identifies exact source versions.
 - **Deliverable:** Versioned supported pattern previews and calculation summaries.
 
-#### Vertical Slice 3.1.3 — Produce a Validated-Scope Fabric Estimate
+#### Functionality — Fabric estimation and validated print release
+
+##### Vertical Slice 3.1.3 — Produce a Validated-Scope Fabric Estimate
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** PAT-10. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Help review material sufficiency without inventing placement accuracy.
 - **Functional requirements:** Estimate using approved width, direction/nap, repeat, shrinkage and placement considerations only where supported. Expose assumptions and physical-confirmation needs.
@@ -964,7 +1491,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Unsupported considerations remain labelled. Unknown width cannot silently become a standard width. An estimate does not authorise insufficient fabric or imply advanced nesting.
 - **Deliverable:** Traceable fabric estimates with explicit limits.
 
-#### Vertical Slice 3.1.4 — Export and Check True-Scale Pattern PDFs
+##### Vertical Slice 3.1.4 — Export and Check True-Scale Pattern PDFs
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** PAT-11, PAT-12, PAT-17. Scenarios: AC-09, AC-10, AC-64.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Make supported patterns usable on ordinary printers.
 - **Functional requirements:** Preview paper/tiles/page count; export 1:1 A4-default/A3 PDFs with tile labels, alignment/overlap/trim instructions, assembly order, calibration ruler/square and version. Include prominent Actual Size/100% instructions.
@@ -973,13 +1504,17 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** A4 use needs no A3 printer. Third-party printing retains calibration instructions. Failed calibration blocks cutting use; PDF availability supports shops with no printer.
 - **Deliverable:** Calibratable true-scale pattern printing and sharing.
 
-#### Vertical Slice 3.1.5 — Validate Supported Scope and Release Cutting Work
+##### Vertical Slice 3.1.5 — Validate Supported Scope and Release Cutting Work
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** PAT-07, PAT-13, PAT-14. Scenarios: AC-09, AC-10, AC-64.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Require evidence before production claims.
 - **Functional requirements:** Maintain a matrix of garment type, measurement range, fabric class, design combination, physical garments tested and review results. Record print checks and approved release; share piece checklists and expert cutting/assembly notes.
 - **Expected user workflow:** Reviewers validate the supported combination; owner releases a current output only after task readiness.
 - **Dependencies:** 3.1.2–3.1.4, 1.7.1; both reviewers’ approval.
-- **Acceptance criteria:** Reviewer-confirmed tolerances govern calibration/alignment/dimensions. Proposed starting tolerances are ±1 mm/10 cm, ±2 mm tile alignment and ±3 mm key dimensions until confirmed. Release also requires current approvals/materials/assignee. Updates never silently replace already-used cutting output.
+- **Acceptance criteria:** Reviewer-confirmed tolerances govern calibration/alignment/dimensions. Proposed starting tolerances are ±1 mm/10 cm, ±2 mm tile alignment and ±3 mm key dimensions until confirmed. Architecture §9.4 also requires programmatic PDF boxes/geometry and Actual-Size physical prints on at least three printers. Release also requires current approvals/materials/assignee. Updates never silently replace already-used cutting output.
 - **Deliverable:** Physically validated pattern scope and governed production handoff.
 
 ### Phase 3.2 — Connect Read-Only Social and Advertising Data
@@ -988,7 +1523,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Conditional Instagram viewer and Google/Meta advertising inputs.  
 **Dependencies:** Demonstrated owner value, approved account access and connection policies. Neither integration blocks operations or the mannequin gallery.
 
-#### Vertical Slice 3.2.1 — Connect and Refresh the Instagram Viewer
+#### Functionality — Read-only platform connections
+
+##### Vertical Slice 3.2.1 — Connect and Refresh the Instagram Viewer
+
+- **Scope:** P3/post-pilot conditional baseline: owner value and approved account access.
+- **Traceability:** SHO-07, SHO-08, SHO-09, SHO-10, TRU-11. Scenarios: AC-30.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Show supported existing posts with honest freshness.
 - **Functional requirements:** Provide authorised connect/reconnect/revoke/disconnect, supported-account prerequisites, available media/captions/dates/open-post actions and refresh/retry status. Keep social posts distinct from mannequins, private references and retail.
@@ -997,7 +1538,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Failed refresh retains last successful content and its age. No password sharing, publishing/scheduling or guaranteed unsupported access is introduced. Linking does not automatically create another content type.
 - **Deliverable:** Conditional read-only Instagram viewer.
 
-#### Vertical Slice 3.2.2 — Synchronise Supported Advertising Inputs
+##### Vertical Slice 3.2.2 — Synchronise Supported Advertising Inputs
+
+- **Scope:** P3/post-pilot conditional baseline: owner value and approved account access.
+- **Traceability:** REP-08, REP-10, REP-11, REP-12, REP-13, REP-14, TRU-11. Scenarios: AC-30, AC-46.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Replace eligible manual entry with source-labelled platform evidence.
 - **Functional requirements:** Connect supported Google Ads/Meta inputs; preserve campaign definitions, available metrics, import/correction history and freshness. Identify Instagram-placement spend only where supported; retain manual fallback.
@@ -1012,7 +1557,13 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 **Functional scope:** Fit reuse, delivery-risk explanation, operational questions and reminder proposals.  
 **Dependencies:** Phase 2.9 controls and sufficiently useful underlying histories.
 
-#### Vertical Slice 3.3.1 — Recall Contextual Fit for Repeat Work
+#### Functionality — Contextual fit, delivery risk and operational assistance
+
+##### Vertical Slice 3.3.1 — Recall Contextual Fit for Repeat Work
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** MEA-10, AI-05. Scenarios: AC-35.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reuse successful fit knowledge selectively.
 - **Functional requirements:** Retrieve suitable prior accepted garments for the authorised wearer; show corrections, source, fabric and construction. Provide manual contextual retrieval plus reviewed AI questions/reuse proposals.
@@ -1021,7 +1572,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Fabric-specific corrections do not alter every body measurement or unrelated garment. Wrong-context suggestions can be rejected and evaluated; no guaranteed fit is claimed.
 - **Deliverable:** Reviewed contextual fit reuse and source-linked assistance.
 
-#### Vertical Slice 3.3.2 — Explain Delivery Risk and Propose Actions
+##### Vertical Slice 3.3.2 — Explain Delivery Risk and Propose Actions
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** AI-04. Scenarios: Requirement-derived checks; apply §33.1.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Turn known blockers into useful intervention.
 - **Functional requirements:** Explain risk from missing materials, blocked tasks, vendor dates, trials and capacity; identify affected work and propose actions. Begin with transparent rules; activate predictive estimates only after data/evaluation gates.
@@ -1030,7 +1585,11 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 - **Acceptance criteria:** Missing data and uncertainty are explicit. Dates, assignment and promises never change silently. False alarms and actual original-promise outcomes are evaluated.
 - **Deliverable:** Explainable, evaluated delivery-risk assistance.
 
-#### Vertical Slice 3.3.3 — Answer Operational Questions and Draft Next Reminders
+##### Vertical Slice 3.3.3 — Answer Operational Questions and Draft Next Reminders
+
+- **Scope:** P3 later baseline; expert/data/evaluation gates apply.
+- **Traceability:** AI-06, AI-09. Scenarios: AC-36, AC-37.
+- **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.
 
 - **Purpose:** Reduce time between finding a problem and taking the right action.
 - **Functional requirements:** Answer permitted operational questions from source records with known/unknown distinctions. Draft collection/payment messages using current balance, handover and consent; link proposals to actual actions and outcomes.
@@ -1043,7 +1602,9 @@ Earlier increments use practice or reviewed test records. **No live pilot starts
 
 ## 5. Consolidated Implementation Order and Dependencies
 
-Phase order is the recommended implementation sequence. Slice dependency lists identify direct prerequisites; they do not make every earlier capability an unnecessary dependency. Later enhancements referenced inside a slice’s functional scope are integration points, not prerequisites for its base delivery. Registered billing and automatic sending are conditional activation gates for their particular variants.
+Phase order is the default review sequence, not a requirement to finish unrelated functionality first. Slice dependencies and the technical prerequisite fields define implementation order. Later enhancements referenced inside a slice are integration points, not prerequisites for base delivery. Registered billing, external login, extraction variants and automatic sending have conditional activation gates. Base workflows must be demonstrable against synthetic records without pretending a future integration is already available.
+
+Foundation order: 0.1.1 → 0.1.2 → 0.2.1 → 0.2.2 → 0.2.3. From there money (0.3.1), jobs (0.3.2) and shell (0.4.1) are separate paths. Drafts need shell/commands; media needs jobs/tenancy; PDFs need jobs/media/fonts. Operations restore follows those paths, then privacy recovery. Business configuration/identity can start after their named foundations; references wait for media, payments for money, documents for PDFs. Baseline measurement starts alongside development, not after the product has been used.
 
 | Order | Phase | Incremental functional outcome |
 |---:|---|---|
@@ -1057,7 +1618,7 @@ Phase order is the recommended implementation sequence. Slice dependency lists i
 | 8 | 1.8 | Complete fitting, quality, partial handover and exceptions. |
 | 9 | 1.9 | Run daily actions and review dependable results. |
 | 10 | 1.10 | Reconcile migration and pass live-pilot readiness. |
-| Gate | Founding pilot | Evaluate adoption, business outcomes and sustainable support. |
+| Gate | Founding pilot | Complete the 2–4 week pre-use baseline, then 3-month pilot; validate thresholds, discovery interviews and sustainable support before expansion. |
 | 11 | 2.1 | Enable governed teams and independent shops. |
 | 12 | 2.2 | Complete material purchasing and supplier reconciliation. |
 | 13 | 2.3 | Coordinate team capacity, workload and labour settlement. |
@@ -1110,7 +1671,7 @@ Multiple slices indicate a deliberate minimum-to-full expansion, not duplicated 
 | **MEA — 11** | 01–07, 11 → **1.3.2**; 08–09 → **1.8.1**; 10 → **3.3.1**, with manual previous-record access already available through **1.2.4**. |
 | **PAT — 17** | 01, 03 → **1.3.3**; 02 → **2.8.1**; 04–05 → **3.1.1**; 06 → **2.8.2/3.1.2**; 07 → **2.8.2/3.1.2/3.1.5**; 08–09, 15 → **3.1.2**; 10 → **3.1.3**; 11–12 → **3.1.4**; 13–14 → **3.1.5**; 16 → **2.8.2**; 17 → **2.8.2/3.1.4**. |
 | **JOB — 16** | 01–05 → **1.7.1**; 06 → **1.7.2**; 07 → **1.7.4**; 08–09 → **1.8.1**, standalone intake **1.2.3**; 10–11 → **1.8.2**; 12–13 → **1.8.3**; 14–15 → **1.8.4**; 16 → **1.7.3**. |
-| **OPS — 11** | 01, 04 → minimal artisan profiles **1.7.3**, team extension **2.1.1**; 02–03 → **2.3.1**; 05–07 → **2.3.2**; 08–10 → **2.3.3**; 11 → **1.7.4**. |
+| **OPS — 11** | 01, 04 → minimal artisan profiles **1.7.3**, team extension **2.1.1**; 02–03 → **2.3.1**; 05–07 → **2.3.2**; 08–10 → **2.3.3**; 11 → **1.7.3–1.7.4**. |
 | **FIN — 21** | 01–04 → **1.4.1**; 05, 10–13 → **1.4.2**; 06–09, 21 → **1.4.4**, registered regimes **2.4.1**; 14 → **1.4.5**; 15 → **1.8.3**; 16 → **1.9.2/2.4.2**; 17 → **1.5.4**; 18–19 → **2.4.3**; 20 → **1.10.3/2.4.1**, authority controls in each financial slice. |
 | **RTL — 8** | 01–02, 04 → **2.5.1**; 03, 05 → **2.5.2**; 06–08 → **2.5.3**. |
 | **COM — 11** | 01–02 → **2.6.1**; 03, 11 → **2.6.2**; 04, 06–08 → **1.4.3**, other manual notices **1.6.2/1.8.3/1.8.5**; 05, 10 → **2.6.4**; 09 → **2.6.3**. |
@@ -1167,7 +1728,7 @@ These are planned functional checks, not claims that software has already been i
 | AC-33–AC-34 | **2.9.2–2.9.3** — uncertain intake and bundled-price false suggestions. |
 | AC-35 | **3.3.1** — context-specific fit reuse. |
 | AC-36–AC-37 | **2.6.3–2.6.4**, **3.3.3** — stale reminder, opt-out and failure. |
-| AC-38 | **2.1.3** before second-shop use; repeat against **2.6** and **2.9/3.3**. Owner access boundaries already apply in Wave 1. |
+| AC-38 | **0.2.2** and every added repository/path prove two-synthetic-shop isolation before pilot; **2.1.3** repeats the complete access matrix before second-shop use; repeat against **2.6** and **2.9/3.3**. |
 | AC-39 | **1.1.3**, **2.7.1** — private media excluded from gallery. |
 | AC-40 | **1.2.1** and editing workflows — honest online save/retry behaviour. |
 | AC-41–AC-42 | **1.10.1**, **1.10.3** — opening duplication and understandable export. |
@@ -1188,7 +1749,8 @@ These are planned functional checks, not claims that software has already been i
 | AC-60–AC-62 | **1.1.1**, **1.4.2**, **1.9.2** — capacity/rush, duplicate UTR and till discrepancy. |
 | AC-63 | **1.2.2**, **1.8.3** — partial outfit-piece handover. |
 | AC-64 | **1.3.4** — printer-free job slip; **3.1.4–3.1.5** — A4 calibrated pattern. |
-| AC-65–AC-66 | **2.8.2**, **1.7.4** — unvalidated drafting label and accepted artisan dues. |
+| AC-65 | **2.8.2** — unvalidated drafting label. |
+| AC-66 | **1.7.3–1.7.4** — agreed charge/advance and outstanding due visible at dispatch; accepted returns activate payable settlement. |
 
 ---
 
@@ -1274,10 +1836,10 @@ Instagram/ad connections, retail, patterns and AI are baseline conditional capab
 |---|---|
 | Product value | Wave 1 delivers a usable operating loop; later modules build on genuine daily records. |
 | Business workflow | Custom, repeat, family/package, small-service, outsourced Aari, partial fulfilment and cancellation journeys are covered. Retail receives a complete later workflow. |
-| Implementation | The 85 slices deliver bounded functional outcomes rather than technical layers. Dependencies progress from identity/agreement/materials to work, acceptance and settlement. |
+| Implementation | The 85 business slices and 13 verified foundation increments deliver bounded outcomes. Dependencies progress from identity/agreement/materials to work, acceptance and settlement. |
 | Quality | Slice acceptance covers normal operation and material exceptions. All 66 source scenarios have delivery ownership and release applicability. |
 | Completeness | All 241 numbered requirements are accounted for. Non-numbered lifecycle, pilot, safety and readiness obligations are also mapped. |
-| Scope discipline | No architecture, stack, schema, API, infrastructure or development estimates are introduced. Optional extensions remain explicit. |
+| Scope discipline | Prescribed architecture is assigned to prerequisite and feature slices; no new technology decisions or estimates are invented. Optional extensions remain explicit. |
 
 ### 8.4 Completion standard for subsequent specifications
 
@@ -1291,3 +1853,312 @@ Each future phase specification should retain these slice identifiers and provid
 6. Its output integrates with the existing operating journey without duplicate entry or misleading status.
 
 Complete-scope coverage does not imply every conditional module is enabled in every boutique. A capability remains explicitly gated until its prerequisites are satisfied; the manual core remains useful throughout.
+
+
+## 9. Architecture Ownership, Technical Gates and Final Review
+
+The architecture remains the technical source; this table assigns implementation and verification responsibility without reproducing its specifications. All referenced requirements/scenarios retain the product plan's release qualifications.
+
+| Architecture source | Mandatory delivery and verification owner |
+|---|---|
+| §§1–3: monolith, budget, recorded decisions/drivers | 0.1.1 establishes the two entry points/one database; 0.5.1 and 1.10.4 measure cost/latency/recovery. Core operations need no optional modules. |
+| §§4–5.1: exact stack, Node/TS/pnpm, PostgreSQL, Drizzle, API, auth/storage | 0.1.1 compatibility/pinning; 0.2.1–0.2.3 implement the prescribed request/auth/data paths; 0.3.2 and 0.4.3 implement queue/storage. Verify migrations and runtime role on the chosen PostgreSQL 18/17 image. |
+| §§5.2, 7.1: Base UI/Tailwind/Query/Table/forms/nuqs/next-intl | 0.4.1–0.4.2 and each UI slice. Base UI only, no vaul/Radix; CSS source discovery includes workspace packages; accessible card/table/dialog adaptations and IME-safe forms. Virtual only after measurement. |
+| §5.3: quantities/IDs/time/import/PDF/env/logging/tests/update policy | 0.1.1 establishes tools; 0.3.1 exact arithmetic; 0.3.2 local-date jobs; 0.4.1 IDs/time/search/logging; 0.4.3–0.4.4 sharp/fonts/Chromium/PDF merge; 1.10.1/1.10.3 Papa Parse. Env validation forbids server secrets in NEXT_PUBLIC variables. Vitest/fast-check, Testcontainers, Playwright/axe and MSW support real tests rather than unused installations. |
+| §§6.1–6.3: package boundaries/modules | 0.1.1 restricted imports; every slice adds its own module folder. Cross-module orchestration calls core interfaces, not another module's private tables. No empty forest of packages or alternate generic framework. |
+| §6.4: typed Hono/OpenAPI/current-transaction path | 0.2.3 plus every business command; generate OpenAPI in dev/CI only, per-module clients with compiled declarations. No business Server Actions, nested independent repository transactions or Next imports inside api/core. |
+| §6.5: setup/guided onboarding/practice/support | 0.2.1 owner bootstrap; 1.1.1–1.1.2 record configuration gates; 1.10.3 contextual support; 1.10.4 guided sample journey. Practice uses isolated is_practice shop, watermark and permanently disabled effects. Full resettable practice UX remains product BIZ-01 P1 Should and completes in 2.1.4 if deferred. |
+| §§7.2–7.3: PWA/drafts/retries/conflicts | 0.4.1/0.4.2, 1.2.1 and every editable screen. Offline fallback only; no business persistence/cache. Stable draft ID/resume list, 30-day stale flags/notice-period retention and current-state promotion; superseded draft conflicts are visible. |
+| §8.1: types/FKs/migrations | 0.2.2/0.3.1 plus each table. Raw measurement text/entered units and value kept distinct; business date vs UTC timestamp. SQL review, extensions/grants/triggers and advisory lock; expand/migrate/contract. No production drizzle-kit push or automatic destructive rollback. |
+| §8.2: FORCE RLS/membership/role exceptions | 0.2.2, repeated for all repositories and every indirect path. app_backup read-only BYPASSRLS credentials are limited to backup; app_privacy only audited functions; runtime app_user has neither privilege. Two synthetic shops before pilot, complete role matrix before shared access. |
+| §8.3: immutable history/privacy exception/separate lifecycles | 0.2.3/0.5.2 and all consequential slices; 1.3.2 versions, 1.4 issued artifacts/events, 1.5 stock/custody, 1.8 lifecycle. Tests reject ordinary history mutation while permitting scoped privacy redaction/tombstones. |
+| §8.4: posting journal/FIN-05/money references/document issue | 0.3.1; 1.4.2/1.4.4/1.4.5, 1.5.3–1.5.4, 1.7.4 and 1.9.2/1.9.4. Accountant approval before go-live; sums/postings/reversals/source locks/numbers/paise/safe wire bounds proven. Source payment reference constraints outlive the 30-day request-key retention. |
+| §8.5: If-Match/idempotency/external effect ledger | 0.2.3, 0.4.2 and every mutation; actor/action/request-hash binding, 30-day keys and durable business uniqueness. 2.6.4 adds provider IDs/effect ledger and ambiguous-send reconciliation. |
+| §8.6: SQL reports/product_event/named metrics | 0.4.1 initial pilot/cost/support instrumentation; 1.9.3–1.9.4/2.10 report definitions/date basis/denominator/N/A/drill-down. Materialised views only after a slow-query measurement; no warehouse. |
+| §8.7: imports/exports/notebook photos | 1.10.1 versioned templates, file/row hashes, cut-off preview and opening approval; 1.10.3 ZIP entity CSV + JSON history + PDFs/permitted media + Tamil/English README. Escape formula cells, recent re-authentication, private job results, audited links expiring after seven days; notebook values stay unconfirmed. |
+| §§9.1–9.2: Tamil/Tanglish search/vocabulary | 0.4.1 key functions/glossary; 1.9.1 shop-led trigram/phone_last4/last6 queries and ranking; 1.10.4 verifies approximately 200 consented/anonymised cases with at least 95% top-five recall. Names/notes are never auto-translated or merged. Document language follows customer preference. |
+| §9.3: issued PDFs/Tamil/WhatsApp | 0.4.4, 1.3.4 and each document-producing slice; approximately 50-string reviewed golden set, fonts loaded before render, Chromium non-root/network restrictions/concurrency one/idle shutdown. Android file share then text second tap, desktop manual attach, prepared/marked-sent history. Printable blank outage slips prepared before pilot. |
+| §9.4: pattern geometry/vector PDF/physical print gates | 3.1.2–3.1.5; pure millimetre geometry drives SVG/PDF, A4/A3 tile planning and 100mm square, page boxes and 1mm=72/25.4pt scale checked; at least three Actual-Size printers and reviewer tolerances. Library choice is deferred until P3. |
+| §10.1: uploads/publication/immutable storage | 0.4.3, 1.1.3 and 2.7; pending upload/complete/process/quarantine, 5-minute signed links, checksum derivatives and deletion lifecycle. Explicit published copy and /g/img authorisation serve only published images from private buckets; unpublish removes it. Public R2 only on traffic trigger. |
+| §10.2: jobs/schedules/worker topology | 0.3.2; per-shop daily alerts at 06:00 Asia/Kolkata, live local-date due panel, nightly retention, singleton PDFs (three retries), per-shop serial chunked imports/exports, dead-letter digest/queue-age monitoring. Scratch backup verification is part of backup cron, not pg-boss. |
+| §10.3: integrations/restricted phases | 0.2.1 auth-only Resend with SPF/DKIM/DMARC; 1.4.3 manual sharing; 2.6.4 WhatsApp/selected OTP; 2.9 AI; 3.2 post-pilot social/ads. No WhatsApp API or AI SDK in P1. |
+| §§11.1–11.2: auth/session/access | 0.2.1–0.2.2; verified allow-list and explicit Google linking, no implicit signup, exact origins, secure sessions and re-authentication. 2.1 adds fixed role/toggles/invites/revocation/ownership verification, never an organization plugin. Critical auth/framework advisories patched within 48h. |
+| §11.3: customer private tokens/step-up | 2.6.1–2.6.2: 256-bit opaque tokens stored hashed, scope/revision/action/expiry/revocation/max-use checks every request, exchange URL token for narrow cookie, no-store/no-referrer/no third-party scripts. Ordinary links exclude fit assets; approval uses approved OTP; phone change revokes links. |
+| §11.4: security baseline | 0.1.1/0.2.1/0.4.3/0.5.1: CSP/HSTS/frame/referrer/camera policy, origin defence, upload validation, onlyBuiltDependencies/audit/Action SHA pins, separate sealed environment secrets and scrubbed logs/Sentry. Production diagnostics are read-only, exceptional access time-limited/approved/audited. |
+| §11.5: privacy/children/processors | 0.5.2 and 1.1.3/1.10.2; guardian/payer distinction, under-18 flag only, no minor publication/tracking/marketing, notices and consent purposes/withdrawal, rights/grievances/breach procedure. Approved processor locations and retention include backups/exports and monthly off-platform B2 erased-media purge. |
+| §§12.1–12.3: infrastructure/environments/domain | 0.5.1; config-as-code, standalone web, production worker, dev in-process jobs, small pools/memory caps, Singapore separate synthetic dev/prod, same tested build/commit promoted manually with Wait for CI. No permanent staging. Fix domain before live OAuth; measure Tamil Nadu mobile latency in week one and record p95 trigger around 300ms. |
+| §§12.4–12.5: delivery/monitoring | 0.1.2/0.5.1 and each PR; backup before schema/money migration, compatible rollback, scrubbed source maps/errors, uptime/backup heartbeat/WAL lag/disk/sign-in/PDF/oldest-job/spend monitoring and failed-job email digest. Weekly dependency batches and deliberate major-upgrade tasks. |
+| §13: recovery layers/drill/continuity | 0.5.1–0.5.2 and 1.10.4; PITR/volume schedule plus 12h verified encrypted dumps and nightly media/manifest copy, B2 daily/monthly lifecycle, off-platform key custody and break-glass runbook. Target restore four hours within product one business day/RPO at most 24h; quarterly and major-change drills. Live drills only temporary locked-down prod service, removed afterwards; never dev. Money/window reconciliation and tombstone/revocation reapplication precede unfreezing; operator kill switch removed last. |
+| §14: budget/cost controls | 0.5.1/1.10.4; whole workspace Hobby for synthetic development/Pro before real data, seven-day measured cost within under-$20 development/about-$50 pilot ceilings. Alerts/review/owner-approved hard limit, stop dev/optional work first; warn that hard limit stops all services. Backups cannot fail silently; paid Railway agent usage off unless approved. |
+| §15: evidence-based testing/go-live | Every slice plus 1.10.4; property tests for money/state/search, real PostgreSQL RLS/queue/rollback/conflicts, E2E every P1 workflow phone 360x800/tablet orientations/desktop, Tamil golden PDFs/search recall/axe/manual screen reader. Real 3–4GB Android, camera/IME/share/PWA and measured first-use <3s/warm <1s/PDF <10s targets. Targets are measured, not assumed guarantees. |
+| §§16–18: phased additions/triggers/open items | 2.1/2.4/2.5/2.6/2.8/2.9 and 3.1/3.2 retain source boundaries. Production domain, operator, accountant numbering/retention, devices, PITR availability and privacy advice are activation inputs in 0.5.1/1.10.4. Optional API extraction/PDF service/offline/HA depend on evidence and a revised decision. |
+
+### 9.1 Mandatory scope versus optional enhancements
+
+- **Pilot blockers:** Wave 0 safeguards needed by P1, all 148 P1 Must requirement IDs (including their scoped minimums), the product §30.1 scenario applicability, approved §32.2 decisions and architecture §15.2. All future feature additions carry their correctness and security prerequisites.
+- **P1 Should:** CUS-08; ENQ-06/07; QR part of ORD-10; DES-07; MAT-06/07/08/11; PUR-03 minimal purchase capture; MEA-10 manual retrieval; OPS-02; FIN-18/19; COM-10 manual fallback; DAY-05; SHO-01–06; REP-03/05/08 manual spend; TRU-09/11; practice UX part of BIZ-01. Minimum stock/unit/cost/identity/recovery protections required by Must are already included; optional deepening does not delay pilot. Product §§29.1 and 30.1 remain authoritative if counting mixed qualifiers.
+- **Conditional full-product baseline:** Registered tax regimes, retail, shared/customer access, messaging, drafting/patterns, AI, social/ads and paid-shop administration. They are neither pilot dependencies nor discarded optional extensions. Their activation decisions and later acceptance scenarios remain assigned.
+- **Separate optional changes:** Product §31.2 and architecture triggers only. No offline capture, 3D, plotting, broader unsupported formulas/languages, nesting, e-commerce/multi-branch/social posting, Redis or extra permanent services in this proposal.
+
+### 9.2 Final review findings and corrections
+
+| Check | Result / residual dependency |
+|---|---|
+| Committed functional coverage | Explicit register assigns all 241 requirements. P1 Must IDs resolve to Wave 1 minimum owners; partial regimes, worker scope, QR/practice and reporting depth are qualified. No Must relies on retail, AI, customer login or patterns. |
+| Scenarios | All AC-01–66 have owners in §6.2 and slice traceability. Multi-part AC-06/64 retain phase-specific checks. AC-38 is tested early with synthetic shops and again before external use. Gallery AC-29/39 applies if moved into P1. |
+| Sequencing | Auth/tenancy/command safeguards precede records; money/jobs/media/PDFs precede dependent actions. Production follows accepted current inputs/custody; readiness follows trials/quality, handover follows readiness and reviewed settlement. Restore preparation is early, completed-workflow rehearsal precedes live use. |
+| Integrity/security | Source locks, exact paise remainder, journal conservation, no double purchase/consumption cost, immutable issued versions, concurrency/retry tests, guardian rights, privacy erasure exception, restoration tombstones/revocations and money freeze have explicit owners. No database queue claim of exactly-once provider delivery. |
+| Early observability | Cost-to-serve, support effort and pilot product events begin in 0.4.1; first real use waits for baseline. Dashboards/subscriptions do not delay capture. |
+| Avoidable complexity | Preserve 85 domain IDs, add only 13 operational prerequisites. Minimal packages/managed topology, no warehouse/Redis/event sourcing/native app. Extract APIs, virtualise or add public R2 only on measured triggers. |
+| Unnecessary dependencies | Internal staff assignment does not require external-worker login. Each document-extraction variant depends only on its manual workflow. Drafting/gallery/manual marketing do not wait for AI, retail or social connection. Staff and second-shop activation still wait for the product pilot checkpoint. |
+| Open activation values | No invented tax rules, rates, tolerances, privacy commencement or subscription quotas. Owner/accountant/privacy/second-reviewer decisions in §§32 and architecture §18 block only the relevant actions and all required live-readiness gates. |
+
+**Review evidence:** This is a static source/coverage/dependency review. Application tests, cloud security configuration, live restore and device performance have not been executed because implementation has not begun. Future ticket creation must preserve these IDs, narrow each phase into implementation detail and carry the stated checks; this document does not create issues.
+
+## 10. Explicit Requirement and Phase 1 Scope Register
+
+This register is derived from all numbered source requirements and §29.1. **Later baseline** is committed full-product scope with provisional timing, not permission to delete it. P1 Must with a qualifier requires its specified minimum; extensions wait for the stated gate. P1 Should never blocks go-live unless its minimum is necessary for a Must. Multiple owners represent minimum-to-full delivery and integration, not repeated transactions. See §6.2 for all 66 scenario owners and §9 for technology ownership.
+
+| Requirement | Source functionality | Release commitment | Responsible business slices |
+|---|---|---|---|
+| SET-01 | Business profile | P1 Must | 1.1.1 |
+| SET-02 | Working calendar | P1 Must | 1.1.1 |
+| SET-03 | Service catalogue | P1 Must | 1.1.2 |
+| SET-04 | Operating templates | P1 Must | 1.1.2 |
+| SET-05 | Commercial policies | P1 Must | 1.1.1 |
+| SET-06 | Alerts and priority | P1 Must | 1.1.1 |
+| SET-07 | People and services | P1 Must: payment methods/vendors; staff P2 | 1.1.1, 2.1.1 |
+| SET-08 | Versioned configuration | P1 Must | 1.1.1 |
+| SET-09 | Optional module activation | P1 Must | 1.1.1 |
+| SET-10 | Simple mode (solo owner) | P1 Must | 1.1.2 |
+| SET-11 | Capacity guard and rush rule | P1 Must | 1.1.1 |
+| SET-12 | Uncollected garments and stored property | P1 Must | 1.8.5 |
+| CUS-01 | Customer records | P1 Must | 1.1.3 |
+| CUS-02 | Wearer identity | P1 Must | 1.1.3 |
+| CUS-03 | Unified history | P1 Must | 1.2.4 |
+| CUS-04 | Preferences | P1 Must | 1.1.3 |
+| CUS-05 | Search and duplicate review | P1 Must | 1.2.4 |
+| CUS-06 | Corrective edits | P1 Must | 1.2.4 |
+| CUS-07 | Relationship permissions | P1 Must | 1.1.3 |
+| CUS-08 | Service issues | P1 Should | 2.6.2 |
+| CUS-09 | Data lifecycle | P1 Must | 1.10.2 |
+| ENQ-01 | Enquiry capture | P1 Must | 1.6.1 |
+| ENQ-02 | Minimal entry | P1 Must | 1.6.1 |
+| ENQ-03 | Follow-up lifecycle | P1 Must | 1.6.1 |
+| ENQ-04 | Conversion | P1 Must | 1.6.1 |
+| ENQ-05 | Appointments | P1 Must | 1.6.2 |
+| ENQ-06 | Changes and conflicts | P1 Should | 2.6.2 |
+| ENQ-07 | Quote follow-up | P1 Should | 2.6.2 |
+| ENQ-08 | Attribution evidence | P1 Must | 1.6.3 |
+| ORD-01 | Booking and order identifiers | P1 Must | 1.2.1, 1.7.2, 1.8.4 |
+| ORD-02 | Independent garment records | P1 Must | 1.2.2, 1.8.3 |
+| ORD-03 | Mixed bookings | P1 Must | 1.2.2, 2.5.2 |
+| ORD-04 | Intake fields | P1 Must | 1.2.1, 1.7.2, 1.8.4 |
+| ORD-05 | Requirement checklist | P1 Must | 1.2.1, 1.7.2, 1.8.4 |
+| ORD-06 | Explicit requirement states | P1 Must | 1.2.1, 1.7.2, 1.8.4 |
+| ORD-07 | Reference assets | P1 Must | 1.3.1 |
+| ORD-08 | Fast and repeat intake | P1 Must | 1.2.4 |
+| ORD-09 | Customer-facing summary | P1 Must | 1.4.3 |
+| ORD-10 | Physical identification | P1 Must: PDF slips/labels; QR Should | 1.3.4, 2.3.1 |
+| ORD-11 | Ownership and exceptions | P1 Must | 1.2.1, 1.7.2, 1.8.4 |
+| ORD-12 | History | P1 Must | 1.2.4 |
+| ORD-13 | Outfit pieces | P1 Must | 1.2.2, 1.8.3 |
+| ORD-14 | Add-on services and packages | P1 Must | 1.2.3, 1.2.2 |
+| DES-01 | Category and type library | P1 Must | 1.3.1 |
+| DES-02 | Type versus decoration | P1 Must | 1.3.1 |
+| DES-03 | Availability control | P1 Must | 1.3.1 |
+| DES-04 | Design specification | P1 Must | 1.3.1 |
+| DES-05 | Versioned references | P1 Must | 1.3.1 |
+| DES-06 | Customer approval | P1 Must | 1.4.3 |
+| DES-07 | Partial approvals | P1 Should | 2.6.2 |
+| DES-08 | Change requests | P1 Must | 1.4.3 |
+| DES-09 | Revised agreements | P1 Must | 1.4.3 |
+| DES-10 | Reuse and rights | P1 Must | 1.3.1 |
+| DES-11 | Change-impact rules | P1 Must | 1.4.3 |
+| MAT-01 | Three-way distinction | P1 Must | 1.5.1 |
+| MAT-02 | Customer property receipt | P1 Must | 1.5.1 |
+| MAT-03 | Storage and movement | P1 Must | 1.5.2 |
+| MAT-04 | Requirement versus receipt | P1 Must | 1.5.1 |
+| MAT-05 | Order allocation | P1 Must | 1.5.3 |
+| MAT-06 | Inventory units | P1 Should | 2.2.1, 1.5.3, 1.10.1 |
+| MAT-07 | Variants and quality | P1 Should | 2.2.1, 1.5.3, 1.10.1 |
+| MAT-08 | Shortage and substitution | P1 Should | 2.2.2 |
+| MAT-09 | External dispatch | P1 Must | 1.7.3, 1.7.4 |
+| MAT-10 | Returns and remnants | P1 Must | 1.5.5 |
+| MAT-11 | Stock corrections | P1 Should | 2.2.1, 1.5.3, 1.10.1 |
+| MAT-12 | Incident handling | P1 Must | 1.5.5 |
+| MAT-13 | Shared customer fabric | P1 Must | 1.5.2 |
+| PUR-01 | Supplier records | Later baseline / gated | 2.2.2 |
+| PUR-02 | Purchase requests | Later baseline / gated | 2.2.2 |
+| PUR-03 | Purchase records | P1 Should | 1.5.4, 2.2.2 |
+| PUR-04 | Partial receipts | Later baseline / gated | 2.2.3 |
+| PUR-05 | Bills and payables | Later baseline / gated | 2.2.3 |
+| PUR-06 | Returns and credits | Later baseline / gated | 2.2.4 |
+| PUR-07 | Replenishment visibility | Later baseline / gated | 2.2.4 |
+| MEA-01 | Garment-specific forms | P1 Must | 1.3.2 |
+| MEA-02 | Units and entry | P1 Must | 1.3.2 |
+| MEA-03 | Source and method | P1 Must | 1.3.2 |
+| MEA-04 | Version history | P1 Must | 1.3.2 |
+| MEA-05 | Base versus derived values | P1 Must | 1.3.2 |
+| MEA-06 | Validation | P1 Must | 1.3.2 |
+| MEA-07 | Reuse confirmation | P1 Must | 1.3.2 |
+| MEA-08 | Trial record | P1 Must | 1.8.1 |
+| MEA-09 | Verified fit outcome | P1 Must | 1.8.1 |
+| MEA-10 | Contextual fit reuse | P1 Should | 3.3.1, 1.2.4 |
+| MEA-11 | Private fit assets | P1 Must | 1.3.2 |
+| PAT-01 | Supported-pattern catalogue | P1 Must | 1.3.3 |
+| PAT-02 | Expert-approved rules | Later baseline / gated | 2.8.1 |
+| PAT-03 | Manual/external patterns | P1 Must | 1.3.3 |
+| PAT-04 | Seam allowances | Later baseline / gated | 3.1.1 |
+| PAT-05 | Allowance presets | Later baseline / gated | 3.1.1 |
+| PAT-06 | Complete provenance | Later baseline / gated | 2.8.2, 3.1.2 |
+| PAT-07 | Input and release checks | Later baseline / gated | 2.8.2, 3.1.2, 3.1.5 |
+| PAT-08 | 2D visual preview | Later baseline / gated | 3.1.2 |
+| PAT-09 | Calculation summary | Later baseline / gated | 3.1.2 |
+| PAT-10 | Fabric estimate | Later baseline / gated | 3.1.3 |
+| PAT-11 | True-scale export | Later baseline / gated | 3.1.4 |
+| PAT-12 | Print preview and instructions | Later baseline / gated | 3.1.4 |
+| PAT-13 | Physical verification | Later baseline / gated | 3.1.5 |
+| PAT-14 | Production handoff | Later baseline / gated | 3.1.5 |
+| PAT-15 | Invalidated output | Later baseline / gated | 3.1.2 |
+| PAT-16 | Drafting calculation sheet | Later baseline / gated | 2.8.2 |
+| PAT-17 | Output delivery without a printer | Later baseline / gated | 2.8.2, 3.1.4 |
+| JOB-01 | Simple milestones, detailed tasks | P1 Must | 1.7.1 |
+| JOB-02 | Garment-specific sequence | P1 Must | 1.7.1 |
+| JOB-03 | Explicit cutting activity | P1 Must | 1.7.1 |
+| JOB-04 | Task assignment | P1 Must | 1.7.1 |
+| JOB-05 | Progress and history | P1 Must | 1.7.1 |
+| JOB-06 | Holds and blockers | P1 Must | 1.7.2 |
+| JOB-07 | External-work reconciliation | P1 Must | 1.7.4 |
+| JOB-08 | Trials | P1 Must | 1.8.1, 1.2.3 |
+| JOB-09 | Alteration and correction jobs | P1 Must | 1.8.1, 1.2.3 |
+| JOB-10 | Quality acceptance | P1 Must | 1.8.2 |
+| JOB-11 | Ready for handover | P1 Must | 1.8.2 |
+| JOB-12 | Partial handover | P1 Must | 1.8.3 |
+| JOB-13 | Collection versus fulfilment | P1 Must: collection; courier dispatch optional | 1.8.3 |
+| JOB-14 | Cancellation and reopening | P1 Must | 1.8.4 |
+| JOB-15 | Closure | P1 Must | 1.8.4 |
+| JOB-16 | Aari and embellishment work | P1 Must | 1.7.3 |
+| OPS-01 | Worker profiles | P1 Must: minimal worker profiles; full profiles P2 | 1.7.3, 2.1.1 |
+| OPS-02 | Workload stacks | P1 Should | 2.3.1 |
+| OPS-03 | Assignment and reassignment | Later baseline / gated | 2.3.1 |
+| OPS-04 | External vendors | P1 Must | 1.7.3, 2.1.1 |
+| OPS-05 | Production estimates | Later baseline / gated | 2.3.2 |
+| OPS-06 | Capacity and commitments | Later baseline / gated | 2.3.2 |
+| OPS-07 | Planning view | Later baseline / gated | 2.3.2 |
+| OPS-08 | Piece-rate and time-based work | Later baseline / gated | 2.3.3 |
+| OPS-09 | Payable settlement | Later baseline / gated | 2.3.3 |
+| OPS-10 | Performance context | Later baseline / gated | 2.3.3 |
+| OPS-11 | Minimal vendor obligation record (Phase 1) | P1 Must | 1.7.3, 1.7.4 |
+| FIN-01 | Rate catalogue | P1 Must | 1.4.1 |
+| FIN-02 | Itemised quote | P1 Must | 1.4.1 |
+| FIN-03 | Drafts and revisions | P1 Must | 1.4.1 |
+| FIN-04 | Price versus cost | P1 Must | 1.4.1 |
+| FIN-05 | Shared amounts | P1 Must | 1.4.2 |
+| FIN-06 | Distinct documents | P1 Must | 1.4.4, 2.4.1 |
+| FIN-07 | Billing configuration | P1 Must: unregistered; composition/regular before registered-shop onboarding | 1.4.4, 2.4.1 |
+| FIN-08 | Issue and correction controls | P1 Must | 1.4.4, 2.4.1 |
+| FIN-09 | Action-specific gating | P1 Must | 1.4.4, 2.4.1 |
+| FIN-21 | Commercial event sequence | P1 Must | 1.4.4, 2.4.1 |
+| FIN-10 | Payment recording | P1 Must | 1.4.2 |
+| FIN-11 | Verification states | P1 Must | 1.4.2 |
+| FIN-12 | Allocation and prevention of duplication | P1 Must | 1.4.2 |
+| FIN-13 | Transparent balance | P1 Must | 1.4.2 |
+| FIN-14 | Refunds and reversals | P1 Must | 1.4.5 |
+| FIN-15 | Credit handover | P1 Must | 1.8.3 |
+| FIN-16 | Daily reconciliation | P1 Must | 1.9.2, 2.4.2 |
+| FIN-17 | Direct costs | P1 Must | 1.5.4 |
+| FIN-18 | Overheads and owner withdrawals | P1 Should | 2.4.3 |
+| FIN-19 | Profitability presentation | P1 Should | 2.4.3 |
+| FIN-20 | Financial controls and export | P1 Must: controls/linked exports; registered exports P2 | 1.10.3, 2.4.1 |
+| RTL-01 | Product and variant catalogue | Later baseline / gated | 2.5.1 |
+| RTL-02 | Variant stock | Later baseline / gated | 2.5.1 |
+| RTL-03 | Sale and mixed checkout | Later baseline / gated | 2.5.2 |
+| RTL-04 | Reservation and deposit | Later baseline / gated | 2.5.1 |
+| RTL-05 | Linked alteration | Later baseline / gated | 2.5.2 |
+| RTL-06 | Return and exchange | Later baseline / gated | 2.5.3 |
+| RTL-07 | Cancellation coordination | Later baseline / gated | 2.5.3 |
+| RTL-08 | Retail reporting | Later baseline / gated | 2.5.3 |
+| COM-01 | Customer overview | Later baseline / gated | 2.6.1 |
+| COM-02 | Secure access | Later baseline / gated | 2.6.1 |
+| COM-03 | Customer decisions | Later baseline / gated | 2.6.2 |
+| COM-04 | Owner-triggered sharing | P1 Must | 1.4.3, 1.6.2, 1.8.3, 1.8.5 |
+| COM-05 | Automated messages | Later baseline / gated | 2.6.4 |
+| COM-06 | Language and tone | P1 Must | 1.4.3, 1.6.2, 1.8.3, 1.8.5 |
+| COM-07 | Preferences and consent | P1 Must | 1.4.3, 1.6.2, 1.8.3, 1.8.5 |
+| COM-08 | Communication timeline | P1 Must | 1.4.3, 1.6.2, 1.8.3, 1.8.5 |
+| COM-09 | Reminder controls | Later baseline / gated | 2.6.3 |
+| COM-10 | Provider failure and cost visibility | P1 Should | 2.6.4 |
+| COM-11 | Customer issues | Later baseline / gated | 2.6.2 |
+| DAY-01 | Action-first home | P1 Must | 1.9.2 |
+| DAY-02 | Action cards | P1 Must | 1.9.2 |
+| DAY-03 | Order lists | P1 Must | 1.9.1 |
+| DAY-04 | Search | P1 Must | 1.9.1 |
+| DAY-05 | Views | P1 Should | 2.3.2 |
+| DAY-06 | Delivery warnings | P1 Must | 1.9.2 |
+| DAY-07 | Exception ownership | P1 Must | 1.9.2 |
+| DAY-08 | Clear prioritisation | P1 Must | 1.9.2 |
+| DAY-09 | Quick actions | P1 Must | 1.9.2 |
+| DAY-10 | Daily close | P1 Must | 1.9.2 |
+| SHO-01 | Mannequin master | P1 Should | 2.7.1 |
+| SHO-02 | Costume changes | P1 Should | 2.7.1 |
+| SHO-03 | Customer showcase | P1 Should | 2.7.2 |
+| SHO-04 | Publishing control | P1 Should | 2.7.1 |
+| SHO-05 | Enquiry from showcase | P1 Should | 2.7.2 |
+| SHO-06 | Privacy and asset rights | P1 Should | 2.7.1 |
+| SHO-07 | Read-only feed | Later baseline / gated | 3.2.1 |
+| SHO-08 | Refresh controls | Later baseline / gated | 3.2.1 |
+| SHO-09 | Connection lifecycle | Later baseline / gated | 3.2.1 |
+| SHO-10 | Content separation | Later baseline / gated | 3.2.1 |
+| REP-01 | Operational scorecard | P1 Must | 1.9.3, 2.6.2 |
+| REP-02 | Sales and collections | P1 Must | 1.9.4, 2.2.3, 2.3.3 |
+| REP-03 | Contribution | P1 Should | 2.4.3, 1.9.4 |
+| REP-04 | Receivables and payables | P1 Must | 1.9.4, 2.2.3, 2.3.3 |
+| REP-05 | Materials and retail | P1 Should | 2.2.4, 2.5.3, 1.9.1 |
+| REP-06 | Customers and services | P1 Must: basic; complaint reporting P2 | 1.9.3, 2.6.2 |
+| REP-07 | Acquisition sources | P1 Must | 1.6.3 |
+| REP-08 | Advertising inputs | P1 Should | 1.6.3, 2.10.1, 3.2.2 |
+| REP-09 | Attribution policy | Later baseline / gated | 2.10.1 |
+| REP-10 | Campaign outcomes | Later baseline / gated | 2.10.2, 3.2.2 |
+| REP-11 | ROAS and contribution after advertising | Later baseline / gated | 2.10.2, 3.2.2 |
+| REP-12 | Comparison and freshness | Later baseline / gated | 2.10.2, 3.2.2 |
+| REP-13 | Filters and drill-down | Later baseline / gated | 2.10.2, 3.2.2 |
+| REP-14 | Business review actions | Later baseline / gated | 2.10.2, 3.2.2 |
+| AI-01 | Tamil/English assisted intake | Later baseline / gated | 2.9.2 |
+| AI-02 | Relevant follow-up questions | Later baseline / gated | 2.9.2 |
+| AI-03 | Scope and quote completeness | Later baseline / gated | 2.9.3 |
+| AI-04 | Delivery-risk assistance | Later baseline / gated | 3.3.2 |
+| AI-05 | Source-linked fit recall | Later baseline / gated | 3.3.1 |
+| AI-06 | Collection/payment assistance | Later baseline / gated | 3.3.3 |
+| AI-07 | Design-reference structuring | Later baseline / gated | 2.9.4 |
+| AI-08 | Assisted document entry | Later baseline / gated | 2.9.5 |
+| AI-09 | Action-linked operational questions | Later baseline / gated | 3.3.3 |
+| AI-10 | Feedback and enablement | Later baseline / gated | 2.9.1 |
+| TRU-01 | Shop isolation | P1 Must | 1.1.3 |
+| TRU-02 | Basic role controls | Later baseline / gated | 2.1.1, 2.1.2 |
+| TRU-03 | Customer/wearer privacy | P1 Must | 1.1.3 |
+| TRU-04 | Consent and notice | P1 Must | 1.1.3 |
+| TRU-05 | Data minimisation | P1 Must | 1.1.3 |
+| TRU-06 | Business audit history | P1 Must | 1.2.4 |
+| TRU-07 | Document and media visibility | P1 Must | 1.1.3 |
+| TRU-08 | Correction, archive and deletion | P1 Must | 1.10.2 |
+| TRU-09 | Account and access lifecycle | P1 Should | 2.1.1, 2.1.3, 2.6.1 |
+| TRU-10 | Recovery | P1 Must | 1.10.4 |
+| TRU-11 | Integrations and support | P1 Should | 2.1.3, 2.6.4, 3.2.1, 3.2.2 |
+| TRU-12 | Financial integrity | P1 Must | 1.2.4 |
+| TRU-13 | Digital personal data protection | P1 Must | 1.1.3 |
+| USE-01 | Mobile and desktop use | P1 Must | 1.10.4 |
+| USE-02 | Language | P1 Must | 1.10.4 |
+| USE-03 | Reliable drafts | P1 Must | 1.2.1 |
+| USE-04 | Connectivity boundaries | P1 Must | 1.2.1 |
+| USE-05 | Import and migration | P1 Must | 1.10.1 |
+| USE-06 | Export | P1 Must | 1.10.3 |
+| USE-07 | Printing and media | P1 Must | 1.3.4 |
+| USE-08 | Concurrent updates | P1 Must | 1.2.1 |
+| USE-09 | Recovery and accessibility | P1 Must | 1.10.4 |
+| BIZ-01 | Guided onboarding | P1 Must: guided onboarding; resettable practice UX Should | 1.10.4, 2.1.4 |
+| BIZ-02 | Reusable configuration | Later baseline / gated | 2.1.4 |
+| BIZ-03 | Shop membership | Later baseline / gated | 2.1.3 |
+| BIZ-04 | Plans and limits | Later baseline / gated | 2.11.1 |
+| BIZ-05 | Expiry and exit | Later baseline / gated | 2.11.2 |
+| BIZ-06 | Support and feedback | P1 Must | 1.10.3 |
