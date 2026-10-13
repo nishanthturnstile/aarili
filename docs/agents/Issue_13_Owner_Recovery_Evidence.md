@@ -93,3 +93,11 @@ existing frozen-install CI; a separate `verify:clean` clone/install run is not
 repeated here. Integrated main after merge is deliberately not run because the
 owner has not authorised merge. All three existing hosted checks and owner
 review remain required before merge.
+
+GitHub's push warning also reported three **pre-existing** Dependabot alerts in
+the tracked `.scratch/drizzle-compat/package.json` vendor compatibility fixture:
+Vitest GHSA-82fw-gwwq-j7x9, Kysely GHSA-8cpq-38p9-67gx (high), and zx
+GHSA-w87r-vg9q-crqm. That manifest is outside `apps/*` and `packages/*`, the pnpm
+workspace/audit graph. The fixture has no diff from integrated main and is
+preserved under this issue's scope; no repository-wide advisory cleanup is
+claimed. The workspace dependency audit result does not dismiss those alerts.
