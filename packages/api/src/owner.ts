@@ -2,6 +2,7 @@ import type { OwnerAuth } from "@aarili/auth";
 import { OwnerAccessError } from "@aarili/auth";
 import {
   apiErrorSchema,
+  googleConnectionSchema,
   ownerActionSchema,
   ownerShopSchema,
   reauthenticationSchema,
@@ -70,7 +71,9 @@ export function createOwnerRoutes(owner: OwnerAuth) {
   app.use("*", async (c, next) => {
     c.header("Cache-Control", "no-store");
     c.header("Referrer-Policy", "no-referrer");
-    if (new URL(c.req.url).search)
+    const googleCallback =
+      c.req.method === "GET" && c.req.path === "/api/auth/callback/google";
+    if (new URL(c.req.url).search && !googleCallback)
       return c.json(
         { error: { code: "INVALID_REQUEST", message: "Request failed" } },
         422,
@@ -114,6 +117,37 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/owner/google",
+        responses: {
+          200: {
+            description: "Owner Google connection status; no account tokens.",
+            content: { "application/json": { schema: googleConnectionSchema } },
+          },
+          401: errorResponse,
+        },
+      }),
+      async (c) => {
+        const result = await owner.googleConnection(c.req.raw.headers);
+        return sessionResponse(c.json(result.data, 200), result.headers);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/owner/google/disconnect",
+        responses: actionResponses,
+      }),
+      async (c) => {
+        const headers = await owner.disconnectGoogle(c.req.raw.headers);
+        return sessionResponse(
+          c.json({ state: "google-disconnected" as const }, 200),
+          headers,
+        );
+      },
+    )
     .openapi(
       command("/owner/recovery/request", recoveryRequestSchema),
       async (c) => {
@@ -226,8 +260,15 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     if (
       !(
         (c.req.method === "POST" &&
-          ["/sign-in/email", "/sign-out"].includes(path)) ||
-        (c.req.method === "GET" && path === "/get-session")
+          [
+            "/sign-in/email",
+            "/sign-out",
+            "/sign-in/social",
+            "/link-social",
+            "/unlink-account",
+          ].includes(path)) ||
+        (c.req.method === "GET" &&
+          ["/get-session", "/callback/google"].includes(path))
       )
     )
       return c.json(
@@ -275,6 +316,18 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     responseHeaders.set("Cache-Control", "no-store");
     responseHeaders.set("Referrer-Policy", "no-referrer");
     responseHeaders.delete("Content-Length");
+    if (
+      [
+        "/sign-in/social",
+        "/link-social",
+        "/unlink-account",
+        "/callback/google",
+      ].includes(path)
+    )
+      return new Response(response.body, {
+        status: response.status,
+        headers: responseHeaders,
+      });
     if (path === "/sign-in/email" && response.ok) {
       // Native success includes a bearer token; browser gets only HttpOnly cookie.
       return new Response(JSON.stringify({ state: "signed-in" }), {

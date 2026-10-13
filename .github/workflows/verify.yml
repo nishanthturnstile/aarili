@@ -45,6 +45,8 @@ jobs:
         env:
           AARILI_PRIVATE_PROBE: aarili-private-probe-issue-2
           SETUP_TOKEN: aarili-setup-probe-issue-12
+          GOOGLE_DEV_CLIENT_SECRET: aarili-google-private-probe-issue-14
+          GOOGLE_PROD_CLIENT_SECRET: aarili-google-private-probe-issue-14
         run: pnpm --filter @aarili/web build && node scripts/check-artifacts.mjs
 
   browser:

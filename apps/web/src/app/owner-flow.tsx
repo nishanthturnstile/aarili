@@ -2,16 +2,19 @@
 
 import {
   completeOwnerShop,
+  disconnectOwnerGoogle,
   OwnerRequestError,
   onOwnerInvalidation,
   ownerSession,
   probeRecentOwner,
+  readGoogleConnection,
   readOwnerShop,
   reauthenticateOwner,
   requestOwnerRecovery,
   resendOwnerVerification,
   resetOwnerPassword,
   setupOwner,
+  startOwnerGoogle,
   verifyOwner,
 } from "@aarili/api/client";
 import { Button } from "@aarili/ui/components/button";
@@ -31,7 +34,9 @@ type Mode =
   | "owner"
   | "recovery"
   | "reset"
-  | "reauthenticate";
+  | "reauthenticate"
+  | "connections";
+// Google is a focused extension of the existing owner access surface.
 export function OwnerFlow({ mode }: { mode: Mode }) {
   const [locale, setLocale] = useState<"ta" | "en">("ta");
   return (
@@ -62,11 +67,54 @@ function Flow({ mode }: { mode: Mode }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [failure, setFailure] = useState("");
+  const [connection, setConnection] =
+    useState<Awaited<ReturnType<typeof readGoogleConnection>>>();
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [shop, setShop] = useState<Awaited<ReturnType<typeof readOwnerShop>>>();
-  const [loading, setLoading] = useState(mode === "owner");
+  const [loading, setLoading] = useState(
+    mode === "owner" || mode === "connections",
+  );
   const noticeRef = useRef<HTMLParagraphElement>(null);
+  const disconnectRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
   const key = useRef<string | undefined>(undefined);
   const lastInput = useRef("");
+  useEffect(() => {
+    (confirmDisconnect ? confirmRef : disconnectRef).current?.focus();
+  }, [confirmDisconnect]);
+  useEffect(() => {
+    if (mode !== "connections" && mode !== "sign-in") return;
+    const result = window.location.hash;
+    window.history.replaceState(null, "", window.location.pathname);
+    if (result === "#google-linked" && mode === "connections")
+      setNotice("googleLinked");
+    if (result === "#google-denied") setFailure("googleDenied");
+    if (result === "#google-disconnected") setNotice("googleDisconnected");
+  }, [mode]);
+  useEffect(() => {
+    if (mode !== "connections") return;
+    let active = true;
+    const unsubscribe = onOwnerInvalidation(() => {
+      if (active) {
+        setConnection(undefined);
+        setFailure("expired");
+      }
+    });
+    readGoogleConnection()
+      .then((data) => {
+        if (active) setConnection(data);
+      })
+      .catch(() => {
+        if (active) setFailure("expired");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [mode]);
   useEffect(() => {
     // Recovery uses pasted codes, never URL tokens or redirect parameters. Strip
     // accidental transient parameters immediately, including on failed resets.
@@ -117,27 +165,31 @@ function Flow({ mode }: { mode: Mode }) {
     } catch (error) {
       const code = error instanceof OwnerRequestError ? error.code : "";
       setFailure(
-        code === "VALIDATION_FAILED"
-          ? "validation"
-          : code === "SETUP_CLOSED" || code === "REQUEST_CONFLICT"
-            ? "closed"
-            : code === "UNAUTHENTICATED"
-              ? "expired"
-              : code === "AUTHENTICATION_STALE"
-                ? "stale"
-                : code === "INVALID_RESET"
-                  ? "badReset"
-                  : code === "INVALID_CREDENTIALS"
-                    ? "invalid"
-                    : code === "INVALID_VERIFICATION"
-                      ? "badCode"
-                      : code === "MAIL_UNAVAILABLE"
-                        ? "mailError"
-                        : code === "RATE_LIMITED"
-                          ? "limited"
-                          : code === "NOT_FOUND"
-                            ? "unavailable"
-                            : "error",
+        code === "GOOGLE_DENIED"
+          ? "googleDenied"
+          : code === "GOOGLE_UNAVAILABLE"
+            ? "googleUnavailable"
+            : code === "VALIDATION_FAILED"
+              ? "validation"
+              : code === "SETUP_CLOSED" || code === "REQUEST_CONFLICT"
+                ? "closed"
+                : code === "UNAUTHENTICATED"
+                  ? "expired"
+                  : code === "AUTHENTICATION_STALE"
+                    ? "stale"
+                    : code === "INVALID_RESET"
+                      ? "badReset"
+                      : code === "INVALID_CREDENTIALS"
+                        ? "invalid"
+                        : code === "INVALID_VERIFICATION"
+                          ? "badCode"
+                          : code === "MAIL_UNAVAILABLE"
+                            ? "mailError"
+                            : code === "RATE_LIMITED"
+                              ? "limited"
+                              : code === "NOT_FOUND"
+                                ? "unavailable"
+                                : "error",
       );
     } finally {
       setBusy(false);
@@ -300,7 +352,7 @@ function Flow({ mode }: { mode: Mode }) {
           {t(failure || notice)}
         </p>
       )}
-      {mode !== "owner" && (
+      {mode !== "owner" && mode !== "connections" && (
         <form key={step} method="post" className="owner-form" onSubmit={submit}>
           {mode === "recovery" ? (
             field("email", "email", "username")
@@ -353,6 +405,88 @@ function Flow({ mode }: { mode: Mode }) {
           </Button>
         </form>
       )}
+      {mode === "sign-in" && (
+        <Button
+          variant="outline"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              window.location.assign(await startOwnerGoogle(false));
+            })
+          }
+        >
+          {busy ? t("working") : t("googleSignIn")}
+        </Button>
+      )}
+      {mode === "connections" && (
+        <>
+          <p>{t("googleHelp")}</p>
+          {loading && <p role="status">{t("loading")}</p>}
+          {connection && (
+            <section aria-labelledby="google-heading" className="owner-form">
+              <h2 id="google-heading">Google</h2>
+              <p>
+                {t(
+                  connection.linked ? "googleConnected" : "googleNotConnected",
+                )}
+              </p>
+              {!connection.enabled && <p>{t("googleUnavailable")}</p>}
+              {!connection.linked && connection.enabled && (
+                <Button
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      window.location.assign(await startOwnerGoogle(true));
+                    })
+                  }
+                >
+                  {busy ? t("working") : t("googleLink")}
+                </Button>
+              )}
+              {connection.linked &&
+                (!confirmDisconnect ? (
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => setConfirmDisconnect(true)}
+                    ref={disconnectRef}
+                  >
+                    {t("googleDisconnect")}
+                  </Button>
+                ) : (
+                  <div className="owner-form">
+                    <p>{t("googleDisconnectHelp")}</p>
+                    <Button
+                      ref={confirmRef}
+                      disabled={busy}
+                      onClick={() =>
+                        void run(async () => {
+                          await disconnectOwnerGoogle();
+                          window.location.replace(
+                            "/sign-in#google-disconnected",
+                          );
+                        })
+                      }
+                    >
+                      {busy ? t("working") : t("googleConfirmDisconnect")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() => setConfirmDisconnect(false)}
+                    >
+                      {t("cancel")}
+                    </Button>
+                  </div>
+                ))}
+              <a href="/reauthenticate">{t("reauthenticateLink")}</a>
+            </section>
+          )}
+          <p>
+            <a href="/owner">{t("backToOwner")}</a>
+          </p>
+        </>
+      )}
       {mode === "owner" && (
         <>
           {loading && <p role="status">{t("loading")}</p>}
@@ -377,6 +511,9 @@ function Flow({ mode }: { mode: Mode }) {
             <>
               <h2>{shop.name}</h2>
               <p>{t("complete")}</p>
+              <p>
+                <a href="/connections">{t("connections")}</a>
+              </p>
               <p>{t("probeHelp")}</p>
               <Button
                 disabled={busy}

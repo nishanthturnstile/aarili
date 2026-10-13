@@ -7,7 +7,12 @@ import {
 } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
-import { recoveryResetSchema, setupCommandSchema } from "@aarili/contracts";
+import {
+  googleDisconnectSchema,
+  googleEntrySchema,
+  recoveryResetSchema,
+  setupCommandSchema,
+} from "@aarili/contracts";
 import {
   createDatabase,
   type Database,
@@ -18,9 +23,21 @@ import {
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
-import { betterAuth } from "better-auth";
+import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import {
+  addOAuthServerContext,
+  createAuthMiddleware,
+  getOAuthState,
+} from "better-auth/api";
 import { v7 } from "uuid";
+import {
+  type GoogleConfiguration,
+  googleFromEnvironment,
+  validateGoogle,
+} from "./google.js";
+
+export { googleFromEnvironment } from "./google.js";
 
 // Owner approved on 13 October 2026. Tests may inject short boundaries without
 // changing the approved deployment policy. No live transport in this slice.
@@ -56,6 +73,7 @@ export type AuthConfiguration = {
   }) => Promise<void>;
   policy?: Partial<Policy>;
   now?: () => Date;
+  google?: GoogleConfiguration | undefined;
   // Injection point for rollback evidence; runtime never configures it.
   checkpoint?: (
     step:
@@ -65,7 +83,9 @@ export type AuthConfiguration = {
       | "verified"
       | "shop"
       | "reset"
-      | "reauthenticated",
+      | "reauthenticated"
+      | "google-written"
+      | "google-state-consumed",
   ) => Promise<void>;
 };
 type BootstrapRow = {
@@ -87,7 +107,9 @@ export class OwnerAccessError extends Error {
       | "UNAUTHENTICATED"
       | "AUTHENTICATION_STALE"
       | "INVALID_RESET"
-      | "REQUEST_CONFLICT",
+      | "REQUEST_CONFLICT"
+      | "GOOGLE_DENIED"
+      | "GOOGLE_UNAVAILABLE",
   ) {
     super(code);
   }
@@ -112,6 +134,10 @@ export type OwnerAuth = {
       | { state: "complete"; shopId: string; name: string }
     >
   >;
+  googleConnection: (
+    headers: Headers,
+  ) => Promise<SessionResult<{ enabled: boolean; linked: boolean }>>;
+  disconnectGoogle: (headers: Headers) => Promise<Headers>;
   setupLimit: () => Promise<number>;
   resendLimit: () => Promise<number>;
   verifyLimit: () => Promise<number>;
@@ -148,6 +174,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   )
     throw new Error("HTTP is loopback-only");
   if (configuration.secret.length < 32) throw new Error("Auth secret required");
+  if (configuration.google)
+    validateGoogle(configuration.google, configuration.origin);
   const policy = { ...approvedPolicy, ...configuration.policy };
   const now = configuration.now ?? (() => new Date());
   const { db, pool } = createDatabase(configuration.connectionString);
@@ -163,8 +191,12 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     await ready();
     return action();
   }
-  function library(database: Database | Transaction) {
-    return betterAuth({
+  function library(
+    database: Database | Transaction,
+    flow: { parsed?: boolean; linking?: boolean; sessionId?: string } = {},
+    oauthValidation = false,
+  ): ReturnType<typeof betterAuth> {
+    return betterAuth<BetterAuthOptions>({
       appName: "Aarili",
       baseURL: configuration.origin,
       basePath: "/api/auth",
@@ -201,18 +233,206 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         },
       },
       session: {
+        additionalFields: {
+          authMethod: {
+            type: "string",
+            required: true,
+            defaultValue: "credential",
+            input: false,
+          },
+        },
         expiresIn: policy.sessionSeconds,
         updateAge: policy.updateSeconds,
         freshAge: policy.freshSeconds,
         cookieCache: { enabled: false },
       },
-      account: { accountLinking: { enabled: false } },
+      socialProviders: configuration.google
+        ? {
+            google: {
+              clientId: configuration.google.clientId,
+              clientSecret: configuration.google.clientSecret,
+              disableSignUp: true,
+              disableImplicitSignUp: true,
+              disableDefaultScope: true,
+              scope: ["openid", "email", "profile"],
+              includeGrantedScopes: false,
+              accessType: "online",
+            },
+          }
+        : {},
+      account: {
+        storeStateStrategy: "database",
+        skipStateCookieCheck: false,
+        storeAccountCookie: false,
+        encryptOAuthTokens: true,
+        updateAccountOnSignIn: false,
+        accountLinking: {
+          enabled: !!configuration.google,
+          disableImplicitLinking: true,
+          trustedProviders: [],
+          requireLocalEmailVerified: true,
+          allowDifferentEmails: false,
+          allowUnlinkingAll: false,
+          updateUserInfoOnLink: false,
+        },
+      },
+      // Internal protected bootstrap uses the adapter without an endpoint.
+      // All exposed OAuth handlers enable the native endpoint validation gate.
+      user: oauthValidation
+        ? {
+            validateUserInfo: async ({ user, source }, ctx) => {
+              if (source.method !== "oauth") return;
+              const oauth = await getOAuthState();
+              flow.parsed = !!oauth;
+              flow.linking = !!oauth?.link;
+              const providerEmail = source.oauth?.profile?.email;
+              const pending = await state(database);
+              const local = await (
+                await library(database).$context
+              ).internalAdapter.findUserById(pending.user_id ?? "");
+              if (
+                source.oauth?.providerId !== "google" ||
+                source.action === "create-user" ||
+                typeof providerEmail !== "string" ||
+                source.oauth.profile?.email_verified !== true ||
+                !configuration.google?.allowedEmails.includes(
+                  providerEmail.toLowerCase(),
+                ) ||
+                !local?.emailVerified ||
+                !pending.completed_at ||
+                user.id !== local.id ||
+                providerEmail.toLowerCase() !== local.email
+              )
+                return { error: "google_denied" };
+              await requireMembership(database, local.id, pending.shop_id);
+              if (source.action === "link-account") {
+                // Native state identifies the owner, but does not revalidate the
+                // initiating authentication. Bind it to the original DB session.
+                const current = await recentIdentity(
+                  ctx.headers ?? new Headers(),
+                  database,
+                );
+                if (
+                  !oauth?.link ||
+                  oauth.link.userId !== current.userId ||
+                  oauth.serverContext?.sessionId !== current.sessionId
+                )
+                  return { error: "google_denied" };
+                flow.sessionId = current.sessionId;
+              }
+            },
+          }
+        : {},
+      hooks: {
+        before: createAuthMiddleware(async (ctx) => {
+          if (ctx.path === "/link-social" || ctx.path === "/unlink-account") {
+            const current = await recentIdentity(
+              ctx.headers ?? new Headers(),
+              database,
+            );
+            if (ctx.path === "/link-social") {
+              const local = await (
+                await library(database).$context
+              ).internalAdapter.findUserById(current.userId);
+              if (
+                !configuration.google?.allowedEmails.includes(
+                  local?.email ?? "",
+                )
+              )
+                throw new OwnerAccessError("GOOGLE_DENIED");
+              await addOAuthServerContext({ sessionId: current.sessionId });
+            }
+            flow.sessionId = current.sessionId;
+          }
+        }),
+        after: createAuthMiddleware(async (ctx) => {
+          if (ctx.path.startsWith("/callback/")) {
+            const oauth = await getOAuthState();
+            flow.parsed = !!oauth;
+            flow.linking = !!oauth?.link;
+          }
+        }),
+      },
+      databaseHooks: {
+        session: {
+          create: {
+            before: async (session, ctx) => ({
+              data: {
+                ...session,
+                authMethod:
+                  oauthValidation && ctx?.path.startsWith("/callback/")
+                    ? "google"
+                    : "credential",
+              },
+            }),
+          },
+        },
+        account: {
+          create: {
+            before: async (account) =>
+              account.providerId === "google"
+                ? {
+                    data: {
+                      ...account,
+                      accessToken: null,
+                      refreshToken: null,
+                      idToken: null,
+                      accessTokenExpiresAt: null,
+                      refreshTokenExpiresAt: null,
+                    },
+                  }
+                : undefined,
+            after: async (account) => {
+              if (account.providerId === "google")
+                await connectionEvent(
+                  database,
+                  account.userId,
+                  flow.sessionId,
+                  "linked",
+                );
+            },
+          },
+          update: {
+            before: async (account) => ({
+              data: {
+                ...account,
+                accessToken: null,
+                refreshToken: null,
+                idToken: null,
+                accessTokenExpiresAt: null,
+                refreshTokenExpiresAt: null,
+              },
+            }),
+            after: async (account) => {
+              if (account.providerId === "google" && flow.sessionId)
+                await connectionEvent(
+                  database,
+                  account.userId,
+                  flow.sessionId,
+                  "reauthorised",
+                );
+            },
+          },
+        },
+      },
       rateLimit: {
         enabled: true,
         storage: "database",
         window: policy.signInWindow,
         max: policy.signInMax,
         customRules: {
+          "/sign-in/social": {
+            window: policy.signInWindow,
+            max: policy.signInMax,
+          },
+          "/link-social": {
+            window: policy.signInWindow,
+            max: policy.signInMax,
+          },
+          "/unlink-account": {
+            window: policy.signInWindow,
+            max: policy.signInMax,
+          },
           "/sign-in/email": {
             window: policy.signInWindow,
             max: policy.signInMax,
@@ -288,6 +508,58 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       sql`select user_id, completed_at, shop_id, admission_key, request_hash from owner_bootstrap where singleton`,
     );
     return result.rows[0] as BootstrapRow;
+  }
+  async function requireMembership(
+    database: Database | Transaction,
+    userId: string,
+    shopId: string | null,
+  ) {
+    if (!shopId) throw new OwnerAccessError("UNAUTHENTICATED");
+    await database.execute(
+      sql`select set_config('app.user_id', ${userId}, true)`,
+    );
+    const own = await database.execute(
+      sql`select 1 from shop_membership where user_id=${userId}::uuid and shop_id=${shopId}::uuid and role='owner'`,
+    );
+    if (!own.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
+  }
+  async function recentIdentity(
+    headers: Headers,
+    database: Database | Transaction,
+  ) {
+    const current = await identity(headers, library(database), database);
+    const live = await database.execute(
+      sql`select created_at, expires_at from auth_session where id=${current.sessionId}::uuid and user_id=${current.userId}::uuid for share`,
+    );
+    const row = live.rows[0];
+    const time = now().getTime();
+    if (
+      !row ||
+      !Number.isFinite(time) ||
+      new Date(String(row.expires_at)).getTime() <= time
+    )
+      throw new OwnerAccessError("UNAUTHENTICATED");
+    const age = time - new Date(String(row.created_at)).getTime();
+    if (!Number.isFinite(age) || age < 0 || age >= policy.freshSeconds * 1000)
+      throw new OwnerAccessError("AUTHENTICATION_STALE");
+    await requireMembership(
+      database,
+      current.userId,
+      (await state(database)).shop_id,
+    );
+    return current;
+  }
+  async function connectionEvent(
+    database: Database | Transaction,
+    userId: string,
+    sessionId: string | undefined,
+    action: "linked" | "reauthorised" | "disconnected",
+  ) {
+    if (!sessionId) throw new OwnerAccessError("GOOGLE_DENIED");
+    await database.execute(
+      sql`insert into auth_connection_event(user_id,session_id,provider_id,action) values(${userId}::uuid,${sessionId}::uuid,'google',${action})`,
+    );
+    await checkpoint("google-written");
   }
   function requireToken(token: string) {
     if (
@@ -425,6 +697,15 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     if (
       !resolved?.user.emailVerified ||
       resolved.user.id !== (await state(database)).user_id
+    )
+      throw new OwnerAccessError("UNAUTHENTICATED");
+    const method = await database.execute(
+      sql`select auth_method from auth_session where id=${resolved.session.id}::uuid`,
+    );
+    if (!method.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
+    if (
+      method.rows[0]?.auth_method === "google" &&
+      !configuration.google?.allowedEmails.includes(resolved.user.email)
     )
       throw new OwnerAccessError("UNAUTHENTICATED");
     return {
@@ -574,17 +855,262 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     });
     return { data, headers: responseHeaders };
   }
+  async function googleConnection(headers: Headers) {
+    return credentialTransaction(async (tx) => {
+      const current = await identity(headers, library(tx), tx);
+      const pending = await state(tx);
+      await requireMembership(tx, current.userId, pending.shop_id);
+      const linked = await tx.execute(
+        sql`select 1 from auth_account where user_id=${current.userId}::uuid and provider_id='google'`,
+      );
+      return {
+        data: { enabled: !!configuration.google, linked: !!linked.rowCount },
+        headers: current.headers,
+      };
+    });
+  }
+  async function unlink(headers: Headers, tx: Transaction, accountId?: string) {
+    const current = await recentIdentity(headers, tx);
+    const accounts = await tx.execute(
+      sql`select id, provider_id, password from auth_account where user_id=${current.userId}::uuid for update`,
+    );
+    const google = accounts.rows.find(
+      (a) => a.provider_id === "google" && (!accountId || a.id === accountId),
+    );
+    // A remaining row alone is not a usable recovery method. Protect credential
+    // access even if multiple Google rows were present in a damaged database.
+    if (
+      !google ||
+      !accounts.rows.some((a) => a.provider_id === "credential" && a.password)
+    )
+      throw new OwnerAccessError("GOOGLE_DENIED");
+    await library(tx).api.unlinkAccount({
+      headers,
+      body: { accountId: String(google.id) },
+    });
+    // Connection changes terminate existing access. Credential sign-in and
+    // recovery remain the next usable entry points, including after Google auth.
+    await tx.execute(
+      sql`delete from auth_session where user_id=${current.userId}::uuid`,
+    );
+    await connectionEvent(
+      tx,
+      current.userId,
+      current.sessionId,
+      "disconnected",
+    );
+    const result = await library(tx).api.signOut({
+      headers,
+      returnHeaders: true,
+    });
+    return result.headers;
+  }
+  async function disconnectGoogle(headers: Headers) {
+    return credentialTransaction((tx) => unlink(headers, tx));
+  }
+  const googleDenied = (linking = false) =>
+    new Response(null, {
+      status: 302,
+      headers: {
+        Location: `${configuration.origin}/${linking ? "connections" : "sign-in"}#google-denied`,
+        "Cache-Control": "no-store",
+        "Referrer-Policy": "no-referrer",
+      },
+    });
+  async function googleHandler(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (!configuration.google && !path.endsWith("/unlink-account"))
+      throw new OwnerAccessError("GOOGLE_UNAVAILABLE");
+    if (path.endsWith("/callback/google")) {
+      // Accept only Google's authorization-code GET callback, never arbitrary
+      // provider endpoints, ID tokens, POST callbacks or untrusted error text.
+      if (
+        request.method !== "GET" ||
+        // Next constructs an internal URL using its listening hostname. Validate
+        // the actual HTTP authority against the approved callback host; direct
+        // service tests without Host still require the exact configured origin.
+        (request.headers.has("Host")
+          ? request.headers.get("Host") !== origin.host
+          : url.origin !== configuration.origin) ||
+        (request.headers.has("Origin") &&
+          request.headers.get("Origin") !== configuration.origin) ||
+        [...url.searchParams.keys()].some(
+          (k) =>
+            ![
+              "code",
+              "state",
+              "error",
+              "error_description",
+              "scope",
+              "authuser",
+              "prompt",
+              "iss",
+            ].includes(k),
+        ) ||
+        ["code", "state", "error", "iss"].some(
+          (k) => url.searchParams.getAll(k).length > 1,
+        ) ||
+        url.searchParams.toString().length > 8192
+      )
+        return googleDenied();
+      const flow: { parsed?: boolean; linking?: boolean; sessionId?: string } =
+        {};
+      try {
+        return await credentialTransaction(async (tx) => {
+          const stateRow = await tx.execute(
+            sql`select value from auth_verification where identifier=${`auth-state:${url.searchParams.get("state") ?? ""}`} and expires_at>${now()} for update`,
+          );
+          if (!stateRow.rowCount) throw new OwnerAccessError("GOOGLE_DENIED");
+          try {
+            return await tx.transaction(async (effects) => {
+              const response = await library(effects, flow, true).handler(
+                request,
+              );
+              const location = response.headers.get("Location");
+              const success = [
+                `${configuration.origin}/owner`,
+                `${configuration.origin}/connections#google-linked`,
+              ];
+              if (
+                response.status !== 302 ||
+                !location ||
+                !success.includes(location)
+              ) {
+                // Native error redirects can skip after hooks. A successfully
+                // authenticated state parse deletes the row before exchange.
+                const remaining = await effects.execute(
+                  sql`select 1 from auth_verification where identifier=${`auth-state:${url.searchParams.get("state") ?? ""}`}`,
+                );
+                if (!remaining.rowCount) {
+                  flow.parsed = true;
+                  const nativeState = JSON.parse(
+                    String(stateRow.rows[0]?.value),
+                  ) as { link?: unknown };
+                  flow.linking = !!nativeState.link;
+                  await checkpoint("google-state-consumed");
+                }
+                throw new OwnerAccessError("GOOGLE_DENIED");
+              }
+              return response;
+            });
+          } catch {
+            // Roll effects back to the savepoint, but keep the outer lock and
+            // state-row lock until consumption commits. A queued callback can
+            // never enter between rejection rollback and state deletion.
+            if (flow.parsed)
+              await tx.execute(
+                sql`delete from auth_verification where identifier=${`auth-state:${url.searchParams.get("state") ?? ""}`}`,
+              );
+            return googleDenied(flow.linking);
+          }
+        });
+      } catch {
+        return googleDenied(flow.linking);
+      }
+    }
+    if (
+      request.method !== "POST" ||
+      url.search ||
+      request.headers.get("Origin") !== configuration.origin
+    )
+      throw new OwnerAccessError("GOOGLE_DENIED");
+    const body: unknown = await request
+      .clone()
+      .json()
+      .catch(() => undefined);
+    if (path.endsWith("/unlink-account")) {
+      const input = googleDisconnectSchema.safeParse(body);
+      if (!input.success) throw new OwnerAccessError("GOOGLE_DENIED");
+      const responseHeaders = await credentialTransaction((tx) =>
+        unlink(request.headers, tx, input.data.accountId),
+      );
+      return Response.json(
+        { state: "google-disconnected" },
+        { headers: responseHeaders },
+      );
+    }
+    const input = googleEntrySchema.safeParse(body);
+    if (!input.success) throw new OwnerAccessError("GOOGLE_DENIED");
+    for (const redirect of [
+      input.data.callbackURL,
+      input.data.errorCallbackURL,
+      input.data.newUserCallbackURL,
+    ]) {
+      if (redirect !== undefined) {
+        const target = new URL(redirect, configuration.origin);
+        if (
+          target.origin !== configuration.origin ||
+          target.username ||
+          target.password
+        )
+          throw new OwnerAccessError("GOOGLE_DENIED");
+      }
+    }
+    const linking = path.endsWith("/link-social");
+    const headers = new Headers(request.headers);
+    headers.delete("Content-Length");
+    const native = new Request(request, {
+      headers,
+      body: JSON.stringify({
+        provider: "google",
+        disableRedirect: true,
+        requestSignUp: input.data.requestSignUp ?? false,
+        callbackURL: `${configuration.origin}${linking ? "/connections#google-linked" : "/owner"}`,
+        errorCallbackURL: `${configuration.origin}/sign-in#google-denied`,
+        newUserCallbackURL: `${configuration.origin}/owner`,
+      }),
+    });
+    return credentialTransaction(async (tx) => {
+      if (linking) await recentIdentity(request.headers, tx);
+      const response = await library(tx, {}, true).handler(native);
+      if (response.status === 429)
+        return Response.json(
+          {
+            error: {
+              code: "RATE_LIMITED",
+              message: "Wait before trying again",
+            },
+          },
+          { status: 429 },
+        );
+      if (!response.ok) throw new OwnerAccessError("GOOGLE_DENIED");
+      const data = (await response.json()) as { url?: string };
+      const destination = new URL(data.url ?? "");
+      if (
+        destination.origin !== "https://accounts.google.com" ||
+        destination.pathname !== "/o/oauth2/v2/auth"
+      )
+        throw new OwnerAccessError("GOOGLE_DENIED");
+      const responseHeaders = new Headers(response.headers);
+      responseHeaders.delete("Content-Length");
+      responseHeaders.delete("Location");
+      return Response.json(
+        { url: destination.toString() },
+        { headers: responseHeaders },
+      );
+    });
+  }
   return {
     auth: {
-      handler: (request) => {
+      handler: async (request) => {
         const path = new URL(request.url).pathname;
+        if (
+          [
+            "/api/auth/sign-in/social",
+            "/api/auth/link-social",
+            "/api/auth/unlink-account",
+            "/api/auth/callback/google",
+          ].includes(path)
+        )
+          return googleHandler(request);
         const allowed =
           (request.method === "POST" &&
             ["/api/auth/sign-in/email", "/api/auth/sign-out"].includes(path)) ||
           (request.method === "GET" && path === "/api/auth/get-session");
         if (!allowed)
           return Promise.resolve(new Response(null, { status: 404 }));
-        return path.endsWith("/sign-in/email")
+        return request.method === "POST"
           ? credentialTransaction((tx) => library(tx).handler(request))
           : guard(() => auth.handler(request));
       },
@@ -594,6 +1120,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     verify,
     complete,
     ownerShop,
+    googleConnection,
+    disconnectGoogle,
     requestRecovery,
     resetPassword,
     reauthenticate,
@@ -637,6 +1165,7 @@ export function ownerAuthFromEnvironment(
     origin: AUTH_ORIGIN,
     secret: BETTER_AUTH_SECRET,
     setupToken: SETUP_TOKEN ?? "",
+    google: googleFromEnvironment(env),
     capture: async (message) => {
       await mkdir(AUTH_CAPTURE_DIRECTORY, { recursive: true, mode: 0o700 });
       await writeFile(
