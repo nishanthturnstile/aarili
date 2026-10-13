@@ -5,6 +5,11 @@ Boutique management portal, currently an operational scaffold for
 Development is synthetic-only. Read AGENTS.md and the product/architecture
 documents before implementing a selected issue.
 
+Use this single local checkout for all development, switching between focused
+topic branches. Do not create Git worktrees or extra feature checkouts. Follow
+[the development workflow](docs/agents/Development_Workflow.md); each issue gets
+its own GitHub branch/PR after its direct blockers have merged.
+
 ## Native Windows development
 
 Use Node **24.21.0 LTS** and pnpm **12.11.2** on Windows/PowerShell. The exact
@@ -40,7 +45,7 @@ pnpm build
 pnpm smoke
 # Runs all of the preceding checks:
 pnpm verify
-# Installs and verifies in a new temporary native checkout with spaces:
+# Installs and verifies in a disposable temporary directory with spaces:
 pnpm verify:clean
 # Installs Linux dependencies and runs the same checks:
 docker build --progress plain -f Dockerfile.verify -t aarili-issue-2-verify:local .

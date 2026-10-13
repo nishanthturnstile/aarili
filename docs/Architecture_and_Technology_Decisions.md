@@ -786,6 +786,16 @@ There is no separate API service, Redis, self-hosted storage server, PDF rendere
 | Region | Everything in **Singapore**, the nearest Railway region to Tamil Nadu. Measure real latency from the owner's phone on Jio/Airtel in week 1. If p95 API latency is regularly above about 300 ms, revisit hosting in Phase 2 |
 | Domains | Register one `.in` or `.com` domain, with DNS on Cloudflare (free). `app.<domain>` points to Railway, which manages TLS. The gallery is at `app.<domain>/g/<shop>`. Railway-generated domains are acceptable during synthetic development, but the production domain must be fixed before Google OAuth goes live and before any passkeys |
 
+**Local checkout policy (owner decision, 13 October 2026):** Use one existing
+native Windows Aarili checkout and work sequentially on focused topic branches,
+with a separate GitHub branch/PR per implementation. Do not create, restore or
+use Git worktrees or additional feature checkouts. Preserve unrelated edits and
+branches when switching. Disposable generator-output and install-verification
+directories are allowed for their scoped checks, not for development. After an
+owner-approved merge, update and verify main in this same checkout before
+starting an issue whose blockers have merged. See
+[the development workflow](agents/Development_Workflow.md).
+
 ### 12.4 Delivery pipeline
 
 1. **GitHub Actions on every push:**

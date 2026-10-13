@@ -1,6 +1,8 @@
 # Aarili agent instructions
 
-Proposed for owner review. This repository is in planning: do not implement features or create GitHub Issues until the roadmap is approved and that work is requested.
+Wave 0 Phase 0.1 tickets have been approved and published. Implement only a
+selected issue when requested and after its direct blockers have merged.
+Later phases retain concrete draft, review and publication approval.
 
 ## Sources and scope
 
@@ -48,6 +50,7 @@ Proposed for owner review. This repository is in planning: do not implement feat
 ## GitHub workflow
 
 - Track work in `nishanthturnstile/aarili` GitHub Issues through the authenticated `gh` CLI; see [tracker configuration](docs/agents/issue-tracker.md), including label vocabulary and native blockers. After roadmap approval, use the installed `to-tickets` skill phase by phase; each issue carries stable slice ID, sources, scope, prerequisites, verification and acceptance. Present its ticket breakdown for approval before publication. Do not create issues during this planning review.
-- Work on a focused `codex/<slice-or-topic>` branch; preserve unrelated edits. PRs link the issue/slice, explain behaviour and risks, list verification evidence, migrations/recovery and traceability changes. Review immutable-history and isolation consequences explicitly.
+- Use one local checkout at the owner's existing Aarili workspace. Do not create, restore or use Git worktrees or additional feature checkouts. Work sequentially on focused `codex/<slice-or-topic>` branches in that checkout; push each implementation branch to GitHub and review through its PR. Preserve unrelated edits and existing branches. Disposable CLI-generator and verification directories are allowed only for their scoped checks and are not development workspaces.
+- Follow [the development workflow](docs/agents/Development_Workflow.md). Verify direct blockers are merged before starting an issue; after an approved merge, update the same checkout's main branch and run the integrated checks before branching for the next issue. PRs link the issue/slice, explain behaviour and risks, list verification evidence, migrations/recovery and traceability changes. Review immutable-history and isolation consequences explicitly.
 - Require CI and owner review before merge; no direct main pushes, automatic production promotion or destructive migrations. Use reviewed SQL migrations with advisory locking and expand/migrate/contract; never `drizzle-kit push` in prod. Back up before schema/money migrations; rollback only with compatible schema (architecture §12.4).
 - Never commit secrets or real customer data. Do not publish, send messages, change GitHub settings or deploy without applicable user authorisation. Do not install skills/tools merely because available; project baselines take precedence over generic skill recipes.

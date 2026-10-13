@@ -58,8 +58,16 @@ belong to issue #3; no visual preset was selected in this increment.
 
 ## Verification
 
-Windows verification runs from an isolated native worktree whose full path
-contains spaces; the original checkout's in-progress documents are preserved.
+Initial Windows verification ran from an isolated native worktree whose full
+path contains spaces; the original checkout's in-progress documents were
+preserved. The owner subsequently selected a single-checkout/branches-only
+workflow. That worktree was archived after its commit was pushed; the existing
+checkout now holds the issue branch. Frozen install and complete verification
+were also run in the original native project path. Future implementations must
+follow Development_Workflow.md and must not create or use worktrees.
+Git lists only the original checkout. The archive retained files in its former
+directory; automatic approval review blocked recursive deletion of that
+unregistered directory. This leftover is not an active Git worktree.
 Linux verification installs its own dependencies in Docker Desktop's Linux
 engine and never mounts or copies Windows node_modules.
 
