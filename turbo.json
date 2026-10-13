@@ -14,6 +14,7 @@
     },
     "dev": {
       "dependsOn": ["^build"],
+      "passThroughEnv": ["DATABASE_URL"],
       "cache": false,
       "persistent": true
     }

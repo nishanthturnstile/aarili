@@ -5,7 +5,7 @@ import { validateEnvironment } from "@aarili/platform";
 import { expect, test } from "vitest";
 
 test("0.1.1a health route obeys the schema and emits an OpenAPI declaration", async () => {
-  const api = createApi();
+  const api = createApi(async () => true);
   const response = await api.request("/api/healthz");
   expect(response.status).toBe(200);
   expect(healthResponseSchema.parse(await response.json())).toEqual({
@@ -25,7 +25,7 @@ test("0.1.1a typed Hono client and explicit output parsing agree", async () => {
     {},
     {
       fetch: (input: RequestInfo | URL, init?: RequestInit) =>
-        createApi().fetch(new Request(input, init)),
+        createApi(async () => true).fetch(new Request(input, init)),
     },
   );
   expect(healthResponseSchema.parse(await response.json()).status).toBe("ok");
@@ -36,7 +36,7 @@ test("0.1.1a unknown routes and unsafe methods expose only the shared error", as
     new Request("http://localhost/api/orders"),
     new Request("http://localhost/api/healthz", { method: "POST" }),
   ]) {
-    const response = await createApi().fetch(request);
+    const response = await createApi(async () => true).fetch(request);
     expect(response.status).toBe(404);
     expect(apiErrorSchema.parse(await response.json()).error.code).toBe(
       "NOT_FOUND",

@@ -2,11 +2,15 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies: []
-ignoredBuiltDependencies:
-  - sharp
-  - esbuild
-  - unrs-resolver
+# pnpm 12 uses allowBuilds; legacy ignoredBuiltDependencies is not enforced.
+# Reviewed scripts stay disabled; these paths use prebuilt/pure JS implementations.
+allowBuilds:
+  sharp: false
+  esbuild: false
+  unrs-resolver: false
+  cpu-features: false
+  ssh2: false
+  protobufjs: false
 strictDepBuilds: true
 minimumReleaseAgeExclude:
   - '@vitest/mocker@5.0.4'
