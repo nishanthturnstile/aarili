@@ -23,6 +23,12 @@ Proposed for owner review. This repository is in planning: do not implement feat
 - Logged-in UI is client-rendered through typed API clients. Test Tamil/English, phone/tablet/desktop, self-hosted Tamil fonts, accessibility and printer-free PDF sharing (architecture §§7, 9). No cached business data in service workers, browser storage or URLs. Query cache is memory-only and cleared on sign-out/shop switch.
 - For library-specific syntax, setup or debugging, resolve and fetch current docs with `npx ctx7@latest library` then `docs`; at most three commands per question. Do not include secrets. Report quota/network failures; never substitute remembered API details. Refactoring, business-logic review and general concepts do not need documentation lookup.
 
+## Local execution environment
+
+- Follow architecture §12.3.1: Codex, checkout, PowerShell, Node/pnpm and normal development commands run on native Windows; Docker Desktop runs Linux infrastructure containers through WSL2. Do not move the checkout or commands into WSL by assumption, install another daemon, or mix Windows/Linux node_modules/browser binaries.
+- Use a dedicated Aarili Compose project, database credentials and named data volumes. Preserve unrelated `local-infra` services on 5432; Aarili's proposed configurable loopback port is 55432. Host code uses published ports; container code uses service DNS; Testcontainers uses returned host/random ports. Verify discovery/cleanup on native Windows; never default to insecure daemon TCP or disabled Ryuk.
+- Use cross-platform Node/package scripts and quote paths with spaces. Add scoped LF/executable-bit handling for Linux build scripts during scaffolding. Read the environment diagnostic before debugging container connectivity; do not log secrets or hard-code workstation socket/WSL IP settings.
+
 ## Shop isolation and access
 
 - Architecture §§8.1–8.2, 11: every tenant table has non-null `shop_id`, composite tenant foreign keys and shop-led indexes/uniqueness. Enable and FORCE RLS with matching read/write policies. Missing context fails closed.

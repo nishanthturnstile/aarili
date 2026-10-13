@@ -65,6 +65,23 @@ Optional now: extra skills, MCP servers, trackers, worktrees and elaborate issue
 
 No rates, taxes, privacy commencement dates, pattern formulas, subscription quotas, production domain or break-glass operator have been invented. These need their named owner/reviewer decisions at the point stated in the sources. This review is not legal advice or live-service certification.
 
-## Verification of these planning artifacts
+## Native Windows / WSL2 follow-up — 13 October 2026
+
+The owner confirmed **dedicated Aarili PostgreSQL container and volume** rather than reuse of the existing shared server. Architecture §12.3.1 now defines the local execution boundary; AGENTS.md and slices 0.1.1/0.1.2 carry its setup and verification obligations. Product scope and slice IDs are unchanged.
+
+| Inspection | Observed state |
+|---|---|
+| Checkout and runtime | Native Windows `C:` checkout; PowerShell 7.6.5, Node 24.21.0 and native Windows pnpm/docker/git executables |
+| Docker engine | `desktop-linux`; server 29.8.1, Linux x86_64, Docker Desktop, kernel `6.18.40.1-microsoft-standard-WSL2`; Compose 5.5.1 |
+| WSL | WSL 3.0.1.0; Ubuntu-24.04 and docker-desktop running as WSL2; default-Ubuntu integration enabled |
+| Native Docker API | Windows Node connected to Docker Desktop's named pipe and received successful /_ping response |
+| Existing database | `local-infra-postgres-1`, image `postgres:18.6-bookworm`, published only on `127.0.0.1:5432`; native Node TCP connection succeeded and pg_isready reported accepting connections |
+| Existing ownership/storage | Another Compose project, `local-infra`, launched from an Ubuntu project directory; named volume `local-postgres-data`, not an Aarili resource |
+| Proposed Aarili port | Native TCP connection to 55432 was refused, so no listener answered at inspection. This is not a reservation/bindability guarantee; check Windows exclusions and bind during Wave 0. |
+| Environment overrides | No process DOCKER_HOST/DOCKER_CONTEXT/Testcontainers host/socket/Ryuk-disable overrides were set. Machine/user startup configuration and a real Testcontainers lifecycle have not been certified. |
+
+No Docker settings, existing container data, credentials or infrastructure were changed. No application packages were installed. Documentation research confirms this host/container arrangement is supported; the actual pinned Testcontainers lifecycle, new Compose resources, native file watchers, Linux build and PDF-runtime checks remain Wave 0 verification work.
+
+## Initial planning verification (before environment clarification)
 
 Static checks matched all 241 source requirement IDs to unique explicit roadmap register rows, with 148 Phase 1 Must IDs retaining Wave 1 minimum owners. All 66 AC IDs are covered. The 98 slices (13 foundation + 85 business), 29 phases and 53 functionality groups are unique/structured; 535 expanded slice/phase dependency edges refer to existing earlier slices and form an acyclic graph. Register-to-slice traceability and local Markdown file links were checked. `git diff --check` passes; both source documents are unchanged. This evidence verifies the proposal's structure and traceability, not implemented acceptance, build/test success or external service readiness.

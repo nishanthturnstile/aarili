@@ -82,17 +82,19 @@ Each slice delivers schema/migrations where needed, core policies, validated API
 
 ##### Vertical Slice 0.1.1 — Resolve Compatibility and Bootstrap the Workspace
 
-- **Scope:** Mandatory prerequisite; architecture §§4–6, 11.4, 12.4.
+- **Scope:** Mandatory prerequisite; architecture §§4–6, 11.4, 12.3.1, 12.4.
 - **Outcome:** Pin Node 24, TypeScript 6.x strict, pnpm and compatible exact P1 versions; create pnpm/Turborepo web/worker and the minimal real package boundaries. Commit lockfile, Biome/Knip/config, safe environment examples, local PostgreSQL/S3-emulator Compose and README commands. Enforce the §6.2 import matrix. Verify Base UI/Table 9 recipes; no RC adoption or Radix mixing. Create module folders/packages when first needed.
 - **Dependencies:** Roadmap approval. No dependency on cloud provisioning.
 - **Verification:** Clean frozen-lockfile install, workspace typecheck/lint and web/worker production build; negative import-boundary example is rejected. Confirm required engines/peers and PostgreSQL extensions; record any baseline conflict before changing versions.
+- **Windows/WSL2 implementation constraint:** Follow architecture §12.3.1: native Windows Node/pnpm/scripts; Docker Desktop Linux infrastructure only, dedicated Aarili PostgreSQL/volume, configurable loopback port (proposed 55432 because unrelated 5432 is occupied), named persistent volumes and separate Linux dependency installs/build contexts. Provide a secret-safe cross-platform environment diagnostic, quote paths with spaces and scope LF/executable rules. Do not reconfigure existing shared infrastructure or assume source bind-mount hot reload.
 
 ##### Vertical Slice 0.1.2 — Run a Health Path through CI
 
-- **Scope:** Mandatory prerequisite; architecture §§12.2, 12.4, 15.
+- **Scope:** Mandatory prerequisite; architecture §§12.2–12.4, 15.
 - **Outcome:** An actual web/Hono health path reaches PostgreSQL. GitHub Actions runs Biome, Knip, typecheck, Vitest/property tests, Testcontainers, production build and initial phone/tablet/desktop Playwright/axe smoke tests. Add checks as real behaviours land; no dummy passing checks. Pin Actions to SHAs, audit dependencies and configure Renovate/security handling.
 - **Dependencies:** 0.1.1; authenticated GitHub configuration when enabling required checks.
 - **Verification:** Run locally and in CI on a review branch; database outage makes health fail; no server secrets in browser output. Require the actual check names on main once the workflow exists, then confirm protection. No remote change occurs in this planning task.
+- **Windows/WSL2 verification:** Run the pinned Testcontainers PostgreSQL lifecycle from native Windows, discover Docker without speculative global overrides, connect using returned host/random ports and confirm disposable-container cleanup. Prove the native app reaches its dedicated Compose database and migrations run from the actual path containing spaces. Also pass Linux build/CI; Docker CLI/native TCP probes alone are insufficient.
 
 ### Phase 0.2 — Protect Identity, Tenancy and Business Commands
 
