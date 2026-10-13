@@ -42,7 +42,7 @@ export function createApi(checkDatabase: () => Promise<boolean>) {
           503,
         );
       return c.json(
-        healthResponseSchema.parse({ status: "ok", service: "aarili-worker" }),
+        healthResponseSchema.parse({ status: "ok", service: "aarili-web" }),
         200,
       );
     });

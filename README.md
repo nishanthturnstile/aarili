@@ -154,6 +154,24 @@ for fixture lifecycle, timeout/failure tests, observed random endpoints and
 Windows/Linux verification. No fixed test database ports, development database
 credentials, global Docker overrides or disabled Ryuk are required.
 
+## CI and dependency policy
+
+`.github/workflows/verify.yml` runs Linux scaffold verification, the implemented
+phone/tablet/desktop browser/axe suite and a dependency audit on branch pushes
+and pull requests to main. Each job uses exact Node/pnpm pins, a frozen install
+and Actions pinned to full commit SHAs. PostgreSQL remains disposable through
+Testcontainers; no development or production database credentials are supplied.
+Workflow tokens are read-only, checkout credentials are not persisted, and no
+production promotion or deployment occurs.
+
+The daily audit schedule activates on main after merge. Weekly compatible
+updates, manual major approval and immediate vulnerability-fix policy are in
+`renovate.json`. Hosted Renovate access requires owner activation/confirmation;
+configuration alone does not prove the bot is running. See
+[the dependency policy](docs/agents/Dependency_Update_Policy.md) and
+[issue #6 evidence](docs/agents/Issue_6_CI_Gates_Evidence.md) for actual check-run
+and protection read-back evidence, activation limits and advisory handling.
+
 ## Outstanding safeguards
 
 GET /api/healthz now checks application and PostgreSQL readiness, returning a
@@ -162,7 +180,7 @@ methods return a shared error. No business routes, Server Actions, auth UI,
 business database tables or empty future packages are introduced.
 
 Auth/membership, forced tenant RLS, idempotency/versioning/history, money,
-transactional queueing, private media, privacy/recovery, CI and pilot workflows
+transactional queueing, private media, privacy/recovery and pilot workflows
 are later tickets. Playwright/axe now covers the design-system preview.
 Tenant/RLS PostgreSQL integration, Tamil PDF shaping/goldens and physical-device/real-IME
 checks remain later gates; simulated browser input does not complete them.
