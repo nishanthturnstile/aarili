@@ -15,6 +15,7 @@
       "*.ts",
       "!**/dist",
       "!**/.next",
+      "!**/.next-ui",
       "!tests/fixtures"
     ]
   },
@@ -44,7 +45,11 @@
   },
   "overrides": [
     {
-      "includes": ["scripts/local-infra.mjs"],
+      "includes": [
+        "scripts/local-infra.mjs",
+        "scripts/migrate.mjs",
+        "scripts/test-support/owner-restart.mjs"
+      ],
       "linter": {
         "rules": { "suspicious": { "noUndeclaredEnvVars": "off" } }
       }

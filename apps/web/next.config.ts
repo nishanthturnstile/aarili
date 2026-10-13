@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
 export default function configureNext(phase: string): NextConfig {
   return {
     ...nextConfig,
+    distDir:
+      process.env.AARILI_UI_VERIFICATION === "true" &&
+      phase === PHASE_DEVELOPMENT_SERVER
+        ? ".next-ui"
+        : ".next",
     typescript: {
       tsconfigPath:
         phase === PHASE_DEVELOPMENT_SERVER

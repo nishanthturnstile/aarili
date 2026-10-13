@@ -1,11 +1,15 @@
 import { createApi } from "@aarili/api";
+import { ownerAuthFromEnvironment } from "@aarili/auth";
 import { validateEnvironment } from "@aarili/platform";
 import { checkDatabaseReadiness } from "@aarili/platform/database-health";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 validateEnvironment(process.env);
-const app = createApi(() => checkDatabaseReadiness(process.env.DATABASE_URL));
+const app = createApi(
+  () => checkDatabaseReadiness(process.env.DATABASE_URL),
+  ownerAuthFromEnvironment(process.env),
+);
 export const GET = (request: Request) => app.fetch(request);
 export const POST = GET;
 export const PUT = GET;

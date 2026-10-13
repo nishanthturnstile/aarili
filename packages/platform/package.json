@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./abuse-limiter": {
+      "types": "./dist/abuse-limiter.d.ts",
+      "default": "./dist/abuse-limiter.js"
+    },
     "./database-health": {
       "types": "./dist/database-health.d.ts",
       "default": "./dist/database-health.js"
@@ -20,6 +24,7 @@
   "dependencies": {
     "@t3-oss/env-core": "0.13.11",
     "pg": "8.23.1",
+    "rate-limiter-flexible": "11.2.1",
     "zod": "4.6.6"
   },
   "devDependencies": {

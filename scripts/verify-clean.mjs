@@ -16,12 +16,19 @@ const lockfile = readFileSync("pnpm-lock.yaml", "utf8");
 const packageManager = process.env.npm_execpath;
 assert(packageManager, "Run this check through pnpm verify:clean");
 const managerIsScript = /\.[cm]?js$/.test(packageManager);
-const excluded = new Set(["node_modules", "dist", ".next", ".turbo"]);
+const excluded = new Set([
+  "node_modules",
+  "dist",
+  ".next",
+  ".next-ui",
+  ".turbo",
+]);
 const roots = [
   "apps",
   "packages",
   "scripts",
   "tests",
+  "patches",
   ...readdirSync(".").filter(
     (name) =>
       name.endsWith(".json") ||

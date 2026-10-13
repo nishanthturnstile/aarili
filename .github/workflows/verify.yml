@@ -44,6 +44,7 @@ jobs:
       - name: Private configuration canary build
         env:
           AARILI_PRIVATE_PROBE: aarili-private-probe-issue-2
+          SETUP_TOKEN: aarili-setup-probe-issue-12
         run: pnpm --filter @aarili/web build && node scripts/check-artifacts.mjs
 
   browser:

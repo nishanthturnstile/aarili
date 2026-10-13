@@ -14,6 +14,14 @@ function inspect(directory) {
         "Server canary entered browser output",
       );
       assert(
+        !output.includes("aarili-setup-probe-issue-12"),
+        "Setup token canary entered browser output",
+      );
+      assert(
+        !output.includes("ownerAuthFromEnvironment"),
+        "Server auth entered browser output",
+      );
+      assert(
         !output.includes("@t3-oss/env-core"),
         "Server environment package entered browser output",
       );

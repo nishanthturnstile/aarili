@@ -223,6 +223,27 @@
 }
 
 @layer components {
+  .owner-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-control);
+  }
+  .owner-content {
+    max-width: calc(var(--content-width) / 2);
+    margin-inline: auto;
+    padding-block: var(--space-section);
+    display: grid;
+    gap: var(--space-page);
+  }
+  .owner-form {
+    display: grid;
+    gap: var(--space-page);
+  }
+  .owner-footer {
+    padding-block-start: var(--space-page);
+    border-top: 1px solid var(--border);
+  }
   .aarili-main {
     max-width: var(--content-width);
     margin-inline: auto;

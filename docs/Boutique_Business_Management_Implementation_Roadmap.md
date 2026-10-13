@@ -114,6 +114,15 @@ main after owner merge; the later AC-38/AC-55 integrity gates remain separate.
 - **Dependencies:** 0.1.2. Synthetic/local email adapter first; production domain/OAuth/email DNS before live activation.
 - **Verification:** Concurrent bootstrap attempts produce one owner; setup flag permanently closes bootstrap; unapproved Google accounts cannot sign up/link. Test logout/reset/session expiry, unsafe-origin rejection and re-authentication against synthetic/local mail capture. Actual outbound auth email is enabled only after the shared suppression guards in 0.3.2; replayed restore jobs cannot bypass them. Do not base authority on proxy.ts.
 
+**0.2.1 bootstrap traceability:** [Issue #12](https://github.com/nishanthturnstile/aarili/issues/12)
+implements only protected synthetic owner admission, verification/sign-in and
+initial shop/membership. Its first-table RLS prerequisite, recovery runbook and
+acceptance evidence are recorded in
+[Issue_12_Owner_Bootstrap_Evidence.md](agents/Issue_12_Owner_Bootstrap_Evidence.md).
+Google linking, broader account recovery/re-authentication, general command
+contracts and comprehensive tenancy remain subsequent scoped outcomes. This
+does not satisfy full BIZ-01 onboarding or authorize outbound email/live use.
+
 ##### Vertical Slice 0.2.2 — Enforce Shop Context and Forced RLS
 
 - **Scope:** Mandatory prerequisite from the first tenant table; architecture §§8.1–8.2, 11.2; TRU-01, AC-38.

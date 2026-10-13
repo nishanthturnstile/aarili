@@ -11,3 +11,6 @@ const extra: HealthResponse = { status: "ok", service: "aarili-web", shopId: "no
 void extra;
 const invalid: HealthResponse = { status: "paid", service: "aarili-worker" };
 void invalid;
+import { createOwnerClient, setupOwner } from "@aarili/api/client";
+createOwnerClient().owner.complete.$get();
+setupOwner({ name: "Synthetic", email: "owner@example.test", password: 42, shopName: "Synthetic" }, "synthetic", "synthetic");
