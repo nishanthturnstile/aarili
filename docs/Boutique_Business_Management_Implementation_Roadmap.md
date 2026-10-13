@@ -148,6 +148,7 @@ TRU-11's other integrations and support access remain later scope.
 - **Outcome:** Separate app_owner/app_user/backup/privacy roles; shop and own-membership policy bootstrap; `withShop()` transaction-local user/shop/actor settings. Non-null shop_id, composite tenant foreign keys, shop-led uniqueness/indexes, FORCE RLS read/write policies. Auth identities and pg-boss remain confined exceptions.
 - **Dependencies:** 0.2.1.
 - **Verification:** Two synthetic shops; guessed IDs, missing/empty context, cross-shop writes/links, rollback, pooled-connection reuse and switching all fail closed. CI introspects all tenant tables for FORCE plus read/write policies. Repeat leak tests whenever a repository/search/export/media/job/AI path is added.
+- **Implementation trace:** [Issue #15](https://github.com/nishanthturnstile/aarili/issues/15), with [acceptance evidence and retained-volume procedure](agents/Issue_15_Shop_Isolation_Evidence.md). Review/merge and external activation remain separate gates.
 
 #### Functionality — Atomic, attributable and retry-safe mutations
 

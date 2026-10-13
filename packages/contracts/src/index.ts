@@ -31,12 +31,17 @@ export const apiErrorSchema = z.strictObject({
       "SERVICE_UNAVAILABLE",
       "GOOGLE_DENIED",
       "GOOGLE_UNAVAILABLE",
+      "SHOP_ACCESS_DENIED",
     ]),
     message: z.string(),
   }),
 });
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
+export const shopRecordSchema = z.strictObject({
+  shopId: z.uuid(),
+  name: z.string(),
+});
 export {
   googleConnectionSchema,
   googleDisconnectSchema,

@@ -3,7 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import pg from "pg";
 
-export async function migrateDatabase(connectionString) {
+export async function migrateDatabase(connectionString, { through } = {}) {
   const client = new pg.Client({ connectionString });
   await client.connect();
   try {
@@ -29,6 +29,8 @@ export async function migrateDatabase(connectionString) {
         Number(!a.startsWith("generated/")) -
           Number(!b.startsWith("generated/")) || a.localeCompare(b),
     );
+    if (through && !paths.includes(through))
+      throw new Error("Unknown migration boundary");
     for (const name of paths) {
       const source = await readFile(`packages/db/migrations/${name}`, "utf8");
       const hash = createHash("sha256").update(source).digest("hex");
@@ -39,6 +41,7 @@ export async function migrateDatabase(connectionString) {
       if (prior.rowCount) {
         if (prior.rows[0].sha256 !== hash)
           throw new Error("Applied migration changed");
+        if (name === through) break;
         continue;
       }
       await client.query(source);
@@ -46,6 +49,7 @@ export async function migrateDatabase(connectionString) {
         "INSERT INTO aarili_migration(name, sha256) VALUES($1, $2)",
         [name, hash],
       );
+      if (name === through) break;
     }
     await client.query("COMMIT");
   } catch (error) {

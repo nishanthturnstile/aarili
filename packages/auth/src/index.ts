@@ -13,15 +13,19 @@ import {
   recoveryResetSchema,
   setupCommandSchema,
 } from "@aarili/contracts";
+import { readShop } from "@aarili/core";
 import {
   createDatabase,
   type Database,
   requireRuntimeRole,
+  ShopAccessError,
   sql,
   type Transaction,
   withShop,
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
+import type { ShopRepository } from "@aarili/db/repositories/shop";
+import { shopRepository } from "@aarili/db/shop-repository";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -109,7 +113,8 @@ export class OwnerAccessError extends Error {
       | "INVALID_RESET"
       | "REQUEST_CONFLICT"
       | "GOOGLE_DENIED"
-      | "GOOGLE_UNAVAILABLE",
+      | "GOOGLE_UNAVAILABLE"
+      | "SHOP_ACCESS_DENIED",
   ) {
     super(code);
   }
@@ -117,6 +122,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerShop: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (repository: ShopRepository) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   auth: { handler: (request: Request) => Promise<Response> };
   admit: (
     input: { name: string; email: string; password: string; shopName: string },
@@ -690,13 +700,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     headers: Headers,
     resolver = auth,
     database: Database | Transaction = db,
+    bootstrapOwner = true,
   ) {
     await ready();
     const { response: resolved, headers: responseHeaders } =
       await resolver.api.getSession({ headers, returnHeaders: true });
     if (
       !resolved?.user.emailVerified ||
-      resolved.user.id !== (await state(database)).user_id
+      (bootstrapOwner && resolved.user.id !== (await state(database)).user_id)
     )
       throw new OwnerAccessError("UNAUTHENTICATED");
     const method = await database.execute(
@@ -842,18 +853,39 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         data: { state: "pending-shop" as const },
         headers: responseHeaders,
       };
-    const data = await withShop(db, userId, pending.shop_id, async (tx) => {
-      const result = await tx.execute(
-        sql`select shop_id, name from shop where shop_id=${pending.shop_id}::uuid`,
-      );
-      if (!result.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
+    const shopId = pending.shop_id;
+    const data = await withShop(db, userId, shopId, async (tx) => {
+      const shop = await readShop(shopRepository(tx), shopId);
+      if (!shop) throw new OwnerAccessError("UNAUTHENTICATED");
       return {
         state: "complete" as const,
-        shopId: result.rows[0]?.shop_id as string,
-        name: result.rows[0]?.name as string,
+        ...shop,
       };
     });
     return { data, headers: responseHeaders };
+  }
+  async function withOwnerShop<T>(
+    headers: Headers,
+    shopId: string,
+    run: (repository: ShopRepository) => Promise<T>,
+  ) {
+    // Admission remains owner-only. This boundary authorises by actual session
+    // plus own membership, independently of the installation singleton.
+    const current = await identity(headers, auth, db, false);
+    try {
+      const data = await withShop(db, current.userId, shopId, async (tx) => {
+        const live =
+          await tx.execute(sql`select 1 from auth_session s join auth_user u on u.id=s.user_id
+          where s.id=${current.sessionId}::uuid and s.user_id=${current.userId}::uuid and u.email_verified and s.expires_at > now() for share of s, u`);
+        if (!live.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
+        return run(shopRepository(tx));
+      });
+      return { data, headers: current.headers };
+    } catch (error) {
+      if (error instanceof ShopAccessError)
+        throw new OwnerAccessError("SHOP_ACCESS_DENIED");
+      throw error;
+    }
   }
   async function googleConnection(headers: Headers) {
     return credentialTransaction(async (tx) => {
@@ -1120,6 +1152,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     verify,
     complete,
     ownerShop,
+    withOwnerShop,
     googleConnection,
     disconnectGoogle,
     requestRecovery,

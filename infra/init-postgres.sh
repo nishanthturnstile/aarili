@@ -19,3 +19,4 @@ CREATE EXTENSION pg_trgm;
 CREATE EXTENSION pgcrypto;
 SQL
 unset APP_OWNER_PASSWORD APP_USER_PASSWORD
+psql -v ON_ERROR_STOP=1 --username postgres --dbname aarili -f /opt/aarili/provision-maintenance-roles.sql

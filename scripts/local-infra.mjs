@@ -254,7 +254,7 @@ async function sql(role, action) {
     host: "127.0.0.1",
     port: settings().AARILI_PG_PORT,
     database: "aarili",
-    user: `app_${role}`,
+    user: role === "admin" ? "postgres" : `app_${role}`,
     password: data[role],
     connectionTimeoutMillis: 5000,
     query_timeout: 5000,
@@ -290,6 +290,20 @@ async function check() {
       "SELECT current_user AS role, current_setting('server_version_num')::int AS version, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname=current_user",
     );
     assert.equal(rows[0].role, "app_user");
+    const maintenance = await client.query(
+      "SELECT rolname, rolcanlogin, rolsuper, rolbypassrls, pg_has_role('app_user',oid,'MEMBER') AS runtime_member FROM pg_roles WHERE rolname IN ('app_backup','app_privacy')",
+    );
+    assert.equal(
+      maintenance.rowCount,
+      2,
+      "Retained volumes require explicit pnpm infra:roles upgrade",
+    );
+    for (const role of maintenance.rows) {
+      assert.equal(role.rolcanlogin, false);
+      assert.equal(role.rolsuper, false);
+      assert.equal(role.runtime_member, false);
+      assert.equal(role.rolbypassrls, role.rolname === "app_backup");
+    }
     assert(rows[0].version >= 180000 && rows[0].version < 190000);
     for (const field of [
       "rolsuper",
@@ -455,6 +469,20 @@ export async function main(action) {
       await compose(["down"]);
       console.info(
         "Aarili containers/network stopped; named volumes and credentials preserved.",
+      );
+      break;
+    case "roles":
+      await localDaemon();
+      await sql("admin", async (client) => {
+        await client.query(
+          readFileSync(
+            resolve(root, "infra/provision-maintenance-roles.sql"),
+            "utf8",
+          ),
+        );
+      });
+      console.info(
+        "Explicit local maintenance roles provisioned without LOGIN or runtime credentials. Apply reviewed migrations separately.",
       );
       break;
     case "check":
