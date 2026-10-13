@@ -24,18 +24,26 @@
     "verify": "pnpm lint && pnpm knip && pnpm typecheck && pnpm test && pnpm test:negative && pnpm build && pnpm smoke && node scripts/check-artifacts.mjs",
     "verify:clean": "node scripts/verify-clean.mjs",
     "tokens": "node scripts/check-design-tokens.mjs",
-    "test:ui": "playwright test"
+    "test:ui": "playwright test",
+    "infra:init": "node scripts/local-infra.mjs init",
+    "infra:doctor": "node scripts/local-infra.mjs doctor",
+    "infra:up": "node scripts/local-infra.mjs up",
+    "infra:check": "node scripts/local-infra.mjs check",
+    "infra:verify": "node scripts/local-infra.mjs verify",
+    "infra:down": "node scripts/local-infra.mjs down"
   },
   "devDependencies": {
     "@aarili/api": "workspace:*",
     "@aarili/contracts": "workspace:*",
     "@aarili/platform": "workspace:*",
+    "@aws-sdk/client-s3": "3.1150.0",
     "@axe-core/playwright": "4.13.0",
     "@babel/parser": "8.0.7",
     "@biomejs/biome": "2.5.15",
     "@playwright/test": "1.64.0",
     "@types/node": "24.19.2",
     "knip": "6.41.0",
+    "pg": "8.23.1",
     "turbo": "2.11.7",
     "typescript": "7.0.2",
     "vitest": "5.0.4"

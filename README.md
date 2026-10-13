@@ -1,7 +1,7 @@
 # Aarili
 
-Boutique management portal, currently an operational scaffold for
-[issue #2](https://github.com/nishanthturnstile/aarili/issues/2) / slice 0.1.1a.
+Boutique management portal, currently a workspace, design-system and local
+infrastructure scaffold (Wave 0 / slice 0.1.1).
 Development is synthetic-only. Read AGENTS.md and the product/architecture
 documents before implementing a selected issue.
 
@@ -28,7 +28,7 @@ development processes. The worker also supports graceful SIGINT/SIGTERM and
 an IPC shutdown message; IPC is the automated graceful shutdown path on
 Windows. There are no queue consumers or database connections yet.
 
-No credentials are required. The .env.example files contain only NODE_ENV.
+The web/worker scaffold requires no credentials. Their .env.example files contain only NODE_ENV.
 All NEXT_PUBLIC_* variables are rejected in this increment. Server environment
 validation is owned by platform, imported only at server entry points. Errors
 do not print supplied configuration values. No client storage/cache exists.
@@ -70,9 +70,35 @@ on a free loopback port, then cleans up only those processes.
 Docker Desktop uses its WSL2 Linux engine for verification. Normal app/install
 commands stay on native Windows. Dockerfile.verify is a disposable verification
 image with a digest-pinned Node base; .dockerignore excludes credentials,
-Windows dependencies and generated outputs. No Compose project, container
-database or cloud resources are provisioned here. Unrelated local infrastructure
-and port 5432 are untouched.
+Windows dependencies and generated outputs. Dedicated local infrastructure is
+managed separately below; no cloud resources are provisioned.
+
+## Dedicated synthetic local infrastructure
+
+Docker Desktop supplies the Linux PostgreSQL and Garage S3 containers; Node,
+pnpm and the application stay native on Windows. No second WSL daemon is needed.
+
+~~~powershell
+pnpm infra:init     # Once: generate ignored random credentials; refuses overwrite
+pnpm infra:doctor   # Runtime/daemon/ports/reservations; no secret values
+pnpm infra:up       # Wait for health, then verify native SQL and signed S3 access
+pnpm infra:check    # Repeat SQL/role/extension and S3 put/read/remove probes
+pnpm infra:verify   # Synthetic persistence rehearsal across normal down/up
+pnpm infra:down     # Stop/remove only Aarili containers/network; preserve volumes
+~~~
+
+The dedicated project is `aarili-local`. PostgreSQL uses
+`127.0.0.1:55432`, database `aarili`, runtime `app_user` and migration `app_owner`.
+Garage uses `http://127.0.0.1:53900`, region `garage`, path-style requests and
+private bucket `aarili-synthetic`. Containers on `aarili-local_local` use
+`postgres:5432` and `s3:3900`; native Windows uses the loopback endpoints.
+Existing local-infra on port 5432 is preserved.
+
+Optional port overrides belong in `infra/.env` copied from `infra/.env.example`,
+or in `AARILI_PG_PORT` / `AARILI_S3_PORT` process variables (process wins).
+Doctor checks Windows IPv4/IPv6 exclusions and listeners before startup.
+See [the infrastructure guide and evidence](docs/agents/Issue_4_Local_Infrastructure_Evidence.md)
+for credential handling, failure recovery and the separate explicit destructive reset.
 
 ## Package boundaries
 
@@ -110,12 +136,12 @@ pixel-perfect goldens. `pnpm verify` runs the non-browser checks; run
 
 GET /api/healthz proves process liveness only. Unknown API routes and unsupported
 methods return a shared error. No business routes, Server Actions, auth UI,
-database schema or empty future packages are introduced.
+business database tables or empty future packages are introduced.
 
 Auth/membership, forced tenant RLS, idempotency/versioning/history, money,
 transactional queueing, private media, privacy/recovery, CI and pilot workflows
 are later tickets. Playwright/axe now covers the design-system preview.
-PostgreSQL integration, Tamil PDF shaping/goldens and physical-device/real-IME
+Tenant PostgreSQL integration, Tamil PDF shaping/goldens and physical-device/real-IME
 checks remain later gates; simulated browser input does not complete them.
 No real customer data is permitted.
 

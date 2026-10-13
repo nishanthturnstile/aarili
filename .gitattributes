@@ -14,6 +14,7 @@
 /README.md text eol=lf
 /vitest.config.ts text eol=lf
 /playwright.config.ts text eol=lf
+/infra/** text eol=lf
 /docs/agents/design-system/*.json text eol=lf
 /docs/agents/design-system/*.patch text eol=lf
 /docs/agents/design-system/generated/*.txt text eol=lf
