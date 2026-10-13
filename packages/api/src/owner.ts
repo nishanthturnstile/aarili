@@ -6,6 +6,7 @@ import {
   ownerShopSchema,
   resendCommandSchema,
   setupCommandSchema,
+  signInCommandSchema,
   verificationCommandSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -26,6 +27,11 @@ const actionResponses = {
   429: errorResponse,
   503: errorResponse,
 };
+function sessionResponse<T extends Response>(response: T, headers: Headers): T {
+  for (const cookie of headers.getSetCookie())
+    response.headers.append("Set-Cookie", cookie);
+  return response;
+}
 function command<const Path extends string, Body extends z.ZodType>(
   path: Path,
   body: Body,
@@ -140,12 +146,10 @@ export function createOwnerRoutes(owner: OwnerAuth) {
         responses: actionResponses,
       }),
       async (c) => {
-        return c.json(
-          {
-            state: "complete" as const,
-            ...(await owner.complete(c.req.raw.headers)),
-          },
-          200,
+        const result = await owner.complete(c.req.raw.headers);
+        return sessionResponse(
+          c.json({ state: "complete" as const, ...result.data }, 200),
+          result.headers,
         );
       },
     )
@@ -161,7 +165,10 @@ export function createOwnerRoutes(owner: OwnerAuth) {
           401: errorResponse,
         },
       }),
-      async (c) => c.json(await owner.ownerShop(c.req.raw.headers), 200),
+      async (c) => {
+        const result = await owner.ownerShop(c.req.raw.headers);
+        return sessionResponse(c.json(result.data, 200), result.headers);
+      },
     );
   routes.on(["GET", "POST"], "/auth/*", async (c) => {
     const path = c.req.path.slice(c.req.path.indexOf("/auth") + 5);
@@ -178,8 +185,8 @@ export function createOwnerRoutes(owner: OwnerAuth) {
       );
     if (path === "/get-session") {
       try {
-        await owner.ownerShop(c.req.raw.headers);
-        return c.json({ state: "signed-in" });
+        const result = await owner.ownerShop(c.req.raw.headers);
+        return sessionResponse(c.json({ state: "signed-in" }), result.headers);
       } catch {
         return c.json(
           { error: { code: "UNAUTHENTICATED", message: "Sign-in required" } },
@@ -187,7 +194,32 @@ export function createOwnerRoutes(owner: OwnerAuth) {
         );
       }
     }
-    const response = await owner.auth.handler(c.req.raw);
+    let request = c.req.raw;
+    if (path === "/sign-in/email") {
+      const input = signInCommandSchema.safeParse(
+        await request
+          .clone()
+          .json()
+          .catch(() => undefined),
+      );
+      if (!input.success)
+        return c.json(
+          {
+            error: {
+              code: "VALIDATION_FAILED",
+              message: "Check the required fields",
+            },
+          },
+          422,
+        );
+      const headers = new Headers(request.headers);
+      headers.delete("Content-Length");
+      request = new Request(request, {
+        headers,
+        body: JSON.stringify(input.data),
+      });
+    }
+    const response = await owner.auth.handler(request);
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set("Cache-Control", "no-store");
     responseHeaders.set("Referrer-Policy", "no-referrer");

@@ -20,6 +20,12 @@ export const resendCommandSchema = z
     password: z.string().min(1).max(128),
   })
   .strict();
+export const signInCommandSchema = z
+  .object({
+    email: z.email().max(254),
+    password: z.string().min(1).max(128),
+  })
+  .strict();
 export const verificationCommandSchema = z
   .object({ code: z.string().min(1).max(256) })
   .strict();

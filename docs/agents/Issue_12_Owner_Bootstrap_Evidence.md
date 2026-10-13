@@ -103,3 +103,37 @@ Synthetic Windows capture directories require private ACL provisioning.
 No money/history-domain migration or outbound side effects are introduced.
 General command/audit/ETag and comprehensive tenancy foundations remain their
 separate issues. A draft PR is reviewable work, not merged issue completion.
+
+## PR #17 session-policy corrections
+
+The private review identified two A6 defects: session lookup renewed database
+expiry without forwarding the browser cookie, and the raw sign-in body allowed
+`rememberMe: false` to create a 24-hour session instead of the approved 12 hours.
+The auth helpers now return session response headers separately from their
+data; all three session-resolving API routes forward each Set-Cookie header.
+A strict email/password sign-in contract rejects unsupported options with 422
+before the library creates a session.
+
+The new real PostgreSQL/certificate-validated HTTPS A6 test checks rejected
+remember-me/redirect options, invalid and missing credentials, no session or
+cookie on rejection, the normal 43,200-second session lifetime, and renewal
+after the one-hour boundary. It checks pending and completed owner-shop reads,
+session reads and completion/retry, renewed Secure/HttpOnly/Lax cookies,
+no-store responses and no bearer token in JSON. Before the refresh boundary,
+session reads issue no renewal cookie. Existing expiry/revocation tests remain.
+
+Fresh native Windows validation on 13 October 2026, run once after the fixes:
+
+| Command | Result |
+| --- | --- |
+| `pnpm verify` | Passed: Biome/boundaries/tokens, Knip, strict typechecks, 31 unit tests, negative DTO/client and Base UI checks, 11 real PostgreSQL tests, production build, smoke and 26 browser-artifact scans |
+| `pnpm test:ui` | Passed: all 30 tests, including Tamil/English owner workflows on phone/tablet/desktop with keyboard/axe/no browser storage |
+| `pnpm audit --audit-level low` | Passed: no known vulnerabilities |
+
+This correction stays within issue #12, product §4/TRU-01 and architecture
+§§6.4, 11.1–11.2 and 15. It changes no tenant policies, shop transactions,
+immutable bootstrap history, schema, dependencies or activation gates. No
+migration is required; compatible application rollback retains existing data.
+Clean-install and physical-device checks were not repeated for this correction.
+Hosted required checks must pass on the published fix commit before owner
+review/merge; the previous PR head's results do not verify these fixes.

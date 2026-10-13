@@ -243,10 +243,10 @@ test("0.2.1a A2 concurrent PostgreSQL admission and retry hash produce exactly o
     const shops = await Promise.all(
       Array.from({ length: 6 }, () => owner.complete(headers)),
     );
-    assert.equal(new Set(shops.map((s) => s.shopId)).size, 1);
+    assert.equal(new Set(shops.map((s) => s.data.shopId)).size, 1);
     const { pool, db } = createDatabase(runtime.options.connectionString);
     try {
-      await withShop(db, reserved.user_id, shops[0].shopId, async (tx) => {
+      await withShop(db, reserved.user_id, shops[0].data.shopId, async (tx) => {
         assert.equal(
           (
             await tx.execute(
@@ -316,7 +316,7 @@ test("0.2.1a A2/A3/A4 injected write failures rollback identity, credential, res
             null,
           );
           assert.equal(
-            (await resumed.ownerShop(headers)).state,
+            (await resumed.ownerShop(headers)).data.state,
             "pending-shop",
           );
           await resumed.complete(headers);
@@ -378,9 +378,9 @@ test("0.2.1a A3/A4 failed mail, real process restarts, expired/invalid/replayed 
     await assert.rejects(owner.verify(code), /INVALID_VERIFICATION/);
     const signed = await signIn(owner);
     const headers = cookie(signed);
-    const complete = await owner.complete(headers);
+    const complete = (await owner.complete(headers)).data;
     const restarted = make();
-    assert.deepEqual(await restarted.complete(headers), complete);
+    assert.deepEqual((await restarted.complete(headers)).data, complete);
     await assert.rejects(
       restarted.admit(input, token, randomUUID()),
       /SETUP_CLOSED/,
@@ -390,7 +390,7 @@ test("0.2.1a A3/A4 failed mail, real process restarts, expired/invalid/replayed 
         "UPDATE owner_bootstrap SET user_id=NULL,shop_name=NULL,reserved_at=NULL",
       ),
     );
-    assert.equal((await restarted.ownerShop(headers)).state, "complete");
+    assert.equal((await restarted.ownerShop(headers)).data.state, "complete");
   });
 }, 120000);
 
@@ -399,7 +399,7 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
     async ({ make, capture, runtime, migration, connectionString }) => {
       const owner = make();
       const headers = await provision(owner, capture);
-      const { shopId } = await owner.complete(headers);
+      const { shopId } = (await owner.complete(headers)).data;
       const userId = (
         await runtime.query("SELECT user_id FROM owner_bootstrap")
       ).rows[0].user_id;
@@ -608,6 +608,95 @@ test("0.2.1a A6/A7 database sessions, generic credential failures, revocation an
     assert.equal(exit, 0, output);
     assert.deepEqual(message, { setupStatus: 429, signInStatus: 429 });
     assert.equal(output.includes(token), false);
+  });
+}, 120000);
+
+test("0.2.1a A6 fixed sign-in lifetime and HTTPS renewal cookies on pending/completed owner and session routes", async () => {
+  await fixture(async ({ make, capture, runtime }) => {
+    let owner;
+    await withHttpsApi(
+      (secureOrigin) => {
+        owner = make({ origin: secureOrigin });
+        return createApi(async () => true, owner);
+      },
+      async (send) => {
+        await owner.admit(input, token, randomUUID());
+        await owner.verify(capture.at(-1).code);
+        const credentials = { email: input.email, password: input.password };
+        for (const body of [
+          { ...credentials, rememberMe: false },
+          { ...credentials, rememberMe: true },
+          { ...credentials, callbackURL: "/owner" },
+          { ...credentials, email: "invalid" },
+          { email: input.email },
+          undefined,
+        ]) {
+          const denied = await send("/auth/sign-in/email", body);
+          assert.equal(denied.status, 422);
+          assert.equal(JSON.parse(denied.data).error.code, "VALIDATION_FAILED");
+          assert.equal((denied.headers["set-cookie"] ?? []).length, 0);
+        }
+        assert.equal(
+          (await runtime.query("SELECT count(*)::int AS n FROM auth_session"))
+            .rows[0].n,
+          0,
+        );
+        const signed = await send("/auth/sign-in/email", credentials);
+        assert.equal(signed.status, 200);
+        assert.deepEqual(JSON.parse(signed.data), { state: "signed-in" });
+        assert.match(signed.headers["set-cookie"][0], /Max-Age=43200/);
+        const lifetime = (
+          await runtime.query(
+            "SELECT extract(epoch FROM expires_at-created_at)::float AS seconds FROM auth_session",
+          )
+        ).rows[0].seconds;
+        assert.ok(Math.abs(lifetime - policy.sessionSeconds) < 2);
+        let headers = {
+          Cookie: signed.headers["set-cookie"][0].split(";")[0],
+        };
+        const unchanged = await send(
+          "/auth/get-session",
+          undefined,
+          headers,
+          "GET",
+        );
+        assert.equal(unchanged.status, 200);
+        assert.equal((unchanged.headers["set-cookie"] ?? []).length, 0);
+        for (const [path, method, state] of [
+          ["/owner/shop", "GET", "pending-shop"],
+          ["/auth/get-session", "GET", "signed-in"],
+          ["/owner/complete", "POST", "complete"],
+          ["/owner/shop", "GET", "complete"],
+          ["/auth/get-session", "GET", "signed-in"],
+          ["/owner/complete", "POST", "complete"],
+        ]) {
+          // Cross the one-hour refresh boundary without a wall-clock wait.
+          await runtime.query(
+            "UPDATE auth_session SET expires_at=now()+interval '10 hours', updated_at=now()-interval '2 hours'",
+          );
+          const renewed = await send(path, undefined, headers, method);
+          assert.equal(renewed.status, 200, path);
+          assert.equal(JSON.parse(renewed.data).state, state);
+          assert.equal(Object.hasOwn(JSON.parse(renewed.data), "token"), false);
+          assert.equal(renewed.headers["cache-control"], "no-store");
+          const cookies = renewed.headers["set-cookie"];
+          assert.equal(cookies.length, 1, path);
+          assert.match(cookies[0], /__Secure-/);
+          assert.match(cookies[0], /Max-Age=43200/);
+          assert.match(cookies[0], /HttpOnly/i);
+          assert.match(cookies[0], /;\s*Secure(?:;|$)/i);
+          assert.match(cookies[0], /SameSite=Lax/i);
+          assert.equal(cookies[0].includes("session_data"), false);
+          const remaining = (
+            await runtime.query(
+              "SELECT extract(epoch FROM expires_at-now())::float AS seconds FROM auth_session",
+            )
+          ).rows[0].seconds;
+          assert.ok(Math.abs(remaining - policy.sessionSeconds) < 2, path);
+          headers = { Cookie: cookies[0].split(";")[0] };
+        }
+      },
+    );
   });
 }, 120000);
 

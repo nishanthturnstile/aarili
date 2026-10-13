@@ -105,6 +105,12 @@ Approved in this implementation chat on 13 October 2026:
 | Code verification | 5 attempts/minute |
 | IP/proxy trust | None; shared installation/per-path buckets |
 
+Sign-in accepts only email and password. Unsupported fields, including
+`rememberMe` and `callbackURL`, return 422 before a session is created. Session
+renewal forwards the refreshed cookie through `/owner/shop`, `/owner/complete`
+and `/auth/get-session`, including the pending-shop state, so browser and
+database expiry follow the same approved policy.
+
 The Better Auth database limiter and PostgreSQL-backed rate-limiter-flexible
 store are explicitly active in tests and runtime. Spoofed forwarded headers
 cannot select a fresh bucket. A database outage fails closed; there is no memory

@@ -38,5 +38,6 @@ export {
   ownerShopSchema,
   resendCommandSchema,
   setupCommandSchema,
+  signInCommandSchema,
   verificationCommandSchema,
 } from "./owner.js";

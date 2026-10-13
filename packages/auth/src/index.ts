@@ -71,6 +71,7 @@ export class OwnerAccessError extends Error {
   }
 }
 
+type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
   auth: { handler: (request: Request) => Promise<Response> };
   admit: (
@@ -80,12 +81,14 @@ export type OwnerAuth = {
   ) => Promise<void>;
   resend: (email: string, password: string, token: string) => Promise<void>;
   verify: (code: string) => Promise<void>;
-  complete: (headers: Headers) => Promise<{ shopId: string }>;
+  complete: (headers: Headers) => Promise<SessionResult<{ shopId: string }>>;
   ownerShop: (
     headers: Headers,
   ) => Promise<
-    | { state: "pending-shop" }
-    | { state: "complete"; shopId: string; name: string }
+    SessionResult<
+      | { state: "pending-shop" }
+      | { state: "complete"; shopId: string; name: string }
+    >
   >;
   setupLimit: () => Promise<number>;
   resendLimit: () => Promise<number>;
@@ -326,29 +329,35 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   }
   async function identity(headers: Headers) {
     await ready();
-    const resolved = await auth.api.getSession({ headers });
+    const { response: resolved, headers: responseHeaders } =
+      await auth.api.getSession({ headers, returnHeaders: true });
     if (
       !resolved?.user.emailVerified ||
       resolved.user.id !== (await state()).user_id
     )
       throw new OwnerAccessError("UNAUTHENTICATED");
-    return resolved.user.id;
+    return { userId: resolved.user.id, headers: responseHeaders };
   }
   async function complete(headers: Headers) {
-    const userId = await identity(headers);
-    return db.transaction(async (tx) => {
+    const { userId, headers: responseHeaders } = await identity(headers);
+    const data = await db.transaction(async (tx) => {
       const result = await tx.execute(
         sql`select complete_owner_bootstrap(${userId}::uuid) as shop_id`,
       );
       await checkpoint("shop");
       return { shopId: result.rows[0]?.shop_id as string };
     });
+    return { data, headers: responseHeaders };
   }
   async function ownerShop(headers: Headers) {
-    const userId = await identity(headers);
+    const { userId, headers: responseHeaders } = await identity(headers);
     const pending = await state();
-    if (!pending.shop_id) return { state: "pending-shop" as const };
-    return withShop(db, userId, pending.shop_id, async (tx) => {
+    if (!pending.shop_id)
+      return {
+        data: { state: "pending-shop" as const },
+        headers: responseHeaders,
+      };
+    const data = await withShop(db, userId, pending.shop_id, async (tx) => {
       const result = await tx.execute(
         sql`select shop_id, name from shop where shop_id=${pending.shop_id}::uuid`,
       );
@@ -359,6 +368,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         name: result.rows[0]?.name as string,
       };
     });
+    return { data, headers: responseHeaders };
   }
   return {
     auth: { handler: (request) => guard(() => auth.handler(request)) },
