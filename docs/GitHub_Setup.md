@@ -19,9 +19,16 @@ Repository: [nishanthturnstile/aarili](https://github.com/nishanthturnstile/aari
 | GitHub Actions | Enabled; actions must use full commit SHAs |
 | Workflow token | Read-only default; workflow cannot approve PRs |
 | Issue readiness label | `ready-for-agent`, meaning approved ticket with all blockers checked before starting |
-| Required CI checks | Pending real workflows in roadmap Phase 0.1.2; no nonexistent checks configured |
+| Required CI checks | `Scaffold verification`, `Browser smoke and accessibility`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches (issue #6) |
+| Dependency vulnerability alerts | Enabled and read back HTTP 204 (issue #6); hosted Renovate activation remains owner confirmation |
 
-There are currently no Actions workflows. After the scaffold CI passes on a branch, require its actual stable check names on main, with the branch up to date before merge. This setup protects the review path; it does not claim that tests/builds are already enforced.
+The initial setup deliberately required no nonexistent check names. Issue #6
+added the verification workflow and demonstrated real failure/success on a
+branch before configuring the three observed check names above. Existing
+protections were preserved by REST read-back. See
+[the CI gate evidence](agents/Issue_6_CI_Gates_Evidence.md) for actual runs,
+snapshots and remaining hosted Renovate activation. Workflow schedules activate
+after owner review/merge; this does not authorize a live release.
 
 Settings were checked against current [GitHub branch-protection](https://docs.github.com/en/rest/branches/branch-protection) and [repository settings](https://docs.github.com/en/rest/repos/repos) documentation, retrieved through Context7. REST read-back is the evidence for their applied state.
 
@@ -33,7 +40,7 @@ Final verification also found a project copy at `.agents/skills/to-tickets` and 
 
 [Tracker instructions](agents/issue-tracker.md) provide the GitHub repository, ready-for-agent vocabulary, blocking-edge handling and phase-by-phase publication rules. The generic setup-matt-pocock-skills wizard was not invoked; the owner's chosen repository and existing source documents already settle its relevant choices.
 
-## What comes next
+## Original setup handoff (historical)
 
 1. Owner reviews/approves the proposed root AGENTS.md and implementation roadmap.
 2. Use to-tickets to draft Wave 0 / Phase 0.1: reproducible workspace/compatibility setup, then a runnable health path and CI. Narrow tickets further if needed; show blockers and acceptance checks for approval before publishing.

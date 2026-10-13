@@ -78,6 +78,39 @@ skip, changed acceptance expectation or broken application code remains.
 The negative commit is retained only in topic-branch history as evidence; the
 owner uses squash merge of the reviewed final diff.
 
+## Hosted positive run and main protection
+
+The restored commit `9eab922a907581b1559818b8a2cc504e54eaa99d` passed the
+[first positive hosted run](https://github.com/nishanthturnstile/aarili/actions/runs/38364410383).
+Its logs confirm 29 unit/scaffold tests, 3 real PostgreSQL tests, both negative
+type fixtures, production smoke, a private-canary build and 24 browser checks
+(34.5 seconds). Observed Linux endpoints included `localhost:32771` for
+production smoke and `localhost:32769` for browser tests, both cleaned up.
+Its actual check runs were read from the commit, all `success`, provided by
+`github-actions` App ID **15368**:
+
+- [Scaffold verification](https://github.com/nishanthturnstile/aarili/actions/runs/38364410383/job/115185983919)
+- [Browser smoke and accessibility](https://github.com/nishanthturnstile/aarili/actions/runs/38364410383/job/115185984425)
+- [Dependency audit](https://github.com/nishanthturnstile/aarili/actions/runs/38364410383/job/115185984263)
+
+Only after this successful run were these three exact contexts required on
+main, bound to App ID 15368 with `strict: true` (up-to-date branches). REST
+read-back confirmed them. Every pre-existing protection field, excluding the
+new required checks, was compared against the pre-change snapshot and matched.
+
+The pre-existing settings remain: PRs required for administrators, zero required
+approving reviews for the solo owner, stale approvals dismissed, conversations
+resolved, linear history, no force pushes/deletions, no lock/bypass changes,
+squash-only merge, automatic merged-branch deletion and no automerge. Actions
+still requires SHA pins, defaults to read-only tokens and cannot approve PRs.
+
+The initial status-only PATCH returned 404 because checks had not been enabled.
+A full protection update preserved the read-back settings. Supplying both the
+legacy `contexts` field and `checks` was rejected with 422 by the current API's
+exclusive schema; the successful request used `checks` alone. Neither rejected
+request changed repository settings. The final before/after snapshots are in
+[the CI evidence directory](ci/main-protection-after.json).
+
 ## Local verification
 
 Integrated main and the restored topic branch both passed native `pnpm verify`:
@@ -95,6 +128,19 @@ npx --yes --package=renovate@44.155.1 renovate-config-validator --strict --no-gl
 ~~~
 
 No new application/test dependency, lockfile change or formatter was needed.
+
+## Acceptance coverage
+
+| Issue #6 criterion | Fresh evidence / limits |
+|---|---|
+| Real push/PR checks, stable names | Hosted negative and positive runs above use three actual jobs and the repository's existing commands; final PR checks are verified before handoff |
+| SHA pins, frozen installs and minimum privilege | Official action commit/metadata review, successful hosted installs, explicit read-only workflow token, no persisted checkout credentials/secrets/artifact upload, unchanged repository read-only/approval settings |
+| Linux Docker and native Windows | Hosted real Testcontainers and all 24 Playwright/axe checks; native integrated/restored verification and browser results below; native binaries are never copied across OS boundaries |
+| Real negative/positive gate | Three unit assertions and three HTTP browser checks failed for the temporary service-identifier regression; restoring the original implementation made all three hosted jobs pass |
+| Actual required main checks/up-to-date/preserved safeguards | Successful commit check-runs supplied exact names and App ID 15368; strict protection was added only afterward; full REST before/after comparison and repository/Actions read-back |
+| Weekly and security updates | Strict repository Renovate validation, weekly grouped/lock maintenance, immediate ungrouped alert-fix policy, no automerge, manual major gate, all-severity CI/daily audit, enabled GitHub alerts; hosted Renovate App access remains the specific owner activation gap below |
+| Complete PR evidence and manual production | This guide, linked workflow/check runs and settings snapshots; no deployment/promotion or merge |
+| Compiler/client/token/runtime/accessibility enforcement | Hosted/native `pnpm verify` checks TypeScript 7 declarations, six negative request/response and five negative UI uses, canonical tokens/imports, unit/runtime contracts and real PostgreSQL; browser job enforces implemented three-size axe/workflows |
 
 ## Dependency policy and activation
 

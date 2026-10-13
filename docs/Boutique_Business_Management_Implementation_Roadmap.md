@@ -91,9 +91,12 @@ Each slice delivers schema/migrations where needed, core policies, validated API
 
 Implementation split: approved issue #5 (**0.1.2a**) covers runnable database
 readiness, typed health UI and local Windows/Linux PostgreSQL/browser evidence;
-issue #6 covers CI and delivery checks after #5 merges. See
-[issue #5 evidence](agents/Issue_5_Database_Health_Evidence.md). This does not
-complete the parent slice or the later AC-38/AC-55 integrity gates.
+issue #5 merged in PR #10. Issue #6 (**0.1.2b**) implements the real CI checks,
+negative/positive gate proof, required main protection and dependency policy.
+See [issue #5 evidence](agents/Issue_5_Database_Health_Evidence.md) and
+[issue #6 evidence](agents/Issue_6_CI_Gates_Evidence.md), including its external
+Renovate activation gap. Parent-slice completion still requires integrated
+main after owner merge; the later AC-38/AC-55 integrity gates remain separate.
 
 - **Scope:** Mandatory prerequisite; architecture §§12.2, 12.4, 15.
 - **Outcome:** An actual web/Hono health path reaches PostgreSQL. GitHub Actions runs Biome, Knip, typecheck, Vitest/property tests, Testcontainers, production build and initial phone/tablet/desktop Playwright/axe smoke tests. Add checks as real behaviours land; no dummy passing checks. Pin Actions to SHAs, audit dependencies and configure Renovate/security handling.
