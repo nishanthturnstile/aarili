@@ -24,6 +24,8 @@ async function isOpen(host, port) {
 
 export async function withPostgres(run) {
   const password = randomBytes(24).toString("hex");
+  const ownerPassword = randomBytes(24).toString("hex");
+  const userPassword = randomBytes(24).toString("hex");
   const container = await new PostgreSqlContainer(image)
     .withDatabase("aarili_health_test")
     .withPassword(password)
@@ -58,14 +60,30 @@ export async function withPostgres(run) {
       assert.equal((await admin.query("SELECT 1 AS ready")).rows[0].ready, 1);
       // Generated hex only; admin credentials exist solely in this disposable fixture.
       await admin.query(
-        `CREATE ROLE app_user LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`,
+        `CREATE ROLE app_user LOGIN PASSWORD '${userPassword}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`,
+      );
+      await admin.query(
+        `CREATE ROLE app_owner LOGIN PASSWORD '${ownerPassword}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`,
+      );
+      await admin.query(
+        "ALTER DATABASE aarili_health_test OWNER TO app_owner; REVOKE ALL ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO app_owner; GRANT USAGE ON SCHEMA public TO app_user",
       );
     } finally {
       await admin.end();
     }
     const url = new URL(container.getConnectionUri());
     url.username = "app_user";
-    return await run({ connectionString: url.toString(), host, port, stop });
+    url.password = userPassword;
+    const migrationUrl = new URL(container.getConnectionUri());
+    migrationUrl.username = "app_owner";
+    migrationUrl.password = ownerPassword;
+    return await run({
+      connectionString: url.toString(),
+      migrationConnectionString: migrationUrl.toString(),
+      host,
+      port,
+      stop,
+    });
   } finally {
     await stop();
   }

@@ -4,6 +4,8 @@
 node_modules
 **/node_modules
 **/.next
+**/.next-ui
+.scratch
 **/dist
 **/.turbo
 **/.env

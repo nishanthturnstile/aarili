@@ -185,7 +185,7 @@ export function checkBoundaries(sources) {
         !workspace &&
         !specifier.startsWith(".") &&
         !specifier.startsWith("@/") &&
-        !/^(react|react-dom|next|zod|hono\/client|@tanstack\/react-query)(\/|$)/.test(
+        !/^(react|react-dom|next|next-intl|zod|hono\/client|@tanstack\/react-query)(\/|$)/.test(
           specifier,
         ) &&
         !(
@@ -223,7 +223,11 @@ export function checkBoundaries(sources) {
 function collect(dir, sources, root) {
   if (!existsSync(dir)) return;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (["node_modules", "dist", ".next", ".turbo"].includes(entry.name))
+    if (
+      ["node_modules", "dist", ".next", ".next-ui", ".turbo"].includes(
+        entry.name,
+      )
+    )
       continue;
     const path = resolve(dir, entry.name);
     if (entry.isDirectory()) collect(path, sources, root);

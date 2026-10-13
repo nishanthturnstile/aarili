@@ -13,7 +13,11 @@ await withPostgres(async ({ connectionString }) => {
     ],
     {
       stdio: "inherit",
-      env: { ...process.env, DATABASE_URL: connectionString },
+      env: {
+        ...process.env,
+        DATABASE_URL: connectionString,
+        AARILI_UI_VERIFICATION: "true",
+      },
     },
   );
   const [code] = await once(child, "exit");

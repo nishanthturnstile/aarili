@@ -1,0 +1,681 @@
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { randomBytes, randomUUID } from "node:crypto";
+import { once } from "node:events";
+import { createApi } from "@aarili/api";
+import { createOwnerAuth } from "@aarili/auth";
+import { createDatabase, sql, withShop } from "@aarili/db";
+import pg from "pg";
+import { test } from "vitest";
+import { migrateDatabase } from "../scripts/migrate.mjs";
+import { withHttpsApi } from "../scripts/test-support/https-api.mjs";
+import { withPostgres } from "../scripts/test-support/postgres.mjs";
+
+const input = {
+  name: "Synthetic Owner",
+  email: "owner@example.test",
+  password: "synthetic-long-passphrase-12",
+  shopName: "சோதனைக் கடை",
+};
+const policy = {
+  passwordMin: 15,
+  passwordMax: 128,
+  sessionSeconds: 43200,
+  updateSeconds: 3600,
+  verificationSeconds: 1800,
+  signInMax: 100,
+  signInWindow: 60,
+  setupMax: 100,
+  setupWindow: 300,
+};
+const origin = "http://127.0.0.1:3103";
+const token = randomBytes(32).toString("hex");
+const secret = randomBytes(32).toString("hex");
+async function fixture(run) {
+  await withPostgres(
+    async ({ connectionString, migrationConnectionString }) => {
+      await Promise.all([
+        migrateDatabase(migrationConnectionString),
+        migrateDatabase(migrationConnectionString),
+      ]);
+      const capture = [];
+      const owners = [];
+      const runtime = new pg.Pool({ connectionString });
+      const migration = new pg.Pool({
+        connectionString: migrationConnectionString,
+      });
+      function make(overrides = {}) {
+        const owner = createOwnerAuth({
+          connectionString,
+          origin,
+          secret,
+          setupToken: token,
+          policy,
+          capture: async (message) => {
+            capture.push(message);
+          },
+          ...overrides,
+        });
+        owners.push(owner);
+        return owner;
+      }
+      try {
+        await run({ make, capture, runtime, migration, connectionString });
+      } finally {
+        await Promise.all(owners.map((owner) => owner.close()));
+        await runtime.end();
+        await migration.end();
+      }
+    },
+  );
+}
+function request(api, path, body, headers = {}, method = "POST") {
+  return api.fetch(
+    new Request(`${origin}/api${path}`, {
+      method,
+      headers: {
+        Origin: origin,
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    }),
+  );
+}
+async function signIn(owner, email = input.email, password = input.password) {
+  return request(
+    createApi(async () => true, owner),
+    "/auth/sign-in/email",
+    { email, password },
+  );
+}
+function cookie(response) {
+  return new Headers({
+    Cookie: response.headers
+      .getSetCookie()
+      .map((s) => s.split(";")[0])
+      .join("; "),
+  });
+}
+async function provision(owner, capture) {
+  await owner.admit(input, token, randomUUID());
+  await owner.verify(capture.at(-1).code);
+  const signedIn = await signIn(owner);
+  assert.equal(signedIn.status, 200);
+  return cookie(signedIn);
+}
+
+test("0.2.1a A1 protected admission, ordinary signup closure, exact origin and secret-free errors", async () => {
+  await fixture(async ({ make, runtime, migration }) => {
+    const owner = make();
+    const api = createApi(async () => true, owner);
+    for (const headers of [
+      {},
+      { "X-Setup-Token": "wrong" },
+      { "X-Setup-Token": token, Origin: "https://evil.example" },
+      { "X-Setup-Token": token, Origin: "" },
+    ]) {
+      const response = await request(api, "/owner/setup", input, {
+        "Idempotency-Key": randomUUID(),
+        ...headers,
+      });
+      assert.equal(response.status, 403);
+      assert.equal((await response.text()).includes(token), false);
+    }
+    assert.equal(
+      (await request(api, "/auth/sign-up/email", input)).status,
+      404,
+    );
+    const direct = await owner.auth.handler(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: { Origin: origin, "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      }),
+    );
+    assert.equal(direct.ok, false);
+    assert.equal(
+      (
+        await request(api, "/owner/setup?token=forbidden", input, {
+          "X-Setup-Token": token,
+        })
+      ).status,
+      422,
+    );
+    assert.equal(
+      (
+        await request(
+          api,
+          "/owner/setup",
+          { ...input, password: "short" },
+          { "X-Setup-Token": token, "Idempotency-Key": randomUUID() },
+        )
+      ).status,
+      422,
+    );
+    assert.equal(
+      (await runtime.query("SELECT count(*)::int AS n FROM auth_user")).rows[0]
+        .n,
+      0,
+    );
+    await assert.rejects(
+      migrateDatabase(runtime.options.connectionString),
+      /app_owner/,
+    );
+    const privileged = make({
+      connectionString: migration.options.connectionString,
+    });
+    assert.equal(
+      (
+        await request(
+          createApi(async () => true, privileged),
+          "/owner/setup",
+          input,
+          { "X-Setup-Token": token, "Idempotency-Key": randomUUID() },
+        )
+      ).status,
+      503,
+    );
+    await runtime.query(
+      "INSERT INTO auth_user(id,name,email) VALUES($1,'Existing Synthetic Identity','existing@example.test')",
+      [randomUUID()],
+    );
+    await assert.rejects(
+      owner.admit(input, token, randomUUID()),
+      /SETUP_CLOSED/,
+    );
+  });
+}, 120000);
+
+test("0.2.1a A2 concurrent PostgreSQL admission and retry hash produce exactly one owner, credential and membership", async () => {
+  await fixture(async ({ make, capture, runtime }) => {
+    const owner = make();
+    const otherProcess = make();
+    const key = randomUUID();
+    const results = await Promise.allSettled([
+      owner.admit(input, token, key),
+      ...Array.from({ length: 7 }, (_, n) =>
+        otherProcess.admit(
+          { ...input, email: `other${n}@example.test` },
+          token,
+          randomUUID(),
+        ),
+      ),
+    ]);
+    assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+    const reserved = (
+      await runtime.query(
+        "SELECT u.email, b.user_id, b.admission_key FROM owner_bootstrap b JOIN auth_user u ON u.id=b.user_id",
+      )
+    ).rows[0];
+    await owner.admit(
+      { ...input, email: reserved.email },
+      token,
+      reserved.admission_key,
+    );
+    await assert.rejects(
+      owner.admit(
+        { ...input, email: reserved.email, shopName: "Changed" },
+        token,
+        reserved.admission_key,
+      ),
+      /REQUEST_CONFLICT/,
+    );
+    assert.equal(
+      (await runtime.query("SELECT count(*)::int AS n FROM auth_user")).rows[0]
+        .n,
+      1,
+    );
+    assert.equal(
+      (
+        await runtime.query(
+          "SELECT count(*)::int AS n FROM auth_account WHERE provider_id='credential'",
+        )
+      ).rows[0].n,
+      1,
+    );
+    await assert.rejects(
+      owner.admit({ ...input, email: "changed@example.test" }, token, key),
+    );
+    await owner.verify(capture.at(-1).code);
+    const signed = await signIn(owner, reserved.email);
+    const headers = cookie(signed);
+    const shops = await Promise.all(
+      Array.from({ length: 6 }, () => owner.complete(headers)),
+    );
+    assert.equal(new Set(shops.map((s) => s.shopId)).size, 1);
+    const { pool, db } = createDatabase(runtime.options.connectionString);
+    try {
+      await withShop(db, reserved.user_id, shops[0].shopId, async (tx) => {
+        assert.equal(
+          (
+            await tx.execute(
+              sql`select count(*)::int as n from shop_membership`,
+            )
+          ).rows[0].n,
+          1,
+        );
+      });
+    } finally {
+      await pool.end();
+    }
+  });
+}, 120000);
+
+test("0.2.1a A2/A3/A4 injected write failures rollback identity, credential, reservation, verification and tenant completion", async () => {
+  for (const step of [
+    "identity",
+    "credential",
+    "reservation",
+    "verified",
+    "shop",
+  ])
+    await fixture(async ({ make, capture, runtime }) => {
+      const failing = make({
+        checkpoint: async (current) => {
+          if (current === step) throw new Error("Synthetic write failure");
+        },
+      });
+      const resumed = make();
+      if (["identity", "credential", "reservation"].includes(step)) {
+        await assert.rejects(failing.admit(input, token, randomUUID()));
+        assert.equal(
+          (await runtime.query("SELECT count(*)::int AS n FROM auth_user"))
+            .rows[0].n,
+          0,
+        );
+        assert.equal(
+          (await runtime.query("SELECT count(*)::int AS n FROM auth_account"))
+            .rows[0].n,
+          0,
+        );
+        assert.equal(
+          (await runtime.query("SELECT user_id FROM owner_bootstrap")).rows[0]
+            .user_id,
+          null,
+        );
+        await resumed.admit(input, token, randomUUID());
+      } else {
+        await failing.admit(input, token, randomUUID());
+        if (step === "verified") {
+          await assert.rejects(failing.verify(capture.at(-1).code));
+          assert.equal(
+            (await runtime.query("SELECT email_verified FROM auth_user"))
+              .rows[0].email_verified,
+            false,
+          );
+          await resumed.verify(capture.at(-1).code);
+        } else {
+          await failing.verify(capture.at(-1).code);
+          const signed = await signIn(resumed);
+          const headers = cookie(signed);
+          await assert.rejects(failing.complete(headers));
+          assert.equal(
+            (await runtime.query("SELECT completed_at FROM owner_bootstrap"))
+              .rows[0].completed_at,
+            null,
+          );
+          assert.equal(
+            (await resumed.ownerShop(headers)).state,
+            "pending-shop",
+          );
+          await resumed.complete(headers);
+        }
+      }
+    });
+}, 240000);
+
+test("0.2.1a A3/A4 failed mail, real process restarts, expired/invalid/replayed codes and permanently closed setup", async () => {
+  await fixture(async ({ make, capture, runtime, connectionString }) => {
+    const failedMail = make({
+      capture: async () => {
+        throw new Error("Synthetic capture failure");
+      },
+    });
+    await assert.rejects(
+      failedMail.admit(input, token, randomUUID()),
+      /MAIL_UNAVAILABLE/,
+    );
+    assert.equal((await signIn(failedMail)).status, 403);
+    await assert.rejects(
+      failedMail.ownerShop(new Headers()),
+      /UNAUTHENTICATED/,
+    );
+    // New Node process resumes the persisted reservation; no in-memory admission flag.
+    const child = spawn(
+      process.execPath,
+      ["scripts/test-support/owner-restart.mjs"],
+      {
+        stdio: ["ignore", "pipe", "pipe", "ipc"],
+        env: {
+          ...process.env,
+          DATABASE_URL: connectionString,
+          TEST_AUTH_SECRET: secret,
+          TEST_SETUP_TOKEN: token,
+        },
+      },
+    );
+    let output = "";
+    child.stdout.on("data", (b) => {
+      output += b;
+    });
+    child.stderr.on("data", (b) => {
+      output += b;
+    });
+    const [message] = await once(child, "message");
+    const [exit] = await once(child, "exit");
+    assert.equal(exit, 0, output);
+    assert.equal(output.includes(token), false);
+    const owner = make();
+    await assert.rejects(owner.verify("invalid"), /INVALID_VERIFICATION/);
+    await runtime.query(
+      "UPDATE owner_verification SET expires_at=now()-interval '1 second'",
+    );
+    await assert.rejects(owner.verify(message.code), /INVALID_VERIFICATION/);
+    await owner.resend(input.email, input.password, token);
+    const code = capture.at(-1).code;
+    await owner.verify(code);
+    await assert.rejects(owner.verify(code), /INVALID_VERIFICATION/);
+    const signed = await signIn(owner);
+    const headers = cookie(signed);
+    const complete = await owner.complete(headers);
+    const restarted = make();
+    assert.deepEqual(await restarted.complete(headers), complete);
+    await assert.rejects(
+      restarted.admit(input, token, randomUUID()),
+      /SETUP_CLOSED/,
+    );
+    await assert.rejects(
+      runtime.query(
+        "UPDATE owner_bootstrap SET user_id=NULL,shop_name=NULL,reserved_at=NULL",
+      ),
+    );
+    assert.equal((await restarted.ownerShop(headers)).state, "complete");
+  });
+}, 120000);
+
+test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cross-shop reads and pooled context cleanup", async () => {
+  await fixture(
+    async ({ make, capture, runtime, migration, connectionString }) => {
+      const owner = make();
+      const headers = await provision(owner, capture);
+      const { shopId } = await owner.complete(headers);
+      const userId = (
+        await runtime.query("SELECT user_id FROM owner_bootstrap")
+      ).rows[0].user_id;
+      const unauthorized = randomUUID();
+      const otherShop = randomUUID();
+      await migration.query(
+        "INSERT INTO auth_user(id,name,email) VALUES($1,'Synthetic Stranger','stranger@example.test')",
+        [unauthorized],
+      );
+      const seed = await migration.connect();
+      try {
+        await seed.query("BEGIN");
+        await seed.query(
+          "SELECT set_config('app.user_id',$1,true),set_config('app.shop_id',$2,true)",
+          [unauthorized, otherShop],
+        );
+        await seed.query(
+          "INSERT INTO shop(shop_id,name) VALUES($1,'Other Synthetic Shop')",
+          [otherShop],
+        );
+        await seed.query(
+          "INSERT INTO shop_membership(shop_id,user_id,role) VALUES($1,$2,'owner')",
+          [otherShop, unauthorized],
+        );
+        await seed.query("COMMIT");
+      } finally {
+        seed.release();
+      }
+      const tables = await runtime.query(
+        "SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid AND a.attname='shop_id' AND NOT a.attisdropped WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname <> 'owner_bootstrap'",
+      );
+      assert.equal(tables.rowCount, 2);
+      for (const row of tables.rows) {
+        assert.equal(row.relrowsecurity, true);
+        assert.equal(row.relforcerowsecurity, true);
+      }
+      const policies = await runtime.query(
+        "SELECT tablename,cmd,qual,with_check FROM pg_policies WHERE tablename IN ('shop','shop_membership')",
+      );
+      for (const table of ["shop", "shop_membership"]) {
+        assert(
+          policies.rows.some(
+            (r) => r.tablename === table && r.cmd === "SELECT" && r.qual,
+          ),
+        );
+        assert(
+          policies.rows.some(
+            (r) => r.tablename === table && r.cmd === "INSERT" && r.with_check,
+          ),
+        );
+      }
+      const role = (
+        await runtime.query(
+          "SELECT r.rolsuper,r.rolbypassrls,c.relowner=r.oid AS owns FROM pg_roles r JOIN pg_class c ON c.relname='shop' WHERE r.rolname=current_user",
+        )
+      ).rows[0];
+      assert.deepEqual(role, {
+        rolsuper: false,
+        rolbypassrls: false,
+        owns: false,
+      });
+      assert.equal((await runtime.query("SELECT * FROM shop")).rowCount, 0);
+      await assert.rejects(
+        runtime.query(
+          "INSERT INTO shop_membership(shop_id,user_id,role) VALUES($1,$2,'owner')",
+          [shopId, unauthorized],
+        ),
+      );
+      await assert.rejects(
+        runtime.query("SELECT complete_owner_bootstrap($1)", [unauthorized]),
+      );
+      const { db, pool } = createDatabase(connectionString);
+      try {
+        await assert.rejects(
+          withShop(db, unauthorized, shopId, async () => {}),
+          /Shop access denied/,
+        );
+        await withShop(db, userId, shopId, async (tx) => {
+          assert.equal(
+            (
+              await tx.execute(
+                sql`select * from shop where shop_id=${otherShop}::uuid`,
+              )
+            ).rowCount,
+            0,
+          );
+        });
+        await assert.rejects(
+          withShop(db, userId, shopId, async () => {
+            throw new Error("rollback");
+          }),
+          /rollback/,
+        );
+        const noContext = await db.execute(sql`select * from shop`);
+        assert.equal(noContext.rowCount, 0);
+        const own = await runtime.connect();
+        try {
+          await own.query("BEGIN");
+          await own.query("SELECT set_config('app.user_id',$1,true)", [userId]);
+          assert.equal(
+            (await own.query("SELECT * FROM shop_membership")).rowCount,
+            1,
+          );
+          assert.equal((await own.query("SELECT * FROM shop")).rowCount, 0);
+          await own.query("ROLLBACK");
+        } finally {
+          own.release();
+        }
+      } finally {
+        await pool.end();
+      }
+    },
+  );
+}, 120000);
+
+test("0.2.1a A6/A7 database sessions, generic credential failures, revocation and concurrent/restarted durable abuse limits", async () => {
+  await fixture(async ({ make, capture, runtime, connectionString }) => {
+    const owner = make();
+    const headers = await provision(owner, capture);
+    const wrong = await signIn(owner, input.email, "wrong-password-000");
+    const absent = await signIn(
+      owner,
+      "nobody@example.test",
+      "wrong-password-000",
+    );
+    assert.equal(wrong.status, 401);
+    assert.equal(await wrong.text(), await absent.text());
+    const api = createApi(async () => true, owner);
+    assert.equal(
+      (await request(api, "/owner/shop", undefined, {}, "GET")).status,
+      401,
+    );
+    const revoked = await request(
+      api,
+      "/auth/sign-out",
+      {},
+      Object.fromEntries(headers),
+    );
+    assert.equal(revoked.status, 200);
+    await assert.rejects(owner.ownerShop(headers), /UNAUTHENTICATED/);
+    const limited = make({ policy: { ...policy, signInMax: 5, setupMax: 3 } });
+    const second = make({ policy: { ...policy, signInMax: 5, setupMax: 3 } });
+    const responses = await Promise.all(
+      Array.from({ length: 9 }, (_, n) =>
+        request(
+          createApi(async () => true, n % 2 ? limited : second),
+          "/owner/setup",
+          input,
+          {
+            "X-Setup-Token": "wrong",
+            "Idempotency-Key": randomUUID(),
+            "X-Forwarded-For": `192.0.2.${n}`,
+            "X-Real-IP": `192.0.2.${n}`,
+          },
+        ),
+      ),
+    );
+    assert.equal(responses.filter((r) => r.status === 403).length, 3);
+    assert.equal(responses.filter((r) => r.status === 429).length, 6);
+    const restart = make({ policy: { ...policy, signInMax: 5, setupMax: 3 } });
+    assert.equal(
+      (
+        await request(
+          createApi(async () => true, restart),
+          "/owner/setup",
+          input,
+        )
+      ).status,
+      429,
+    );
+    await runtime.query("DELETE FROM auth_rate_limit");
+    const authResponses = await Promise.all(
+      Array.from({ length: 9 }, (_, n) =>
+        signIn(n % 2 ? limited : second, input.email, "wrong-password-000"),
+      ),
+    );
+    assert.equal(authResponses.filter((r) => r.status === 401).length, 5);
+    assert.equal(authResponses.filter((r) => r.status === 429).length, 4);
+    assert.equal(
+      (await signIn(restart, input.email, "wrong-password-000")).status,
+      429,
+    );
+    const child = spawn(
+      process.execPath,
+      ["scripts/test-support/owner-restart.mjs"],
+      {
+        stdio: ["ignore", "pipe", "pipe", "ipc"],
+        env: {
+          ...process.env,
+          DATABASE_URL: connectionString,
+          TEST_AUTH_SECRET: secret,
+          TEST_SETUP_TOKEN: token,
+          TEST_AUTH_ACTION: "limits",
+        },
+      },
+    );
+    let output = "";
+    child.stdout.on("data", (b) => {
+      output += b;
+    });
+    child.stderr.on("data", (b) => {
+      output += b;
+    });
+    const [message] = await once(child, "message");
+    const [exit] = await once(child, "exit");
+    assert.equal(exit, 0, output);
+    assert.deepEqual(message, { setupStatus: 429, signInStatus: 429 });
+    assert.equal(output.includes(token), false);
+  });
+}, 120000);
+
+test("0.2.1a A6 controlled HTTPS Secure/HttpOnly/Lax cookie, no bearer JSON/cache, persisted session expiry and library CSRF", async () => {
+  await fixture(async ({ make, capture, runtime }) => {
+    let owner;
+    await withHttpsApi(
+      (secureOrigin) => {
+        owner = make({ origin: secureOrigin });
+        return createApi(async () => true, owner);
+      },
+      async (send) => {
+        await owner.admit(input, token, randomUUID());
+        await owner.verify(capture.at(-1).code);
+        const signed = await send("/auth/sign-in/email", {
+          email: input.email,
+          password: input.password,
+        });
+        assert.equal(signed.status, 200);
+        assert.deepEqual(JSON.parse(signed.data), { state: "signed-in" });
+        const cookies = signed.headers["set-cookie"];
+        assert.equal(cookies.length, 1);
+        assert.match(cookies[0], /__Secure-/);
+        assert.match(cookies[0], /HttpOnly/i);
+        assert.match(cookies[0], /;\s*Secure(?:;|$)/i);
+        assert.equal(signed.headers["cache-control"], "no-store");
+        assert.match(cookies[0], /SameSite=Lax/i);
+        assert.equal(cookies[0].includes("session_data"), false);
+        const headers = { Cookie: cookies[0].split(";")[0] };
+        assert.equal(
+          (await send("/owner/shop", undefined, headers, "GET")).status,
+          200,
+        );
+        assert.equal(
+          (
+            await send(
+              "/auth/sign-in/email",
+              { email: input.email, password: input.password },
+              { Origin: "https://untrusted.example" },
+            )
+          ).status,
+          403,
+        );
+        const direct = await owner.auth.handler(
+          new Request(`${owner.origin}/api/auth/sign-in/email`, {
+            method: "POST",
+            headers: {
+              Origin: "https://untrusted.example",
+              "Sec-Fetch-Site": "cross-site",
+              "Sec-Fetch-Mode": "navigate",
+              "Sec-Fetch-Dest": "document",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: input.email,
+              password: input.password,
+            }),
+          }),
+        );
+        assert.equal(direct.status, 403);
+        await runtime.query(
+          "UPDATE auth_session SET expires_at=now()-interval '1 second'",
+        );
+        assert.equal(
+          (await send("/owner/shop", undefined, headers, "GET")).status,
+          401,
+        );
+      },
+    );
+  });
+}, 120000);

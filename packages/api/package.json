@@ -18,6 +18,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "zod": "4.6.6",
+    "@aarili/auth": "workspace:*",
     "@aarili/contracts": "workspace:*",
     "@hono/zod-openapi": "1.6.3",
     "hono": "4.13.13"

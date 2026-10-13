@@ -5,6 +5,8 @@ packages:
 # pnpm 12 uses allowBuilds; legacy ignoredBuiltDependencies is not enforced.
 # Reviewed scripts stay disabled; these paths use prebuilt/pure JS implementations.
 allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
   sharp: false
   esbuild: false
   unrs-resolver: false
@@ -31,3 +33,7 @@ minimumReleaseAgeExclude:
   - '@aws-sdk/middleware-sdk-s3@3.972.79'
   - '@aws-sdk/nested-clients@3.997.48'
   - '@aws-sdk/token-providers@3.1150.0'
+patchedDependencies:
+  drizzle-orm@0.45.4: patches/drizzle-orm@0.45.4.patch
+overrides:
+  '@esbuild-kit/core-utils@3.3.2>esbuild': '0.25.12'

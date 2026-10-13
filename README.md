@@ -176,13 +176,20 @@ and protection read-back evidence, activation limits and advisory handling.
 
 GET /api/healthz now checks application and PostgreSQL readiness, returning a
 schema-defined 200 or sanitized 503 with `Cache-Control: no-store`. Unknown API routes and unsupported
-methods return a shared error. No business routes, Server Actions, auth UI,
-business database tables or empty future packages are introduced.
+methods return a shared error. Issue #12 adds protected synthetic owner setup,
+opaque-code verification, verified database sessions and initial shop creation.
+See [the owner bootstrap runbook](docs/agents/Owner_Bootstrap_Runbook.md) for
+separate migration/runtime credentials, local private capture, recovery and
+removing the setup token. `pnpm db:migrate` applies reviewed additive SQL as
+app_owner with advisory locking; runtime auth accepts only app_user. No outbound
+transport or production activation is enabled.
 
-Auth/membership, forced tenant RLS, idempotency/versioning/history, money,
-transactional queueing, private media, privacy/recovery and pilot workflows
-are later tickets. Playwright/axe now covers the design-system preview.
-Tenant/RLS PostgreSQL integration, Tamil PDF shaping/goldens and physical-device/real-IME
+The first shop/membership already has forced RLS and real PostgreSQL negative,
+concurrency, rollback and restart coverage. Full tenancy/access matrices,
+general idempotency/versioning/history, money, transactional queueing, private
+media, privacy/recovery and pilot workflows remain later tickets. Playwright/axe
+covers the owner flows as well as the design-system/health surfaces, in Tamil
+and English at three sizes. Tamil PDF shaping/goldens and physical-device/real-IME
 checks remain later gates; simulated browser input does not complete them.
 No real customer data is permitted.
 

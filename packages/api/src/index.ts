@@ -1,9 +1,11 @@
+import type { OwnerAuth } from "@aarili/auth";
 import {
   apiErrorSchema,
   healthResponseSchema,
   healthUnavailableSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createOwnerRoutes } from "./owner.js";
 
 const healthRoute = createRoute({
   method: "get",
@@ -20,7 +22,10 @@ const healthRoute = createRoute({
   },
 });
 
-export function createApi(checkDatabase: () => Promise<boolean>) {
+export function createApi(
+  checkDatabase: () => Promise<boolean>,
+  owner?: OwnerAuth,
+) {
   const app = new OpenAPIHono()
     .basePath("/api")
     .openapi(healthRoute, async (c) => {
@@ -46,6 +51,7 @@ export function createApi(checkDatabase: () => Promise<boolean>) {
         200,
       );
     });
+  if (owner) app.route("/", createOwnerRoutes(owner));
   app.notFound((c) =>
     c.json(
       apiErrorSchema.parse({

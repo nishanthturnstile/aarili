@@ -14,7 +14,15 @@
     },
     "dev": {
       "dependsOn": ["^build"],
-      "passThroughEnv": ["DATABASE_URL"],
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "AARILI_SYNTHETIC_AUTH",
+        "AUTH_ORIGIN",
+        "BETTER_AUTH_SECRET",
+        "SETUP_TOKEN",
+        "AUTH_CAPTURE_DIRECTORY",
+        "AARILI_UI_VERIFICATION"
+      ],
       "cache": false,
       "persistent": true
     }

@@ -21,7 +21,9 @@ if (
   !output.includes('"aarili-worker"') ||
   !output.includes("invalid.ts(5,") ||
   !output.includes('"TIMEOUT"') ||
-  (output.match(/error TS/g) ?? []).length !== 6
+  !output.includes("complete") ||
+  !output.includes("invalid.ts(16,") ||
+  (output.match(/error TS/g) ?? []).length !== 8
 ) {
   console.error(output);
   throw new Error(
@@ -29,5 +31,5 @@ if (
   );
 }
 console.info(
-  "Negative DTO/client fixture rejected all six invalid uses by TypeScript 7.",
+  "Negative DTO/client fixture rejected all eight health/owner invalid uses by TypeScript 7.",
 );
