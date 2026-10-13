@@ -141,3 +141,19 @@ readiness are not established by synthetic isolation tests. Integrated main
 verification after merge requires separate owner-authorised merge.
 The owner's retained local volume was not upgraded by this task; the disposable
 old-schema/missing-role fixture proves the procedure without altering that volume.
+
+The first hosted PR run at `305f4cb` failed the desktop health axe snapshot while
+the same commit's push run passed all checks. Its foreground had switched to
+the hover colour while the button's 160ms background transition was still at
+the initial colour. The health spec now waits for the real refresh response,
+the enabled button and native animation completion before scanning settled-state
+contrast. No axe rule, retry or fixed sleep was added and product CSS is unchanged.
+After this correction, fresh sequential `pnpm verify`, all 45 `pnpm test:ui`
+cases and `pnpm audit --audit-level low` passed again on native Windows. The
+current PR head must independently pass the same hosted Linux checks.
+
+GitHub also reports three pre-existing Dependabot alerts (vitest, kysely, zx)
+for tracked `.scratch/drizzle-compat/package.json`, outside the pnpm workspace
+and audit graph. That compatibility artifact and the alerts are preserved;
+issue #15 does not remediate them. A passing pnpm audit does not close those
+separate repository alerts.

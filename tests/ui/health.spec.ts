@@ -15,10 +15,23 @@ test("USE-08/09 0.1.2a actual Next/Hono/PostgreSQL readiness and accessible them
   await expect(page.getByRole("status")).toHaveText(
     "Application and database are ready",
   );
-  await page.getByRole("button", { name: "Check again" }).click();
+  const refresh = page.waitForResponse("**/api/healthz");
+  const checkAgain = page.getByRole("button", { name: "Check again" });
+  await checkAgain.click();
+  expect((await refresh).status()).toBe(200);
   await expect(page.getByRole("status")).toHaveText(
     "Application and database are ready",
   );
+  await expect(checkAgain).toBeEnabled();
+  // Hover changes foreground immediately while the background transitions.
+  // Await those transitions before taking the settled-state axe snapshot.
+  await page.evaluate(async () => {
+    await Promise.all(
+      document
+        .getAnimations()
+        .map((animation) => animation.finished.catch(() => undefined)),
+    );
+  });
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   expect(
     await page.evaluate(
