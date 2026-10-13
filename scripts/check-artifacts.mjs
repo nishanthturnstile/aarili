@@ -17,6 +17,19 @@ function inspect(directory) {
         !output.includes("aarili-setup-probe-issue-12"),
         "Setup token canary entered browser output",
       );
+      for (const secret of [
+        "aarili-google-private-probe-issue-14",
+        "synthetic-google-secret-14",
+      ]) {
+        assert(
+          !output.includes(secret),
+          "Google client secret entered browser output",
+        );
+      }
+      assert(
+        !output.includes("googleFromEnvironment"),
+        "Google server configuration entered browser output",
+      );
       assert(
         !output.includes("ownerAuthFromEnvironment"),
         "Server auth entered browser output",

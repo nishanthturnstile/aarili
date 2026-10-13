@@ -6,6 +6,7 @@
         "scripts/*.mjs",
         "scripts/test-support/owner-restart.mjs",
         "scripts/test-support/owner-recovery-process.mjs",
+        "scripts/test-support/google-transport.mjs",
         "tests/*.test.ts",
         "tests/*.test.mjs"
       ],

@@ -21,7 +21,17 @@
         "BETTER_AUTH_SECRET",
         "SETUP_TOKEN",
         "AUTH_CAPTURE_DIRECTORY",
-        "AARILI_UI_VERIFICATION"
+        "AARILI_UI_VERIFICATION",
+        "AUTH_GOOGLE_ENABLED",
+        "AUTH_GOOGLE_ENVIRONMENT",
+        "AUTH_GOOGLE_APPROVED_ORIGIN",
+        "AUTH_GOOGLE_ALLOWED_EMAILS",
+        "GOOGLE_DEV_CLIENT_ID",
+        "GOOGLE_DEV_CLIENT_SECRET",
+        "GOOGLE_PROD_CLIENT_ID",
+        "GOOGLE_PROD_CLIENT_SECRET",
+        "TEST_GOOGLE_TRANSPORT_ORIGIN",
+        "NODE_OPTIONS"
       ],
       "cache": false,
       "persistent": true

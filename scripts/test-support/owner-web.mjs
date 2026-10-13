@@ -6,13 +6,17 @@ import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { pathToFileURL } from "node:url";
 import pg from "pg";
 import { migrateDatabase } from "../migrate.mjs";
 import { withPostgres } from "./postgres.mjs";
 
 // Each UI language/device scenario gets its own disposable DB + production web
 // process. Migration credentials stay in this fixture, never the web environment.
-export async function withOwnerWeb(run, { onFailure, secrets = [] } = {}) {
+export async function withOwnerWeb(
+  run,
+  { onFailure, secrets = [], google } = {},
+) {
   return withPostgres(
     async ({ connectionString, migrationConnectionString }) => {
       await migrateDatabase(migrationConnectionString);
@@ -37,6 +41,18 @@ export async function withOwnerWeb(run, { onFailure, secrets = [] } = {}) {
         RESEND_API_KEY: "synthetic-outbound-disabled-canary",
         SMTP_URL: "https://invalid.example.test",
         NODE_ENV: "production",
+        ...(google
+          ? {
+              AUTH_GOOGLE_ENABLED: "true",
+              AUTH_GOOGLE_ENVIRONMENT: "development",
+              AUTH_GOOGLE_APPROVED_ORIGIN: origin,
+              AUTH_GOOGLE_ALLOWED_EMAILS: "owner@example.test",
+              GOOGLE_DEV_CLIENT_ID: "synthetic-google-client-14",
+              GOOGLE_DEV_CLIENT_SECRET: "synthetic-google-secret-14",
+              TEST_GOOGLE_TRANSPORT_ORIGIN: google.origin,
+              NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --import="${pathToFileURL(resolve("scripts/test-support/google-transport.mjs"))}"`,
+            }
+          : { AUTH_GOOGLE_ENABLED: "false" }),
       };
       delete webEnv.MIGRATION_DATABASE_URL;
       delete webEnv.AARILI_UI_VERIFICATION;
@@ -86,6 +102,7 @@ export async function withOwnerWeb(run, { onFailure, secrets = [] } = {}) {
       }
       const privateValues = new Set([setupToken, ...secrets]);
       async function privateCaptures() {
+        for (const value of secrets) privateValues.add(value);
         for (const file of await readdir(captureDirectory)) {
           const message = JSON.parse(
             await readFile(join(captureDirectory, file), "utf8"),

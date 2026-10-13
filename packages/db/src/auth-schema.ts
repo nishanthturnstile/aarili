@@ -52,6 +52,7 @@ export const account = pgTable(
   ],
 );
 export const session = pgTable("auth_session", {
+  authMethod: text("auth_method").notNull().default("credential"),
   id: id(),
   expiresAt: instant("expires_at"),
   token: text("token").notNull().unique(),

@@ -29,6 +29,8 @@ export const apiErrorSchema = z.strictObject({
       "INVALID_REQUEST",
       "RATE_LIMITED",
       "SERVICE_UNAVAILABLE",
+      "GOOGLE_DENIED",
+      "GOOGLE_UNAVAILABLE",
     ]),
     message: z.string(),
   }),
@@ -36,6 +38,10 @@ export const apiErrorSchema = z.strictObject({
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
 export {
+  googleConnectionSchema,
+  googleDisconnectSchema,
+  googleEntrySchema,
+  googleRedirectSchema,
   ownerActionSchema,
   ownerShopSchema,
   reauthenticationSchema,

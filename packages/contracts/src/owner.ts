@@ -46,6 +46,21 @@ export const recoveryResetSchema = z
 export const reauthenticationSchema = z
   .object({ password: z.string().min(1).max(128) })
   .strict();
+export const googleEntrySchema = z.strictObject({
+  provider: z.literal("google"),
+  callbackURL: z.string().max(512).optional(),
+  errorCallbackURL: z.string().max(512).optional(),
+  newUserCallbackURL: z.string().max(512).optional(),
+  requestSignUp: z.boolean().optional(),
+  disableRedirect: z.boolean().optional(),
+  loginHint: z.email().max(254).optional(),
+});
+export const googleDisconnectSchema = z.strictObject({ accountId: z.uuid() });
+export const googleConnectionSchema = z.strictObject({
+  enabled: z.boolean(),
+  linked: z.boolean(),
+});
+export const googleRedirectSchema = z.strictObject({ url: z.url() });
 export const ownerActionSchema = z.object({
   state: z.enum([
     "pending-verification",
@@ -55,6 +70,7 @@ export const ownerActionSchema = z.object({
     "password-reset",
     "reauthenticated",
     "probe-accepted",
+    "google-disconnected",
   ]),
   shopId: z.uuid().optional(),
 });

@@ -1,5 +1,7 @@
 import {
   apiErrorSchema,
+  googleConnectionSchema,
+  googleRedirectSchema,
   healthResponseSchema,
   healthUnavailableSchema,
   ownerActionSchema,
@@ -17,6 +19,48 @@ import type { createOwnerRoutes } from "./owner.js";
 
 export function createOwnerClient() {
   return hc<ReturnType<typeof createOwnerRoutes>>("/api");
+}
+export async function readGoogleConnection() {
+  return googleConnectionSchema.parse(
+    await authenticatedResult((signal) =>
+      createOwnerClient().owner.google.$get(
+        {},
+        { init: { cache: "no-store", signal } },
+      ),
+    ),
+  );
+}
+export async function disconnectOwnerGoogle() {
+  const result = ownerActionSchema.parse(
+    await authenticatedResult((signal) =>
+      createOwnerClient().owner.google.disconnect.$post(
+        {},
+        { init: { signal } },
+      ),
+    ),
+  );
+  clearOwnerState();
+  return result;
+}
+export async function startOwnerGoogle(link: boolean) {
+  const response = await fetch(
+    `/api/auth/${link ? "link-social" : "sign-in/social"}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: "google" }),
+      cache: "no-store",
+    },
+  );
+  const data = googleRedirectSchema.parse(await ownerResult(response));
+  const destination = new URL(data.url);
+  if (
+    destination.origin !== "https://accounts.google.com" ||
+    destination.pathname !== "/o/oauth2/v2/auth"
+  )
+    throw new OwnerRequestError("GOOGLE_DENIED");
+  clearOwnerState();
+  return data.url;
 }
 export class OwnerRequestError extends Error {
   constructor(public readonly code: string) {

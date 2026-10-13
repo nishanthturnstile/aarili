@@ -1,5 +1,25 @@
 export const ownerMessages = {
   en: {
+    connections: "Sign-in connections",
+    googleHelp:
+      "Link your approved Google account after confirming your password. Email and password remain available.",
+    googleSignIn: "Sign in with Google",
+    googleLink: "Link Google account",
+    googleConnected: "Google is connected.",
+    googleNotConnected: "Google is not connected.",
+    googleLinked: "Google connected. You can now use it to sign in.",
+    googleDisconnect: "Disconnect Google",
+    googleDisconnectHelp:
+      "Disconnecting stops Google sign-in and ends all active sessions. You can still sign in with your email and password or recover your password.",
+    googleConfirmDisconnect: "Confirm disconnect",
+    googleDisconnected:
+      "Google disconnected. Email and password sign-in remain available.",
+    googleDenied:
+      "Google access was denied. Use your approved account, or sign in with your email and password to try linking again.",
+    googleUnavailable:
+      "Google sign-in is unavailable. Use email and password to continue.",
+    cancel: "Cancel",
+    backToOwner: "Back to your shop",
     recovery: "Recover your password",
     reset: "Set a new password",
     reauthenticate: "Confirm your password",
@@ -85,6 +105,26 @@ export const ownerMessages = {
       "Owner setup is unavailable. Ask your operator to check the synthetic configuration.",
   },
   ta: {
+    connections: "உள்நுழைவு இணைப்புகள்",
+    googleHelp:
+      "கடவுச்சொல்லை உறுதிசெய்த பின் அனுமதிக்கப்பட்ட Google கணக்கை இணைக்கவும். மின்னஞ்சலும் கடவுச்சொல்லும் தொடர்ந்து பயன்படும்.",
+    googleSignIn: "Google மூலம் உள்நுழை",
+    googleLink: "Google கணக்கை இணை",
+    googleConnected: "Google இணைக்கப்பட்டுள்ளது.",
+    googleNotConnected: "Google இணைக்கப்படவில்லை.",
+    googleLinked: "Google இணைக்கப்பட்டது. இனி அதன் மூலம் உள்நுழையலாம்.",
+    googleDisconnect: "Google இணைப்பை நீக்கு",
+    googleDisconnectHelp:
+      "இணைப்பை நீக்கினால் Google உள்நுழைவும் அனைத்து அமர்வுகளும் நிறுத்தப்படும். மின்னஞ்சல், கடவுச்சொல் மூலம் உள்நுழையவும் கடவுச்சொல்லை மீட்கவும் முடியும்.",
+    googleConfirmDisconnect: "நீக்குவதை உறுதிசெய்",
+    googleDisconnected:
+      "Google இணைப்பு நீக்கப்பட்டது. மின்னஞ்சல், கடவுச்சொல் உள்நுழைவு தொடர்ந்து பயன்படும்.",
+    googleDenied:
+      "Google அணுகல் மறுக்கப்பட்டது. அனுமதிக்கப்பட்ட கணக்கைப் பயன்படுத்தவும்; அல்லது மின்னஞ்சல், கடவுச்சொல் மூலம் உள்நுழைந்து மீண்டும் இணைக்க முயலவும்.",
+    googleUnavailable:
+      "Google உள்நுழைவு கிடைக்கவில்லை. மின்னஞ்சல், கடவுச்சொல் மூலம் தொடரவும்.",
+    cancel: "ரத்து செய்",
+    backToOwner: "உங்கள் கடைக்குத் திரும்பு",
     recovery: "கடவுச்சொல்லை மீட்டெடுக்கவும்",
     reset: "புதிய கடவுச்சொல்லை அமைக்கவும்",
     reauthenticate: "கடவுச்சொல்லை உறுதிசெய்யவும்",

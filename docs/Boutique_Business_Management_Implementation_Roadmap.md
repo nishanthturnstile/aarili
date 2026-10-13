@@ -132,6 +132,16 @@ bilingual accessible UI and compatible recovery. Real auth email still requires
 0.3.2 suppression guards and domain/DNS/provider approval; TRU-09's broader
 account/team lifecycle and AC-57 remain later scope.
 
+**0.2.1 Google traceability:** [Issue #14](https://github.com/nishanthturnstile/aarili/issues/14)
+adds explicit allow-listed owner Google linking, closed provider signup/implicit
+linking, callback/session guards and focused bilingual connection controls.
+[Issue_14_Owner_Google_Evidence.md](agents/Issue_14_Owner_Google_Evidence.md)
+maps C1–C7; the separate
+[activation checklist](agents/Owner_Google_Activation_Runbook.md) retains final
+domain, per-environment client/credential and authorised real-provider smoke
+gates. Synthetic coverage does not activate Google or outbound auth email.
+TRU-11's other integrations and support access remain later scope.
+
 ##### Vertical Slice 0.2.2 — Enforce Shop Context and Forced RLS
 
 - **Scope:** Mandatory prerequisite from the first tenant table; architecture §§8.1–8.2, 11.2; TRU-01, AC-38.
