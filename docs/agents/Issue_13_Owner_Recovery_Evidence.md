@@ -90,9 +90,9 @@ is reported with the PR. Physical Android/Tamil screen-reader review, live
 restoration, Tamil PDF/search golden gates and production activation are not run
 or claimed for this auth increment. The unchanged dependency graph uses the
 existing frozen-install CI; a separate `verify:clean` clone/install run is not
-repeated here. Integrated main after merge is deliberately not run because the
-owner has not authorised merge. All three existing hosted checks and owner
-review remain required before merge.
+repeated here. Integrated main was not verified at the original implementation
+stage, before owner merge authorisation. All three existing hosted checks and
+owner review remain required before merge.
 
 GitHub's push warning also reported three **pre-existing** Dependabot alerts in
 the tracked `.scratch/drizzle-compat/package.json` vendor compatibility fixture:
@@ -101,3 +101,32 @@ GHSA-w87r-vg9q-crqm. That manifest is outside `apps/*` and `packages/*`, the pnp
 workspace/audit graph. The fixture has no diff from integrated main and is
 preserved under this issue's scope; no repository-wide advisory cleanup is
 claimed. The workspace dependency audit result does not dismiss those alerts.
+
+## Private review follow-up — delayed 401 response body
+
+PR #18's private review found a B6 concurrency defect: an authenticated request
+could receive old-session 401 headers before sign-in/re-authentication, then
+finish parsing its body afterwards and invalidate the new session's client
+state. The response handler now checks the request's captured generation after
+body parsing and before any invalidation effects.
+
+Two deterministic B6 regressions hold the old 401 body across successful sign-in
+and re-authentication, then release it while a new authenticated read is pending.
+Both failed against the original code and pass with the fix. They assert that
+the old request is rejected, no new-identity invalidation is emitted, the new
+request is not aborted, and the new identity's result remains usable. Existing
+current-session 401 and failed sign-out invalidation tests still pass.
+
+Fresh follow-up `pnpm verify` passed: lint/boundaries/tokens, Knip, strict types,
+38 unit tests, negative-type checks, 17 real PostgreSQL integration tests,
+production builds, smoke and artifact scans. `pnpm test:ui` passed all 39 tests
+across phone/tablet/desktop in Tamil/English. `pnpm audit --audit-level low`
+reported no known vulnerabilities. The initial test-helper typecheck failure
+was corrected to respect the existing target; no compiler/configuration change
+was needed.
+
+This fix changes only client response handling and its tests. It adds no schema,
+tenant-authority, immutable-history, policy or activation changes. The existing
+B1–B7 scope and recovery limitations above remain applicable. The owner has
+authorised commit, push and squash merge after validation and required CI;
+integrated-main build and smoke verification follow the merge.

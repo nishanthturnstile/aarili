@@ -3,6 +3,7 @@ import {
   onOwnerInvalidation,
   ownerSession,
   readOwnerShop,
+  reauthenticateOwner,
 } from "@aarili/api/client";
 import { ownerAuthFromEnvironment } from "@aarili/auth";
 import {
@@ -134,3 +135,74 @@ test("0.2.1b B6 reads started DURING sign-out are discarded on completion; late 
   expect(notified).not.toHaveBeenCalled();
   unsubscribe();
 });
+
+test.each(["sign-in", "reauthentication"] as const)(
+  "0.2.1b B6 delayed old 401 body cannot invalidate state or abort reads after %s",
+  async (transition) => {
+    let releaseOldBody: ((data: unknown) => void) | undefined;
+    let notifyBodyStarted: (() => void) | undefined;
+    const bodyStarted = new Promise<void>((resolve) => {
+      notifyBodyStarted = resolve;
+    });
+    const oldResponse = Response.json({}, { status: 401 });
+    vi.spyOn(oldResponse, "json").mockImplementation(() => {
+      notifyBodyStarted?.();
+      return new Promise((resolve) => {
+        releaseOldBody = resolve;
+      });
+    });
+    let releaseNewRead: ((response: Response) => void) | undefined;
+    let newReadSignal: AbortSignal | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(oldResponse)
+        .mockResolvedValueOnce(Response.json({ state: "reauthenticated" }))
+        .mockImplementationOnce((_request: Request, init: RequestInit) => {
+          newReadSignal = init.signal ?? undefined;
+          return new Promise<Response>((resolve) => {
+            releaseNewRead = resolve;
+          });
+        }),
+    );
+    const oldRead = readOwnerShop();
+    const oldRejected = expect(oldRead).rejects.toMatchObject({
+      code: "UNAUTHENTICATED",
+    });
+    await bodyStarted;
+    if (transition === "sign-in") {
+      await ownerSession("sign-in/email", {
+        email: "owner@example.test",
+        password: "synthetic-password",
+      });
+    } else {
+      await reauthenticateOwner("synthetic-password");
+    }
+    const notified = vi.fn();
+    const unsubscribe = onOwnerInvalidation(notified);
+    try {
+      const newRead = readOwnerShop();
+      releaseOldBody?.({
+        error: { code: "UNAUTHENTICATED", message: "Old identity ended" },
+      });
+      await oldRejected;
+      releaseNewRead?.(
+        Response.json({
+          state: "complete",
+          shopId: "019b5555-0000-7000-8000-000000000001",
+          name: "Current identity",
+        }),
+      );
+      const newResult = await Promise.allSettled([newRead]);
+      expect(notified).not.toHaveBeenCalled();
+      expect(newReadSignal?.aborted).toBe(false);
+      expect(newResult[0]).toMatchObject({
+        status: "fulfilled",
+        value: { name: "Current identity" },
+      });
+    } finally {
+      unsubscribe();
+    }
+  },
+);

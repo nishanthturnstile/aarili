@@ -48,7 +48,7 @@ async function authenticatedResult(
     const response = await run(request.signal);
     if (generation !== ownerGeneration)
       throw new OwnerRequestError("UNAUTHENTICATED");
-    const data = await ownerResult(response);
+    const data = await ownerResult(response, generation);
     // Abort is best effort. A late response from an old identity must be ignored
     // even if its transport delivered successfully while cancellation raced.
     if (generation !== ownerGeneration)
@@ -58,8 +58,12 @@ async function authenticatedResult(
     pendingOwnerRequests.delete(request);
   }
 }
-async function ownerResult(response: Response) {
+async function ownerResult(response: Response, generation = ownerGeneration) {
   const data: unknown = await response.json();
+  // Body parsing can finish after an auth transition even when headers arrived
+  // earlier. Reject the old identity before applying any invalidation effects.
+  if (generation !== ownerGeneration)
+    throw new OwnerRequestError("UNAUTHENTICATED");
   if (!response.ok) {
     if (response.status === 401) clearOwnerState();
     throw new OwnerRequestError(
