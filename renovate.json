@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Asia/Kolkata",
+  "schedule": ["* 0-5 * * 1"],
+  "rangeStrategy": "pin",
+  "pinDigests": true,
+  "automerge": false,
+  "platformAutomerge": false,
+  "packageRules": [
+    {
+      "description": "Review compatible updates together each week",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "weekly compatible updates"
+    },
+    {
+      "description": "Major versions require a deliberate owner decision",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["* 0-5 * * 1"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "groupName": null,
+    "schedule": [],
+    "dependencyDashboardApproval": false,
+    "minimumReleaseAge": null,
+    "prCreation": "immediate",
+    "prConcurrentLimit": 0,
+    "automerge": false
+  }
+}
