@@ -1,0 +1,39 @@
+{
+  "name": "aarili",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": "24.21.0",
+    "pnpm": "12.11.2"
+  },
+  "scripts": {
+    "dev": "pnpm build:packages && turbo run dev",
+    "dev:web": "pnpm build:packages && pnpm --filter @aarili/web dev",
+    "dev:worker": "pnpm build:packages && pnpm --filter @aarili/worker dev",
+    "build:packages": "turbo run build --filter=@aarili/contracts --filter=@aarili/platform --filter=@aarili/api",
+    "build": "turbo run build",
+    "lint": "biome check . && pnpm boundaries",
+    "format": "biome check --write .",
+    "boundaries": "node scripts/check-boundaries.mjs",
+    "knip": "knip",
+    "typecheck": "pnpm build:packages && turbo run typecheck && tsc --noEmit -p tests/tsconfig.json",
+    "test": "pnpm build:packages && vitest run",
+    "test:negative": "pnpm build:packages && node scripts/check-negative-types.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "verify": "pnpm lint && pnpm knip && pnpm typecheck && pnpm test && pnpm test:negative && pnpm build && pnpm smoke && node scripts/check-artifacts.mjs",
+    "verify:clean": "node scripts/verify-clean.mjs"
+  },
+  "devDependencies": {
+    "@babel/parser": "8.0.7",
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "24.19.2",
+    "knip": "6.41.0",
+    "turbo": "2.11.7",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4",
+    "@aarili/api": "workspace:*",
+    "@aarili/contracts": "workspace:*",
+    "@aarili/platform": "workspace:*"
+  }
+}

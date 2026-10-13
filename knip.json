@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@6.41.0/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.mjs", "tests/*.test.ts"],
+      "project": ["scripts/**/*.mjs", "tests/**/*.ts"],
+      "ignore": ["tests/fixtures/**"]
+    },
+    "apps/web": {
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": ["@aarili/ui"]
+    },
+    "apps/worker": {
+      "project": ["src/**/*.ts"]
+    },
+    "packages/*": {
+      "entry": ["src/*.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/ui": {
+      "ignoreDependencies": [],
+      "entry": ["src/globals.css"]
+    }
+  }
+}
