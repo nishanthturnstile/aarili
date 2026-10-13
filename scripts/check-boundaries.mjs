@@ -71,6 +71,14 @@ function packageOf(file) {
 function workspaceImport(specifier) {
   return specifier.match(/^@aarili\/([^/]+)(.*)$/);
 }
+function isClientModule(code) {
+  return parse(code, {
+    sourceType: "module",
+    plugins: ["typescript", "jsx"],
+  }).program.directives.some(
+    (directive) => directive.value.value === "use client",
+  );
+}
 function resolveImport(file, specifier, sources) {
   const match = workspaceImport(specifier);
   let base;
@@ -145,7 +153,11 @@ export function checkBoundaries(sources) {
     (file) =>
       (file.startsWith("apps/web/src/") &&
         !file.startsWith("apps/web/src/app/api/") &&
-        !file.startsWith("apps/web/src/server/")) ||
+        !file.startsWith("apps/web/src/server/") &&
+        // App Router server entry points can import client components; the
+        // browser graph starts at their explicit client boundary instead.
+        (!/\/(page|layout)\.tsx$/.test(file) ||
+          isClientModule(sources.get(file)))) ||
       file.startsWith("packages/ui/") ||
       file === "packages/api/src/client.ts",
   );
@@ -173,7 +185,13 @@ export function checkBoundaries(sources) {
         !workspace &&
         !specifier.startsWith(".") &&
         !specifier.startsWith("@/") &&
-        !/^(react|react-dom|next|zod|hono\/client)(\/|$)/.test(specifier)
+        !/^(react|react-dom|next|zod|hono\/client)(\/|$)/.test(specifier) &&
+        !(
+          file.startsWith("packages/ui/") &&
+          /^(?:@base-ui\/react\/(?:button|input|dialog)|class-variance-authority|clsx|tailwind-merge|lucide-react)$/.test(
+            specifier,
+          )
+        )
       )
         errors.push(
           `${file}: browser vendor import is not approved: ${specifier}`,

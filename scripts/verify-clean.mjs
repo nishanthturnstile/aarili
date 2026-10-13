@@ -25,6 +25,8 @@ const roots = [
   ...readdirSync(".").filter(
     (name) =>
       name.endsWith(".json") ||
+      name.endsWith(".ts") ||
+      name.endsWith(".mjs") ||
       [
         ".npmrc",
         ".gitignore",

@@ -6,6 +6,7 @@ import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 validateEnvironment(process.env);
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   typedRoutes: true,

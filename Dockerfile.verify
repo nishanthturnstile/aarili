@@ -15,7 +15,7 @@ COPY apps ./apps
 COPY packages ./packages
 COPY scripts ./scripts
 COPY tests ./tests
-COPY .gitignore biome.json knip.json turbo.json tsconfig.base.json vitest.config.ts ./
+COPY .gitignore biome.json knip.json turbo.json tsconfig.base.json vitest.config.ts playwright.config.ts ./
 RUN chmod +x scripts/check-negative-types.mjs
 RUN pnpm verify
 RUN ./scripts/check-negative-types.mjs

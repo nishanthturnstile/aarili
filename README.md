@@ -74,13 +74,39 @@ Windows dependencies and generated outputs. No Compose project, container
 database or cloud resources are provisioned here. Unrelated local infrastructure
 and port 5432 are untouched.
 
-## Boundaries and outstanding safeguards
+## Package boundaries
 
 apps/web mounts packages/api in one Node runtime route. packages/contracts
 owns Zod-derived health/error DTOs; api/client exports the browser-safe typed
 Hono client. packages/platform owns server-only environment validation.
-packages/ui owns the canonical minimal globals.css; custom tokens, Tamil
-fonts, Tailwind and Base UI components/presets belong to issue #3.
+packages/ui owns the canonical globals.css, Tailwind v4 tokens, locally served
+Noto Sans/Noto Sans Tamil and Base UI controls. See the
+[design-system guide and acceptance evidence](docs/agents/Issue_3_Design_System_Evidence.md)
+for the actual shadcn preset, generator comparison and component-add procedure.
+
+## Design-system preview
+
+Run `pnpm dev:web`, then open
+[the development preview](http://127.0.0.1:3000/dev/design-system).
+Its Tamil/English and light/dark switches are temporary developer controls.
+The preview uses synthetic labels only, persists nothing, and returns 404 in
+production. Change colours, typography, radii, density and motion in
+`packages/ui/src/globals.css`; app CSS only imports that file.
+
+~~~powershell
+pnpm tokens
+pnpm exec playwright install chromium
+pnpm test:ui
+~~~
+
+Browser tests start and stop their own dev server on port 3103. Chromium must
+be installed separately on each host; never copy browser or node_modules
+binaries between Windows and Linux. Captures in
+`docs/agents/design-system/captures` are review evidence, not cross-platform
+pixel-perfect goldens. `pnpm verify` runs the non-browser checks; run
+`pnpm test:ui` separately when controls or tokens change.
+
+## Outstanding safeguards
 
 GET /api/healthz proves process liveness only. Unknown API routes and unsupported
 methods return a shared error. No business routes, Server Actions, auth UI,
@@ -88,9 +114,10 @@ database schema or empty future packages are introduced.
 
 Auth/membership, forced tenant RLS, idempotency/versioning/history, money,
 transactional queueing, private media, privacy/recovery, CI and pilot workflows
-are later tickets. PostgreSQL integration, Playwright/axe, Tamil PDF and real
-device checks are not applicable to this boot-only increment and are not
-claimed. No real customer data is permitted.
+are later tickets. Playwright/axe now covers the design-system preview.
+PostgreSQL integration, Tamil PDF shaping/goldens and physical-device/real-IME
+checks remain later gates; simulated browser input does not complete them.
+No real customer data is permitted.
 
 See [the acceptance evidence and compatibility decisions](docs/agents/Issue_2_Workspace_Evidence.md)
 for exact generator options, version checks, limitations and rollback.

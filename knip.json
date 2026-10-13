@@ -7,8 +7,7 @@
       "ignore": ["tests/fixtures/**"]
     },
     "apps/web": {
-      "project": ["src/**/*.{ts,tsx}"],
-      "ignoreDependencies": ["@aarili/ui"]
+      "project": ["src/**/*.{ts,tsx,css}"]
     },
     "apps/worker": {
       "project": ["src/**/*.ts"]
@@ -18,8 +17,8 @@
       "project": ["src/**/*.ts"]
     },
     "packages/ui": {
-      "ignoreDependencies": [],
-      "entry": ["src/globals.css"]
+      "entry": ["src/components/*.tsx", "src/lib/*.ts"],
+      "project": ["src/**/*.{ts,tsx,css}"]
     }
   }
 }

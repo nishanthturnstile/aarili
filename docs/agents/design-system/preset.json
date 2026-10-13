@@ -1,0 +1,16 @@
+{
+  "code": "b2fA",
+  "fallbacks": [],
+  "values": {
+    "style": "nova",
+    "baseColor": "neutral",
+    "theme": "neutral",
+    "chartColor": "neutral",
+    "iconLibrary": "lucide",
+    "font": "geist",
+    "fontHeading": "inherit",
+    "radius": "default",
+    "menuAccent": "subtle",
+    "menuColor": "default"
+  }
+}
