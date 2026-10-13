@@ -1,0 +1,1152 @@
+diff --git a/docs/agents/design-system/generated/button.tsx.txt b/packages/ui/src/components/button.tsx
+index 997e0c7..843867e 100644
+--- a/docs/agents/design-system/generated/button.tsx.txt
++++ b/packages/ui/src/components/button.tsx
+@@ -1,3 +1,5 @@
+-import { Button as ButtonPrimitive } from "@base-ui/react/button"
+-import { cva, type VariantProps } from "class-variance-authority"
+-import { cn } from "cn"
++"use client";
++
++import { Button as ButtonPrimitive } from "@base-ui/react/button";
++import { cva, type VariantProps } from "class-variance-authority";
++import { cn } from "../lib/utils";
+@@ -6 +8 @@ const buttonVariants = cva(
+-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
++  "ui-button inline-flex items-center justify-center gap-2 border border-transparent font-medium disabled:opacity-60 disabled:cursor-not-allowed [&_svg]:size-5 [&_svg]:shrink-0",
+@@ -10 +12,2 @@ const buttonVariants = cva(
+-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
++        default:
++          "bg-primary text-primary-foreground hover:enabled:bg-accent hover:enabled:text-accent-foreground",
+@@ -12 +15 @@ const buttonVariants = cva(
+-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
++          "border-input bg-card text-card-foreground hover:enabled:bg-muted",
+@@ -14,3 +17,2 @@ const buttonVariants = cva(
+-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+-        ghost:
+-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
++          "bg-secondary text-secondary-foreground hover:enabled:bg-accent",
++        ghost: "text-foreground hover:enabled:bg-muted",
+@@ -18,2 +20 @@ const buttonVariants = cva(
+-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+-        link: "text-primary underline-offset-4 hover:underline",
++          "bg-destructive text-destructive-foreground hover:enabled:bg-error hover:enabled:text-error-foreground",
+@@ -21,17 +22 @@ const buttonVariants = cva(
+-      size: {
+-        default:
+-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+-        icon: "size-8",
+-        "icon-xs":
+-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+-        "icon-sm":
+-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
+-        "icon-lg": "size-9",
+-      },
+-    },
+-    defaultVariants: {
+-      variant: "default",
+-      size: "default",
++      size: { default: "", icon: "ui-button-icon" },
+@@ -39,2 +24,3 @@ const buttonVariants = cva(
+-  }
+-)
++    defaultVariants: { variant: "default", size: "default" },
++  },
++);
+@@ -44,2 +30,2 @@ function Button({
+-  variant = "default",
+-  size = "default",
++  variant,
++  size,
+@@ -51 +37 @@ function Button({
+-      className={cn(buttonVariants({ variant, size, className }))}
++      className={cn(buttonVariants({ variant, size }), className)}
+@@ -54 +40 @@ function Button({
+-  )
++  );
+@@ -57 +43 @@ function Button({
+-export { Button, buttonVariants }
++export { Button, buttonVariants };
+diff --git a/docs/agents/design-system/generated/input.tsx.txt b/packages/ui/src/components/input.tsx
+index 7c4ab5a..28d3b02 100644
+--- a/docs/agents/design-system/generated/input.tsx.txt
++++ b/packages/ui/src/components/input.tsx
+@@ -1,3 +1 @@
+-import * as React from "react"
+-import { Input as InputPrimitive } from "@base-ui/react/input"
+-import { cn } from "cn"
++"use client";
+@@ -5 +3,5 @@ import { cn } from "cn"
+-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
++import { Input as InputPrimitive } from "@base-ui/react/input";
++import type { ComponentProps } from "react";
++import { cn } from "../lib/utils";
++
++function Input({ className, ...props }: ComponentProps<"input">) {
+@@ -8 +9,0 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+-      type={type}
+@@ -11,2 +12,2 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+-        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+-        className
++        "ui-input disabled:opacity-60 disabled:cursor-not-allowed",
++        className,
+@@ -16 +17 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+-  )
++  );
+@@ -19 +20 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+-export { Input }
++export { Input };
+diff --git a/docs/agents/design-system/generated/dialog.tsx.txt b/packages/ui/src/components/dialog.tsx
+index f178f33..43d52c1 100644
+--- a/docs/agents/design-system/generated/dialog.tsx.txt
++++ b/packages/ui/src/components/dialog.tsx
+@@ -1 +1 @@
+-"use client"
++"use client";
+@@ -3,3 +3,4 @@
+-import * as React from "react"
+-import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
+-import { cn } from "cn"
++import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
++import { XIcon } from "lucide-react";
++import { cn } from "../lib/utils";
++import { Button } from "./button";
+@@ -7,34 +8,5 @@ import { cn } from "cn"
+-import { Button } from "@workspace/ui/components/button"
+-import { XIcon } from "lucide-react"
+-
+-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
+-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+-}
+-
+-function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
+-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+-}
+-
+-function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
+-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+-}
+-
+-function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
+-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+-}
+-
+-function DialogOverlay({
+-  className,
+-  ...props
+-}: DialogPrimitive.Backdrop.Props) {
+-  return (
+-    <DialogPrimitive.Backdrop
+-      data-slot="dialog-overlay"
+-      className={cn(
+-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
++const Dialog = DialogPrimitive.Root;
++const DialogTrigger = DialogPrimitive.Trigger;
++const DialogClose = DialogPrimitive.Close;
++const DialogTitle = DialogPrimitive.Title;
++const DialogDescription = DialogPrimitive.Description;
+@@ -45 +17 @@ function DialogContent({
+-  showCloseButton = true,
++  closeLabel,
+@@ -47,3 +19 @@ function DialogContent({
+-}: DialogPrimitive.Popup.Props & {
+-  showCloseButton?: boolean
+-}) {
++}: DialogPrimitive.Popup.Props & { closeLabel: string }) {
+@@ -51,2 +21,2 @@ function DialogContent({
+-    <DialogPortal>
+-      <DialogOverlay />
++    <DialogPrimitive.Portal>
++      <DialogPrimitive.Backdrop className="ui-dialog-overlay" />
+@@ -55,4 +25 @@ function DialogContent({
+-        className={cn(
+-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+-          className
+-        )}
++        className={cn("ui-dialog", className)}
+@@ -62,12 +29,6 @@ function DialogContent({
+-        {showCloseButton && (
+-          <DialogPrimitive.Close
+-            data-slot="dialog-close"
+-            render={
+-              <Button
+-                variant="ghost"
+-                className="absolute top-2 right-2"
+-                size="icon-sm"
+-              />
+-            }
+-          >
+-            <XIcon
++        <DialogPrimitive.Close
++          render={
++            <Button
++              variant="ghost"
++              size="icon"
++              className="absolute right-2 top-2"
+@@ -75,39 +36,4 @@ function DialogContent({
+-            <span className="sr-only">Close</span>
+-          </DialogPrimitive.Close>
+-        )}
+-      </DialogPrimitive.Popup>
+-    </DialogPortal>
+-  )
+-}
+-
+-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="dialog-header"
+-      className={cn("flex flex-col gap-2", className)}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function DialogFooter({
+-  className,
+-  showCloseButton = false,
+-  children,
+-  ...props
+-}: React.ComponentProps<"div"> & {
+-  showCloseButton?: boolean
+-}) {
+-  return (
+-    <div
+-      data-slot="dialog-footer"
+-      className={cn(
+-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+-        className
+-      )}
+-      {...props}
+-    >
+-      {children}
+-      {showCloseButton && (
+-        <DialogPrimitive.Close render={<Button variant="outline" />}>
+-          Close
++          }
++          aria-label={closeLabel}
++        >
++          <XIcon aria-hidden="true" />
+@@ -115,32 +41,3 @@ function DialogFooter({
+-      )}
+-    </div>
+-  )
+-}
+-
+-function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
+-  return (
+-    <DialogPrimitive.Title
+-      data-slot="dialog-title"
+-      className={cn(
+-        "font-heading text-base leading-none font-medium",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function DialogDescription({
+-  className,
+-  ...props
+-}: DialogPrimitive.Description.Props) {
+-  return (
+-    <DialogPrimitive.Description
+-      data-slot="dialog-description"
+-      className={cn(
+-        "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
++      </DialogPrimitive.Popup>
++    </DialogPrimitive.Portal>
++  );
+@@ -154,4 +50,0 @@ export {
+-  DialogFooter,
+-  DialogHeader,
+-  DialogOverlay,
+-  DialogPortal,
+@@ -160 +53 @@ export {
+-}
++};
+diff --git a/docs/agents/design-system/generated/field.tsx.txt b/packages/ui/src/components/field.tsx
+index f5ed55b..3eb5ff8 100644
+--- a/docs/agents/design-system/generated/field.tsx.txt
++++ b/packages/ui/src/components/field.tsx
+@@ -1 +1,2 @@
+-"use client"
++import type { ComponentProps } from "react";
++import { cn } from "../lib/utils";
+@@ -3,25 +4 @@
+-import { useMemo } from "react"
+-import { cva, type VariantProps } from "class-variance-authority"
+-import { cn } from "cn"
+-
+-import { Label } from "@workspace/ui/components/label"
+-import { Separator } from "@workspace/ui/components/separator"
+-
+-function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
+-  return (
+-    <fieldset
+-      data-slot="field-set"
+-      className={cn(
+-        "flex flex-col gap-4 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function FieldLegend({
+-  className,
+-  variant = "legend",
+-  ...props
+-}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
++function Field({ className, ...props }: ComponentProps<"div">) {
+@@ -29,23 +6,2 @@ function FieldLegend({
+-    <legend
+-      data-slot="field-legend"
+-      data-variant={variant}
+-      className={cn(
+-        "mb-1.5 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="field-group"
+-      className={cn(
+-        "group/field-group @container/field-group flex w-full flex-col gap-5 data-[slot=checkbox-group]:gap-3 *:data-[slot=field-group]:gap-4",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
++    <div data-slot="field" className={cn("ui-field", className)} {...props} />
++  );
+@@ -53,48 +8,0 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
+-
+-const fieldVariants = cva(
+-  "group/field flex w-full gap-2 data-[invalid=true]:text-destructive",
+-  {
+-    variants: {
+-      orientation: {
+-        vertical: "flex-col *:w-full [&>.sr-only]:w-auto",
+-        horizontal:
+-          "flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+-        responsive:
+-          "flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+-      },
+-    },
+-    defaultVariants: {
+-      orientation: "vertical",
+-    },
+-  }
+-)
+-
+-function Field({
+-  className,
+-  orientation = "vertical",
+-  ...props
+-}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
+-  return (
+-    <div
+-      role="group"
+-      data-slot="field"
+-      data-orientation={orientation}
+-      className={cn(fieldVariants({ orientation }), className)}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="field-content"
+-      className={cn(
+-        "group/field-content flex flex-1 flex-col gap-0.5 leading-snug",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+@@ -102 +10,2 @@ function FieldLabel({
+-  className,
++  htmlFor,
++  children,
+@@ -104 +13 @@ function FieldLabel({
+-}: React.ComponentProps<typeof Label>) {
++}: ComponentProps<"label"> & { htmlFor: string }) {
+@@ -106 +15 @@ function FieldLabel({
+-    <Label
++    <label
+@@ -108,5 +17,2 @@ function FieldLabel({
+-      className={cn(
+-        "group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50 has-data-checked:border-primary/30 has-data-checked:bg-primary/5 has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border has-[>[data-slot=field]]:not-has-[:disabled,[data-disabled]]:hover:bg-muted/50 has-[>[data-slot=field]]:has-[:focus-visible]:border-ring has-[>[data-slot=field]]:has-[:focus-visible]:ring-3 has-[>[data-slot=field]]:has-[:focus-visible]:ring-ring/50 *:data-[slot=field]:p-2.5 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10",
+-        "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
+-        className
+-      )}
++      className="font-medium"
++      htmlFor={htmlFor}
+@@ -114,2 +20,4 @@ function FieldLabel({
+-    />
+-  )
++    >
++      {children}
++    </label>
++  );
+@@ -117,15 +25 @@ function FieldLabel({
+-
+-function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="field-label"
+-      className={cn(
+-        "flex w-fit items-center gap-2 text-sm font-medium group-data-[disabled=true]/field:opacity-50",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
++function FieldDescription(props: ComponentProps<"p">) {
+@@ -135,6 +29 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
+-      className={cn(
+-        "text-left text-sm leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
+-        "last:mt-0 nth-last-2:-mt-1",
+-        "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+-        className
+-      )}
++      className="text-sm text-muted-foreground"
+@@ -143 +32 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
+-  )
++  );
+@@ -145,8 +34 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
+-
+-function FieldSeparator({
+-  children,
+-  className,
+-  ...props
+-}: React.ComponentProps<"div"> & {
+-  children?: React.ReactNode
+-}) {
++function FieldError(props: ComponentProps<"p">) {
+@@ -154,64 +36 @@ function FieldSeparator({
+-    <div
+-      data-slot="field-separator"
+-      data-content={!!children}
+-      className={cn(
+-        "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
+-        className
+-      )}
+-      {...props}
+-    >
+-      <Separator className="absolute inset-0 top-1/2" />
+-      {children && (
+-        <span
+-          className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
+-          data-slot="field-separator-content"
+-        >
+-          {children}
+-        </span>
+-      )}
+-    </div>
+-  )
+-}
+-
+-function FieldError({
+-  className,
+-  children,
+-  errors,
+-  ...props
+-}: React.ComponentProps<"div"> & {
+-  errors?: Array<{ message?: string } | undefined>
+-}) {
+-  const content = useMemo(() => {
+-    if (children) {
+-      return children
+-    }
+-
+-    if (!errors?.length) {
+-      return null
+-    }
+-
+-    const uniqueErrors = [
+-      ...new Map(errors.map((error) => [error?.message, error])).values(),
+-    ]
+-
+-    if (uniqueErrors?.length == 1) {
+-      return uniqueErrors[0]?.message
+-    }
+-
+-    return (
+-      <ul className="ml-4 flex list-disc flex-col gap-1">
+-        {uniqueErrors.map(
+-          (error, index) =>
+-            error?.message && <li key={index}>{error.message}</li>
+-        )}
+-      </ul>
+-    )
+-  }, [children, errors])
+-
+-  if (!content) {
+-    return null
+-  }
+-
+-  return (
+-    <div
+-      role="alert"
++    <p
+@@ -219 +38 @@ function FieldError({
+-      className={cn("text-sm font-normal text-destructive", className)}
++      className="text-sm text-destructive"
+@@ -221,4 +40,2 @@ function FieldError({
+-    >
+-      {content}
+-    </div>
+-  )
++    />
++  );
+@@ -227,12 +44 @@ function FieldError({
+-export {
+-  Field,
+-  FieldLabel,
+-  FieldDescription,
+-  FieldError,
+-  FieldGroup,
+-  FieldLegend,
+-  FieldSeparator,
+-  FieldSet,
+-  FieldContent,
+-  FieldTitle,
+-}
++export { Field, FieldDescription, FieldError, FieldLabel };
+diff --git a/docs/agents/design-system/generated/card.tsx.txt b/packages/ui/src/components/card.tsx
+index cf02f48..c60f06e 100644
+--- a/docs/agents/design-system/generated/card.tsx.txt
++++ b/packages/ui/src/components/card.tsx
+@@ -1,3 +1,8 @@
+-import * as React from "react"
+-import { cn } from "cn"
+-
++import { cva, type VariantProps } from "class-variance-authority";
++import type { ComponentProps } from "react";
++import { cn } from "../lib/utils";
++
++const cardVariants = cva("ui-card", {
++  variants: { density: { default: "", dense: "ui-card-dense" } },
++  defaultVariants: { density: "default" },
++});
+@@ -6 +11 @@ function Card({
+-  size = "default",
++  density,
+@@ -8 +13 @@ function Card({
+-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
++}: ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
+@@ -12,5 +17 @@ function Card({
+-      data-size={size}
+-      className={cn(
+-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+-        className
+-      )}
++      className={cn(cardVariants({ density }), className)}
+@@ -19 +20 @@ function Card({
+-  )
++  );
+@@ -21,12 +22,2 @@ function Card({
+-
+-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="card-header"
+-      className={cn(
+-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
++function DenseRow({ className, ...props }: ComponentProps<"div">) {
++  return <div data-slot="row" className={cn("ui-row", className)} {...props} />;
+@@ -35,68 +26 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="card-title"
+-      className={cn(
+-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="card-description"
+-      className={cn("text-sm text-muted-foreground", className)}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="card-action"
+-      className={cn(
+-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="card-content"
+-      className={cn("px-(--card-spacing)", className)}
+-      {...props}
+-    />
+-  )
+-}
+-
+-function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+-  return (
+-    <div
+-      data-slot="card-footer"
+-      className={cn(
+-        "flex items-center rounded-b-xl border-t bg-muted/50 p-(--card-spacing)",
+-        className
+-      )}
+-      {...props}
+-    />
+-  )
+-}
+-
+-export {
+-  Card,
+-  CardHeader,
+-  CardFooter,
+-  CardTitle,
+-  CardAction,
+-  CardDescription,
+-  CardContent,
+-}
++export { Card, DenseRow };
+diff --git a/docs/agents/design-system/generated/globals.css.txt b/packages/ui/src/globals.css
+index b2c52d9..feee354 100644
+--- a/docs/agents/design-system/generated/globals.css.txt
++++ b/packages/ui/src/globals.css
+@@ -1,51 +1,8 @@
+-@import "tailwindcss";
+-@import "tw-animate-css";
+-@import "shadcn/tailwind.css";
+-
+-@custom-variant dark (&:is(.dark *));
+-@source "../../../apps/**/*.{ts,tsx}";
+-@source "../../../components/**/*.{ts,tsx}";
+-@source "../**/*.{ts,tsx}";
+-
+-@theme inline {
+-    --font-heading: var(--font-sans);
+-    --color-sidebar-ring: var(--sidebar-ring);
+-    --color-sidebar-border: var(--sidebar-border);
+-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+-    --color-sidebar-accent: var(--sidebar-accent);
+-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+-    --color-sidebar-primary: var(--sidebar-primary);
+-    --color-sidebar-foreground: var(--sidebar-foreground);
+-    --color-sidebar: var(--sidebar);
+-    --color-chart-5: var(--chart-5);
+-    --color-chart-4: var(--chart-4);
+-    --color-chart-3: var(--chart-3);
+-    --color-chart-2: var(--chart-2);
+-    --color-chart-1: var(--chart-1);
+-    --color-ring: var(--ring);
+-    --color-input: var(--input);
+-    --color-border: var(--border);
+-    --color-destructive: var(--destructive);
+-    --color-accent-foreground: var(--accent-foreground);
+-    --color-accent: var(--accent);
+-    --color-muted-foreground: var(--muted-foreground);
+-    --color-muted: var(--muted);
+-    --color-secondary-foreground: var(--secondary-foreground);
+-    --color-secondary: var(--secondary);
+-    --color-primary-foreground: var(--primary-foreground);
+-    --color-primary: var(--primary);
+-    --color-popover-foreground: var(--popover-foreground);
+-    --color-popover: var(--popover);
+-    --color-card-foreground: var(--card-foreground);
+-    --color-card: var(--card);
+-    --color-foreground: var(--foreground);
+-    --color-background: var(--background);
+-    --radius-sm: calc(var(--radius) * 0.6);
+-    --radius-md: calc(var(--radius) * 0.8);
+-    --radius-lg: var(--radius);
+-    --radius-xl: calc(var(--radius) * 1.4);
+-    --radius-2xl: calc(var(--radius) * 1.8);
+-    --radius-3xl: calc(var(--radius) * 2.2);
+-    --radius-4xl: calc(var(--radius) * 2.6);
+-    --font-sans: var(--font-sans);
+-}
++@import "tailwindcss" source(none);
++@import "@fontsource/noto-sans/latin-400.css";
++@import "@fontsource/noto-sans/latin-600.css";
++@import "@fontsource/noto-sans-tamil/tamil-400.css";
++@import "@fontsource/noto-sans-tamil/tamil-600.css";
++@source "../../../apps/web/src/**/*.{ts,tsx}";
++@source "./**/*.{ts,tsx}";
++@custom-variant dark (&:where(.dark, .dark *));
+@@ -52,0 +10 @@
++/* Sole visual authority; generator snapshots are provenance only. */
+@@ -54,32 +12,70 @@
+-    --background: oklch(1 0 0);
+-    --foreground: oklch(0.145 0 0);
+-    --card: oklch(1 0 0);
+-    --card-foreground: oklch(0.145 0 0);
+-    --popover: oklch(1 0 0);
+-    --popover-foreground: oklch(0.145 0 0);
+-    --primary: oklch(0.205 0 0);
+-    --primary-foreground: oklch(0.985 0 0);
+-    --secondary: oklch(0.97 0 0);
+-    --secondary-foreground: oklch(0.205 0 0);
+-    --muted: oklch(0.97 0 0);
+-    --muted-foreground: oklch(0.556 0 0);
+-    --accent: oklch(0.97 0 0);
+-    --accent-foreground: oklch(0.205 0 0);
+-    --destructive: oklch(0.577 0.245 27.325);
+-    --border: oklch(0.922 0 0);
+-    --input: oklch(0.922 0 0);
+-    --ring: oklch(0.708 0 0);
+-    --chart-1: oklch(0.87 0 0);
+-    --chart-2: oklch(0.556 0 0);
+-    --chart-3: oklch(0.439 0 0);
+-    --chart-4: oklch(0.371 0 0);
+-    --chart-5: oklch(0.269 0 0);
+-    --radius: 0.625rem;
+-    --sidebar: oklch(0.985 0 0);
+-    --sidebar-foreground: oklch(0.145 0 0);
+-    --sidebar-primary: oklch(0.205 0 0);
+-    --sidebar-primary-foreground: oklch(0.985 0 0);
+-    --sidebar-accent: oklch(0.97 0 0);
+-    --sidebar-accent-foreground: oklch(0.205 0 0);
+-    --sidebar-border: oklch(0.922 0 0);
+-    --sidebar-ring: oklch(0.708 0 0);
++  color-scheme: light;
++  --background: #faf6ed;
++  --foreground: #282323;
++  --card: #fffdf8;
++  --card-foreground: var(--foreground);
++  --popover: var(--card);
++  --popover-foreground: var(--foreground);
++  --primary: #751f3d;
++  --primary-foreground: #fff9f1;
++  --secondary: #ede5da;
++  --secondary-foreground: var(--foreground);
++  --muted: var(--secondary);
++  --muted-foreground: #62574f;
++  --accent: #f2dce3;
++  --accent-foreground: #641931;
++  --destructive: #a02328;
++  --destructive-foreground: #ffffff;
++  --border: #b4a79c;
++  --input: #89796b;
++  --ring: #751f3d;
++  --success: #e1f0e7;
++  --success-foreground: #205639;
++  --warning: #faebcb;
++  --warning-foreground: #714700;
++  --info: #e3edf6;
++  --info-foreground: #264f73;
++  --error: #fae5e3;
++  --error-foreground: #8f2227;
++  --sidebar: #eee6db;
++  --sidebar-foreground: var(--foreground);
++  --sidebar-primary: var(--primary);
++  --sidebar-primary-foreground: var(--primary-foreground);
++  --sidebar-accent: var(--accent);
++  --sidebar-accent-foreground: var(--accent-foreground);
++  --sidebar-border: var(--border);
++  --sidebar-ring: var(--ring);
++  --chart-1: var(--primary);
++  --chart-1-foreground: var(--primary-foreground);
++  --chart-2: #245d45;
++  --chart-2-foreground: #ffffff;
++  --chart-3: #8a520c;
++  --chart-3-foreground: #ffffff;
++  --chart-4: #335f82;
++  --chart-4-foreground: #ffffff;
++  --chart-5: #674477;
++  --chart-5-foreground: #ffffff;
++  --overlay: #17111399;
++  --shadow-color: #28232324;
++  --shadow-dialog: 0 12px 40px var(--shadow-color);
++  --radius: 0.75rem;
++  --spacing: 0.25rem;
++  --space-page: calc(var(--spacing) * 6);
++  --space-section: calc(var(--spacing) * 12);
++  --space-control: calc(var(--spacing) * 3);
++  --space-row: calc(var(--spacing) * 3);
++  --content-width: 72rem;
++  --control-height: 2.75rem;
++  --font-body: "Noto Sans", "Noto Sans Tamil", sans-serif;
++  --font-tamil: "Noto Sans Tamil", "Noto Sans", sans-serif;
++  --type-body: 1rem;
++  --type-small: 0.875rem;
++  --type-title: 2rem;
++  --line-body: 1.6;
++  --line-tamil: 1.85;
++  --weight-body: 400;
++  --weight-emphasis: 600;
++  --motion-duration: 160ms;
++  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
++  --focus-width: 3px;
++  --focus-offset: 3px;
+@@ -89,31 +85,93 @@
+-    --background: oklch(0.145 0 0);
+-    --foreground: oklch(0.985 0 0);
+-    --card: oklch(0.205 0 0);
+-    --card-foreground: oklch(0.985 0 0);
+-    --popover: oklch(0.205 0 0);
+-    --popover-foreground: oklch(0.985 0 0);
+-    --primary: oklch(0.922 0 0);
+-    --primary-foreground: oklch(0.205 0 0);
+-    --secondary: oklch(0.269 0 0);
+-    --secondary-foreground: oklch(0.985 0 0);
+-    --muted: oklch(0.269 0 0);
+-    --muted-foreground: oklch(0.708 0 0);
+-    --accent: oklch(0.269 0 0);
+-    --accent-foreground: oklch(0.985 0 0);
+-    --destructive: oklch(0.704 0.191 22.216);
+-    --border: oklch(1 0 0 / 10%);
+-    --input: oklch(1 0 0 / 15%);
+-    --ring: oklch(0.556 0 0);
+-    --chart-1: oklch(0.87 0 0);
+-    --chart-2: oklch(0.556 0 0);
+-    --chart-3: oklch(0.439 0 0);
+-    --chart-4: oklch(0.371 0 0);
+-    --chart-5: oklch(0.269 0 0);
+-    --sidebar: oklch(0.205 0 0);
+-    --sidebar-foreground: oklch(0.985 0 0);
+-    --sidebar-primary: oklch(0.488 0.243 264.376);
+-    --sidebar-primary-foreground: oklch(0.985 0 0);
+-    --sidebar-accent: oklch(0.269 0 0);
+-    --sidebar-accent-foreground: oklch(0.985 0 0);
+-    --sidebar-border: oklch(1 0 0 / 10%);
+-    --sidebar-ring: oklch(0.556 0 0);
++  color-scheme: dark;
++  --background: #211c1e;
++  --foreground: #f8f0e5;
++  --card: #2d2629;
++  --primary: #efb4c8;
++  --primary-foreground: #3a1422;
++  --secondary: #3e3438;
++  --muted-foreground: #cec0b6;
++  --accent: #50303d;
++  --accent-foreground: #f8cfdd;
++  --destructive: #ffb3ac;
++  --destructive-foreground: #461719;
++  --border: #897b80;
++  --input: #a39399;
++  --ring: #efb4c8;
++  --success: #243e30;
++  --success-foreground: #b2e8c6;
++  --warning: #493a20;
++  --warning-foreground: #f7d691;
++  --info: #293d50;
++  --info-foreground: #bcdcf8;
++  --error: #4c2c30;
++  --error-foreground: #ffc5be;
++  --sidebar: #2d2629;
++  --chart-2: #b2e8c6;
++  --chart-2-foreground: #243e30;
++  --chart-3: #f7d691;
++  --chart-3-foreground: #493a20;
++  --chart-4: #bcdcf8;
++  --chart-4-foreground: #293d50;
++  --chart-5: #ddc4ef;
++  --chart-5-foreground: #3f2b4a;
++  --overlay: #090608b3;
++  --shadow-color: #09060880;
++}
++
++@theme inline {
++  --color-background: var(--background);
++  --color-foreground: var(--foreground);
++  --color-card: var(--card);
++  --color-card-foreground: var(--card-foreground);
++  --color-popover: var(--popover);
++  --color-popover-foreground: var(--popover-foreground);
++  --color-primary: var(--primary);
++  --color-primary-foreground: var(--primary-foreground);
++  --color-secondary: var(--secondary);
++  --color-secondary-foreground: var(--secondary-foreground);
++  --color-muted: var(--muted);
++  --color-muted-foreground: var(--muted-foreground);
++  --color-accent: var(--accent);
++  --color-accent-foreground: var(--accent-foreground);
++  --color-destructive: var(--destructive);
++  --color-destructive-foreground: var(--destructive-foreground);
++  --color-border: var(--border);
++  --color-input: var(--input);
++  --color-ring: var(--ring);
++  --color-success: var(--success);
++  --color-success-foreground: var(--success-foreground);
++  --color-warning: var(--warning);
++  --color-warning-foreground: var(--warning-foreground);
++  --color-info: var(--info);
++  --color-info-foreground: var(--info-foreground);
++  --color-error: var(--error);
++  --color-error-foreground: var(--error-foreground);
++  --color-sidebar: var(--sidebar);
++  --color-sidebar-foreground: var(--sidebar-foreground);
++  --color-sidebar-primary: var(--sidebar-primary);
++  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
++  --color-sidebar-accent: var(--sidebar-accent);
++  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
++  --color-sidebar-border: var(--sidebar-border);
++  --color-sidebar-ring: var(--sidebar-ring);
++  --color-chart-1: var(--chart-1);
++  --color-chart-1-foreground: var(--chart-1-foreground);
++  --color-chart-2: var(--chart-2);
++  --color-chart-2-foreground: var(--chart-2-foreground);
++  --color-chart-3: var(--chart-3);
++  --color-chart-3-foreground: var(--chart-3-foreground);
++  --color-chart-4: var(--chart-4);
++  --color-chart-4-foreground: var(--chart-4-foreground);
++  --color-chart-5: var(--chart-5);
++  --color-chart-5-foreground: var(--chart-5-foreground);
++  --font-sans: var(--font-body);
++  --font-heading: var(--font-body);
++  --radius-sm: calc(var(--radius) * 0.6);
++  --radius-md: calc(var(--radius) * 0.8);
++  --radius-lg: var(--radius);
++  --radius-xl: calc(var(--radius) * 1.4);
++  --text-sm: var(--type-small);
++  --text-base: var(--type-body);
++  --font-weight-normal: var(--weight-body);
++  --font-weight-medium: var(--weight-emphasis);
++  --font-weight-semibold: var(--weight-emphasis);
+@@ -124,2 +182,2 @@
+-    @apply border-border outline-ring/50;
+-    }
++    border-color: var(--border);
++  }
+@@ -127 +185,178 @@
+-    @apply bg-background text-foreground;
++    margin: 0;
++    background: var(--background);
++    color: var(--foreground);
++    font-family: var(--font-body);
++    font-size: var(--type-body);
++    line-height: var(--line-body);
++    font-weight: var(--weight-body);
++    scrollbar-color: var(--border) var(--background);
++  }
++  :lang(ta) {
++    font-family: var(--font-tamil);
++    line-height: var(--line-tamil);
++    letter-spacing: normal;
++  }
++  h1 {
++    font-size: var(--type-title);
++    font-weight: var(--weight-emphasis);
++  }
++  h2,
++  h3 {
++    font-weight: var(--weight-emphasis);
++  }
++  button,
++  input {
++    font: inherit;
++    caret-color: var(--primary);
++  }
++  a {
++    text-underline-offset: 0.2em;
++  }
++  ::selection {
++    background: var(--accent);
++    color: var(--accent-foreground);
++  }
++  :focus-visible {
++    outline: var(--focus-width) solid var(--ring);
++    outline-offset: var(--focus-offset);
++  }
++}
++
++@layer components {
++  .aarili-main {
++    max-width: var(--content-width);
++    margin-inline: auto;
++    padding: var(--space-page);
++  }
++  .preview-section {
++    margin-block-start: var(--space-section);
++  }
++  .preview-header {
++    padding-block-end: var(--space-page);
++    border-bottom: 1px solid var(--border);
++  }
++  .preview-controls {
++    display: flex;
++    flex-wrap: wrap;
++    align-items: center;
++    gap: var(--space-control);
++  }
++  .preview-grid {
++    display: grid;
++    gap: var(--space-page);
++    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
++  }
++  .ui-button {
++    min-height: var(--control-height);
++    min-width: var(--control-height);
++    padding: var(--space-control);
++    border-radius: var(--radius);
++    white-space: normal;
++    overflow-wrap: anywhere;
++    line-height: inherit;
++    transition: background-color var(--motion-duration) var(--motion-ease);
++  }
++  .ui-button-icon {
++    width: var(--control-height);
++    padding: calc(var(--space-control) / 2);
++  }
++  .ui-input {
++    min-height: var(--control-height);
++    padding: calc(var(--space-control) / 2) var(--space-control);
++    border-radius: var(--radius);
++    border: 1px solid var(--input);
++    background: var(--card);
++    color: var(--foreground);
++    width: 100%;
++    min-width: 0;
++  }
++  .ui-input::placeholder {
++    color: var(--muted-foreground);
++    opacity: 1;
++  }
++  .ui-input[aria-invalid="true"] {
++    border-color: var(--destructive);
++  }
++  .ui-field {
++    display: flex;
++    flex-direction: column;
++    gap: calc(var(--spacing) * 2);
++  }
++  .ui-card {
++    border: 1px solid var(--border);
++    border-radius: var(--radius);
++    background: var(--card);
++    color: var(--card-foreground);
++    padding: var(--space-page);
++    container-type: inline-size;
++  }
++  .ui-card-dense {
++    padding: var(--space-row);
++  }
++  .ui-row {
++    display: flex;
++    flex-wrap: wrap;
++    justify-content: space-between;
++    align-items: center;
++    gap: var(--space-control);
++    padding-block: var(--space-row);
++    border-bottom: 1px solid var(--border);
++  }
++  .ui-row:last-child {
++    border-bottom: 0;
++  }
++  .ui-status {
++    display: inline-flex;
++    align-items: center;
++    gap: calc(var(--spacing) * 2);
++    padding: var(--spacing) calc(var(--spacing) * 2);
++    border-radius: var(--radius-md);
++    font-size: var(--type-small);
++    overflow-wrap: anywhere;
++  }
++  .ui-dialog-overlay {
++    position: fixed;
++    inset: 0;
++    z-index: 50;
++    background: var(--overlay);
++  }
++  .ui-dialog {
++    position: fixed;
++    inset-inline: var(--space-page);
++    bottom: var(--space-page);
++    z-index: 50;
++    max-height: calc(100dvh - var(--space-page) * 2);
++    overflow-y: auto;
++    display: grid;
++    gap: var(--space-control);
++    padding: var(--space-page);
++    border-radius: var(--radius);
++    background: var(--popover);
++    color: var(--popover-foreground);
++    box-shadow: var(--shadow-dialog);
++    transition:
++      opacity var(--motion-duration) var(--motion-ease),
++      translate var(--motion-duration) var(--motion-ease);
++  }
++  .ui-dialog[data-starting-style],
++  .ui-dialog[data-ending-style] {
++    opacity: 0;
++    translate: 0 0.5rem;
++  }
++  .ui-dialog-title {
++    padding-inline-end: var(--control-height);
++  }
++  @media (min-width: 768px) {
++    .ui-dialog {
++      inset-inline: auto;
++      bottom: auto;
++      top: 50%;
++      left: 50%;
++      transform: translate(-50%, -50%);
++      width: min(32rem, calc(100vw - var(--space-page) * 2));
++    }
++  }
++  @container (max-width: 24rem) {
++    .ui-row {
++      align-items: start;
++      flex-direction: column;
+@@ -129 +364,8 @@
+-}
+\ No newline at end of file
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  :root {
++    --motion-duration: 0ms;
++  }
++}

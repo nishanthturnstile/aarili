@@ -22,7 +22,7 @@ test("0.1.1a browser graph rejects indirect exports, aliases, require and relati
     'import "../../../../packages/platform/src/index.js";',
   ]) {
     const sources = new Map([
-      ["apps/web/src/app/page.tsx", 'import "@/bridge";'],
+      ["apps/web/src/app/page.tsx", '"use client"; import "@/bridge";'],
       ["apps/web/src/bridge.ts", code],
       ["packages/platform/src/index.ts", 'export const secret = "synthetic";'],
     ]);
@@ -56,7 +56,7 @@ test("0.1.1a rejects server types, server aliases and direct environment access 
     expect(
       checkBoundaries(
         new Map([
-          ["apps/web/src/app/page.tsx", code],
+          ["apps/web/src/app/page.tsx", `"use client"; ${code}`],
           ["apps/web/src/server/env.ts", 'export const secret = "synthetic";'],
         ]),
       ).length,
@@ -67,7 +67,10 @@ test("0.1.1a allows browser typed clients without traversing erased server types
   expect(
     checkBoundaries(
       new Map([
-        ["apps/web/src/app/page.tsx", 'import "@aarili/api/client";'],
+        [
+          "apps/web/src/app/page.tsx",
+          '"use client"; import "@aarili/api/client";',
+        ],
         [
           "packages/api/src/client.ts",
           'import type { App } from "./index.js"; import { hc } from "hono/client";',
@@ -79,4 +82,50 @@ test("0.1.1a allows browser typed clients without traversing erased server types
       ]),
     ),
   ).toEqual([]);
+});
+
+test("0.1.1c RSC preview gate is server-only; a client cannot import it to reach environment state", () => {
+  const server = [
+    "apps/web/src/app/dev/design-system/page.tsx",
+    'const enabled = process.env.NODE_ENV === "development";',
+  ];
+  expect(checkBoundaries(new Map([server]))).toEqual([]);
+  expect(
+    checkBoundaries(
+      new Map([
+        server,
+        [
+          "apps/web/src/client.tsx",
+          '/* client directive after a comment */ "use client"; import "@/app/dev/design-system/page";',
+        ],
+      ]),
+    ),
+  ).toEqual(
+    expect.arrayContaining([expect.stringContaining("server runtime")]),
+  );
+});
+
+test("0.1.1c only shared UI may consume the approved primitive dependencies", () => {
+  expect(
+    checkBoundaries(
+      new Map([
+        [
+          "packages/ui/src/components/button.tsx",
+          'import "@base-ui/react/button";',
+        ],
+      ]),
+    ),
+  ).toEqual([]);
+  expect(
+    checkBoundaries(
+      new Map([["apps/web/src/rogue.tsx", 'import "@base-ui/react/button";']]),
+    ),
+  ).toEqual(expect.arrayContaining([expect.stringContaining("not approved")]));
+  expect(
+    checkBoundaries(
+      new Map([
+        ["packages/ui/src/rogue.tsx", 'import "@radix-ui/react-dialog";'],
+      ]),
+    ),
+  ).toEqual(expect.arrayContaining([expect.stringContaining("not approved")]));
 });

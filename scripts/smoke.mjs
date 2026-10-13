@@ -72,6 +72,12 @@ try {
   );
   const missing = await fetch(`http://127.0.0.1:${port}/api/orders`);
   assert.equal(missing.status, 404);
+  const preview = await fetch(`http://127.0.0.1:${port}/dev/design-system`);
+  assert.equal(
+    preview.status,
+    404,
+    "Development preview must be unavailable in production",
+  );
   const unsupported = await fetch(`http://127.0.0.1:${port}/api/healthz`, {
     method: "POST",
   });
