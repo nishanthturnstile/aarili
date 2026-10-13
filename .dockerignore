@@ -1,0 +1,14 @@
+.git
+.agents
+.codex
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.env
+**/.env.*
+!**/.env.example
+**/*.log
+coverage
+**/next-env.d.ts

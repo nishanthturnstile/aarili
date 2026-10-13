@@ -1,0 +1,26 @@
+{
+  "name": "@aarili/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "next typegen && tsc --noEmit -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@aarili/api": "workspace:*",
+    "@aarili/platform": "workspace:*",
+    "@aarili/ui": "workspace:*",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "@types/node": "24.19.2"
+  }
+}

@@ -1,0 +1,22 @@
+# Verification only; not a deployment image. Linux gets its own dependency tree.
+FROM node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
+RUN npm install --global pnpm@12.11.2
+WORKDIR /workspace
+ENV NEXT_TELEMETRY_DISABLED=1 TURBO_TELEMETRY_DISABLED=1
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/worker/package.json ./apps/worker/
+COPY packages/api/package.json ./packages/api/
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/platform/package.json ./packages/platform/
+COPY packages/ui/package.json ./packages/ui/
+RUN pnpm install --frozen-lockfile
+COPY apps ./apps
+COPY packages ./packages
+COPY scripts ./scripts
+COPY tests ./tests
+COPY .gitignore biome.json knip.json turbo.json tsconfig.base.json vitest.config.ts ./
+RUN chmod +x scripts/check-negative-types.mjs
+RUN pnpm verify
+RUN ./scripts/check-negative-types.mjs
+RUN AARILI_PRIVATE_PROBE=aarili-private-probe-issue-2 pnpm --filter @aarili/web build && node scripts/check-artifacts.mjs

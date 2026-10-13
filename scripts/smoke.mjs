@@ -1,0 +1,99 @@
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { cpSync } from "node:fs";
+import { createServer } from "node:net";
+import { setTimeout as delay } from "node:timers/promises";
+import { readHealth } from "../packages/api/dist/client.js";
+
+async function freePort() {
+  const server = createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  assert(address && typeof address === "object");
+  await new Promise((resolve) => server.close(resolve));
+  return address.port;
+}
+function child(args, cwd, overrides = {}) {
+  const proc = spawn(process.execPath, args, {
+    cwd,
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
+    env: { ...process.env, NODE_ENV: "production", ...overrides },
+  });
+  let output = "";
+  proc.stdout.on("data", (chunk) => {
+    output += chunk;
+  });
+  proc.stderr.on("data", (chunk) => {
+    output += chunk;
+  });
+  const exit = once(proc, "exit");
+  return { proc, exit, output: () => output };
+}
+async function waitUntil(predicate, process) {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    if (await predicate()) return;
+    if (process.proc.exitCode !== null) throw new Error(process.output());
+    await delay(100);
+  }
+  throw new Error(`Boot timed out: ${process.output()}`);
+}
+const port = await freePort();
+cpSync(
+  "apps/web/.next/static",
+  "apps/web/.next/standalone/apps/web/.next/static",
+  { recursive: true },
+);
+const web = child([".next/standalone/apps/web/server.js"], "apps/web", {
+  HOSTNAME: "127.0.0.1",
+  PORT: String(port),
+});
+const worker = child(["dist/index.js"], "apps/worker");
+try {
+  await waitUntil(async () => {
+    try {
+      return (await readHealth(`http://127.0.0.1:${port}`)).status === "ok";
+    } catch {
+      return false;
+    }
+  }, web);
+  const page = await fetch(`http://127.0.0.1:${port}`);
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  assert.match(html, /The development workspace is running/);
+  const asset = html.match(/src="([^"]*\/_next\/static\/[^"]+)"/)?.[1];
+  assert(asset, "Production page has no client asset");
+  assert.equal(
+    (await fetch(new URL(asset, `http://127.0.0.1:${port}`))).status,
+    200,
+  );
+  const missing = await fetch(`http://127.0.0.1:${port}/api/orders`);
+  assert.equal(missing.status, 404);
+  const unsupported = await fetch(`http://127.0.0.1:${port}/api/healthz`, {
+    method: "POST",
+  });
+  assert.equal(unsupported.status, 404);
+  await waitUntil(
+    () => worker.output().includes("aarili-worker ready"),
+    worker,
+  );
+  worker.proc.send("shutdown");
+  const [code] = await Promise.race([
+    worker.exit,
+    delay(5000).then(() => {
+      throw new Error("Worker did not shut down");
+    }),
+  ]);
+  assert.equal(code, 0);
+  assert.match(worker.output(), /aarili-worker stopped/);
+  console.info(
+    "0.1.1a production web, typed health client, unknown-route and worker boot/IPC shutdown passed.",
+  );
+} finally {
+  web.proc.kill();
+  if (worker.proc.exitCode === null) worker.proc.kill();
+  await Promise.all([web.exit, worker.exit]);
+}

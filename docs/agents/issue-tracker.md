@@ -14,7 +14,9 @@ Implementation tickets live in [nishanthturnstile/aarili GitHub Issues](https://
 - `ready-for-agent`: approved implementation ticket. A ticket with open blockers must not be started.
 - Reuse `bug`, `documentation` or `enhancement` when applicable. Do not invent a label per requirement or install triage solely for ticket generation.
 
-The `ready-for-agent` label exists on GitHub. No implementation tickets have been published during setup.
+The `ready-for-agent` label exists on GitHub. Approved Wave 0 Phase 0.1 tickets
+are published as issues #2–#6. The label approves the definition; it does not
+override open prerequisites or authorise implementation without a request.
 
 ## Operations
 
@@ -23,7 +25,8 @@ The `ready-for-agent` label exists on GitHub. No implementation tickets have bee
 - Publish approved issues in dependency order. Use GitHub native issue dependencies where available; retrieve the blocker's numeric database ID using the REST API rather than confusing it with its issue number. If native edges are unavailable, include explicit `Blocked by: #…` references. Re-read each issue and relationship after creation.
 - If the source is an existing issue, make the new tickets its sub-issues when supported; otherwise include a parent link/task list. Do not modify or close the parent without authorisation.
 - Do not create a parent/map issue just to group a phase unless the owner requests one. Stable slice IDs and phase references in each issue are sufficient.
-- Work the frontier: only tickets whose blockers are complete may start. PRs link their ticket, include verification and traceability, and use focused `codex/…` branches.
+- Work the frontier: only tickets whose direct blockers are merged may start. PRs link their ticket, include verification and traceability, and use focused `codex/…` branches.
+- Keep one local Aarili checkout and work on one implementation branch at a time. Do not create or use Git worktrees or additional feature checkouts. Push the topic branch to GitHub; switch branches in the existing checkout while preserving unrelated edits. Follow [Development_Workflow.md](Development_Workflow.md).
 
 **PRs as a triage request surface: no.**
 
