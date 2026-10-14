@@ -21,6 +21,7 @@ import {
   allocationDemonstrations,
   inspectAllocation,
 } from "./test-support/allocation.mjs";
+import { createJournalInspection } from "./test-support/journal.mjs";
 import { withMoneyFixture } from "./test-support/money-fixture.mjs";
 
 export function validateMoneyHarness(args, env) {
@@ -94,6 +95,23 @@ async function entry(f, amount, length) {
   );
 }
 async function demo(f) {
+  const journal = createJournalInspection(f);
+  for (const action of [
+    "start",
+    "confirm",
+    "lost-response",
+    "reverse",
+    "reverse",
+    "sale",
+    "credit",
+    "liability",
+    "fail-refund",
+    "settle",
+    "settle",
+    "reject",
+    "mutate",
+  ])
+    await journal(action);
   for (const inspection of allocationDemonstrations())
     console.info(JSON.stringify(inspection));
   for (const [amount, length] of [
@@ -140,6 +158,7 @@ async function demo(f) {
   console.info(JSON.stringify({ AC23: ac23, AC58: ac58, fractional }));
 }
 async function interactive(f) {
+  const journal = createJournalInspection(f);
   const input = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -153,6 +172,9 @@ async function interactive(f) {
   console.info(
     "FIN-05: :allocations runs deposit/discount/direct-cost fixtures; :allocate 1000 a=700 b=400 c=300 inspects source and ordered line charges in INR. Pure inspection does not persist/authorize money.",
   );
+  console.info(
+    "Journal: :journal start | confirm | lost-response | reverse | sale | credit | liability | fail-refund | settle | reject | mutate | inspect. Synthetic mappings require accountant approval before live use.",
+  );
   try {
     for (;;) {
       const amount = await input.question(
@@ -160,7 +182,9 @@ async function interactive(f) {
       );
       if (amount === ":quit") break;
       try {
-        if (amount === ":allocations") {
+        if (amount.startsWith(":journal "))
+          await journal(amount.slice(9).trim());
+        else if (amount === ":allocations") {
           for (const inspection of allocationDemonstrations())
             console.info(JSON.stringify(inspection));
         } else if (amount.startsWith(":allocate ")) {

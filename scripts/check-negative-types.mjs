@@ -111,3 +111,29 @@ if (
 console.info(
   "0.3.1b B5/B6 compiled FIN-05 allocation types rejected all six invalid uses.",
 );
+const journal = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/journal-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const journalOutput = journal.stdout + journal.stderr;
+if (
+  journal.status === 0 ||
+  (journalOutput.match(/error TS/g) ?? []).length !== 5 ||
+  ![4, 5, 6, 7, 8].every((line) =>
+    journalOutput.includes(`journal-invalid.ts(${line},`),
+  )
+) {
+  console.error(journalOutput);
+  throw new Error(
+    "0.3.1c journal declarations must reject five invalid amount/account/batch/balance/query uses",
+  );
+}
+console.info(
+  "0.3.1c C1/C2 compiled journal declarations rejected all five invalid uses, including setBalance.",
+);

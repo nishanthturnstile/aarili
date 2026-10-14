@@ -47,6 +47,14 @@
     "./repositories/money-fixture": {
       "types": "./dist/repositories/money-fixture.d.ts",
       "import": "./dist/repositories/money-fixture.js"
+    },
+    "./journal-repository": {
+      "types": "./dist/journal-repository.d.ts",
+      "import": "./dist/journal-repository.js"
+    },
+    "./repositories/journal": {
+      "types": "./dist/repositories/journal.d.ts",
+      "import": "./dist/repositories/journal.js"
     }
   },
   "scripts": {

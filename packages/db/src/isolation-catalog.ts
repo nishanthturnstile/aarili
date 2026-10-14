@@ -103,6 +103,11 @@ export async function assertIsolationCatalog(db: Database) {
     if (!row.rls || !row.forced) fail("ENABLE/FORCE");
     if (row.unsafe_grants || !row.backup_read) fail("tenant grants");
     if (
+      ["public.journal_batch", "public.journal_entry"].includes(row.table) &&
+      (row.update || row.delete)
+    )
+      fail("append-only journal grants");
+    if (
       ["public.shop", "public.shop_membership"].includes(row.table) &&
       (row.insert || row.update || row.delete)
     )

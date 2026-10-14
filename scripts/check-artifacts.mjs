@@ -45,6 +45,11 @@ function inspect(directory) {
         "Server environment package entered browser output",
       );
       assert(
+        !output.includes("postJournal") &&
+          !output.includes("journalRepository"),
+        "0.3.1c journal/server code entered browser output",
+      );
+      assert(
         !output.includes("Invalid server environment configuration"),
         "Server validation code entered browser output",
       );
