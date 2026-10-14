@@ -1,14 +1,11 @@
 diff --git a/dist/types.d.ts b/dist/types.d.ts
-index 44cdc07..290fb74 100644
+index 44cdc07f6f19264da0167ece400b2f29b5ea0ae1..290fb74279f2240ea5b45ed232b03717e5aeabe4 100644
 --- a/dist/types.d.ts
 +++ b/dist/types.d.ts
-@@ -1549,4 +1549,100 @@ export type PgBossEventMap = {
-     bam: [data: BamEvent];
+@@ -1550,3 +1550,99 @@ export type PgBossEventMap = {
      flow: [data: FlowEvent];
  };
--//# sourceMappingURL=types.d.ts.map
-\ No newline at end of file
-+//# sourceMappingURL=types.d.ts.map
+ //# sourceMappingURL=types.d.ts.map
 +export interface CompatibilityFlags {
 +  /**
 +   * Fetch jobs with an atomic `UPDATE ... RETURNING` (plus a `state < 'active'` recheck)

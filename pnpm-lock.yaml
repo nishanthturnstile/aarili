@@ -167,6 +167,7 @@ overrides:
 
 patchedDependencies:
   drizzle-orm@0.45.4: 59cec2c3cd27b7f6dc5e544ea2b55ef3196d1f0d186b833890610ccd1ea6c212
+  pg-boss@12.37.1: b64351d7068ea542fec50952f05fc171f830b878eee2793b103f6fa2e271ae6a
 
 importers:
 
@@ -427,7 +428,7 @@ importers:
         version: link:../db
       pg-boss:
         specifier: 12.37.1
-        version: 12.37.1(@opentelemetry/api@1.9.1)
+        version: 12.37.1(patch_hash=b64351d7068ea542fec50952f05fc171f830b878eee2793b103f6fa2e271ae6a)(@opentelemetry/api@1.9.1)
     devDependencies:
       typescript:
         specifier: 7.0.2
@@ -5894,7 +5895,7 @@ snapshots:
       lru-cache: 10.4.3
       minipass: 7.1.3
 
-  pg-boss@12.37.1(@opentelemetry/api@1.9.1):
+  pg-boss@12.37.1(patch_hash=b64351d7068ea542fec50952f05fc171f830b878eee2793b103f6fa2e271ae6a)(@opentelemetry/api@1.9.1):
     dependencies:
       '@opentelemetry/api': 1.9.1
       cron-parser: 5.10.2

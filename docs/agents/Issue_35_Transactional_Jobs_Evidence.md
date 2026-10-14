@@ -41,16 +41,18 @@ The published pg-boss declarations omit `CompatibilityFlags` and
 them. The first strict build failed with five TS2724 errors. An isolated
 verification copy restored the exact two interfaces from upstream tag
 `12.37.1` and passed strict TypeScript without altering runtime JavaScript,
-the pin or `skipLibCheck=false`. This is a proposed declaration-only pnpm
-patch, currently awaiting owner approval before baseline adoption. The
-[reviewable proposed patch](../../patches/proposed-pg-boss@12.37.1.patch)
+the pin or `skipLibCheck=false`. The owner authorized fixing the PR's blockers
+on 14 October 2026, approving adoption of this previously proposed correction.
+The [registered declaration-only patch](../../patches/pg-boss@12.37.1.patch)
 restores those exact definitions from
 [upstream tag 12.37.1](https://github.com/timgit/pg-boss/blob/12.37.1/src/types.ts).
-It is deliberately not registered in pnpm patchedDependencies. Until that
-decision, D1 and the complete strict verification gate remain open; the draft
-PR reports this failure and requests the decision without adopting a correction.
+`pnpm patch-commit` registered the exact version in pnpm-workspace.yaml and
+the lockfile; the unregistered proposal was removed. Fresh `pnpm build:packages`
+passed all eight packages with strict TypeScript and `skipLibCheck=false`.
+The original vendor failure is retained below as historical evidence; current
+complete-suite and hosted evidence is recorded in the repair section.
 
-Independent runtime evidence: nine new real PostgreSQL/pg-boss tests
+Initial blocked-head evidence (`f04b338`): nine new real PostgreSQL/pg-boss tests
 passed, three new unit/property/harness tests passed, lint and Knip passed,
 four compiled payload/writer negatives failed for their intended reasons, and
 the disposable API/queue demonstration passed. Full independent integration
@@ -66,9 +68,42 @@ build: 45 English/Tamil phone/tablet/desktop Playwright/axe cases passed in
 6.1 minutes. `node scripts/smoke.mjs` passed production Next/Hono/real PostgreSQL
 readiness/outage and worker shutdown. Frozen installation passed. These
 independent results do not turn the failed aggregate commands into passes.
-Hosted Linux checks are pending with the draft; scaffold/browser cannot pass
-their build gate until the owner approves and the declaration correction is
-adopted and verified. No hosted Linux queue outcome is claimed yet.
+The first push and PR hosted Linux scaffold/browser checks failed on the same
+TS2724 packaging defect; both dependency audits passed. Those historical checks
+are superseded only by actual checks on the repaired PR head, recorded below.
+
+## Owner-authorized PR #41 repair
+
+The owner requested a plan and implementation of all PR blockers/issues on
+14 October 2026. The same checkout was clean on main, then switched back to the
+existing `codex/0.3.2a-transactional-jobs` branch. PR reviews, issue comments and
+inline review comments were empty; both hosted failing check types shared the
+vendor declaration error. There was no additional reported blocker.
+
+Plan executed: register the approved pinned patch; run full native checks and
+the queue operational proof; verify a clean Linux build/runtime; update this
+evidence and the original draft PR, then inspect the repaired hosted checks.
+Context7 resolved pnpm and Docker before fetching current official patch-commit
+and Dockerfile COPY/build-context documentation. No version, compiler policy,
+business behavior, migration or runtime JavaScript changed. All 36 pg-boss
+runtime JavaScript files match the original 12.37.1 tarball byte for byte.
+The lockfile adds only the exact pg-boss patch hash and its snapshot reference.
+
+| Repair verification | Fresh observed result |
+| --- | --- |
+| `pnpm build:packages` | All eight packages passed strict compilation with the registered patch. |
+| Frozen install | `pnpm install --frozen-lockfile` passed after the patch hash was finalized. |
+| `pnpm verify` | Passed end to end: lint/boundaries/tokens, Knip, all strict types, 70 unit/property tests, negative types, OpenAPI, 53 real PostgreSQL tests, production web/worker builds, readiness/outage/shutdown smoke and 26 artifact scans. |
+| `pnpm test:ui` | Passed all 45 English/Tamil phone/tablet/desktop Playwright/axe cases through the required aggregate command in 6.6 minutes. Disposable PostgreSQL cleaned up; incidental regenerated historical screenshots are excluded from the repair. |
+| `pnpm audit --audit-level low` | No known vulnerabilities. |
+| Linux verification image | Clean Dockerfile.verify image build passed its frozen install, lint/Knip/strict types, 70 unit/property tests, negative types, production build and private-canary artifact checks. The early dependency-layer manifest inventory was reviewed; no failure reproduced, so Dockerfile.verify remains unchanged. |
+| Linux queue runtime | All nine real PostgreSQL/pg-boss tests passed inside the clean image with the Docker socket and host.docker.internal override. Runtime was app_user; fixture databases and the verification container cleaned up. |
+| `pnpm foundation:jobs --demo` | Passed the documented command with the registered patch: invisibility before commit, one committed job/effect, same-response replay, changed-binding rejection, duplicate delivery and rollback counts; disposable PostgreSQL cleaned up. |
+
+Exact repaired-head hosted outcomes and run links are recorded in PR #41's
+Checks and updated description after push; local passing results alone do not
+assert hosted success. Owner human acceptance and later restore/provider/pilot
+gates remain distinct from these automated repair results.
 
 ## Transaction, authority and durable history
 
@@ -155,13 +190,13 @@ when schedules, maintenance or per-queue relations are added.
 
 | Criterion | Evidence and remaining gate |
 | --- | --- |
-| D1 | Exact manifest/lockfile and schema-45 SQL; real concurrent migration serialization; runtime startup fails for missing schema/queue and cannot create either. Declaration packaging repair is proposed and awaiting owner approval; final strict suite open. |
+| D1 | Exact manifest/lockfile and schema-45 SQL; real concurrent migration serialization; runtime startup fails for missing schema/queue and cannot create either. Owner-approved declaration-only patch restores omitted upstream types; strict build and complete native pnpm verify passed. Repair evidence records clean Linux packaging and hosted outcomes. |
 | D2 | Real barriers and independent app_user fetch prove no visibility before commit; five relation xmin values equal the command transaction ID; commit exposes one runnable job, rollback after actual enqueue exposes none. |
 | D3 | Strict UUID/version DTO plus seeded canonicalization properties and four declaration negatives; queue row contains only the five allow-listed fields. Foreign actor/entity/request/version and extra content are ignored, never trusted as authority. |
 | D4 | Real sessions authorize the synthetic API. Handler rechecks verified user/current membership, resolves authoritative request/current entity under withShop, ignores foreign/unknown/revoked/unverified/stale inputs; membership revocation waits on a genuine handler row lock. Missing context and pool reuse fail closed. |
 | D5 | Concurrent same-key commands return one response/job; changed bindings have one winner/422. Concurrent delivery yields applied/duplicate with one effect/audit. A new real queue delivery after key removal/singleton-window simulation cannot repeat the durable effect. |
 | D6 | Injected failures after record/audit/key/job and at commit boundary preserve counts; backend termination before commit permits same-key retry. Discarded committed response replays. Handler audit failure rolls back the effect, and actual queue failure/retry subsequently completes one effect. |
-| D7 | Existing catalog gate covers every fixture tenant table and the exact queue relation/grant inventory; runtime/maintenance negatives and drift checks pass. Boundary scanner restricts pg-boss to jobs; production composition never binds the exemplar and browser artifact scan rejects jobs code. Independent production web build, smoke and 26 browser artifact checks passed. Aggregate strict build remains blocked as described under D1. |
+| D7 | Existing catalog gate covers every fixture tenant table and the exact queue relation/grant inventory; runtime/maintenance negatives and drift checks pass. Boundary scanner restricts pg-boss to jobs; production composition never binds the exemplar and browser artifact scan rejects jobs code. Independent production web build, smoke and 26 browser artifact checks passed; the strict vendor build blocker is repaired under D1. |
 | D8 | Disposable API/queue --demo runs pause/commit/replay/changed/consume/duplicate/rollback with scrubbed counts and cleanup. Target/outbound guard tests pass. Agent operated the interactive CLI: pause/inspect/commit/stale/consume/consume/quit proved obsolete/current version handling; a fresh pause/commit/revoke/consume/quit proved zero effects after revocation. Both fixtures cleaned up. Owner observations remain pending. |
 
 ## Exact owner/manual acceptance
@@ -172,7 +207,7 @@ Do not load the retained web/db private environment into this shell. The harness
 rejects database target variables, PG variables, production mode, unknown/target
 arguments and outbound activation; it does not accept a target URL or secret.
 
-After the compatibility gate is resolved, run:
+Run with the registered compatibility patch installed:
 
 ```powershell
 pnpm foundation:jobs --interactive
@@ -226,8 +261,9 @@ lifecycle, schedules, supervision, maintenance grants and retry/dead-letter
 operations remain #37 / 0.3.2c. No outbound provider is enabled; no live money,
 media, PDF, import/export/retention or autonomous system handler is introduced.
 
-Publication is a separate draft PR with Closes #35, explicitly reporting the
-unresolved declaration correction and failed aggregate verification commands.
+Publication is draft [PR #41](https://github.com/nishanthturnstile/aarili/pull/41)
+with Closes #35. Its first head reported the unresolved declaration correction
+and failed aggregate commands; the owner-approved repair updates the same PR.
 Merge requires complete verification, the three hosted gates and deliberate
 owner review. No merge/deployment or next
 story is authorized. After an explicit owner merge decision, update main in
