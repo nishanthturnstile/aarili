@@ -12,7 +12,7 @@
     "dev:web": "pnpm build:packages && pnpm --filter @aarili/web dev",
     "dev:worker": "pnpm build:packages && pnpm --filter @aarili/worker dev",
     "db:migrate": "node scripts/migrate.mjs",
-    "build:packages": "turbo run build --filter=@aarili/contracts --filter=@aarili/platform --filter=@aarili/db --filter=@aarili/core --filter=@aarili/auth --filter=@aarili/api --filter=@aarili/money",
+    "build:packages": "turbo run build --filter=@aarili/contracts --filter=@aarili/platform --filter=@aarili/db --filter=@aarili/core --filter=@aarili/auth --filter=@aarili/api --filter=@aarili/money --filter=@aarili/jobs",
     "build": "turbo run build",
     "lint": "biome check . && pnpm boundaries && pnpm tokens",
     "format": "biome check --write .",
@@ -36,7 +36,8 @@
     "infra:roles": "node scripts/local-infra.mjs roles",
     "openapi": "pnpm build:packages && node scripts/generate-openapi.mjs",
     "db:command-fixture": "node scripts/install-command-fixture.mjs",
-    "foundation:money": "pnpm build:packages && node scripts/foundation-money.mjs"
+    "foundation:money": "pnpm build:packages && node scripts/foundation-money.mjs",
+    "foundation:jobs": "pnpm build:packages && node scripts/foundation-jobs.mjs"
   },
   "devDependencies": {
     "@aarili/api": "workspace:*",
@@ -59,6 +60,7 @@
     "turbo": "2.11.7",
     "typescript": "7.0.2",
     "vitest": "5.0.4",
-    "@aarili/money": "workspace:*"
+    "@aarili/money": "workspace:*",
+    "@aarili/jobs": "workspace:*"
   }
 }

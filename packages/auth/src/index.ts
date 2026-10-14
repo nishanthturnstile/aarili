@@ -124,6 +124,13 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  // Server composition may enlist another repository/vendor adapter only on
+  // this exact verified-session, authorized shop transaction.
+  withOwnerTransaction: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (tx: Transaction, userId: string) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerCommand: <T>(
     headers: Headers,
     shopId: string,
@@ -1192,6 +1199,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     ownerShop,
     withOwnerShop,
     withOwnerCommand,
+    withOwnerTransaction,
     commandLimit: () => guard(commandLimit),
     googleConnection,
     disconnectGoogle,

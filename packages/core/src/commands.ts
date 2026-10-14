@@ -12,11 +12,13 @@ import type {
   CommandRepository,
   RequestBinding,
 } from "@aarili/db/repositories/command";
+import type { SyntheticJobWriter } from "@aarili/db/repositories/jobs";
 
 export type CommandContext = {
   shopId: string;
   actor: Actor;
   repository: CommandRepository;
+  jobs?: SyntheticJobWriter;
 };
 export class CommandFailure extends Error {
   constructor(
@@ -129,6 +131,10 @@ export async function executeSynthetic(
       target,
       version,
       command,
+      // Synthetic queue participation is part of the request contract. A key
+      // originally committed without the writer cannot falsely replay as a
+      // queued command when dev/test composition later enables it.
+      ...(ctx.jobs ? { job: "synthetic.job.v1" } : {}),
     }),
   };
   const repo = ctx.repository;
@@ -207,6 +213,7 @@ export async function executeSynthetic(
   });
   const response = syntheticSuccessSchema.parse({ record });
   await repo.persist(key, binding, response);
+  if (ctx.jobs) await ctx.jobs.enqueue(record, headers.requestId, key);
   return response;
 }
 async function readLocked(repo: CommandRepository, id: string) {

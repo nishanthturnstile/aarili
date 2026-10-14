@@ -50,6 +50,12 @@ function inspect(directory) {
         "0.3.1c journal/server code entered browser output",
       );
       assert(
+        !output.includes("syntheticJobWriter") &&
+          !output.includes("handleSyntheticJob") &&
+          !output.includes("pg-boss"),
+        "0.3.2a queue/server code entered browser output",
+      );
+      assert(
         !output.includes("Invalid server environment configuration"),
         "Server validation code entered browser output",
       );

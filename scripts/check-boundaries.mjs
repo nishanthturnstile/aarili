@@ -116,6 +116,8 @@ export function checkBoundaries(sources) {
         continue;
       }
       const workspace = workspaceImport(specifier);
+      if (/^pg-boss(\/|$)/.test(specifier) && layer !== "jobs")
+        fail("pg-boss is accessed only through jobs");
       const target = resolveImport(file, specifier, sources);
       const targetLayer = target && packageOf(target);
       if (
