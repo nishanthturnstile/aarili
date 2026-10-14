@@ -16,6 +16,9 @@ export const tenantPaths = [
   "owner.ownerShop",
   "shops/:shopId",
   "membership-bootstrap",
+  "commandRepository.read/insert/update/correctionExists",
+  "commandRepository.lockKey/replay/persist/audit/expiredKeys",
+  "dev/shops/:shopId/records",
 ];
 const origin = "http://127.0.0.1:3103";
 export function apiRequest(api, path, headers = {}, body) {

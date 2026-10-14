@@ -33,3 +33,29 @@ if (
 console.info(
   "Negative DTO/client fixture rejected all eight health/owner invalid uses by TypeScript 7.",
 );
+const command = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/command-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const commandOutput = command.stdout + command.stderr;
+if (
+  command.status === 0 ||
+  (commandOutput.match(/error TS/g) ?? []).length !== 5 ||
+  ![4, 5, 6, 7, 8].every((line) =>
+    commandOutput.includes(`command-invalid.ts(${line},`),
+  )
+) {
+  console.error(commandOutput);
+  throw new Error(
+    "Negative command fixture must reject wrong DTO/method/missing reason/finalize fields/version types",
+  );
+}
+console.info(
+  "0.2.3 five invalid command DTO/client uses rejected by compiled TypeScript declarations.",
+);

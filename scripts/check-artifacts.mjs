@@ -35,6 +35,12 @@ function inspect(directory) {
         "Server auth entered browser output",
       );
       assert(
+        !output.includes("executeSynthetic") &&
+          !output.includes("commandRepository") &&
+          !output.includes("createCommandRoutes"),
+        "0.2.3 command/server code entered browser output",
+      );
+      assert(
         !output.includes("@t3-oss/env-core"),
         "Server environment package entered browser output",
       );

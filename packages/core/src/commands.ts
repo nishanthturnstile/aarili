@@ -1,0 +1,216 @@
+import {
+  type Actor,
+  actorSchema,
+  type CommandError,
+  etagSchema,
+  idempotencyHeaderSchema,
+  type SyntheticRecord,
+  syntheticCommandSchema,
+  syntheticSuccessSchema,
+} from "@aarili/contracts/command";
+import type {
+  CommandRepository,
+  RequestBinding,
+} from "@aarili/db/repositories/command";
+
+export type CommandContext = {
+  shopId: string;
+  actor: Actor;
+  repository: CommandRepository;
+};
+export class CommandFailure extends Error {
+  constructor(
+    public readonly status: 404 | 409 | 412 | 422 | 428,
+    public readonly body: CommandError,
+  ) {
+    super(body.error.code);
+  }
+}
+function fail(
+  status: CommandFailure["status"],
+  code: CommandError["error"]["code"],
+  current?: SyntheticRecord,
+): never {
+  throw new CommandFailure(status, {
+    error: { code, message: "Command rejected" },
+    ...(current ? { current } : {}),
+  });
+}
+export function versionTag(version: number) {
+  return `"v${version}"`;
+}
+export function expectedVersion(header: string | undefined) {
+  if (header === undefined) fail(428, "PRECONDITION_REQUIRED");
+  if (!etagSchema.safeParse(header).success) fail(422, "VALIDATION_FAILED");
+  return Number(header.slice(2, -1));
+}
+// Canonical JSON v1: sorted UTF-16 keys, JSON string escaping, preserved array
+// order; reject non-JSON values rather than silently omitting/coercing them.
+export function canonicalJson(value: unknown): string {
+  if (value === null || typeof value === "string" || typeof value === "boolean")
+    return JSON.stringify(value);
+  if (typeof value === "number" && Number.isFinite(value))
+    return JSON.stringify(value);
+  if (Array.isArray(value))
+    return `[${Array.from(value, canonicalJson).join(",")}]`;
+  if (
+    typeof value === "object" &&
+    value &&
+    [Object.prototype, null].includes(Object.getPrototypeOf(value))
+  ) {
+    return `{${Object.keys(value)
+      .sort()
+      .map(
+        (key) =>
+          `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`,
+      )
+      .join(",")}}`;
+  }
+  throw new Error("Non-JSON request binding");
+}
+export async function requestHash(value: unknown) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalJson(value)),
+  );
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+export function idempotencyCutoff(now: Date) {
+  return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+}
+
+export async function readSynthetic(ctx: CommandContext, id: string) {
+  const record = await ctx.repository.read(id);
+  if (!record) fail(404, "NOT_FOUND");
+  return record;
+}
+export async function executeSynthetic(
+  ctx: CommandContext,
+  input: unknown,
+  headers: {
+    key?: string | undefined;
+    ifMatch?: string | undefined;
+    requestId: string;
+  },
+  target: string | null,
+) {
+  const parsed = syntheticCommandSchema.safeParse(input);
+  if (!parsed.success) fail(422, "VALIDATION_FAILED");
+  if (!headers.key) fail(422, "IDEMPOTENCY_REQUIRED");
+  if (!idempotencyHeaderSchema.safeParse(headers.key).success)
+    fail(422, "VALIDATION_FAILED");
+  if (
+    !idempotencyHeaderSchema.safeParse(ctx.shopId).success ||
+    !idempotencyHeaderSchema.safeParse(headers.requestId).success ||
+    (target !== null && !idempotencyHeaderSchema.safeParse(target).success)
+  )
+    fail(422, "VALIDATION_FAILED");
+  const key = headers.key.toLowerCase();
+  target = target?.toLowerCase() ?? null;
+  // Only server-resolved users are enabled. Other actor shapes reserve the
+  // contract, not support/import/system entry points or authority.
+  const actor = actorSchema.parse(ctx.actor);
+  if (actor.type !== "user") fail(422, "VALIDATION_FAILED");
+  const command = parsed.data;
+  const version =
+    command.action === "create" ? null : expectedVersion(headers.ifMatch);
+  if ((command.action === "create") !== (target === null))
+    fail(422, "VALIDATION_FAILED");
+  const binding: RequestBinding = {
+    actor,
+    action: `synthetic.${command.action}`,
+    hash: await requestHash({
+      encoding: 1,
+      shopId: ctx.shopId.toLowerCase(),
+      actor,
+      action: command.action,
+      target,
+      version,
+      command,
+    }),
+  };
+  const repo = ctx.repository;
+  await repo.lockKey(key);
+  const prior = await repo.replay(key);
+  if (prior) {
+    if (
+      prior.actor.type !== actor.type ||
+      prior.actor.id !== actor.id ||
+      prior.action !== binding.action ||
+      prior.hash !== binding.hash
+    )
+      fail(422, "IDEMPOTENCY_MISMATCH");
+    return syntheticSuccessSchema.parse(prior.response);
+  }
+  // Replay precedes current-state/version checks. The original precondition is
+  // part of the binding, even when it became stale after the committed effect.
+  const current = target ? await readLocked(repo, target) : undefined;
+  if (current && current.version !== version)
+    fail(412, "VERSION_STALE", current);
+  if (current && command.action !== "correct" && current.finalized)
+    fail(409, "RECORD_FINALIZED");
+  if (
+    command.action === "correct" &&
+    (!current?.finalized || (await repo.correctionExists(current.id)))
+  )
+    fail(409, "REQUEST_CONFLICT");
+  const ids = await repo.ids();
+  const append = command.action === "create" || command.action === "correct";
+  let record: SyntheticRecord;
+  if (command.action === "create") {
+    record = {
+      id: ids.id,
+      eventId: ids.eventId,
+      version: 1,
+      value: command.value,
+      finalized: false,
+      correctionOf: null,
+    };
+  } else {
+    if (!current) fail(404, "NOT_FOUND");
+    record = {
+      id: append ? ids.id : current.id,
+      eventId: ids.eventId,
+      version: append ? 1 : current.version + 1,
+      value: command.action === "finalize" ? current.value : command.value,
+      finalized: command.action === "finalize" || command.action === "correct",
+      correctionOf: command.action === "correct" ? current.id : null,
+    };
+  }
+  if (record.version > 2147483647) fail(409, "REQUEST_CONFLICT");
+  if (append) await repo.insert(record);
+  else {
+    if (version === null) fail(422, "VALIDATION_FAILED");
+    if (!(await repo.update(record, version)))
+      fail(412, "VERSION_STALE", await readSynthetic(ctx, record.id));
+  }
+  await repo.audit({
+    id: ids.eventId,
+    actor,
+    action: binding.action,
+    entityId: record.id,
+    requestId: headers.requestId,
+    key,
+    reason: command.action === "correct" ? command.reason : null,
+    sourceEventId:
+      command.action === "correct"
+        ? (current?.eventId ?? fail(404, "NOT_FOUND"))
+        : null,
+    // No personal values, password/token payloads or caller-supplied provenance.
+    changes: {
+      version: record.version,
+      finalized: record.finalized,
+      valueChanged: current?.value !== record.value,
+    },
+  });
+  const response = syntheticSuccessSchema.parse({ record });
+  await repo.persist(key, binding, response);
+  return response;
+}
+async function readLocked(repo: CommandRepository, id: string) {
+  const record = await repo.read(id, true);
+  if (!record) fail(404, "NOT_FOUND");
+  return record;
+}

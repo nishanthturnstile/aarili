@@ -76,6 +76,18 @@ await withPostgres(async ({ connectionString, stop }) => {
     );
     const missing = await fetch(`http://127.0.0.1:${port}/api/orders`);
     assert.equal(missing.status, 404);
+    for (const path of [
+      "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records",
+      "/api/openapi.json",
+      "/api/docs",
+    ]) {
+      for (const method of ["GET", "POST", "PATCH"])
+        assert.equal(
+          (await fetch(`http://127.0.0.1:${port}${path}`, { method })).status,
+          404,
+          "0.2.3 exemplar/docs must be absent in production",
+        );
+    }
     const preview = await fetch(`http://127.0.0.1:${port}/dev/design-system`);
     assert.equal(
       preview.status,

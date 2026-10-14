@@ -431,7 +431,12 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
       const tables = await runtime.query(
         "SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid AND a.attname='shop_id' AND NOT a.attisdropped WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname <> 'owner_bootstrap'",
       );
-      assert.equal(tables.rowCount, 2);
+      assert.deepEqual(tables.rows.map((row) => row.relname).sort(), [
+        "audit_event",
+        "idempotency_key",
+        "shop",
+        "shop_membership",
+      ]);
       for (const row of tables.rows) {
         assert.equal(row.relrowsecurity, true);
         assert.equal(row.relforcerowsecurity, true);
@@ -671,9 +676,11 @@ test("0.2.1a A6 fixed sign-in lifetime and HTTPS renewal cookies on pending/comp
           ["/owner/complete", "POST", "complete"],
         ]) {
           // Cross the one-hour refresh boundary without a wall-clock wait.
-          await runtime.query(
-            "UPDATE auth_session SET expires_at=now()+interval '10 hours', updated_at=now()-interval '2 hours'",
-          );
+          const previous = (
+            await runtime.query(
+              "UPDATE auth_session SET expires_at=now()+interval '10 hours', updated_at=now()-interval '2 hours' RETURNING updated_at, expires_at",
+            )
+          ).rows[0];
           const renewed = await send(path, undefined, headers, method);
           assert.equal(renewed.status, 200, path);
           assert.equal(JSON.parse(renewed.data).state, state);
@@ -687,12 +694,21 @@ test("0.2.1a A6 fixed sign-in lifetime and HTTPS renewal cookies on pending/comp
           assert.match(cookies[0], /;\s*Secure(?:;|$)/i);
           assert.match(cookies[0], /SameSite=Lax/i);
           assert.equal(cookies[0].includes("session_data"), false);
-          const remaining = (
+          const persisted = (
             await runtime.query(
-              "SELECT extract(epoch FROM expires_at-now())::float AS seconds FROM auth_session",
+              "SELECT updated_at, expires_at, extract(epoch FROM expires_at-updated_at)::float AS seconds FROM auth_session",
             )
-          ).rows[0].seconds;
-          assert.ok(Math.abs(remaining - policy.sessionSeconds) < 2, path);
+          ).rows[0];
+          // Verify the actual stored renewal window, independent of response
+          // latency or clock offset between native Node and container PostgreSQL.
+          // Advancing both instants also prevents an unchanged 10h/2h fixture
+          // from passing merely because its old duration happens to be 12h.
+          assert(persisted.updated_at > previous.updated_at, path);
+          assert(persisted.expires_at > previous.expires_at, path);
+          assert.ok(
+            Math.abs(persisted.seconds - policy.sessionSeconds) < 2,
+            path,
+          );
           headers = { Cookie: cookies[0].split(";")[0] };
         }
       },

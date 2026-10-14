@@ -5,6 +5,7 @@ import {
   healthUnavailableSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createCommandRoutes } from "./commands.js";
 import { createOwnerRoutes } from "./owner.js";
 
 const healthRoute = createRoute({
@@ -25,6 +26,7 @@ const healthRoute = createRoute({
 export function createApi(
   checkDatabase: () => Promise<boolean>,
   owner?: OwnerAuth,
+  environment: "development" | "test" | "production" = "production",
 ) {
   const app = new OpenAPIHono()
     .basePath("/api")
@@ -52,6 +54,8 @@ export function createApi(
       );
     });
   if (owner) app.route("/", createOwnerRoutes(owner));
+  if (owner && environment !== "production")
+    app.route("/", createCommandRoutes(owner));
   app.notFound((c) =>
     c.json(
       apiErrorSchema.parse({

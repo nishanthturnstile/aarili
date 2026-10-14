@@ -14,6 +14,7 @@ import {
   setupCommandSchema,
 } from "@aarili/contracts";
 import { readShop } from "@aarili/core";
+import type { CommandContext } from "@aarili/core/commands";
 import {
   createDatabase,
   type Database,
@@ -24,6 +25,7 @@ import {
   withShop,
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
+import { commandRepository } from "@aarili/db/command-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
@@ -122,6 +124,12 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerCommand: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: CommandContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  commandLimit: () => Promise<number>;
   withOwnerShop: <T>(
     headers: Headers,
     shopId: string,
@@ -470,6 +478,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     policy.setupMax,
     policy.setupWindow,
     "owner-setup",
+  );
+  // Reuse the owner's approved unsafe-request admission rate/window. This
+  // synthetic operational bucket has no new business rate or policy number.
+  const commandLimit = createAbuseLimiter(
+    pool,
+    policy.signInMax,
+    policy.signInWindow,
+    "command",
   );
   const resendLimit = createAbuseLimiter(
     pool,
@@ -869,6 +885,28 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     shopId: string,
     run: (repository: ShopRepository) => Promise<T>,
   ) {
+    return withOwnerTransaction(headers, shopId, (tx) =>
+      run(shopRepository(tx)),
+    );
+  }
+  async function withOwnerCommand<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: CommandContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run({
+        shopId,
+        actor: { type: "user", id: userId },
+        repository: commandRepository(tx, shopId),
+      }),
+    );
+  }
+  async function withOwnerTransaction<T>(
+    headers: Headers,
+    shopId: string,
+    run: (tx: Transaction, userId: string) => Promise<T>,
+  ) {
     // Admission remains owner-only. This boundary authorises by actual session
     // plus own membership, independently of the installation singleton.
     const current = await identity(headers, auth, db, false);
@@ -878,7 +916,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
           await tx.execute(sql`select 1 from auth_session s join auth_user u on u.id=s.user_id
           where s.id=${current.sessionId}::uuid and s.user_id=${current.userId}::uuid and u.email_verified and s.expires_at > now() for share of s, u`);
         if (!live.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
-        return run(shopRepository(tx));
+        return run(tx, current.userId);
       });
       return { data, headers: current.headers };
     } catch (error) {
@@ -1153,6 +1191,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     complete,
     ownerShop,
     withOwnerShop,
+    withOwnerCommand,
+    commandLimit: () => guard(commandLimit),
     googleConnection,
     disconnectGoogle,
     requestRecovery,
