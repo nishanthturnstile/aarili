@@ -7,6 +7,7 @@
         "scripts/test-support/owner-restart.mjs",
         "scripts/test-support/owner-recovery-process.mjs",
         "scripts/test-support/google-transport.mjs",
+        "scripts/test-support/runtime-child.mjs",
         "tests/*.test.ts",
         "tests/*.test.mjs"
       ],

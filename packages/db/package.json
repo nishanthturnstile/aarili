@@ -71,6 +71,14 @@
     "./repositories/restore": {
       "types": "./dist/repositories/restore.d.ts",
       "import": "./dist/repositories/restore.js"
+    },
+    "./repositories/schedules": {
+      "types": "./dist/repositories/schedules.d.ts",
+      "import": "./dist/repositories/schedules.js"
+    },
+    "./schedule-repository": {
+      "types": "./dist/schedule-repository.d.ts",
+      "import": "./dist/schedule-repository.js"
     }
   },
   "scripts": {

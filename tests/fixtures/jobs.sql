@@ -1,5 +1,5 @@
 -- Dev/test-only exemplar. Never installed by product migrations.
-SELECT pgboss.create_queue('foundation.synthetic', '{"policy":"standard","retryLimit":2,"retryDelay":0,"expireInSeconds":60}'::jsonb);
+SELECT pgboss.create_queue('foundation.synthetic', '{"policy":"standard","retryLimit":2,"retryDelay":0,"retryBackoff":false,"expireInSeconds":60,"deadLetter":"foundation.dead"}'::jsonb);
 
 CREATE TABLE synthetic_job_request (
  shop_id uuid NOT NULL REFERENCES shop(shop_id), id uuid NOT NULL,

@@ -14,6 +14,10 @@ import {
 } from "./test-support/jobs.mjs";
 import { withRestoreFixture } from "./test-support/restore.mjs";
 import { createRestoreInspection } from "./test-support/restore-inspection.mjs";
+import {
+  createRuntimeInspection,
+  runtimeCommands,
+} from "./test-support/runtime-inspection.mjs";
 
 export function validateJobsHarness(args, env) {
   if (
@@ -148,11 +152,12 @@ export function createJobsInspection(f) {
 async function main() {
   const mode = validateJobsHarness(process.argv.slice(2), process.env);
   console.info(
-    "0.3.2a/b disposable synthetic PostgreSQL/API/pg-boss proof; real outbound stays disabled, no retained configuration or provider transport loaded.",
+    "0.3.2a/b/c disposable synthetic PostgreSQL/API/pg-boss proof; real outbound stays disabled, no retained configuration or provider transport loaded.",
   );
   await withRestoreFixture(async (f) => {
     const inspection = createJobsInspection(f);
     const restore = createRestoreInspection(f);
+    const runtime = createRuntimeInspection(f);
     const restoreCommands = new Set([
       "guard-status",
       "guard-queue",
@@ -215,6 +220,18 @@ async function main() {
           "auth-probe",
         ])
           await restore.action(name);
+        for (const name of [
+          "runtime-two",
+          "runtime-queue",
+          "runtime-schedule",
+          "runtime-status",
+          "runtime-stop",
+          "runtime-crash-before",
+          "runtime-crash-after",
+          "runtime-timeout",
+          "runtime-stop",
+        ])
+          await runtime.action(name);
       } else {
         const input = createInterface({
           input: process.stdin,
@@ -226,12 +243,16 @@ async function main() {
         console.info(
           `Restore commands: ${[...restoreCommands].join(", ")}. fake-enable affects ONLY the disposable counter configuration. OUTBOUND_EFFECTS and all real adapters remain disabled.`,
         );
+        console.info(
+          `Runtime commands: ${runtimeCommands.join(", ")}. Consumers act asynchronously; runtime-status shows actual state. Start failures/revocation in fresh harnesses before effects.`,
+        );
         try {
           for (;;) {
             const line = (await input.question("jobs> ")).trim();
             if (line === "quit") break;
             try {
-              if (restoreCommands.has(line)) await restore.action(line);
+              if (runtimeCommands.includes(line)) await runtime.action(line);
+              else if (restoreCommands.has(line)) await restore.action(line);
               else await inspection.action(line);
             } catch {
               console.info(
@@ -244,6 +265,7 @@ async function main() {
         }
       }
     } finally {
+      await runtime.cleanup();
       await restore.cleanup();
       await inspection.cleanup();
     }

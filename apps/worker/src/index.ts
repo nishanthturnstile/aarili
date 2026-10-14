@@ -1,23 +1,26 @@
+import {
+  jobRuntimeConfiguration,
+  startJobRuntime,
+  wireJobShutdown,
+} from "@aarili/jobs/runtime";
 import { validateEnvironment } from "@aarili/platform";
 
-validateEnvironment(process.env);
-console.info("aarili-worker ready (no job consumers registered)");
-const keepAlive = setInterval(() => {}, 60_000);
-let stopping = false;
-function shutdown() {
-  if (stopping) return;
-  stopping = true;
-  clearInterval(keepAlive);
-  process.off("SIGINT", shutdown);
-  process.off("SIGTERM", shutdown);
-  process.off("message", onMessage);
-  if (process.connected) process.disconnect();
-  console.info("aarili-worker stopped");
+try {
+  validateEnvironment(process.env);
+  const connectionString = jobRuntimeConfiguration(process.env, "worker");
+  if (!connectionString) throw Error("Worker configuration missing");
+  const runtime = await startJobRuntime(connectionString, { mode: "worker" });
+  wireJobShutdown(runtime, (outcome) => {
+    console.info(`aarili-worker ${outcome}`);
+    if (process.connected) process.disconnect();
+    if (outcome === "timed-out") process.exit(1);
+  });
+  console.info(
+    `aarili-worker ready: ${runtime.handlers.join(", ")}; real providers disabled`,
+  );
+} catch {
+  console.error(
+    "aarili-worker unavailable; inspect runtime configuration and provisioned queues",
+  );
+  process.exitCode = 1;
 }
-function onMessage(message: unknown) {
-  if (message === "shutdown") shutdown();
-}
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-// IPC supplies a graceful path on Windows, where SIGTERM cannot be caught.
-process.on("message", onMessage);

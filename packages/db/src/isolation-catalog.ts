@@ -69,6 +69,19 @@ export async function assertIsolationCatalog(db: Database) {
       throw new Error("Restore control authority drift");
   }
   const queueTables = new Set<string>();
+  const schedules = await db.execute(
+    sql`select to_regclass('job_schedule') as relation`,
+  );
+  if (schedules.rows[0]?.relation) {
+    const access = await db.execute(sql`select
+      has_function_privilege('app_user','configure_job_schedule(uuid,uuid,text,integer,boolean)','EXECUTE') as configure,
+      has_table_privilege('app_user','job_schedule','INSERT,UPDATE,DELETE') as grants,
+      has_table_privilege('app_user','job_schedule_run','INSERT,UPDATE,DELETE') as runs,
+      has_table_privilege('app_user','job_schedule_event','INSERT,UPDATE,DELETE') as history`);
+    const g = access.rows[0];
+    if (!g || g.configure || g.grants || g.runs || g.history)
+      throw Error("Scheduled authority drift");
+  }
   const installed = await db.execute(
     sql`select to_regclass('pgboss.version') as relation`,
   );
@@ -122,7 +135,11 @@ export async function assertIsolationCatalog(db: Database) {
     if (
       queues.rows.some(
         (q) =>
-          q.name !== "foundation.synthetic" ||
+          ![
+            "foundation.synthetic",
+            "foundation.schedule",
+            "foundation.dead",
+          ].includes(String(q.name)) ||
           q.table_name !== "job_common" ||
           q.partition,
       )
@@ -228,6 +245,10 @@ export async function assertIsolationCatalog(db: Database) {
         "public.synthetic_job_request",
         "public.synthetic_job_effect",
         "public.synthetic_job_quarantine",
+        "public.job_schedule_event",
+        "public.job_schedule_run",
+        "public.job_schedule_effect",
+        "public.job_schedule_quarantine",
       ].includes(row.table) &&
       (row.update || row.delete)
     )

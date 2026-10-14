@@ -19,8 +19,11 @@ import { fromDrizzle, PgBoss } from "pg-boss";
 export const syntheticQueue = "foundation.synthetic";
 
 // No privileged URL; uses the supplied app_user database. Provisioning happens
-// separately in reviewed SQL. This slice enables no worker/scheduler topology.
-export async function startSyntheticQueue(db: Database) {
+// separately in reviewed SQL. Runtime composition never provisions queues.
+export async function startSyntheticQueue(
+  db: Database,
+  requiredQueue = syntheticQueue,
+) {
   await requireRuntimeRole(db);
   const boss = new PgBoss({
     db: fromDrizzle(db, sql),
@@ -37,8 +40,7 @@ export async function startSyntheticQueue(db: Database) {
   boss.on("error", () => console.error("Synthetic queue unavailable"));
   try {
     await boss.start();
-    if (!(await boss.getQueue(syntheticQueue)))
-      throw new Error("Queue missing");
+    if (!(await boss.getQueue(requiredQueue))) throw new Error("Queue missing");
     return boss;
   } catch {
     await boss.stop();
@@ -78,7 +80,7 @@ export function syntheticJobWriter(
         values(${payload.shopId}::uuid,${payload.requestId}::uuid,${payload.initiatorId}::uuid,${payload.entityId}::uuid,${payload.version},${key}::uuid,${commandRequestId}::uuid,${state.epoch}::uuid)`);
       const jobId = await boss.send(syntheticQueue, payload, {
         id: payload.requestId,
-        singletonKey: payload.requestId,
+        singletonKey: `${shopId}:${payload.entityId}:${payload.version}`,
         singletonSeconds: 60,
         db: fromDrizzle(tx, sql),
       });
@@ -88,7 +90,11 @@ export function syntheticJobWriter(
   };
 }
 
-export async function handleSyntheticJob(db: Database, input: unknown) {
+export async function handleSyntheticJob(
+  db: Database,
+  input: unknown,
+  beforeCommit: () => Promise<void> = async () => {},
+) {
   const parsed = syntheticJobSchema.safeParse(input);
   if (!parsed.success) return "ignored" as const;
   const p = parsed.data;
@@ -109,7 +115,9 @@ export async function handleSyntheticJob(db: Database, input: unknown) {
       if (typeof inspected === "string") return inspected;
       if (!(await authorizeJobPrincipal(tx, p.initiatorId, p.shopId)))
         return "ignored" as const;
-      return consumeSyntheticJob(context, p);
+      const result = await consumeSyntheticJob(context, p);
+      await beforeCommit();
+      return result;
     });
   } catch (error) {
     if (error instanceof ShopAccessError) {

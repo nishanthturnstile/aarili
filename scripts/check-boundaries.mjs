@@ -158,6 +158,7 @@ export function checkBoundaries(sources) {
       (file.startsWith("apps/web/src/") &&
         !file.startsWith("apps/web/src/app/api/") &&
         !file.startsWith("apps/web/src/server/") &&
+        file !== "apps/web/src/instrumentation.ts" &&
         // App Router server entry points can import client components; the
         // browser graph starts at their explicit client boundary instead.
         (!/\/(page|layout)\.tsx$/.test(file) ||
@@ -205,7 +206,8 @@ export function checkBoundaries(sources) {
       const target = resolveImport(file, specifier, sources);
       if (
         target?.startsWith("apps/web/src/server/") ||
-        target?.startsWith("apps/web/src/app/api/")
+        target?.startsWith("apps/web/src/app/api/") ||
+        target === "apps/web/src/instrumentation.ts"
       )
         errors.push(
           `${file}: browser graph reaches a server entry point: ${specifier}`,

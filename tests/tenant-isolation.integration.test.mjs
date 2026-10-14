@@ -52,6 +52,8 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "restoreRepository.lockState/practice",
       "syntheticJobRepository.restoreState/quarantined/quarantine",
       "syntheticFinancial/fakeOutbound",
+      "scheduleRepository.run/enabled/effected/quarantine/apply",
+      "enqueueDueSchedules/handleScheduledJob/redriveSyntheticJob",
     ]);
     for (const [own, foreign] of [
       [a, b],
@@ -443,6 +445,11 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.idempotency_key",
       "public.isolation_child",
       "public.isolation_parent",
+      "public.job_schedule",
+      "public.job_schedule_effect",
+      "public.job_schedule_event",
+      "public.job_schedule_quarantine",
+      "public.job_schedule_run",
       "public.journal_batch",
       "public.journal_entry",
       "public.shop",
@@ -590,6 +597,11 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
         "public.idempotency_key",
+        "public.job_schedule",
+        "public.job_schedule_effect",
+        "public.job_schedule_event",
+        "public.job_schedule_quarantine",
+        "public.job_schedule_run",
         "public.journal_batch",
         "public.journal_entry",
         "public.shop",

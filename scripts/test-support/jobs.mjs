@@ -34,7 +34,7 @@ export async function withJobsFixture(run) {
     assert.equal(
       (await f.admin.query("select count(*)::int as n from pgboss.queue"))
         .rows[0].n,
-      0,
+      2,
     );
     const migration = await f.migration.connect();
     try {
