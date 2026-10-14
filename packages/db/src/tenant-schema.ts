@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   pgPolicy,
   pgTable,
   primaryKey,
@@ -16,6 +17,7 @@ export const shop = pgTable(
   {
     shopId: uuid("shop_id").primaryKey().default(sql`uuidv7()`),
     name: text("name").notNull(),
+    isPractice: boolean("is_practice").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

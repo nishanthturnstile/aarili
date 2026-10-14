@@ -49,6 +49,9 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "journalRepository.read/source/replay/positions/linked/append",
       "syntheticJobRepository.request/lock/effected/effect",
       "syntheticJobWriter.enqueue/handleSyntheticJob",
+      "restoreRepository.lockState/practice",
+      "syntheticJobRepository.restoreState/quarantined/quarantine",
+      "syntheticFinancial/fakeOutbound",
     ]);
     for (const [own, foreign] of [
       [a, b],

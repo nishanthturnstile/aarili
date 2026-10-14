@@ -149,6 +149,8 @@ test("0.3.2a D3/D4/D6/D7 TRU-01 AC-38 AC-55 real authenticated API â†’ command â
       initiatorId: f.a.user,
       entityId: result.record.id,
       version: 1,
+      epoch: (await f.admin.query("select restore_epoch from system_state"))
+        .rows[0].restore_epoch,
     });
     assert.deepEqual(await (await jobsApiRequest(f, { key })).json(), result);
     assert.equal((await jobsApiRequest(f, { key, value: "beta" })).status, 422);

@@ -12,6 +12,8 @@ const globalTables = new Set([
   "public.owner_verification",
   "public.application_rate_limit",
   "public.aarili_migration",
+  "public.system_state",
+  "public.system_control_event",
 ]);
 type Policy = {
   name: string;
@@ -46,6 +48,26 @@ const normal = (value: string | null) =>
 
 export async function assertIsolationCatalog(db: Database) {
   await requireRuntimeRole(db);
+  const controls = await db.execute(
+    sql`select to_regclass('system_state') as relation`,
+  );
+  if (controls.rows[0]?.relation) {
+    const grants = await db.execute(sql`select
+      has_table_privilege('app_user','system_state','SELECT') as readable,
+      has_table_privilege('app_user','system_state','INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') or has_any_column_privilege('app_user','system_state','INSERT,UPDATE,REFERENCES') as writable,
+      has_table_privilege('app_user','system_control_event','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') or has_any_column_privilege('app_user','system_control_event','SELECT,INSERT,UPDATE,REFERENCES') as history_access,
+      has_function_privilege('app_user','transition_restore_control(uuid,text)','EXECUTE') as transition,
+      pg_has_role('app_user','app_restore_operator','MEMBER') as operator_member`);
+    const g = grants.rows[0];
+    if (
+      !g?.readable ||
+      g.writable ||
+      g.history_access ||
+      g.transition ||
+      g.operator_member
+    )
+      throw new Error("Restore control authority drift");
+  }
   const queueTables = new Set<string>();
   const installed = await db.execute(
     sql`select to_regclass('pgboss.version') as relation`,
@@ -109,8 +131,13 @@ export async function assertIsolationCatalog(db: Database) {
   }
   const roles =
     await db.execute(sql`select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls
-    from pg_roles where rolname in ('app_owner','app_backup','app_privacy')`);
-  for (const name of ["app_owner", "app_backup", "app_privacy"]) {
+    from pg_roles where rolname in ('app_owner','app_backup','app_privacy','app_restore_operator')`);
+  for (const name of [
+    "app_owner",
+    "app_backup",
+    "app_privacy",
+    "app_restore_operator",
+  ]) {
     const role = roles.rows.find((r) => r.rolname === name);
     if (
       !role ||
@@ -200,6 +227,7 @@ export async function assertIsolationCatalog(db: Database) {
         "public.journal_entry",
         "public.synthetic_job_request",
         "public.synthetic_job_effect",
+        "public.synthetic_job_quarantine",
       ].includes(row.table) &&
       (row.update || row.delete)
     )

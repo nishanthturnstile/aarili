@@ -56,6 +56,13 @@ function inspect(directory) {
         "0.3.2a queue/server code entered browser output",
       );
       assert(
+        !output.includes("guardedEffect") &&
+          !output.includes("restoreRepository") &&
+          !output.includes("prospectiveAuthDelivery") &&
+          !output.includes("RESTORE_OPERATOR_DATABASE_URL"),
+        "0.3.2b restore/operator server code entered browser output",
+      );
+      assert(
         !output.includes("Invalid server environment configuration"),
         "Server validation code entered browser output",
       );

@@ -142,7 +142,11 @@ export async function consumeOne(f) {
   if (!job) return "empty";
   try {
     const result = await handleSyntheticJob(f.parallel.db, job.data);
-    await f.boss.complete(syntheticQueue, job);
+    if (result === "quarantined")
+      await f.boss.fail(syntheticQueue, job, { error: "RESTORE_QUARANTINED" });
+    else if (result === "ignored")
+      await f.boss.fail(syntheticQueue, job, { error: "SYNTHETIC_JOB_DENIED" });
+    else await f.boss.complete(syntheticQueue, job);
     return result;
   } catch {
     // No driver error/payload in failure output; pg-boss handles retry state.
