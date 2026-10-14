@@ -46,6 +46,7 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "commandRepository.lockKey/replay/persist/audit/expiredKeys",
       "dev/shops/:shopId/records",
       "moneyFixtureRepository.insert/read",
+      "journalRepository.read/source/replay/positions/linked/append",
     ]);
     for (const [own, foreign] of [
       [a, b],
@@ -437,6 +438,8 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.idempotency_key",
       "public.isolation_child",
       "public.isolation_parent",
+      "public.journal_batch",
+      "public.journal_entry",
       "public.shop",
       "public.shop_membership",
     ]);
@@ -582,6 +585,8 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
         "public.idempotency_key",
+        "public.journal_batch",
+        "public.journal_entry",
         "public.shop",
         "public.shop_membership",
       ]);

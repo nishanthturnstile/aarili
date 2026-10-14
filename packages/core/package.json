@@ -15,6 +15,10 @@
     "./money-fixture": {
       "types": "./dist/money-fixture.d.ts",
       "import": "./dist/money-fixture.js"
+    },
+    "./journal": {
+      "types": "./dist/journal.d.ts",
+      "import": "./dist/journal.js"
     }
   },
   "scripts": {
@@ -23,7 +27,8 @@
   },
   "dependencies": {
     "@aarili/db": "workspace:*",
-    "@aarili/contracts": "workspace:*"
+    "@aarili/contracts": "workspace:*",
+    "@aarili/money": "workspace:*"
   },
   "devDependencies": {
     "typescript": "7.0.2"

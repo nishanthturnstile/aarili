@@ -372,6 +372,9 @@ importers:
       '@aarili/db':
         specifier: workspace:*
         version: link:../db
+      '@aarili/money':
+        specifier: workspace:*
+        version: link:../money
     devDependencies:
       typescript:
         specifier: 7.0.2
