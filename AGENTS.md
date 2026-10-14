@@ -1,8 +1,10 @@
 # Aarili agent instructions
 
-Wave 0 Phase 0.1 tickets have been approved and published. Implement only a
-selected issue when requested and after its direct blockers have merged.
-Later phases retain concrete draft, review and publication approval.
+Wave 0 Phase 0.1 and 0.2 implementation tickets (#2–#6 and #12–#16) are approved
+and merged. The [foundation closeout](docs/agents/Phase_0_Closeout_Acceptance.md)
+records validation and remaining activation gates. Implement only a selected
+approved issue when requested and after its direct blockers have merged.
+Phase 0.3 and later retain concrete draft, review and publication approval.
 
 ## Sources and scope
 
@@ -19,7 +21,7 @@ Later phases retain concrete draft, review and publication approval.
 
 ## Technology conventions
 
-- Follow architecture §§4–5; pin Node 24 LTS, TypeScript 6.x strict, pnpm `packageManager` and exact dependencies in `pnpm-lock.yaml`. Verify documented versions and compatibility before scaffolding; propose a baseline correction if needed. Install P2/P3 packages only with their features.
+- Follow architecture §§4–5; pin Node 24 LTS, TypeScript 7.0.2 strict (the recorded owner-approved workspace correction), pnpm `packageManager` and exact dependencies in `pnpm-lock.yaml`. Preserve the documented declaration/typed-route compatibility corrections; propose any new baseline correction before adoption. Install P2/P3 packages only with their features.
 - Use Hono + `@hono/zod-openapi`, Zod 4 (separate draft/command schemas), Drizzle SQL-style queries + `pg`, pg-boss 12, Better Auth, TanStack Query 5/Table 9, React Hook Form, nuqs and next-intl as specified. shadcn uses Base UI only, Tailwind v4 CSS-first; never mix Radix or add vaul.
 - Use pinned Biome and committed `biome.json`, Knip and TypeScript checks. Respect this tooling; do not add overlapping formatters. No Redis, microservices, event sourcing, separate API service or Better Auth organization plugin.
 - Logged-in UI is client-rendered through typed API clients. Test Tamil/English, phone/tablet/desktop, self-hosted Tamil fonts, accessibility and printer-free PDF sharing (architecture §§7, 9). No cached business data in service workers, browser storage or URLs. Query cache is memory-only and cleared on sign-out/shop switch.

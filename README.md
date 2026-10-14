@@ -1,9 +1,11 @@
 # Aarili
 
-Boutique management portal, currently a workspace, design-system and local
-infrastructure scaffold with database readiness (Wave 0 / slice 0.1.2a).
-Development is synthetic-only. Read AGENTS.md and the product/architecture
-documents before implementing a selected issue.
+Boutique management portal with the merged Wave 0 Phase 0.1/0.2 foundations:
+reproducible workspace, bilingual design system, local infrastructure and health,
+protected owner access/recovery, shop isolation and a tested command/history
+contract. Development is synthetic-only; business workflows and live activation
+remain later scope. See the [foundation acceptance record](docs/agents/Phase_0_Closeout_Acceptance.md).
+Read AGENTS.md and the product/architecture documents before implementing a selected issue.
 
 Use this single local checkout for all development, switching between focused
 topic branches. Do not create Git worktrees or extra feature checkouts. Follow
@@ -56,10 +58,10 @@ pnpm verify
 # Installs and verifies in a disposable temporary directory with spaces:
 pnpm verify:clean
 # Installs Linux dependencies and runs the same checks:
-docker build --progress plain -f Dockerfile.verify -t aarili-issue-5-verify:local .
+docker build --progress plain -f Dockerfile.verify -t aarili-verify:local .
 # Runtime checks use the local Linux engine socket and disposable databases:
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aarili-issue-5-verify:local
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aarili-issue-5-verify:local pnpm test:ui --grep 0.1.2a
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aarili-verify:local
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aarili-verify:local pnpm test:ui
 ~~~
 
 `pnpm format` uses only Biome. The root config intentionally excludes existing
@@ -114,12 +116,55 @@ Doctor checks Windows IPv4/IPv6 exclusions and listeners before startup.
 See [the infrastructure guide and evidence](docs/agents/Issue_4_Local_Infrastructure_Evidence.md)
 for credential handling, failure recovery and the separate explicit destructive reset.
 
+## Synthetic owner access
+
+Follow the [bootstrap runbook](docs/agents/Owner_Bootstrap_Runbook.md) before
+using the owner screens. With local PostgreSQL running, on retained volumes run `pnpm infra:roles` explicitly,
+then provide `MIGRATION_DATABASE_URL` only to the `pnpm db:migrate` process as
+`app_owner`. The reviewed runner takes an advisory lock and checks applied SQL
+hashes. Keep the web `DATABASE_URL` on `app_user`; never place migration/admin
+credentials in the web or worker environment. Preserve retained volumes.
+
+Use ignored `apps/web/.env.local` and the keys in
+`apps/web/.env.example`: explicitly enable `AARILI_SYNTHETIC_AUTH`, use the exact
+loopback `AUTH_ORIGIN`, independently generate `BETTER_AUTH_SECRET` and
+`SETUP_TOKEN`, and select an absolute private `AUTH_CAPTURE_DIRECTORY` outside
+the checkout. Restrict its Windows ACL to the developer account. The runbook
+defines secret generation/handling; do not paste secrets into chat, logs or URLs.
+
+| Screen | What to validate |
+| --- | --- |
+| `/setup` | One-time synthetic owner admission and private-code verification; resume the same pending identity if needed |
+| `/sign-in` | Verified email/password sign-in and recoverable denial |
+| `/owner` | Create the reserved shop once, retain it across restart, sign out and check recent access |
+| `/recovery`, `/reset-password` | Request a captured opaque reset code, set a 15–128-character password and return to sign-in |
+| `/reauthenticate` | Confirm the current password after the five-minute recent-access window |
+| `/connections` | Inspect the disabled Google state; real linking requires its separate activation checklist |
+
+After verified shop completion, remove `SETUP_TOKEN` and restart the web process,
+preserving the auth secret/runtime credential. Completion is permanent in that
+database; restarting or re-adding a token does not reopen setup. Captures are
+private filesystem files, not a web mailbox; remove them after the exercise.
+
+The [recovery runbook](docs/agents/Owner_Recovery_Runbook.md) explains reset,
+session revocation and recent authentication. The
+[Google activation runbook](docs/agents/Owner_Google_Activation_Runbook.md)
+separates simulated provider coverage from actual credentials, matching verified
+identity, exact redirect/origin and approved real-provider smoke. Google remains
+disabled unless separately enabled; no manually fetched Google access token is
+needed for local validation. Production auth email still requires 0.3.2 suppression
+guards and the domain/DNS/provider gates. Public signup remains closed.
+
 ## Package boundaries
 
 apps/web mounts packages/api in one Node runtime route. packages/contracts
-owns Zod-derived health/error DTOs; api/client exports the browser-safe typed
-Hono client with runtime wire validation. packages/platform owns server-only
-environment validation and the operational database readiness probe.
+owns health, owner and command DTOs. The API's `client` export provides
+browser-safe typed health/owner/command calls and wire validation; route
+composition remains server-only.
+packages/core holds framework-free command policies; packages/db supplies
+transaction-bound repositories and shop context. packages/auth composes
+server-only sessions, owner access and membership checks. packages/platform
+owns server-only environment validation and operational database readiness.
 packages/ui owns the canonical globals.css, Tailwind v4 tokens, locally served
 Noto Sans/Noto Sans Tamil and Base UI controls. See the
 [design-system guide and acceptance evidence](docs/agents/Issue_3_Design_System_Evidence.md)
@@ -165,19 +210,20 @@ Testcontainers; no development or production database credentials are supplied.
 Workflow tokens are read-only, checkout credentials are not persisted, and no
 production promotion or deployment occurs.
 
-The daily audit schedule activates on main after merge. Weekly compatible
+The daily audit schedule runs on main. Weekly compatible
 updates, manual major approval and immediate vulnerability-fix policy are in
-`renovate.json`. Hosted Renovate access requires owner activation/confirmation;
-configuration alone does not prove the bot is running. See
+`renovate.json`. Selected-repository Renovate activity and an actual successful
+scheduled audit were observed on 14 October 2026; see the
+[current acceptance record](docs/agents/Phase_0_Closeout_Acceptance.md). See
 [the dependency policy](docs/agents/Dependency_Update_Policy.md) and
 [issue #6 evidence](docs/agents/Issue_6_CI_Gates_Evidence.md) for actual check-run
 and protection read-back evidence, activation limits and advisory handling.
 
-## Outstanding safeguards
+## Foundation scope and remaining gates
 
 GET /api/healthz now checks application and PostgreSQL readiness, returning a
 schema-defined 200 or sanitized 503 with `Cache-Control: no-store`. Unknown API routes and unsupported
-methods return a shared error. Issue #12 adds protected synthetic owner setup,
+methods return a shared error. Merged issue #12 adds protected synthetic owner setup,
 opaque-code verification, verified database sessions and initial shop creation.
 See [the owner bootstrap runbook](docs/agents/Owner_Bootstrap_Runbook.md) for
 separate migration/runtime credentials, local private capture, recovery and
@@ -191,14 +237,20 @@ before `pnpm db:migrate` with the separate app_owner migration configuration;
 do not reset the volume. Fresh volumes provision the roles during initialization.
 See [shop isolation evidence and upgrade procedure](docs/agents/Issue_15_Shop_Isolation_Evidence.md).
 
-The first shop/membership already has forced RLS and real PostgreSQL negative,
-concurrency, rollback and restart coverage. Full tenancy/access matrices,
-general idempotency/versioning/history, money, transactional queueing, private
-media, privacy/recovery and pilot workflows remain later tickets. Playwright/axe
-covers the owner flows as well as the design-system/health surfaces, in Tamil
-and English at three sizes. Tamil PDF shaping/goldens and physical-device/real-IME
-checks remain later gates; simulated browser input does not complete them.
-No real customer data is permitted.
+Merged issues #13/#14 add recovery, recent authentication and explicitly linked
+allow-listed Google control, with simulated provider coverage. Issue #15 proves
+forced RLS for all current tenant tables/registered paths. Issue #16 proves
+atomic idempotency, ETag conflicts and protected history through a dev/test-only
+record exemplar; its routes are absent from production. See the
+[command evidence](docs/agents/Issue_16_Command_Contract_Evidence.md).
+
+Each new business table/path must repeat these safeguards. Exact money,
+transactional queueing and restore/outbound suppression, private media,
+privacy execution and pilot workflows remain later tickets. Playwright/axe
+covers design-system, health and owner flows in Tamil/English at three sizes;
+owner responsive, actual Tamil input and screen-reader results are recorded in
+the acceptance record. Physical-device hosting review, Tamil PDF shaping/goldens
+and the full recovery/pilot gates remain separate. No real customer data is permitted.
 
 See [the acceptance evidence and compatibility decisions](docs/agents/Issue_2_Workspace_Evidence.md)
 for exact generator options, version checks, limitations and rollback.

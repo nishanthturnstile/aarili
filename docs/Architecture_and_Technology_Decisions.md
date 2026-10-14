@@ -2,7 +2,7 @@
 ## Architecture and Technology Decisions
 
 **Date:** 12 October 2026
-**Document status:** Final baseline for the Phase 1 build. Package versions are as of 12 October 2026.
+**Document status:** Final baseline for the Phase 1 build. Package versions are the 12 October 2026 snapshot with the recorded workspace compatibility correction below.
 **Companion to:** [Final Product Plan](Boutique_Business_Management_Final_Product_Plan.md). That document defines what the product must do. This one defines how it is built, hosted and operated. Requirement IDs (for example USE-01, TRU-10, AC-49) refer to the product plan.
 **Audience:** The developer (the owner, working with AI coding assistance) and any reviewer of technical decisions.
 
@@ -70,7 +70,7 @@ Five things are built in from the first commit, because they are cheap now and v
 | Budget | Under **$20/month** (dev + prod) during development; up to about **$50/month** during the pilot |
 | Connectivity | **Phase 1 is online-only.** The PWA is installable but does not capture data offline. Offline capture is an optional extension (product plan Section 31.2) |
 | Object storage | **Railway Storage Buckets** (private, Singapore). Add a Cloudflare R2 public bucket for gallery images only if gallery traffic grows. Backblaze B2 holds the off-site copy |
-| Lint and format | **Biome + Knip**, with **TypeScript pinned to 6.x** |
+| Lint and format | **Biome + Knip**, with **TypeScript pinned to 7.0.2** (approved workspace correction, §5.1) |
 | Documentation | This single architecture document |
 
 ## 3. Architectural drivers
@@ -124,7 +124,7 @@ These rules govern how each core technology is used.
 | Layer | Choice | Version | Phase | Notes |
 |---|---|---|---|---|
 | Runtime | Node.js LTS | 24.x LTS | P1 | Same runtime for web, worker, tests and CI |
-| Language | TypeScript, strict mode | **6.0.3 (pinned)** | P1 | Stay on 6.x until Next.js and tooling support TypeScript 7 |
+| Language | TypeScript, strict mode | **7.0.2 (pinned)** | P1 | Recorded owner-approved workspace correction; strict declarations and Next typed routes verified in 0.1.1a |
 | Package manager / monorepo | pnpm workspaces + Turborepo | pnpm: current release, pinned in `packageManager`; turbo 2.11.7 | P1 | Allows the API to be extracted later |
 | Web framework | Next.js App Router, `output: 'standalone'`, Node runtime | 16.4.0 | P1 | Public gallery server rendering; one deployable |
 | UI runtime | React | 19.3.0 | P1 | ? |
@@ -137,6 +137,15 @@ These rules govern how each core technology is used.
 | Object storage | Railway Storage Buckets (S3-compatible), accessed through `@aws-sdk/client-s3` + `s3-request-presigner` | SDK 3.1149.0 | P1 | Managed, Singapore region, free egress |
 | Off-site backup | Backblaze B2 with a key that cannot delete; `pg_dump`, `age` encryption and `rclone copy` | ? | P1 | Recovery that does not depend on Railway (TRU-10) |
 | Hosting | Railway, Singapore (`asia-southeast1-eqsg3a`), dev and prod environments in one project; workspace on Hobby during synthetic development and **on Pro before real data** | ? | P1 | Buckets, cron, point-in-time recovery and private networking |
+
+**Recorded workspace correction:** Phase 0.1 adopted owner-approved TypeScript
+7.0.2 with Next 16.4.0 and React 19.3.0. The exact JSX compatibility alias,
+ES2024 library declarations and separate generated route-type configurations
+preserve strict checking; `skipLibCheck=false` and typed routes remain enabled.
+[Issue #2 evidence](agents/Issue_2_Workspace_Evidence.md) records the registry,
+generator and native/Linux verification. This reconciles the earlier 6.x text;
+it does not authorise a new compiler upgrade or early installation of planned
+P1/P2/P3 packages. Installed exact versions remain in manifests and the lockfile.
 
 ### 5.2 User interface
 
@@ -193,7 +202,7 @@ These rules govern how each core technology is used.
 - **The product is a modular monolith:** one database, one set of business services, two entry points (the Next.js web app and a worker).
 - **Modules are boundaries in the code, not network boundaries.** They map to the product plan's sections.
 - Microservices, event sourcing, a separate API service, a search cluster and a cache server are all **not** used in Phase 1.
-- **Also not used:** Redis, self-hosted storage or monitoring, third-party product analytics, the Better Auth organization plugin, TanStack Form/DB/Start, ESLint/Prettier, and TypeScript 7 (until Next.js supports it).
+- **Also not used:** Redis, self-hosted storage or monitoring, third-party product analytics, the Better Auth organization plugin, TanStack Form/DB/Start, and ESLint/Prettier.
 
 ### 6.2 Monorepo layout
 

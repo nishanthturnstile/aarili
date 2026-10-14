@@ -71,10 +71,11 @@ unregistered directory. This leftover is not an active Git worktree.
 Linux verification installs its own dependencies in Docker Desktop's Linux
 engine and never mounts or copies Windows node_modules.
 
-The integrated main documentation predates the owner's 13 October instructions
-and still names TypeScript 6/planning approval. The explicit issue and supplied
-AGENTS.md supersede that stale text for this implementation. Existing owner
-documentation edits in the original checkout are not included in this PR.
+At issue #2 implementation, integrated main documentation predated the owner's
+13 October instructions and still named TypeScript 6/planning approval. The
+explicit issue and supplied instructions governed that implementation; existing
+owner documentation edits were not included in its PR. The current baseline is
+reconciled in the [foundation closeout](Phase_0_Closeout_Acceptance.md).
 
 | Issue acceptance criterion | Command or evidence |
 | --- | --- |
