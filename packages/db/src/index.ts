@@ -10,6 +10,14 @@ export function createDatabase(connectionString: string, max = 5) {
     max,
     connectionTimeoutMillis: 3000,
   });
+  // A backend may disappear while a transaction awaits non-SQL work. Keep
+  // checked-out and idle client error events from becoming an uncaught process
+  // exception. Queries/COMMIT still reject; pg discards the broken connection.
+  // Never log the driver error, connection string or statement parameters.
+  const connectionLost = () =>
+    console.error("Runtime database connection lost");
+  pool.on("error", connectionLost);
+  pool.on("connect", (client) => client.on("error", connectionLost));
   return { pool, db: drizzle({ client: pool }) };
 }
 export type Database = ReturnType<typeof createDatabase>["db"];

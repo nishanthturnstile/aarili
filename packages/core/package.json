@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
     }
   },
   "scripts": {
@@ -14,7 +18,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@aarili/db": "workspace:*"
+    "@aarili/db": "workspace:*",
+    "@aarili/contracts": "workspace:*"
   },
   "devDependencies": {
     "typescript": "7.0.2"

@@ -158,6 +158,7 @@ TRU-11's other integrations and support access remain later scope.
 - **Outcome:** Thin zod-openapi routes and framework-free core services share one transaction and error shape. Version/ETag/If-Match and actor/action/request-bound idempotency commit with business changes, audit and job records. Runtime grants/triggers protect finalised history as each table arrives; explicit privacy functions are the only erasure exception.
 - **Dependencies:** 0.2.2.
 - **Verification:** A synthetic protected-record command proves 428/412/409/422, same-key replay, changed-payload rejection, concurrent duplicate serialization and rollback with no partial audit/effect. Contract/OpenAPI generation and per-module compiled clients pass CI. Finalised history refuses ordinary mutation.
+- **Implementation trace:** [Issue #16](https://github.com/nishanthturnstile/aarili/issues/16), with [E1–E10 acceptance evidence and migration/recovery limits](agents/Issue_16_Command_Contract_Evidence.md). The exemplar schema/routes remain dev/test-only. Queue enlistment, restore/outbound suppression and scheduled purging are not established here; 0.3.2 owns actual durable jobs, with retention/privacy execution in its named later slices. Review/merge and external activation retain their separate gates.
 
 ### Phase 0.3 — Establish Exact Money and Durable Work
 

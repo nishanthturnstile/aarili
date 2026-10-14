@@ -27,6 +27,18 @@
     "./isolation-catalog": {
       "types": "./dist/isolation-catalog.d.ts",
       "default": "./dist/isolation-catalog.js"
+    },
+    "./command-repository": {
+      "types": "./dist/command-repository.d.ts",
+      "import": "./dist/command-repository.js"
+    },
+    "./repositories/command": {
+      "types": "./dist/repositories/command.d.ts",
+      "import": "./dist/repositories/command.js"
+    },
+    "./command-schema": {
+      "types": "./dist/command-schema.d.ts",
+      "import": "./dist/command-schema.js"
     }
   },
   "scripts": {
@@ -35,7 +47,8 @@
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",
-    "pg": "8.23.1"
+    "pg": "8.23.1",
+    "@aarili/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/pg": "8.23.1",

@@ -42,6 +42,9 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "owner.ownerShop",
       "shops/:shopId",
       "membership-bootstrap",
+      "commandRepository.read/insert/update/correctionExists",
+      "commandRepository.lockKey/replay/persist/audit/expiredKeys",
+      "dev/shops/:shopId/records",
     ]);
     for (const [own, foreign] of [
       [a, b],
@@ -429,6 +432,8 @@ test("0.2.2 D5/D7 same physical connection A → empty → B after commit, callb
 test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schema drift and privilege escalation", async () => {
   await withTenantFixture(async ({ runtime, migration, admin }) => {
     assert.deepEqual(await assertIsolationCatalog(runtime.db), [
+      "public.audit_event",
+      "public.idempotency_key",
       "public.isolation_child",
       "public.isolation_parent",
       "public.shop",
@@ -574,6 +579,8 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         2,
       );
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
+        "public.audit_event",
+        "public.idempotency_key",
         "public.shop",
         "public.shop_membership",
       ]);
