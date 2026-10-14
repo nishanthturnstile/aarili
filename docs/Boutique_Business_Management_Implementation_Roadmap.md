@@ -98,6 +98,11 @@ See [issue #5 evidence](agents/Issue_5_Database_Health_Evidence.md) and
 Renovate activation gap. Parent-slice completion still requires integrated
 main after owner merge; the later AC-38/AC-55 integrity gates remain separate.
 
+Portable verification closeout [issue #29](https://github.com/nishanthturnstile/aarili/issues/29)
+repairs packaging of the canonical role SQL required by the merged safeguard
+tests; [its evidence](agents/Issue_29_Portable_Verification_Evidence.md) records
+the reproduced clean-copy failure and native/Linux verification results.
+
 - **Scope:** Mandatory prerequisite; architecture §§12.2, 12.4, 15.
 - **Outcome:** An actual web/Hono health path reaches PostgreSQL. GitHub Actions runs Biome, Knip, typecheck, Vitest/property tests, Testcontainers, production build and initial phone/tablet/desktop Playwright/axe smoke tests. Add checks as real behaviours land; no dummy passing checks. Pin Actions to SHAs, audit dependencies and configure Renovate/security handling.
 - **Dependencies:** 0.1.1; authenticated GitHub configuration when enabling required checks.
