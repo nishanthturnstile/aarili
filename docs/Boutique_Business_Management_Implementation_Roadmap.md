@@ -3,7 +3,11 @@
 **Target document:** `docs/Boutique_Business_Management_Implementation_Roadmap.md`  
 **Planning baseline:** [Boutique Business Management Final Product Plan](Boutique_Business_Management_Final_Product_Plan.md), dated 12 October 2026  
 **Technical baseline:** [Architecture and Technology Decisions](Architecture_and_Technology_Decisions.md), dated 12 October 2026
-**Status:** Proposed for owner review. No implementation or GitHub Issue generation is authorised by this document alone.
+**Status:** Phase 0.1 and 0.2 implementation tickets are approved and merged;
+[foundation closeout](agents/Phase_0_Closeout_Acceptance.md) records their actual
+acceptance evidence and activation limits. Phase 0.3 and later retain concrete
+draft, review and publication approval. This roadmap alone authorises no new
+implementation or GitHub Issue generation; later release allocation remains provisional.
 
 ## 1. Roadmap purpose and planning basis
 
@@ -78,12 +82,16 @@ Each slice delivers schema/migrations where needed, core policies, validated API
 
 ### Phase 0.1 — Establish the Workspace and Verification Path
 
+Implementation issues #2–#6 and maintenance closeouts #22/#29 are merged.
+See the [current acceptance record](agents/Phase_0_Closeout_Acceptance.md) for
+integrated verification, repository activation and owner manual results.
+
 #### Functionality — Reproducible builds and reviewable delivery
 
 ##### Vertical Slice 0.1.1 — Resolve Compatibility and Bootstrap the Workspace
 
 - **Scope:** Mandatory prerequisite; architecture §§4–6, 11.4, 12.4.
-- **Outcome:** Pin Node 24, TypeScript 6.x strict, pnpm and compatible exact P1 versions; create pnpm/Turborepo web/worker and the minimal real package boundaries. Commit lockfile, Biome/Knip/config, safe environment examples, local PostgreSQL/S3-emulator Compose and README commands. Enforce the §6.2 import matrix. Verify Base UI/Table 9 recipes; no RC adoption or Radix mixing. Create module folders/packages when first needed.
+- **Outcome:** Pin Node 24, owner-approved TypeScript 7.0.2 strict (architecture §5.1 correction), pnpm and compatible exact P1 versions; create pnpm/Turborepo web/worker and the minimal real package boundaries. Commit lockfile, Biome/Knip/config, safe environment examples, local PostgreSQL/S3-emulator Compose and README commands. Enforce the §6.2 import matrix. Verify Base UI/Table 9 recipes; no RC adoption or Radix mixing. Create module folders/packages when first needed.
 - **Dependencies:** Roadmap approval. No dependency on cloud provisioning.
 - **Verification:** Clean frozen-lockfile install, workspace typecheck/lint and web/worker production build; negative import-boundary example is rejected. Confirm required engines/peers and PostgreSQL extensions; record any baseline conflict before changing versions.
 
@@ -91,17 +99,19 @@ Each slice delivers schema/migrations where needed, core policies, validated API
 
 Implementation split: approved issue #5 (**0.1.2a**) covers runnable database
 readiness, typed health UI and local Windows/Linux PostgreSQL/browser evidence;
-issue #5 merged in PR #10. Issue #6 (**0.1.2b**) implements the real CI checks,
+issue #5 merged in PR #10. Merged issue #6 (**0.1.2b**) implements the real CI checks,
 negative/positive gate proof, required main protection and dependency policy.
 See [issue #5 evidence](agents/Issue_5_Database_Health_Evidence.md) and
-[issue #6 evidence](agents/Issue_6_CI_Gates_Evidence.md), including its external
-Renovate activation gap. Parent-slice completion still requires integrated
-main after owner merge; the later AC-38/AC-55 integrity gates remain separate.
+[issue #6 evidence](agents/Issue_6_CI_Gates_Evidence.md). Its historical Renovate
+activation gap is closed by observed bot activity; an actual scheduled audit
+also passed. Integrated results and dates are in the current acceptance record.
+The implemented AC-38/AC-55 foundation proofs are recorded under Phase 0.2;
+later business paths still require their own integrity tests.
 
 Portable verification closeout [issue #29](https://github.com/nishanthturnstile/aarili/issues/29)
-repairs packaging of the canonical role SQL required by the merged safeguard
-tests; [its evidence](agents/Issue_29_Portable_Verification_Evidence.md) records
-the reproduced clean-copy failure and native/Linux verification results.
+merged in PR #30. It packages the canonical role SQL and Linux OpenSSL test
+prerequisite; [its evidence](agents/Issue_29_Portable_Verification_Evidence.md)
+records the reproduced failures and native/Linux verification results.
 
 - **Scope:** Mandatory prerequisite; architecture §§12.2, 12.4, 15.
 - **Outcome:** An actual web/Hono health path reaches PostgreSQL. GitHub Actions runs Biome, Knip, typecheck, Vitest/property tests, Testcontainers, production build and initial phone/tablet/desktop Playwright/axe smoke tests. Add checks as real behaviours land; no dummy passing checks. Pin Actions to SHAs, audit dependencies and configure Renovate/security handling.
@@ -109,6 +119,10 @@ the reproduced clean-copy failure and native/Linux verification results.
 - **Verification:** Run locally and in CI on a review branch; database outage makes health fail; no server secrets in browser output. Require the actual check names on main once the workflow exists, then confirm protection. No remote change occurs in this planning task.
 
 ### Phase 0.2 — Protect Identity, Tenancy and Business Commands
+
+Implementation issues #12–#16 are merged. This completes their synthetic
+foundation scope, with owner manual results in the acceptance record; real
+provider activation and the full product/pilot gates remain separate.
 
 #### Functionality — Controlled owner access and tenant transactions
 
@@ -124,9 +138,9 @@ implements only protected synthetic owner admission, verification/sign-in and
 initial shop/membership. Its first-table RLS prerequisite, recovery runbook and
 acceptance evidence are recorded in
 [Issue_12_Owner_Bootstrap_Evidence.md](agents/Issue_12_Owner_Bootstrap_Evidence.md).
-Google linking, general command contracts and comprehensive tenancy remain
-subsequent scoped outcomes. This
-does not satisfy full BIZ-01 onboarding or authorize outbound email/live use.
+Recovery, Google linking, command contracts and comprehensive current-path
+tenancy are separately implemented and recorded below. This does not satisfy
+full BIZ-01 onboarding or authorize outbound email/live use.
 
 **0.2.1 recovery/session traceability:** [Issue #13](https://github.com/nishanthturnstile/aarili/issues/13)
 adds synthetic owner password recovery, database session termination and a
@@ -153,7 +167,7 @@ TRU-11's other integrations and support access remain later scope.
 - **Outcome:** Separate app_owner/app_user/backup/privacy roles; shop and own-membership policy bootstrap; `withShop()` transaction-local user/shop/actor settings. Non-null shop_id, composite tenant foreign keys, shop-led uniqueness/indexes, FORCE RLS read/write policies. Auth identities and pg-boss remain confined exceptions.
 - **Dependencies:** 0.2.1.
 - **Verification:** Two synthetic shops; guessed IDs, missing/empty context, cross-shop writes/links, rollback, pooled-connection reuse and switching all fail closed. CI introspects all tenant tables for FORCE plus read/write policies. Repeat leak tests whenever a repository/search/export/media/job/AI path is added.
-- **Implementation trace:** [Issue #15](https://github.com/nishanthturnstile/aarili/issues/15), with [acceptance evidence and retained-volume procedure](agents/Issue_15_Shop_Isolation_Evidence.md). Review/merge and external activation remain separate gates.
+- **Implementation trace:** Merged [issue #15](https://github.com/nishanthturnstile/aarili/issues/15), with [acceptance evidence and retained-volume procedure](agents/Issue_15_Shop_Isolation_Evidence.md). Repeat the matrix as new tenant tables/paths arrive; shared-team and external activation gates remain separate.
 
 #### Functionality — Atomic, attributable and retry-safe mutations
 
@@ -163,7 +177,7 @@ TRU-11's other integrations and support access remain later scope.
 - **Outcome:** Thin zod-openapi routes and framework-free core services share one transaction and error shape. Version/ETag/If-Match and actor/action/request-bound idempotency commit with business changes, audit and job records. Runtime grants/triggers protect finalised history as each table arrives; explicit privacy functions are the only erasure exception.
 - **Dependencies:** 0.2.2.
 - **Verification:** A synthetic protected-record command proves 428/412/409/422, same-key replay, changed-payload rejection, concurrent duplicate serialization and rollback with no partial audit/effect. Contract/OpenAPI generation and per-module compiled clients pass CI. Finalised history refuses ordinary mutation.
-- **Implementation trace:** [Issue #16](https://github.com/nishanthturnstile/aarili/issues/16), with [E1–E10 acceptance evidence and migration/recovery limits](agents/Issue_16_Command_Contract_Evidence.md). The exemplar schema/routes remain dev/test-only. Queue enlistment, restore/outbound suppression and scheduled purging are not established here; 0.3.2 owns actual durable jobs, with retention/privacy execution in its named later slices. Review/merge and external activation retain their separate gates.
+- **Implementation trace:** Merged [issue #16](https://github.com/nishanthturnstile/aarili/issues/16), with [E1–E10 acceptance evidence and migration/recovery limits](agents/Issue_16_Command_Contract_Evidence.md). The exemplar schema/routes remain dev/test-only. Queue enlistment, restore/outbound suppression and scheduled purging are not established here; 0.3.2 owns actual durable jobs, with retention/privacy execution in its named later slices. New business capabilities and external activation retain their separate gates.
 
 ### Phase 0.3 — Establish Exact Money and Durable Work
 
