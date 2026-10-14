@@ -105,6 +105,35 @@ Checks and updated description after push; local passing results alone do not
 assert hosted success. Owner human acceptance and later restore/provider/pilot
 gates remain distinct from these automated repair results.
 
+The first repair head `8702bd6` cleared both hosted Scaffold verification and
+Dependency audit runs; its push Browser smoke run passed. Its PR browser run
+reported 44 passes and one English-tablet Google callback failure: `main[lang]`
+was `ta` when the test expected `en` on the replacement connections document.
+The test could satisfy a focus check and change language on the outgoing page
+before a same-path OAuth callback navigation committed. This failure is retained
+in [the PR browser job](https://github.com/nishanthturnstile/aarili/actions/runs/38576982757/job/115896561946).
+
+The Google browser fixture now registers a matching main-frame navigation
+barrier before OAuth actions, waits for the returned document's DOMContentLoaded
+and asserts locale selection before continuing. Context7 Playwright docs confirm
+that a current-URL match can short-circuit waitForURL; a new-frame navigation
+event distinguishes the callback from the outgoing page. Existing private
+capture, keyboard/focus, axe, authority and language assertions stay intact.
+No production UI, auth policy, timeout, retry count or assertion was weakened.
+The previously failing English-tablet workflow passed ten consecutive runs via
+`node scripts/test-ui.mjs tests/ui/owner-google.spec.mjs --project tablet --grep
+' en Google' --repeat-each 10` (3.7 minutes). This is stress coverage, not a
+retry policy: the configured automatic retry count remains zero. Full aggregate
+`pnpm test:ui` then passed all 45 cases in 6.6 minutes with the barrier in place.
+The same failing English-tablet workflow passed ten additional consecutive
+Linux runs in the clean verification image (4.6 minutes), using a read-only
+mount of the updated test file. Databases and verification container cleaned up.
+The subsequent exact-head hosted outcome is recorded in the PR description
+after those checks finish. Full verification/runtime evidence above remains
+applicable: this follow-up changes only browser test synchronization and
+documentation; application, migration, dependency and strict compiler inputs
+are unchanged. Fresh lint/Knip and whitespace checks also pass.
+
 ## Transaction, authority and durable history
 
 `@aarili/jobs` is the real vendor/runtime boundary. Only that package imports
