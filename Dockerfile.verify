@@ -10,6 +10,9 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
 COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/core/package.json ./packages/core/
+COPY packages/jobs/package.json ./packages/jobs/
+COPY packages/money/package.json ./packages/money/
 COPY packages/platform/package.json ./packages/platform/
 COPY packages/ui/package.json ./packages/ui/
 COPY patches ./patches

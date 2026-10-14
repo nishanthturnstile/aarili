@@ -27,6 +27,10 @@
     "./restore": {
       "types": "./dist/restore.d.ts",
       "import": "./dist/restore.js"
+    },
+    "./schedules": {
+      "types": "./dist/schedules.d.ts",
+      "import": "./dist/schedules.js"
     }
   },
   "scripts": {

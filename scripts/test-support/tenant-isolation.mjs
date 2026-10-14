@@ -26,6 +26,8 @@ export const tenantPaths = [
   "restoreRepository.lockState/practice",
   "syntheticJobRepository.restoreState/quarantined/quarantine",
   "syntheticFinancial/fakeOutbound",
+  "scheduleRepository.run/enabled/effected/quarantine/apply",
+  "enqueueDueSchedules/handleScheduledJob/redriveSyntheticJob",
 ];
 const origin = "http://127.0.0.1:3103";
 export function apiRequest(api, path, headers = {}, body) {

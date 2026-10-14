@@ -52,6 +52,8 @@ function inspect(directory) {
       assert(
         !output.includes("syntheticJobWriter") &&
           !output.includes("handleSyntheticJob") &&
+          !output.includes("startJobRuntime") &&
+          !output.includes("configure_job_schedule") &&
           !output.includes("pg-boss"),
         "0.3.2a queue/server code entered browser output",
       );

@@ -248,6 +248,9 @@ importers:
       '@aarili/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@aarili/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
       '@aarili/platform':
         specifier: workspace:*
         version: link:../../packages/platform
@@ -291,6 +294,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@aarili/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
       '@aarili/platform':
         specifier: workspace:*
         version: link:../../packages/platform

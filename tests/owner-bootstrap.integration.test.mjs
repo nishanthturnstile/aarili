@@ -434,6 +434,11 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
       assert.deepEqual(tables.rows.map((row) => row.relname).sort(), [
         "audit_event",
         "idempotency_key",
+        "job_schedule",
+        "job_schedule_effect",
+        "job_schedule_event",
+        "job_schedule_quarantine",
+        "job_schedule_run",
         "journal_batch",
         "journal_entry",
         "shop",

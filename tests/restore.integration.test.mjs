@@ -63,15 +63,37 @@ test("0.3.2b E1/E2/E6 AC-56 combined epoch/authority revocation never silently c
     );
     for (let attempt = 0; attempt < 6; attempt++)
       assert.equal(await consumeOne(f), "quarantined");
-    const rows = (await f.admin.query("select state,output from pgboss.job"))
-      .rows;
-    assert.equal(rows.length, 2);
+    const rows = (
+      await f.admin.query(
+        "select name,state,output,data,source_name,source_id,source_output from pgboss.job",
+      )
+    ).rows;
+    assert.equal(rows.length, 4);
+    const originals = rows.filter((row) => row.name === "foundation.synthetic");
+    const dead = rows.filter((row) => row.name === "foundation.dead");
+    assert.equal(originals.length, 2);
+    assert.equal(dead.length, 2);
     assert(
-      rows.every(
+      originals.every(
         (row) =>
           row.state === "failed" && row.output.error === "RESTORE_QUARANTINED",
       ),
     );
+    assert(
+      dead.every(
+        (row) =>
+          row.state === "created" &&
+          row.source_name === "foundation.synthetic" &&
+          row.source_output.error === "RESTORE_QUARANTINED",
+      ),
+    );
+    for (const row of dead) {
+      const original = originals.find(
+        (source) => source.data.requestId === row.source_id,
+      );
+      assert(original);
+      assert.deepEqual(row.data, original.data);
+    }
     const quarantine = (
       await f.admin.query("select shop_id from synthetic_job_quarantine")
     ).rows;

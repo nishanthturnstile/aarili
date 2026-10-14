@@ -1,6 +1,26 @@
 import { expect, test } from "vitest";
 import { checkBoundaries } from "../scripts/check-boundaries.mjs";
 
+test("0.3.2c F1 server instrumentation is an exact server entry; browser imports remain forbidden", () => {
+  const sources = new Map([
+    [
+      "apps/web/src/instrumentation.ts",
+      'export async function register() { await import("@aarili/jobs/runtime"); }',
+    ],
+    ["packages/jobs/src/runtime.ts", 'export const runtime = "server";'],
+  ]);
+  expect(checkBoundaries(sources)).toEqual([]);
+  sources.set(
+    "apps/web/src/app/page.tsx",
+    '"use client"; import "@/instrumentation";',
+  );
+  expect(checkBoundaries(sources)).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining("browser graph reaches a server entry point"),
+    ]),
+  );
+});
+
 test("0.1.1a / architecture §6.2 rejects framework and vendor imports in core", () => {
   for (const code of [
     'import { Hono } from "hono";',
