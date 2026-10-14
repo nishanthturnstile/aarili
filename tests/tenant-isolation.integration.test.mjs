@@ -47,6 +47,8 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "dev/shops/:shopId/records",
       "moneyFixtureRepository.insert/read",
       "journalRepository.read/source/replay/positions/linked/append",
+      "syntheticJobRepository.request/lock/effected/effect",
+      "syntheticJobWriter.enqueue/handleSyntheticJob",
     ]);
     for (const [own, foreign] of [
       [a, b],

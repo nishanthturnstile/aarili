@@ -137,3 +137,27 @@ if (
 console.info(
   "0.3.1c C1/C2 compiled journal declarations rejected all five invalid uses, including setBalance.",
 );
+const jobs = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/jobs-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const jobsOutput = jobs.stdout + jobs.stderr;
+if (
+  jobs.status === 0 ||
+  (jobsOutput.match(/error TS/g) ?? []).length !== 4 ||
+  ![4, 5, 6, 8].every((line) => jobsOutput.includes(`jobs-invalid.ts(${line},`))
+) {
+  console.error(jobsOutput);
+  throw Error(
+    "0.3.2a queue declarations must reject content/snapshot/version/vendor-boundary misuse",
+  );
+}
+console.info(
+  "0.3.2a D3/D7 compiled queue declarations rejected all four invalid payload/write uses.",
+);

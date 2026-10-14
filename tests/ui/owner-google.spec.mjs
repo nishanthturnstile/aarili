@@ -128,6 +128,25 @@ for (const locale of ["ta", "en"])
               await page
                 .getByRole("button", { name: "English", exact: true })
                 .click();
+            await expect(page.locator("main[lang]")).toHaveAttribute(
+              "lang",
+              locale,
+            );
+          }
+          async function googleReturn(path, activate) {
+            // OAuth can return to the same URL. An alert/focus assertion or
+            // waitForURL(path) can otherwise match the outgoing document and
+            // switch its language just before the callback replaces it.
+            const returned = page.waitForEvent("framenavigated", {
+              predicate: (frame) => {
+                if (frame !== page.mainFrame()) return false;
+                const url = new URL(frame.url());
+                return url.origin === origin && url.pathname === path;
+              },
+            });
+            await activate();
+            await returned;
+            await page.waitForLoadState("domcontentloaded");
           }
           async function capture(name) {
             await expect(page.locator("main[lang]")).toHaveAttribute(
@@ -182,7 +201,7 @@ for (const locale of ["ta", "en"])
             exact: true,
           });
           await googleButton.focus();
-          await page.keyboard.press("Enter");
+          await googleReturn("/sign-in", () => page.keyboard.press("Enter"));
           await expect(
             page.locator('p[role="alert"][tabindex="-1"]'),
           ).toBeFocused();
@@ -226,7 +245,9 @@ for (const locale of ["ta", "en"])
           await page.waitForURL(`${origin}/connections`);
           await language();
           nextProfile = { email_verified: false };
-          await page.getByRole("button", { name: w.link, exact: true }).click();
+          await googleReturn("/connections", () =>
+            page.getByRole("button", { name: w.link, exact: true }).click(),
+          );
           await expect(
             page.locator('p[role="alert"][tabindex="-1"]'),
           ).toBeFocused();
@@ -241,7 +262,9 @@ for (const locale of ["ta", "en"])
           ).toBe("/connections");
           const link = page.getByRole("button", { name: w.link, exact: true });
           await link.focus();
-          await page.keyboard.press("Enter");
+          await googleReturn("/connections", () =>
+            page.keyboard.press("Enter"),
+          );
           await expect(
             page.locator('p[role="status"][tabindex="-1"]'),
           ).toBeFocused();
@@ -252,9 +275,11 @@ for (const locale of ["ta", "en"])
           await capture("linked");
           await page.goto(`${origin}/sign-in`);
           await language();
-          await page
-            .getByRole("button", { name: w.googleSignIn, exact: true })
-            .click();
+          await googleReturn("/owner", () =>
+            page
+              .getByRole("button", { name: w.googleSignIn, exact: true })
+              .click(),
+          );
           await page.waitForURL(`${origin}/owner`);
           await language();
           await expect(
@@ -297,9 +322,11 @@ for (const locale of ["ta", "en"])
             (await runtime.query("select count(*)::int as n from auth_session"))
               .rows[0].n,
           ).toBe(0);
-          await page
-            .getByRole("button", { name: w.googleSignIn, exact: true })
-            .click();
+          await googleReturn("/sign-in", () =>
+            page
+              .getByRole("button", { name: w.googleSignIn, exact: true })
+              .click(),
+          );
           await expect(
             page.locator('p[role="alert"][tabindex="-1"]'),
           ).toBeFocused();

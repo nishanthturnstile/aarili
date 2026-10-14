@@ -199,6 +199,7 @@ TRU-11's other integrations and support access remain later scope.
 - **Outcome:** pg-boss 12 setup under migration role, Drizzle transaction enqueue, ID/version-only payloads, singleton keys, retries/dead letters, per-shop jobs and Asia/Kolkata schedules. Prod worker/dev in-process mode share handlers. Kill switch, restore epoch/quarantine, practice suppression and money freeze exist before any external-effect path; provider effect ledger is extended only with P2 messaging.
 - **Dependencies:** 0.2.3.
 - **Verification:** Commit makes one job runnable; rollback makes none. Duplicate delivery, revoked authority and changed state do not repeat business effects. Old restore-epoch jobs and disabled outbound state cannot send email/messages; money commands honour freeze. Graceful shutdown and oldest-job/dead-letter checks work.
+- **Implementation trace:** Subdivision 0.3.2a [issue #35](https://github.com/nishanthturnstile/aarili/issues/35) adds the synthetic same-transaction pg-boss command/handler proof, authoritative ID/version requests, durable effect deduplication and a disposable operational harness; see [D1–D8 evidence, approved compatibility correction and exact owner steps](agents/Issue_35_Transactional_Jobs_Evidence.md). Its focused draft requires CI and owner review. Restore guards remain 0.3.2b / #36, and shared lifecycle/schedules/operations remain 0.3.2c / #37; no external effect or later business workflow is activated.
 
 ### Phase 0.4 — Establish Responsive Capture and Private Outputs
 

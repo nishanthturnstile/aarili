@@ -147,6 +147,16 @@ generator and native/Linux verification. This reconciles the earlier 6.x text;
 it does not authorise a new compiler upgrade or early installation of planned
 P1/P2/P3 packages. Installed exact versions remain in manifests and the lockfile.
 
+**Recorded pg-boss declaration correction (14 October 2026):** The owner
+authorized the PR #41 blocker repair. pg-boss 12.37.1's published declarations
+reference `CompatibilityFlags` / `ResolvedConstructorOptions` omitted by its
+declaration build. The committed pnpm patch restores the exact interfaces from
+upstream tag 12.37.1. It changes no runtime JavaScript, queue SQL, dependency
+version or compiler setting; strict checking and `skipLibCheck=false` remain.
+[Issue #35 evidence](agents/Issue_35_Transactional_Jobs_Evidence.md) records
+the original failure and repaired verification. This does not approve upgrades
+or activation of later queue/provider capabilities.
+
 ### 5.2 User interface
 
 | Concern | Choice | Version | Phase | Notes |

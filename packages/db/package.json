@@ -55,6 +55,14 @@
     "./repositories/journal": {
       "types": "./dist/repositories/journal.d.ts",
       "import": "./dist/repositories/journal.js"
+    },
+    "./repositories/jobs": {
+      "types": "./dist/repositories/jobs.d.ts",
+      "import": "./dist/repositories/jobs.js"
+    },
+    "./jobs-repository": {
+      "types": "./dist/jobs-repository.d.ts",
+      "import": "./dist/jobs-repository.js"
     }
   },
   "scripts": {

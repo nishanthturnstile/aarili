@@ -15,6 +15,10 @@
     "./money": {
       "types": "./dist/money.d.ts",
       "import": "./dist/money.js"
+    },
+    "./jobs": {
+      "types": "./dist/jobs.d.ts",
+      "import": "./dist/jobs.js"
     }
   },
   "scripts": {

@@ -35,5 +35,6 @@ minimumReleaseAgeExclude:
   - '@aws-sdk/token-providers@3.1150.0'
 patchedDependencies:
   drizzle-orm@0.45.4: patches/drizzle-orm@0.45.4.patch
+  pg-boss@12.37.1: patches/pg-boss@12.37.1.patch
 overrides:
   '@esbuild-kit/core-utils@3.3.2>esbuild': '0.25.12'

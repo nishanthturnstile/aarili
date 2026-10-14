@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./job-principal": {
+      "types": "./dist/job-principal.d.ts",
+      "import": "./dist/job-principal.js"
     }
   },
   "scripts": {
