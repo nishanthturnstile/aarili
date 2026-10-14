@@ -29,6 +29,7 @@ const roots = [
   "scripts",
   "tests",
   "patches",
+  "infra/provision-maintenance-roles.sql",
   ...readdirSync(".").filter(
     (name) =>
       name.endsWith(".json") ||

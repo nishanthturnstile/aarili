@@ -15,10 +15,13 @@ COPY packages/ui/package.json ./packages/ui/
 COPY patches ./patches
 RUN pnpm install --frozen-lockfile
 RUN pnpm exec playwright install --with-deps chromium
+# The controlled HTTPS fixtures generate ephemeral certificates at runtime.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY apps ./apps
 COPY packages ./packages
 COPY scripts ./scripts
 COPY tests ./tests
+COPY infra/provision-maintenance-roles.sql ./infra/
 COPY .gitignore biome.json knip.json turbo.json tsconfig.base.json vitest.config.ts vitest.integration.config.ts playwright.config.ts ./
 RUN chmod +x scripts/check-negative-types.mjs
 RUN pnpm lint && pnpm knip && pnpm typecheck && pnpm test && pnpm test:negative && pnpm build && node scripts/check-artifacts.mjs
