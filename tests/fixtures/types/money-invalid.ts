@@ -1,0 +1,10 @@
+import { encodeMoneyValues, type MoneyValues } from "@aarili/contracts/money";
+import { checkedAdd, type MaterialCost } from "@aarili/money";
+import { createMoneyFixtureClient } from "@aarili/api/money-fixture-client";
+encodeMoneyValues({ amountPaise: "1", lengthMm: 0 });
+encodeMoneyValues({ amountPaise: 1n, lengthMm: 0 });
+encodeMoneyValues({ amountPaise: 1 });
+const unknownAmount: MoneyValues = { amountPaise: null, lengthMm: 0 };
+checkedAdd("1", 2);
+const fractional: MaterialCost = { supported: false, reason: "ROUND_UP" };
+createMoneyFixtureClient(async (json) => json)({ amountPaise: "1", lengthMm: 0 });

@@ -189,6 +189,7 @@ TRU-11's other integrations and support access remain later scope.
 - **Outcome:** Integer paise arithmetic and exact wire representation, checked safe-integer conversions from bigint, integer-mm material quantities, deterministic FIN-05 allocation including paise remainders and zero-charge unallocated credit. Small balanced posting journal and derived deposits/receivables/refund liabilities; source locks, durable UTR uniqueness, document-number locking and correction links added with the relevant business tables.
 - **Dependencies:** 0.2.3.
 - **Verification:** Property tests prove conservation/balancing, deterministic tie order, arbitrary retries/reversals, paise/zero/single-line inputs and quantity costs. Concurrent allocations/issue numbers cannot overdraw/reuse. Accountant reviews posting mappings before live use; fixtures never establish tax law.
+- **Implementation trace:** Approved subdivision 0.3.1a [issue #32](https://github.com/nishanthturnstile/aarili/issues/32) implements exact paise/mm arithmetic, validated wire/storage boundaries and a disposable operational demonstration; see [A1–A6 evidence and owner validation steps](agents/Issue_32_Exact_Value_Evidence.md). Draft implementation awaits CI and owner review. FIN-05 allocation (0.3.1b / #33), persistent journal (0.3.1c / #34), real source/UTR/number locks and domain corrections retain their named owners; this synthetic proof does not complete full financial or material workflows.
 
 #### Functionality — Transactional jobs and suppression of external effects
 

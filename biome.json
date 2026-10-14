@@ -49,6 +49,7 @@
         "scripts/local-infra.mjs",
         "scripts/migrate.mjs",
         "scripts/install-command-fixture.mjs",
+        "scripts/foundation-money.mjs",
         "scripts/test-support/owner-restart.mjs",
         "scripts/test-support/owner-recovery-process.mjs"
       ],

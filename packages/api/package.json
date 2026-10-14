@@ -15,6 +15,10 @@
     "./commands": {
       "types": "./dist/commands.d.ts",
       "import": "./dist/commands.js"
+    },
+    "./money-fixture-client": {
+      "types": "./dist/money-fixture-client.d.ts",
+      "import": "./dist/money-fixture-client.js"
     }
   },
   "scripts": {

@@ -19,6 +19,7 @@ export const tenantPaths = [
   "commandRepository.read/insert/update/correctionExists",
   "commandRepository.lockKey/replay/persist/audit/expiredKeys",
   "dev/shops/:shopId/records",
+  "moneyFixtureRepository.insert/read",
 ];
 const origin = "http://127.0.0.1:3103";
 export function apiRequest(api, path, headers = {}, body) {

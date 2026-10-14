@@ -187,6 +187,9 @@ importers:
       '@aarili/db':
         specifier: workspace:*
         version: link:packages/db
+      '@aarili/money':
+        specifier: workspace:*
+        version: link:packages/money
       '@aarili/platform':
         specifier: workspace:*
         version: link:packages/platform
@@ -379,6 +382,9 @@ importers:
       '@aarili/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@aarili/money':
+        specifier: workspace:*
+        version: link:../money
       drizzle-orm:
         specifier: 0.45.4
         version: 0.45.4(patch_hash=59cec2c3cd27b7f6dc5e544ea2b55ef3196d1f0d186b833890610ccd1ea6c212)(@types/pg@8.23.1)(bun-types@1.4.3)(gel@2.2.1)(kysely@0.29.6)(pg@8.23.1)
@@ -395,6 +401,12 @@ importers:
       gel:
         specifier: 2.2.1
         version: 2.2.1
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/money:
+    devDependencies:
       typescript:
         specifier: 7.0.2
         version: 7.0.2

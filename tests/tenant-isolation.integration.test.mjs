@@ -45,6 +45,7 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "commandRepository.read/insert/update/correctionExists",
       "commandRepository.lockKey/replay/persist/audit/expiredKeys",
       "dev/shops/:shopId/records",
+      "moneyFixtureRepository.insert/read",
     ]);
     for (const [own, foreign] of [
       [a, b],
