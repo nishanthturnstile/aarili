@@ -17,6 +17,10 @@ import {
   parseMetres,
   parseRupees,
 } from "@aarili/money";
+import {
+  allocationDemonstrations,
+  inspectAllocation,
+} from "./test-support/allocation.mjs";
 import { withMoneyFixture } from "./test-support/money-fixture.mjs";
 
 export function validateMoneyHarness(args, env) {
@@ -90,6 +94,8 @@ async function entry(f, amount, length) {
   );
 }
 async function demo(f) {
+  for (const inspection of allocationDemonstrations())
+    console.info(JSON.stringify(inspection));
   for (const [amount, length] of [
     ["", ""],
     ["0", "0"],
@@ -144,6 +150,9 @@ async function interactive(f) {
   console.info(
     'At the amount prompt, :json {"amountPaise":1.5,"lengthMm":0} tests raw wire validation; :demo runs documented fixtures.',
   );
+  console.info(
+    "FIN-05: :allocations runs deposit/discount/direct-cost fixtures; :allocate 1000 a=700 b=400 c=300 inspects source and ordered line charges in INR. Pure inspection does not persist/authorize money.",
+  );
   try {
     for (;;) {
       const amount = await input.question(
@@ -151,7 +160,13 @@ async function interactive(f) {
       );
       if (amount === ":quit") break;
       try {
-        if (amount === ":demo") await demo(f);
+        if (amount === ":allocations") {
+          for (const inspection of allocationDemonstrations())
+            console.info(JSON.stringify(inspection));
+        } else if (amount.startsWith(":allocate ")) {
+          const [source, ...lines] = amount.slice(10).trim().split(/\s+/);
+          console.info(JSON.stringify(inspectAllocation(source, lines)));
+        } else if (amount === ":demo") await demo(f);
         else if (amount.startsWith(":json ")) await inspect(f, amount.slice(6));
         else await entry(f, amount, await input.question("Length (metres): "));
       } catch {

@@ -9,7 +9,10 @@ export type ExactValueErrorCode =
   | "INVALID_DECIMAL"
   | "NEGATIVE_INPUT"
   | "DIVISION_BY_ZERO"
-  | "FRACTIONAL_RESULT";
+  | "FRACTIONAL_RESULT"
+  | "INVALID_LINES"
+  | "INVALID_LINE_ID"
+  | "DUPLICATE_LINE_ID";
 export class ExactValueError extends Error {
   constructor(public readonly code: ExactValueErrorCode) {
     super(code); // Never include entered values or configuration in errors.
@@ -140,4 +143,67 @@ export function formatPaise(value: number): string {
     maximumFractionDigits: 0,
   }).format(magnitude / 100n);
   return `${paise < 0n ? "-" : ""}₹${rupees}.${(magnitude % 100n).toString().padStart(2, "0")}`;
+}
+
+export type AllocationLine = Readonly<{
+  lineId: string;
+  chargePaise: number;
+}>;
+export type AllocationResult = {
+  allocations: { lineId: string; amountPaise: number }[];
+  unallocatedPaise: number;
+};
+// FIN-05 / 0.3.1b. Array position is the stable, earliest-line order: callers
+// must supply agreed order, never an unordered query result. No funds/charge
+// caps or authorization are inferred here; business services own those gates.
+export function allocateFin05(
+  sourcePaise: number,
+  lines: readonly AllocationLine[],
+): AllocationResult {
+  const source = toBigint(nonNegativeInteger(sourcePaise));
+  if (!Array.isArray(lines) || lines.length === 0)
+    throw new ExactValueError("INVALID_LINES");
+  const ids = new Set<string>();
+  let total = 0n;
+  let largest = -1n;
+  let recipient = 0;
+  // Snapshot validated primitives only. Holes/nulls are invalid, and inputs
+  // are never sorted or mutated. IDs are opaque ASCII tokens, not shop IDs.
+  const charges: bigint[] = [];
+  const allocations: AllocationResult["allocations"] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line || typeof line !== "object")
+      throw new ExactValueError("INVALID_LINES");
+    const { lineId, chargePaise } = line;
+    if (
+      typeof lineId !== "string" ||
+      lineId.length > 128 ||
+      !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(lineId)
+    )
+      throw new ExactValueError("INVALID_LINE_ID");
+    if (ids.has(lineId)) throw new ExactValueError("DUPLICATE_LINE_ID");
+    ids.add(lineId);
+    const charge = toBigint(nonNegativeInteger(chargePaise));
+    charges.push(charge);
+    allocations.push({ lineId, amountPaise: 0 });
+    total += charge; // Internal totals/products need not fit a wire number/int8.
+    if (charge > largest) {
+      largest = charge;
+      recipient = i; // Strictly greater preserves the earliest tied maximum.
+    }
+  }
+  if (total === 0n)
+    return { allocations, unallocatedPaise: fromBigint(source) };
+  let remainder = source;
+  for (const [i, charge] of charges.entries()) {
+    const share = ((source * charge) / (total * 100n)) * 100n;
+    const allocation = allocations[i];
+    if (allocation) allocation.amountPaise = fromBigint(share);
+    remainder -= share;
+  }
+  const winner = allocations[recipient];
+  if (winner)
+    winner.amountPaise = fromBigint(toBigint(winner.amountPaise) + remainder);
+  return { allocations, unallocatedPaise: 0 };
 }
