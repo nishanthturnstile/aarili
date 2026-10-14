@@ -39,6 +39,14 @@
     "./command-schema": {
       "types": "./dist/command-schema.d.ts",
       "import": "./dist/command-schema.js"
+    },
+    "./money-fixture-repository": {
+      "types": "./dist/money-fixture-repository.d.ts",
+      "import": "./dist/money-fixture-repository.js"
+    },
+    "./repositories/money-fixture": {
+      "types": "./dist/repositories/money-fixture.d.ts",
+      "import": "./dist/repositories/money-fixture.js"
     }
   },
   "scripts": {
@@ -48,7 +56,8 @@
   "dependencies": {
     "drizzle-orm": "0.45.4",
     "pg": "8.23.1",
-    "@aarili/contracts": "workspace:*"
+    "@aarili/contracts": "workspace:*",
+    "@aarili/money": "workspace:*"
   },
   "devDependencies": {
     "@types/pg": "8.23.1",

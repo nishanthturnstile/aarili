@@ -11,6 +11,10 @@
     "./commands": {
       "types": "./dist/commands.d.ts",
       "import": "./dist/commands.js"
+    },
+    "./money-fixture": {
+      "types": "./dist/money-fixture.d.ts",
+      "import": "./dist/money-fixture.js"
     }
   },
   "scripts": {

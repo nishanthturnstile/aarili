@@ -147,6 +147,8 @@ export function checkBoundaries(sources) {
       }
       if (layer === "contracts" && workspace)
         fail("contracts must be independent of implementation packages");
+      if (layer === "money" && !specifier.startsWith("."))
+        fail("money primitives must be framework and vendor free");
     }
   }
   const roots = [...sources.keys()].filter(

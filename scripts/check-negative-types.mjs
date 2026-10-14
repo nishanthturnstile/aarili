@@ -59,3 +59,29 @@ if (
 console.info(
   "0.2.3 five invalid command DTO/client uses rejected by compiled TypeScript declarations.",
 );
+const money = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/money-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const moneyOutput = money.stdout + money.stderr;
+if (
+  money.status === 0 ||
+  (moneyOutput.match(/error TS/g) ?? []).length !== 7 ||
+  ![4, 5, 6, 7, 8, 9, 10].every((line) =>
+    moneyOutput.includes(`money-invalid.ts(${line},`),
+  )
+) {
+  console.error(moneyOutput);
+  throw new Error(
+    "0.3.1a negative wire/arithmetic/client types must reject all seven invalid uses",
+  );
+}
+console.info(
+  "0.3.1a A2/A6 compiled money wire/arithmetic/client types rejected all seven invalid uses.",
+);

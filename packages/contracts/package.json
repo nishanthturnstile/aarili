@@ -11,6 +11,10 @@
     "./command": {
       "types": "./dist/command.d.ts",
       "import": "./dist/command.js"
+    },
+    "./money": {
+      "types": "./dist/money.d.ts",
+      "import": "./dist/money.js"
     }
   },
   "scripts": {
