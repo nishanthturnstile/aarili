@@ -11,6 +11,22 @@
     "./auth-schema": {
       "types": "./dist/auth-schema.d.ts",
       "default": "./dist/auth-schema.js"
+    },
+    "./repositories/shop": {
+      "types": "./dist/repositories/shop.d.ts",
+      "default": "./dist/repositories/shop.js"
+    },
+    "./shop-repository": {
+      "types": "./dist/shop-repository.d.ts",
+      "default": "./dist/shop-repository.js"
+    },
+    "./tenant-schema": {
+      "types": "./dist/tenant-schema.d.ts",
+      "default": "./dist/tenant-schema.js"
+    },
+    "./isolation-catalog": {
+      "types": "./dist/isolation-catalog.d.ts",
+      "default": "./dist/isolation-catalog.js"
     }
   },
   "scripts": {

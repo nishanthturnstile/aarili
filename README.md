@@ -94,6 +94,7 @@ pnpm and the application stay native on Windows. No second WSL daemon is needed.
 ~~~powershell
 pnpm infra:init     # Once: generate ignored random credentials; refuses overwrite
 pnpm infra:doctor   # Runtime/daemon/ports/reservations; no secret values
+pnpm infra:roles    # Explicit privileged upgrade for retained synthetic volumes
 pnpm infra:up       # Wait for health, then verify native SQL and signed S3 access
 pnpm infra:check    # Repeat SQL/role/extension and S3 put/read/remove probes
 pnpm infra:verify   # Synthetic persistence rehearsal across normal down/up
@@ -183,6 +184,12 @@ separate migration/runtime credentials, local private capture, recovery and
 removing the setup token. `pnpm db:migrate` applies reviewed additive SQL as
 app_owner with advisory locking; runtime auth accepts only app_user. No outbound
 transport or production activation is enabled.
+
+Issue #15 adds non-login backup/privacy role definitions and an additive shop
+context guard. On a retained local volume, run `pnpm infra:roles` explicitly
+before `pnpm db:migrate` with the separate app_owner migration configuration;
+do not reset the volume. Fresh volumes provision the roles during initialization.
+See [shop isolation evidence and upgrade procedure](docs/agents/Issue_15_Shop_Isolation_Evidence.md).
 
 The first shop/membership already has forced RLS and real PostgreSQL negative,
 concurrency, rollback and restart coverage. Full tenancy/access matrices,

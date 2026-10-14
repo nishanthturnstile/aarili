@@ -11,6 +11,7 @@ import {
   recoveryResetSchema,
   resendCommandSchema,
   setupCommandSchema,
+  shopRecordSchema,
 } from "@aarili/contracts";
 import { hc } from "hono/client";
 import type { z } from "zod";
@@ -19,6 +20,16 @@ import type { createOwnerRoutes } from "./owner.js";
 
 export function createOwnerClient() {
   return hc<ReturnType<typeof createOwnerRoutes>>("/api");
+}
+export async function readAuthorizedShop(shopId: string) {
+  return shopRecordSchema.parse(
+    await authenticatedResult((signal) =>
+      createOwnerClient().shops[":shopId"].$get(
+        { param: { shopId } },
+        { init: { cache: "no-store", signal } },
+      ),
+    ),
+  );
 }
 export async function readGoogleConnection() {
   return googleConnectionSchema.parse(

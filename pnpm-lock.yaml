@@ -181,6 +181,9 @@ importers:
       '@aarili/contracts':
         specifier: workspace:*
         version: link:packages/contracts
+      '@aarili/core':
+        specifier: workspace:*
+        version: link:packages/core
       '@aarili/db':
         specifier: workspace:*
         version: link:packages/db
@@ -297,6 +300,9 @@ importers:
       '@aarili/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@aarili/core':
+        specifier: workspace:*
+        version: link:../core
       '@hono/zod-openapi':
         specifier: 1.6.3
         version: 1.6.3(hono@4.13.13)(zod@4.6.6)
@@ -316,6 +322,9 @@ importers:
       '@aarili/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@aarili/core':
+        specifier: workspace:*
+        version: link:../core
       '@aarili/db':
         specifier: workspace:*
         version: link:../db
@@ -344,6 +353,16 @@ importers:
       zod:
         specifier: 4.6.6
         version: 4.6.6
+    devDependencies:
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/core:
+    dependencies:
+      '@aarili/db':
+        specifier: workspace:*
+        version: link:../db
     devDependencies:
       typescript:
         specifier: 7.0.2

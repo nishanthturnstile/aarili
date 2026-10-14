@@ -10,9 +10,11 @@ import {
   recoveryResetSchema,
   resendCommandSchema,
   setupCommandSchema,
+  shopRecordSchema,
   signInCommandSchema,
   verificationCommandSchema,
 } from "@aarili/contracts";
+import { readShop } from "@aarili/core";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 const errorResponse = {
@@ -117,6 +119,35 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}",
+        request: { params: z.object({ shopId: z.uuid() }) },
+        responses: {
+          200: {
+            description: "Authenticated operational shop read.",
+            content: { "application/json": { schema: shopRecordSchema } },
+          },
+          401: errorResponse,
+          403: errorResponse,
+          422: errorResponse,
+        },
+      }),
+      async (c) => {
+        const shopId = c.req.valid("param").shopId;
+        const result = await owner.withOwnerShop(
+          c.req.raw.headers,
+          shopId,
+          (repository) => readShop(repository, shopId),
+        );
+        if (!result.data) throw new OwnerAccessError("SHOP_ACCESS_DENIED");
+        return sessionResponse(
+          c.json(shopRecordSchema.parse(result.data), 200),
+          result.headers,
+        );
+      },
+    )
     .openapi(
       createRoute({
         method: "get",

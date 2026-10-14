@@ -22,7 +22,8 @@
     "@aarili/auth": "workspace:*",
     "@aarili/contracts": "workspace:*",
     "@hono/zod-openapi": "1.6.3",
-    "hono": "4.13.13"
+    "hono": "4.13.13",
+    "@aarili/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "7.0.2"

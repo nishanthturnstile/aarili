@@ -39,7 +39,7 @@ jobs:
           run_install: false
       - name: Frozen install
         run: pnpm install --frozen-lockfile
-      - name: Lint, boundaries, tokens, Knip, types, unit/negative/PostgreSQL tests, build and production smoke
+      - name: Lint, boundaries, tokens, Knip, types, unit/negative/PostgreSQL isolation catalog and drift tests, build and production smoke
         run: pnpm verify
       - name: Private configuration canary build
         env:

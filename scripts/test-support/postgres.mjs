@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { connect } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
@@ -66,6 +67,9 @@ export async function withPostgres(run) {
         `CREATE ROLE app_owner LOGIN PASSWORD '${ownerPassword}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`,
       );
       await admin.query(
+        await readFile("infra/provision-maintenance-roles.sql", "utf8"),
+      );
+      await admin.query(
         "ALTER DATABASE aarili_health_test OWNER TO app_owner; REVOKE ALL ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO app_owner; GRANT USAGE ON SCHEMA public TO app_user",
       );
     } finally {
@@ -80,6 +84,8 @@ export async function withPostgres(run) {
     return await run({
       connectionString: url.toString(),
       migrationConnectionString: migrationUrl.toString(),
+      // Setup/drift only; tests must use app_user for runtime isolation claims.
+      adminConnectionString: container.getConnectionUri(),
       host,
       port,
       stop,
