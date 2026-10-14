@@ -7,5 +7,7 @@ export const syntheticJobSchema = z.strictObject({
   initiatorId: z.uuid().transform((id) => id.toLowerCase()),
   entityId: z.uuid().transform((id) => id.toLowerCase()),
   version: z.number().int().min(1).max(2147483647),
+  // Optional only to recognise and quarantine attributable legacy work.
+  epoch: z.uuid().optional(),
 });
 export type SyntheticJob = z.infer<typeof syntheticJobSchema>;

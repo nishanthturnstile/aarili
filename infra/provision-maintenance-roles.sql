@@ -2,6 +2,9 @@
 -- Reusable on retained synthetic volumes; never executed by app_owner/runtime.
 DO $roles$
 BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_restore_operator') THEN
+  CREATE ROLE app_restore_operator NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+ END IF;
  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_backup') THEN
   CREATE ROLE app_backup NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION BYPASSRLS;
  END IF;

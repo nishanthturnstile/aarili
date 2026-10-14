@@ -23,6 +23,10 @@
     "./jobs": {
       "types": "./dist/jobs.d.ts",
       "import": "./dist/jobs.js"
+    },
+    "./restore": {
+      "types": "./dist/restore.d.ts",
+      "import": "./dist/restore.js"
     }
   },
   "scripts": {

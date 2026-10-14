@@ -11,6 +11,10 @@
     "./job-principal": {
       "types": "./dist/job-principal.d.ts",
       "import": "./dist/job-principal.js"
+    },
+    "./delivery-guard": {
+      "types": "./dist/delivery-guard.d.ts",
+      "import": "./dist/delivery-guard.js"
     }
   },
   "scripts": {

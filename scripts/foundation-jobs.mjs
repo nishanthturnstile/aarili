@@ -11,8 +11,9 @@ import {
   jobCounts,
   jobPayload,
   jobsApiRequest,
-  withJobsFixture,
 } from "./test-support/jobs.mjs";
+import { withRestoreFixture } from "./test-support/restore.mjs";
+import { createRestoreInspection } from "./test-support/restore-inspection.mjs";
 
 export function validateJobsHarness(args, env) {
   if (
@@ -20,7 +21,10 @@ export function validateJobsHarness(args, env) {
     !["--demo", "--interactive"].includes(args[0]) ||
     env.NODE_ENV === "production" ||
     Object.keys(env).some(
-      (name) => /^(?:PG|.*DATABASE_URL$)/i.test(name) && env[name],
+      (name) =>
+        /^(?:PG|.*DATABASE_URL$|.*(?:API_KEY|ACCESS_KEY|ACCESS_KEY_ID|SECRET_ACCESS_KEY|PROVIDER_TOKEN)$|RESEND_.*|SMTP_.*)/i.test(
+          name,
+        ) && env[name],
     ) ||
     (env.OUTBOUND_EFFECTS &&
       !["disabled", "false", "0"].includes(env.OUTBOUND_EFFECTS))
@@ -144,10 +148,37 @@ export function createJobsInspection(f) {
 async function main() {
   const mode = validateJobsHarness(process.argv.slice(2), process.env);
   console.info(
-    "0.3.2a disposable synthetic PostgreSQL/API/pg-boss proof; no retained configuration or outbound transport loaded.",
+    "0.3.2a/b disposable synthetic PostgreSQL/API/pg-boss proof; real outbound stays disabled, no retained configuration or provider transport loaded.",
   );
-  await withJobsFixture(async (f) => {
+  await withRestoreFixture(async (f) => {
     const inspection = createJobsInspection(f);
+    const restore = createRestoreInspection(f);
+    const restoreCommands = new Set([
+      "guard-status",
+      "guard-queue",
+      "operator-disable",
+      "fake-enable",
+      "restore",
+      "freeze",
+      "reconcile",
+      "database-enable",
+      "database-disable",
+      "restart",
+      "quarantine",
+      "redrive",
+      "fake-send",
+      "attempt-release",
+      "finance-confirmation",
+      "finance-allocation",
+      "finance-reversal",
+      "finance-refund",
+      "pause-finance",
+      "pause-effect",
+      "freeze-queued",
+      "restore-queued",
+      "resume",
+      "auth-probe",
+    ]);
     try {
       if (mode === "--demo") {
         for (const name of [
@@ -161,6 +192,29 @@ async function main() {
           "rollback",
         ])
           await inspection.action(name);
+        for (const name of [
+          "guard-queue",
+          "database-enable",
+          "operator-disable",
+          "restore",
+          "restart",
+          "quarantine",
+          "redrive",
+          "attempt-release",
+          "finance-confirmation",
+          "finance-allocation",
+          "finance-reversal",
+          "finance-refund",
+          "auth-probe",
+          "reconcile",
+          "database-enable",
+          "guard-queue",
+          "fake-enable",
+          "fake-send",
+          "operator-disable",
+          "auth-probe",
+        ])
+          await restore.action(name);
       } else {
         const input = createInterface({
           input: process.stdin,
@@ -169,12 +223,16 @@ async function main() {
         console.info(
           "Commands: pause, commit, rollback, inspect, replay, changed, consume, duplicate, revoke, stale, quit. Run stale/revoke in separate fresh harnesses before consume.",
         );
+        console.info(
+          `Restore commands: ${[...restoreCommands].join(", ")}. fake-enable affects ONLY the disposable counter configuration. OUTBOUND_EFFECTS and all real adapters remain disabled.`,
+        );
         try {
           for (;;) {
             const line = (await input.question("jobs> ")).trim();
             if (line === "quit") break;
             try {
-              await inspection.action(line);
+              if (restoreCommands.has(line)) await restore.action(line);
+              else await inspection.action(line);
             } catch {
               console.info(
                 "Operation rejected; inspect state and the documented sequence. No private error logged.",
@@ -186,6 +244,7 @@ async function main() {
         }
       }
     } finally {
+      await restore.cleanup();
       await inspection.cleanup();
     }
   });

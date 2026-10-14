@@ -63,6 +63,14 @@
     "./jobs-repository": {
       "types": "./dist/jobs-repository.d.ts",
       "import": "./dist/jobs-repository.js"
+    },
+    "./restore-repository": {
+      "types": "./dist/restore-repository.d.ts",
+      "import": "./dist/restore-repository.js"
+    },
+    "./repositories/restore": {
+      "types": "./dist/repositories/restore.d.ts",
+      "import": "./dist/repositories/restore.js"
     }
   },
   "scripts": {

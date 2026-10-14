@@ -13,12 +13,19 @@ import type {
   RequestBinding,
 } from "@aarili/db/repositories/command";
 import type { SyntheticJobWriter } from "@aarili/db/repositories/jobs";
+import type { RestoreRepository } from "@aarili/db/repositories/restore";
+import { requireUnfrozenMoney } from "./restore.js";
 
 export type CommandContext = {
   shopId: string;
   actor: Actor;
   repository: CommandRepository;
   jobs?: SyntheticJobWriter;
+  // Private synthetic composition only; never accepted from a route payload.
+  financial?: {
+    action: "confirmation" | "allocation" | "reversal" | "refund";
+    controls: RestoreRepository;
+  };
 };
 export class CommandFailure extends Error {
   constructor(
@@ -116,13 +123,25 @@ export async function executeSynthetic(
   const actor = actorSchema.parse(ctx.actor);
   if (actor.type !== "user") fail(422, "VALIDATION_FAILED");
   const command = parsed.data;
+  if (ctx.jobs) await ctx.jobs.prepare();
+  if (ctx.financial) {
+    if (
+      !["confirmation", "allocation", "reversal", "refund"].includes(
+        ctx.financial.action,
+      )
+    )
+      fail(422, "VALIDATION_FAILED");
+    await requireUnfrozenMoney(ctx.financial.controls);
+  }
   const version =
     command.action === "create" ? null : expectedVersion(headers.ifMatch);
   if ((command.action === "create") !== (target === null))
     fail(422, "VALIDATION_FAILED");
   const binding: RequestBinding = {
     actor,
-    action: `synthetic.${command.action}`,
+    action: ctx.financial
+      ? `synthetic.financial.${ctx.financial.action}.${command.action}`
+      : `synthetic.${command.action}`,
     hash: await requestHash({
       encoding: 1,
       shopId: ctx.shopId.toLowerCase(),
@@ -135,6 +154,7 @@ export async function executeSynthetic(
       // originally committed without the writer cannot falsely replay as a
       // queued command when dev/test composition later enables it.
       ...(ctx.jobs ? { job: "synthetic.job.v1" } : {}),
+      ...(ctx.financial ? { financial: ctx.financial.action } : {}),
     }),
   };
   const repo = ctx.repository;

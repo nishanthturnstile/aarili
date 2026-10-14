@@ -291,11 +291,11 @@ async function check() {
     );
     assert.equal(rows[0].role, "app_user");
     const maintenance = await client.query(
-      "SELECT rolname, rolcanlogin, rolsuper, rolbypassrls, pg_has_role('app_user',oid,'MEMBER') AS runtime_member FROM pg_roles WHERE rolname IN ('app_backup','app_privacy')",
+      "SELECT rolname, rolcanlogin, rolsuper, rolbypassrls, pg_has_role('app_user',oid,'MEMBER') AS runtime_member FROM pg_roles WHERE rolname IN ('app_backup','app_privacy','app_restore_operator')",
     );
     assert.equal(
       maintenance.rowCount,
-      2,
+      3,
       "Retained volumes require explicit pnpm infra:roles upgrade",
     );
     for (const role of maintenance.rows) {

@@ -28,7 +28,7 @@ export async function requireRuntimeRole(
 ): Promise<void> {
   const result = await db.execute(
     sql`select current_user as role, session_user as login, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole, rolreplication,
-      exists(select 1 from pg_roles privileged where (privileged.rolname in ('app_owner','app_backup','app_privacy') or privileged.rolsuper or privileged.rolbypassrls or privileged.rolcreatedb or privileged.rolcreaterole or privileged.rolreplication) and pg_has_role(current_user, privileged.oid, 'MEMBER')) as privileged_member,
+      exists(select 1 from pg_roles privileged where (privileged.rolname in ('app_owner','app_backup','app_privacy','app_restore_operator') or privileged.rolsuper or privileged.rolbypassrls or privileged.rolcreatedb or privileged.rolcreaterole or privileged.rolreplication) and pg_has_role(current_user, privileged.oid, 'MEMBER')) as privileged_member,
       exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_has_role(current_user,c.relowner,'MEMBER') and n.nspname not in ('pg_catalog','information_schema') and n.nspname !~ '^pg_') as owns_relations
       from pg_roles where rolname = current_user`,
   );
