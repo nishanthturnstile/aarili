@@ -13,3 +13,6 @@ apps/web/next-env.d.ts
 test-results/
 playwright-report/
 infra/.local/
+
+# Disposable compatibility/generator artifacts are local evidence, not source.
+/.scratch/
