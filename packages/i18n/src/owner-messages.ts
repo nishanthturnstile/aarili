@@ -1,0 +1,216 @@
+const englishMessages = {
+  navigation: "Shop navigation",
+  workspace: "Your shop",
+  currentShop: "Current shop",
+  expandNavigation: "Expand navigation",
+  collapseNavigation: "Collapse navigation",
+  skipToContent: "Skip to content",
+  lightTheme: "Use light theme",
+  close: "Close",
+  darkTheme: "Use dark theme",
+  connections: "Sign-in connections",
+  googleHelp:
+    "Link your approved Google account after confirming your password. Email and password remain available.",
+  googleSignIn: "Sign in with Google",
+  googleLink: "Link Google account",
+  googleConnected: "Google is connected.",
+  googleNotConnected: "Google is not connected.",
+  googleLinked: "Google connected. You can now use it to sign in.",
+  googleDisconnect: "Disconnect Google",
+  googleDisconnectHelp:
+    "Disconnecting stops Google sign-in and ends all active sessions. You can still sign in with your email and password or recover your password.",
+  googleConfirmDisconnect: "Confirm disconnect",
+  googleDisconnected:
+    "Google disconnected. Email and password sign-in remain available.",
+  googleDenied:
+    "Google access was denied. Use your approved account, or sign in with your email and password to try linking again.",
+  googleUnavailable:
+    "Google sign-in is unavailable. Use email and password to continue.",
+  cancel: "Cancel",
+  backToOwner: "Back to your shop",
+  recovery: "Recover your password",
+  reset: "Set a new password",
+  reauthenticate: "Confirm your password",
+  recoveryHelp: "Enter your owner email to request a password reset code.",
+  resetHelp: "Paste the code from your reset email and choose a new password.",
+  reauthenticateHelp:
+    "Enter your current password to confirm recent access. This confirmation lasts five minutes.",
+  recoveryRequested:
+    "If this is the verified owner email, a reset code has been sent. If it does not arrive, you can request another.",
+  passwordReset:
+    "Password updated. Your previous sessions have ended. Sign in with your new password.",
+  newPassword: "New password",
+  resetCode: "Password reset code",
+  requestReset: "Request reset code",
+  resetPassword: "Update password",
+  confirmPassword: "Confirm password",
+  forgotPassword: "Forgot your password?",
+  haveResetCode: "I have a reset code",
+  requestAnotherReset: "Request another reset code",
+  reauthenticateLink: "Confirm recent access",
+  expired: "Your session has ended. Sign in again to continue.",
+  stale: "Confirm your password before continuing with this sensitive request.",
+  badReset:
+    "This reset code is invalid, expired or already used. Request another code.",
+  validation: "Check the required fields and follow the hints, then try again.",
+  setup: "Set up your owner account",
+  signIn: "Sign in to Aarili",
+  owner: "Your shop",
+  intro: "Create your account, verify your email, then open your shop.",
+  name: "Owner name",
+  email: "Email",
+  password: "Password",
+  shopName: "Shop name",
+  token: "Setup token",
+  code: "Verification code",
+  passwordHelp: "Use 15–128 characters. A long, unique passphrase works well.",
+  tokenHelp: "Enter the setup token provided by your operator.",
+  create: "Create owner account",
+  resume: "Resume pending verification",
+  initial: "Create account",
+  verify: "Verify email",
+  resend: "Send another code",
+  verification: "Verify your email",
+  verificationHelp:
+    "Enter the code from your verification email. If delivery failed or the code expired, resume pending verification to send another.",
+  delivered:
+    "Your account is reserved. Enter your verification code to continue.",
+  verified: "Email verified. Sign in to create your shop.",
+  working: "Please wait…",
+  submit: "Sign in",
+  openShop: "Create my shop",
+  pendingShop:
+    "Your email is verified. Create the shop you named during setup.",
+  complete: "Owner setup is complete.",
+  signOut: "Sign out",
+  loading: "Checking your access…",
+  retry: "Try again",
+  back: "Back to sign in",
+  error:
+    "The request could not be saved. Check your connection and try again. Your entries remain here.",
+  closed:
+    "Setup is closed or the token is incorrect. If your account is already reserved, resume pending verification or sign in.",
+  invalid:
+    "Sign-in failed. Check your email and password. If you have not verified your email, resume pending verification.",
+  badCode:
+    "The code is invalid, expired or already used. Resume pending verification for another code.",
+  mailError:
+    "Your account is reserved, but verification delivery failed. Resume pending verification to send another code.",
+  limited: "Too many attempts. Wait before trying again.",
+  language: "தமிழ்",
+  other: "English",
+  setupLink: "First time? Set up the owner account",
+  signInLink: "Already verified? Sign in",
+  unavailable:
+    "Owner setup is unavailable. Ask your operator to check the configuration.",
+};
+const tamilMessages: Record<keyof typeof englishMessages, string> = {
+  navigation: "கடை வழிசெலுத்தல்",
+  workspace: "உங்கள் கடை",
+  currentShop: "தற்போதைய கடை",
+  expandNavigation: "வழிசெலுத்தலை விரி",
+  collapseNavigation: "வழிசெலுத்தலைச் சுருக்கு",
+  skipToContent: "உள்ளடக்கத்திற்குச் செல்",
+  lightTheme: "வெளிர் தோற்றம்",
+  close: "மூடு",
+  darkTheme: "இருண்ட தோற்றம்",
+  connections: "உள்நுழைவு இணைப்புகள்",
+  googleHelp:
+    "கடவுச்சொல்லை உறுதிசெய்த பின் அனுமதிக்கப்பட்ட Google கணக்கை இணைக்கவும். மின்னஞ்சலும் கடவுச்சொல்லும் தொடர்ந்து பயன்படும்.",
+  googleSignIn: "Google மூலம் உள்நுழை",
+  googleLink: "Google கணக்கை இணை",
+  googleConnected: "Google இணைக்கப்பட்டுள்ளது.",
+  googleNotConnected: "Google இணைக்கப்படவில்லை.",
+  googleLinked: "Google இணைக்கப்பட்டது. இனி அதன் மூலம் உள்நுழையலாம்.",
+  googleDisconnect: "Google இணைப்பை நீக்கு",
+  googleDisconnectHelp:
+    "இணைப்பை நீக்கினால் Google உள்நுழைவும் அனைத்து அமர்வுகளும் நிறுத்தப்படும். மின்னஞ்சல், கடவுச்சொல் மூலம் உள்நுழையவும் கடவுச்சொல்லை மீட்கவும் முடியும்.",
+  googleConfirmDisconnect: "நீக்குவதை உறுதிசெய்",
+  googleDisconnected:
+    "Google இணைப்பு நீக்கப்பட்டது. மின்னஞ்சல், கடவுச்சொல் உள்நுழைவு தொடர்ந்து பயன்படும்.",
+  googleDenied:
+    "Google அணுகல் மறுக்கப்பட்டது. அனுமதிக்கப்பட்ட கணக்கைப் பயன்படுத்தவும்; அல்லது மின்னஞ்சல், கடவுச்சொல் மூலம் உள்நுழைந்து மீண்டும் இணைக்க முயலவும்.",
+  googleUnavailable:
+    "Google உள்நுழைவு கிடைக்கவில்லை. மின்னஞ்சல், கடவுச்சொல் மூலம் தொடரவும்.",
+  cancel: "ரத்து செய்",
+  backToOwner: "உங்கள் கடைக்குத் திரும்பு",
+  recovery: "கடவுச்சொல்லை மீட்டெடுக்கவும்",
+  reset: "புதிய கடவுச்சொல்லை அமைக்கவும்",
+  reauthenticate: "கடவுச்சொல்லை உறுதிசெய்யவும்",
+  recoveryHelp: "கடவுச்சொல் மீட்புக் குறியீட்டைப் பெற உரிமையாளரின் மின்னஞ்சலை உள்ளிடவும்.",
+  resetHelp:
+    "மீட்பு மின்னஞ்சலில் உள்ள குறியீட்டை ஒட்டி, புதிய கடவுச்சொல்லைத் தேர்ந்தெடுக்கவும்.",
+  reauthenticateHelp:
+    "அண்மைய அணுகலை உறுதிசெய்ய தற்போதைய கடவுச்சொல்லை உள்ளிடவும். இந்த உறுதிப்படுத்தல் ஐந்து நிமிடங்களுக்கு செல்லும்.",
+  recoveryRequested:
+    "இது உறுதிசெய்யப்பட்ட உரிமையாளரின் மின்னஞ்சல் எனில், மீட்புக் குறியீடு அனுப்பப்பட்டுள்ளது. வரவில்லை எனில் மீண்டும் கோரலாம்.",
+  passwordReset:
+    "கடவுச்சொல் மாற்றப்பட்டது. முந்தைய அமர்வுகள் முடிந்தன. புதிய கடவுச்சொல்லுடன் உள்நுழையவும்.",
+  newPassword: "புதிய கடவுச்சொல்",
+  resetCode: "கடவுச்சொல் மீட்புக் குறியீடு",
+  requestReset: "மீட்புக் குறியீட்டைக் கோரு",
+  resetPassword: "கடவுச்சொல்லை மாற்று",
+  confirmPassword: "கடவுச்சொல்லை உறுதிசெய்",
+  forgotPassword: "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
+  haveResetCode: "என்னிடம் மீட்புக் குறியீடு உள்ளது",
+  requestAnotherReset: "மீண்டும் மீட்புக் குறியீட்டைக் கோரு",
+  reauthenticateLink: "அண்மைய அணுகலை உறுதிசெய்",
+  expired: "உங்கள் அமர்வு முடிந்தது. தொடர மீண்டும் உள்நுழையவும்.",
+  stale: "இந்த முக்கியமான கோரிக்கையைத் தொடரும் முன் கடவுச்சொல்லை உறுதிசெய்யவும்.",
+  badReset:
+    "மீட்புக் குறியீடு தவறானது, காலாவதியானது அல்லது பயன்படுத்தப்பட்டது. புதிய குறியீட்டைக் கோரவும்.",
+  validation: "தேவையான புலங்களையும் குறிப்புகளையும் சரிபார்த்து மீண்டும் முயற்சி செய்யவும்.",
+  setup: "உரிமையாளர் கணக்கை அமைக்கவும்",
+  signIn: "ஆரிலியில் உள்நுழையவும்",
+  owner: "உங்கள் கடை",
+  intro: "கணக்கை உருவாக்கி, மின்னஞ்சலை உறுதிசெய்து, கடையைத் தொடங்கவும்.",
+  name: "உரிமையாளர் பெயர்",
+  email: "மின்னஞ்சல்",
+  password: "கடவுச்சொல்",
+  shopName: "கடைப் பெயர்",
+  token: "அமைப்புக் குறியீடு",
+  code: "உறுதிப்படுத்தும் குறியீடு",
+  passwordHelp:
+    "15–128 எழுத்துகளைப் பயன்படுத்தவும். நீண்ட, தனித்துவமான கடவுச்சொற்றொடர் சிறந்தது.",
+  tokenHelp: "நிர்வாகி வழங்கிய அமைப்புக் குறியீட்டை உள்ளிடவும்.",
+  create: "உரிமையாளர் கணக்கை உருவாக்கு",
+  resume: "நிலுவை உறுதிப்படுத்தலைத் தொடர்",
+  initial: "கணக்கை உருவாக்கு",
+  verify: "மின்னஞ்சலை உறுதிசெய்",
+  resend: "மீண்டும் குறியீடு அனுப்பு",
+  verification: "மின்னஞ்சலை உறுதிசெய்யவும்",
+  verificationHelp:
+    "உறுதிப்படுத்தும் மின்னஞ்சலில் உள்ள குறியீட்டை உள்ளிடவும். அனுப்ப முடியவில்லை அல்லது காலாவதியானால், நிலுவை உறுதிப்படுத்தலைத் தொடர்ந்து புதிய குறியீட்டைப் பெறவும்.",
+  delivered: "கணக்கு ஒதுக்கப்பட்டுள்ளது. உறுதிப்படுத்தும் குறியீட்டை உள்ளிட்டு தொடரவும்.",
+  verified: "மின்னஞ்சல் உறுதிசெய்யப்பட்டது. கடையை உருவாக்க உள்நுழையவும்.",
+  working: "காத்திருக்கவும்…",
+  submit: "உள்நுழை",
+  openShop: "என் கடையை உருவாக்கு",
+  pendingShop: "மின்னஞ்சல் உறுதிசெய்யப்பட்டது. அமைப்பின்போது பெயரிட்ட கடையை உருவாக்கவும்.",
+  complete: "உரிமையாளர் அமைப்பு முடிந்தது.",
+  signOut: "வெளியேறு",
+  loading: "அணுகல் சரிபார்க்கப்படுகிறது…",
+  retry: "மீண்டும் முயற்சி செய்",
+  back: "உள்நுழைவுக்குத் திரும்பு",
+  error:
+    "சேமிக்க முடியவில்லை. இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சி செய்யவும். உள்ளீடுகள் இங்கே உள்ளன.",
+  closed:
+    "அமைப்பு மூடப்பட்டுள்ளது அல்லது குறியீடு தவறானது. கணக்கு ஏற்கனவே ஒதுக்கப்பட்டிருந்தால், நிலுவை உறுதிப்படுத்தலைத் தொடரவும் அல்லது உள்நுழையவும்.",
+  invalid:
+    "உள்நுழைய முடியவில்லை. மின்னஞ்சல் மற்றும் கடவுச்சொல்லைச் சரிபார்க்கவும். மின்னஞ்சல் உறுதிசெய்யப்படவில்லை என்றால் நிலுவை உறுதிப்படுத்தலைத் தொடரவும்.",
+  badCode:
+    "குறியீடு தவறானது, காலாவதியானது அல்லது பயன்படுத்தப்பட்டது. புதிய குறியீட்டிற்கு நிலுவை உறுதிப்படுத்தலைத் தொடரவும்.",
+  mailError:
+    "கணக்கு ஒதுக்கப்பட்டுள்ளது, ஆனால் மின்னஞ்சலை அனுப்ப முடியவில்லை. புதிய குறியீட்டிற்கு நிலுவை உறுதிப்படுத்தலைத் தொடரவும்.",
+  limited: "அதிக முயற்சிகள். சிறிது நேரம் கழித்து மீண்டும் முயற்சி செய்யவும்.",
+  language: "தமிழ்",
+  other: "English",
+  setupLink: "முதல் முறையா? உரிமையாளர் கணக்கை அமைக்கவும்",
+  signInLink: "உறுதிசெய்துவிட்டீர்களா? உள்நுழையவும்",
+  unavailable:
+    "உரிமையாளர் அமைப்பு கிடைக்கவில்லை. அமைப்பைச் சரிபார்க்க நிர்வாகியிடம் கேட்கவும்.",
+};
+export const ownerMessages = {
+  en: englishMessages,
+  ta: tamilMessages,
+} as const;

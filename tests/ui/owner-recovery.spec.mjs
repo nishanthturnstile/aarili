@@ -190,6 +190,10 @@ for (const locale of ["ta", "en"])
         await capture("reset-complete");
         await login(original);
         await expect(page.locator("main").getByRole("alert")).toBeFocused();
+        // 0.4.1a A1: an auth cache reset must not discard retryable form input.
+        await expect(page.getByLabel(w.email, { exact: true })).toHaveValue(
+          email,
+        );
         await page.getByLabel(w.password, { exact: true }).fill(replacement);
         await page.getByRole("button", { name: w.signIn, exact: true }).click();
         await expect(page).toHaveURL(`${origin}/owner`);

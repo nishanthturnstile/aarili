@@ -1,6 +1,24 @@
 import { expect, test } from "vitest";
 import { checkBoundaries } from "../scripts/check-boundaries.mjs";
 
+test("0.4.1a A5 i18n messages are browser-safe but cannot transitively expose server packages", () => {
+  const sources = new Map([
+    ["apps/web/src/app/page.tsx", '"use client"; import "@aarili/i18n";'],
+    ["packages/i18n/src/index.ts", "export const messages = {};"],
+  ]);
+  expect(checkBoundaries(sources)).toEqual([]);
+  sources.set("packages/i18n/src/index.ts", 'export * from "@aarili/db";');
+  sources.set(
+    "packages/db/src/index.ts",
+    'export const privateData = "server";',
+  );
+  expect(checkBoundaries(sources)).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining("browser graph reaches server package"),
+    ]),
+  );
+});
+
 test("#48 application graph rejects direct and indirect exemplar imports", () => {
   for (const root of [
     "apps/worker/src/index.ts",
