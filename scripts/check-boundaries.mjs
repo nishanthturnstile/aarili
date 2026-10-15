@@ -105,6 +105,11 @@ export function checkBoundaries(sources) {
   const errors = [];
   const graph = new Map();
   for (const [file, code] of sources) {
+    if (file.endsWith(".json")) {
+      JSON.parse(code);
+      graph.set(file, []);
+      continue;
+    }
     const layer = packageOf(file);
     const dependencies = imports(code);
     graph.set(file, dependencies);
@@ -269,7 +274,7 @@ function collect(dir, sources, root) {
       continue;
     const path = resolve(dir, entry.name);
     if (entry.isDirectory()) collect(path, sources, root);
-    else if (/\.(ts|tsx|js|mjs)$/.test(path) && !path.endsWith(".d.ts"))
+    else if (/\.(ts|tsx|js|mjs|json)$/.test(path) && !path.endsWith(".d.ts"))
       sources.set(normalize(relative(root, path)), readFileSync(path, "utf8"));
   }
 }

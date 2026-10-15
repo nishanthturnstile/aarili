@@ -52,6 +52,9 @@ await withPostgres(
       "apps/web/.next/standalone/apps/web/.next/static",
       { recursive: true },
     );
+    cpSync("apps/web/public", "apps/web/.next/standalone/apps/web/public", {
+      recursive: true,
+    });
     const web = child([".next/standalone/apps/web/server.js"], "apps/web", {
       HOSTNAME: "127.0.0.1",
       PORT: String(port),
@@ -74,6 +77,20 @@ await withPostgres(
       const page = await fetch(`http://127.0.0.1:${port}`);
       assert.equal(page.status, 200);
       const html = await page.text();
+      for (const path of [
+        "/sw.js",
+        "/offline.html",
+        "/pwa/offline.css",
+        "/pwa/tamil.woff2",
+        "/pwa/icon-192.png",
+        "/manifest.webmanifest",
+      ]) {
+        assert.equal(
+          (await fetch(`http://127.0.0.1:${port}${path}`)).status,
+          200,
+          `0.4.1b B1 standalone asset missing: ${path}`,
+        );
+      }
       assert.equal(new URL(page.url).pathname, "/sign-in");
       assert(!html.includes("The development workspace is running"));
       assert(!html.includes("data-aarili-theme"));

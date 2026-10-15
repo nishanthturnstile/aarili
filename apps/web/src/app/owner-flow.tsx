@@ -38,6 +38,8 @@ import { NextIntlClientProvider, useLocale, useTranslations } from "next-intl";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { AppearanceControl } from "./appearance-control";
 import { createOwnerQueries } from "./owner-query";
+import { PwaNotice } from "./pwa";
+import { createWorkGuard } from "./pwa-runtime";
 
 type Mode =
   | "setup"
@@ -51,6 +53,7 @@ type Mode =
 export function OwnerFlow({ mode }: { mode: Mode }) {
   const [locale, setLocale] = useState<Locale>("en");
   const [queries] = useState(createOwnerQueries);
+  const [guard] = useState(createWorkGuard);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     setReady(true);
@@ -88,7 +91,8 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
               </Button>
             </div>
           </header>
-          <Flow mode={mode} queries={queries} />
+          <PwaNotice locale={locale} guard={guard} />
+          <Flow mode={mode} queries={queries} guard={guard} />
         </main>
       </NextIntlClientProvider>
     </QueryClientProvider>
@@ -97,14 +101,20 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
 function Flow({
   mode,
   queries,
+  guard,
 }: {
   mode: Mode;
   queries: ReturnType<typeof createOwnerQueries>;
+  guard: ReturnType<typeof createWorkGuard>;
 }) {
   const t = useTranslations();
   const locale = useLocale();
   const [step, setStep] = useState<"initial" | "resume" | "verify">("initial");
   const [busy, setBusy] = useState(false);
+  const [work] = useState(() => guard.track());
+  const dirty = useRef(false);
+  const unknown = useRef(false);
+  useEffect(() => () => work.dispose(), [work]);
   const [notice, setNotice] = useState("");
   const [failure, setFailure] = useState("");
   const [connection, setConnection] =
@@ -191,12 +201,21 @@ function Flow({
     if (notice || failure) noticeRef.current?.focus();
   }, [notice, failure]);
   async function run(action: () => Promise<void>) {
+    work.set({
+      dirty: dirty.current,
+      inFlight: true,
+      outcomeUnknown: unknown.current,
+    });
     setBusy(true);
     setFailure("");
     setNotice("");
     try {
       await action();
+      unknown.current = false;
     } catch (error) {
+      // Conservatively keep a failed request blocked until its outcome has been
+      // resolved by a successful retry. No background resubmission is added.
+      unknown.current = true;
       setConfirmDisconnect(false);
       const code = error instanceof OwnerRequestError ? error.code : "";
       setFailure(
@@ -228,6 +247,11 @@ function Flow({
       );
     } finally {
       setBusy(false);
+      work.set({
+        dirty: dirty.current,
+        inFlight: false,
+        outcomeUnknown: unknown.current,
+      });
     }
   }
   function field(
@@ -414,6 +438,19 @@ function Flow({
             method="post"
             className="owner-form"
             onSubmit={submit}
+            onInput={() => {
+              dirty.current = true;
+              work.set({
+                dirty: true,
+                inFlight: busy,
+                outcomeUnknown: unknown.current,
+              });
+            }}
+            onReset={() => {
+              dirty.current = false;
+              unknown.current = false;
+              work.set({ dirty: false, inFlight: busy, outcomeUnknown: false });
+            }}
           >
             {mode === "recovery" ? (
               field("email", "email", "username")

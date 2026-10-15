@@ -73,6 +73,7 @@ function inspect(directory) {
   }
 }
 inspect("apps/web/.next/static");
+inspect("apps/web/public");
 assert(checked > 0, "No browser build output found");
 console.info(
   `0.1.1a checked ${checked} browser artifacts for synthetic private configuration leakage.`,

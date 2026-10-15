@@ -8,6 +8,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Sole visual authority; generator snapshots are provenance only. */
+.pwa-notice:empty {
+  display: none;
+}
+.pwa-notice p {
+  margin-block: var(--space-control);
+}
 :root {
   color-scheme: light;
   --background: #faf6ed;

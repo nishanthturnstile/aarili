@@ -15,6 +15,27 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'; script-src 'self'; connect-src 'self'",
+          },
+        ],
+      },
+      {
+        source: "/offline.html",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'none'; style-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },

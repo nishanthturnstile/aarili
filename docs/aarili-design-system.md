@@ -28,13 +28,17 @@ theme from working in the current page. No business data belongs in browser stor
 
 ## Typography, geometry and states
 
-Owner clarification, 15 October 2026: every current screen starts in **English**,
+Owner clarification, 15 October 2026: every interactive owner screen starts in **English**,
 including after reload/navigation and when the browser prefers Tamil. Tamil
 interface copy and branding appear only after the user selects the `தமிழ்`
 control. Entered names/notes keep their original scripts. Language is not saved
 or inferred yet; a persisted preference belongs to future settings/profile work.
 English/Tamil owner catalogues live in the framework-free `@aarili/i18n`
 package. Explicit language switching preserves entered values.
+The static offline fallback always shows English and Tamil together and follows
+the device colour scheme without reading stored appearance preferences. Its
+headings use the bundled 400-weight fonts to keep that isolated fallback small;
+interactive owner screens retain the established 600-weight headings.
 
 - Self-host Noto Sans Latin and Noto Sans Tamil, normal weights 400 and 600,
   using the existing exact Fontsource 5.3.0 pins. No runtime font-service calls.
@@ -85,6 +89,13 @@ The responsive owner-shell extension is [#51](https://github.com/nishanthturnsti
 its [acceptance evidence](agents/Issue_51_Responsive_Shell_Evidence.md) retains the
 later physical-device and phase activation gates.
 Sources: product USE-01/02/08/09; architecture §§5.2, 7.1, 9.2 and 15.
+The [#52 PWA foundation](agents/Issue_52_PWA_Evidence.md) reuses Status and Button
+for connectivity/installation notices. Its static offline page derives both
+palettes and local Noto fonts from the same authority; it shows Tamil and English
+together without persisting language or business values. The installed icon is
+a deterministic A monogram in the canonical primary colours. Update notices
+appear only when the shared in-memory work guard is safe; updates wait until
+every controlled Aarili window closes.
 Run the repository verification and browser suites in both themes and languages,
 including failure paths. Record font payloads and unrun physical-device,
 shop-lighting and Tamil screen-reader checks. Automated checks do not establish

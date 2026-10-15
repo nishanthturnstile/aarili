@@ -45,6 +45,10 @@
   },
   "overrides": [
     {
+      "includes": ["apps/web/public/pwa/offline.css"],
+      "formatter": { "enabled": false }
+    },
+    {
       "includes": [
         "scripts/local-infra.mjs",
         "scripts/migrate.mjs",

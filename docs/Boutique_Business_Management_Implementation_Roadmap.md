@@ -226,10 +226,12 @@ The owner approved the phase direction and requested implementation on 15 Octobe
 2026. The [implementation plan and ten published ticket bodies](agents/Phase_0_4_Implementation_Plan.md)
 preserve the parent slices below, synthetic-only verification boundary, physical
 Android/Tamil review and pending retention approval. The approved breakdown is published as #51–#60 with verified native blockers.
-The #51 implementation is on its topic branch with
+The #51 implementation merged through [PR #61](https://github.com/nishanthturnstile/aarili/pull/61), with
 [criterion-by-criterion evidence](agents/Issue_51_Responsive_Shell_Evidence.md)
-for review; later slices retain their direct prerequisite merge gates. No
-Phase 0.4 slice is closed on integrated main yet.
+on integrated main. The #52 online-only PWA has
+[criterion-by-criterion evidence](agents/Issue_52_PWA_Evidence.md) for draft review;
+later slices retain their direct prerequisite merge gates. Phase closeout still
+requires the remaining slices and physical Android/Tamil acceptance.
 
 #### Functionality — Bilingual navigation, server drafts and observable use
 
