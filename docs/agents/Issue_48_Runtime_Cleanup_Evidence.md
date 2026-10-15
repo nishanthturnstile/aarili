@@ -47,7 +47,8 @@ product behavior or business policy is introduced.
   production-mode owner fixtures with auth configured.
 - Fresh phone English/light, phone Tamil/dark and desktop English/dark captures
   were inspected; no clipping was observed. Existing curated #47 captures are
-  retained; no new visual behavior was introduced by #48.
+  retained. Settled appearance is preserved; the transient dialog correction
+  below was discovered during subsequent CI validation.
 - Normal worker smoke required `no job consumers registered; real providers
   disabled` and graceful shutdown, and rejected foundation handler names.
 - `git diff --check`: passed. Final documentation-only lint is recorded in the PR.
@@ -80,6 +81,20 @@ fixture resource/cleanup defects; the original timeout location is not establish
 No application code, test timeout, assertion or retry policy changed in this follow-up.
 Lint, Knip, strict types and 80 unit/property tests passed again; final browser/CI
 results for the correction are recorded in the PR.
+
+### Selected-theme dialog correction (#47 acceptance follow-up)
+
+After the fixture correction, one Linux run exposed an actual axe contrast
+failure during the disconnect dialog's opacity transition: 3.76:1 instead of
+4.5:1. The other complete Linux browser run and local suite passed, making the
+timing-dependent defect easy to miss. A new browser regression holds the actual
+dialog at an intermediate opening frame: it failed before the correction with
+opacity `0.061332` instead of `1`. The popup now retains full opacity while its
+existing translate animation runs; palette, fonts, geometry and focus/busy
+behavior are unchanged. The regression checks both full opacity and axe at that
+paused intermediate frame in both languages and all three device classes.
+The Impeccable mechanical check found no issues in the changed stylesheet.
+Final results are recorded in the PR before merge.
 
 ## Recovery and limits
 

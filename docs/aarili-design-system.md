@@ -48,6 +48,8 @@ or inferred yet; a persisted preference belongs to future settings/profile work.
   content remains readable. Disabled and busy controls remain identifiable.
 - Preserve keyboard navigation, visible focus, dialog containment/restoration,
   reduced motion, text enlargement, reflow and usable font fallbacks.
+- Dialog surfaces stay fully opaque during opening/closing movement so text
+  contrast remains readable at intermediate animation frames.
 
 ## Components and layout
 

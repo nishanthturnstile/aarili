@@ -283,11 +283,31 @@ for (const locale of ["ta", "en"])
             .click();
           await page.waitForURL(`${origin}/connections`);
           await language();
+          // Hold opening motion long enough to inspect an intermediate frame,
+          // rather than letting fast CI sample arbitrary opacity during axe.
+          const dialogMotion = await page.addStyleTag({
+            content: ".ui-dialog { --motion-duration: 10s; }",
+          });
           await page
             .getByRole("button", { name: w.disconnect, exact: true })
             .click();
           const dialog = page.getByRole("dialog");
           await expect(dialog).toBeVisible();
+          const openingOpacity = await dialog.evaluate((element) => {
+            for (const animation of element.getAnimations()) {
+              animation.pause();
+              animation.currentTime = 100;
+            }
+            return getComputedStyle(element).opacity;
+          });
+          expect(openingOpacity).toBe("1");
+          expect((await new AxeBuilder({ page }).analyze()).violations).toEqual(
+            [],
+          );
+          await dialog.evaluate((element) => {
+            for (const animation of element.getAnimations()) animation.finish();
+          });
+          await dialogMotion.evaluate((element) => element.remove());
           await expect(dialog).toHaveAttribute("lang", locale);
           await expect(
             page.getByRole("button", { name: w.confirm, exact: true }),
