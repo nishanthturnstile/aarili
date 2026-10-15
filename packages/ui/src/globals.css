@@ -355,13 +355,11 @@
     background: var(--popover);
     color: var(--popover-foreground);
     box-shadow: var(--shadow-dialog);
-    transition:
-      opacity var(--motion-duration) var(--motion-ease),
-      translate var(--motion-duration) var(--motion-ease);
+    /* Keep text/surface contrast intact throughout opening and closing. */
+    transition: translate var(--motion-duration) var(--motion-ease);
   }
   .ui-dialog[data-starting-style],
   .ui-dialog[data-ending-style] {
-    opacity: 0;
     translate: 0 0.5rem;
   }
   .ui-dialog-title {

@@ -40,9 +40,11 @@ Windows. Delete captures after verification; never commit or attach them.
 
 ## Confirm recent access
 
-The owner surface includes a **synthetic access check**, without business
-effects. After five minutes it asks for recent authentication. Choose **Confirm
-recent access** and enter the current password. Re-authentication resolves the
+Choose **Confirm recent access** on the owner surface, or open `/reauthenticate`,
+and enter the current password when a sensitive operation requests fresh access.
+The synthetic access-check button and runtime probe endpoint were removed by
+#47/#48; explicit verification adapters retain stale/recent/expired-session tests.
+Re-authentication resolves the
 verified owner from the database session, uses the library password handler,
 creates a new session and revokes the previous session in one transaction.
 Neither a submitted user ID nor client time is accepted.

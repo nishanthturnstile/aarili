@@ -1,12 +1,12 @@
 import { createApi } from "@aarili/api";
+import { clearOwnerState } from "@aarili/api/client";
 import {
   CommandRequestError,
   changeSyntheticRecord,
-  clearOwnerState,
   createCommandClient,
   createSyntheticRecord,
   readSyntheticRecord,
-} from "@aarili/api/client";
+} from "@aarili/api/command-fixture-client";
 import { createCommandRoutes } from "@aarili/api/commands";
 import {
   actorSchema,

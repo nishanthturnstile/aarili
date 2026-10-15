@@ -5,6 +5,12 @@ with “proceed”. Published as #47 and #48; #48 has a native blocker on #47.
 PR #46 and issue #45 are closed as superseded without merging. Implementation of
 #47 proceeds from integrated main; #48 awaits its merged prerequisite.
 
+Implementation update, 15 October 2026: #47 merged as PR #49 (`b13f176`) after
+owner merge authorization, fresh `pnpm verify` and 48 passing browser tests.
+Integrated main build/smoke checks passed before starting #48 in the same checkout.
+The runtime cleanup is tracked in [issue #48 evidence](Issue_48_Runtime_Cleanup_Evidence.md).
+The original inspection and proposed breakdown below remain planning history.
+
 ## Confirmed owner decisions
 
 - Follow-up clarification: default to English on every current page load; switch

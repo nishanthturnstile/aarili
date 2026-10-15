@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { once } from "node:events";
-import { createApi } from "@aarili/api";
 import { createOwnerAuth } from "@aarili/auth";
 import { sql } from "@aarili/db";
 import pg from "pg";
 import { test } from "vitest";
 import { migrateDatabase } from "../scripts/migrate.mjs";
 import { withHttpsApi } from "../scripts/test-support/https-api.mjs";
+import { createOwnerVerificationApi as createApi } from "../scripts/test-support/owner-api.mjs";
 import { withPostgres } from "../scripts/test-support/postgres.mjs";
 
 const origin = "http://127.0.0.1:3103";

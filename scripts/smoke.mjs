@@ -89,6 +89,8 @@ await withPostgres(
       assert.equal(missing.status, 404);
       for (const path of [
         "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records",
+        "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records/019a5e55-2222-7000-8000-000000000002",
+        "/api/owner/sensitive-probe",
         "/api/openapi.json",
         "/api/docs",
       ]) {
@@ -116,9 +118,10 @@ await withPostgres(
       worker.proc.send("shutdown");
       assert.match(
         worker.output(),
-        /foundation.schedule; real providers disabled/,
+        /no job consumers registered; real providers disabled/,
       );
-      assert(!worker.output().includes("no job consumers registered"));
+      assert(!worker.output().includes("foundation.synthetic"));
+      assert(!worker.output().includes("foundation.schedule"));
       const [code] = await Promise.race([
         worker.exit,
         delay(5000).then(() => {

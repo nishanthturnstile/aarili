@@ -7,8 +7,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
+import { ownerAuthFromEnvironment } from "@aarili/auth";
 import pg from "pg";
 import { migrateDatabase } from "../migrate.mjs";
+import { createOwnerVerificationApi } from "./owner-api.mjs";
 import { withPostgres } from "./postgres.mjs";
 
 // Each UI language/device scenario gets its own disposable DB + production web
@@ -75,6 +77,16 @@ export async function withOwnerWeb(
       const exit = once(web, "exit");
       let output = "";
       const runtime = new pg.Pool({ connectionString });
+      let probeOwner;
+      async function probeRecent(headers) {
+        probeOwner ??= ownerAuthFromEnvironment(webEnv);
+        return createOwnerVerificationApi(async () => true, probeOwner).fetch(
+          new Request(`${origin}/api/owner/sensitive-probe`, {
+            method: "POST",
+            headers,
+          }),
+        );
+      }
       web.stdout.on("data", (b) => {
         output += b;
       });
@@ -110,13 +122,18 @@ export async function withOwnerWeb(
           privateValues.add(message.code);
         }
       }
+      let phase = "readiness";
       try {
         let ready = false;
         for (let n = 0; n < 150; n++) {
           if (web.exitCode !== null)
             throw new Error("Synthetic web failed to boot");
           try {
-            if ((await fetch(`${origin}/api/healthz`)).ok) {
+            const health = await fetch(`${origin}/api/healthz`, {
+              signal: AbortSignal.timeout(5000),
+            });
+            await health.arrayBuffer();
+            if (health.ok) {
               ready = true;
               break;
             }
@@ -124,7 +141,34 @@ export async function withOwnerWeb(
           await delay(100);
         }
         if (!ready) throw new Error("Synthetic web boot timed out");
-        await run({ origin, setupToken, code, runtime });
+        phase = "removed-route checks";
+        for (const path of [
+          "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records",
+          "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records/019a5e55-2222-7000-8000-000000000002",
+          "/api/owner/sensitive-probe",
+          "/api/docs",
+          "/api/openapi.json",
+        ]) {
+          for (const method of ["GET", "POST", "PATCH"]) {
+            const response = await fetch(`${origin}${path}`, {
+              method,
+              signal: AbortSignal.timeout(5000),
+            });
+            // Node fetch does not deterministically release unread bodies.
+            await response.arrayBuffer();
+            if (response.status !== 404)
+              throw new Error(
+                `Retired runtime route remains available: ${method} ${path}`,
+              );
+          }
+        }
+        phase = "owner scenario";
+        console.info("Owner fixture: retired routes denied; running scenario");
+        await run({ origin, setupToken, code, runtime, probeRecent });
+        phase = "private capture audit";
+        console.info(
+          "Owner fixture: scenario finished; checking private captures",
+        );
         if (output.includes(setupToken))
           throw new Error("Setup token entered server logs");
         await privateCaptures();
@@ -142,11 +186,27 @@ export async function withOwnerWeb(
           error instanceof Error ? error.message : "Owner browser check failed";
         for (const value of privateValues)
           message = message.replaceAll(value, "[REDACTED]");
-        throw new Error(message);
+        throw new Error(`Owner fixture ${phase}: ${message}`);
       } finally {
+        console.info("Owner fixture: stopping disposable web process");
         web.kill();
-        await exit;
+        let shutdownTimer;
+        const stopped = await Promise.race([
+          exit.then(() => true),
+          new Promise((resolve) => {
+            shutdownTimer = setTimeout(() => resolve(false), 5000);
+          }),
+        ]);
+        clearTimeout(shutdownTimer);
+        if (!stopped) {
+          // Only this fixture's child. Production graceful shutdown is proved
+          // separately by smoke; fixture cleanup cannot wait indefinitely.
+          console.info("Owner fixture: forcing disposable web process cleanup");
+          web.kill("SIGKILL");
+          await exit;
+        }
         await runtime.end();
+        await probeOwner?.close();
         await rm(captureDirectory, { recursive: true, force: true });
       }
     },

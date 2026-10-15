@@ -71,6 +71,13 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     },
   });
   app.use("*", async (c, next) => {
+    // Only real owner/auth/shop routes use this middleware. Removed examples
+    // fall through to 404 before origin, query or authentication checks.
+    if (
+      !/^\/api\/(owner|auth|shops)\//.test(c.req.path) ||
+      c.req.path === "/api/owner/sensitive-probe"
+    )
+      return next();
     c.header("Cache-Control", "no-store");
     c.header("Referrer-Policy", "no-referrer");
     const googleCallback =
@@ -204,21 +211,6 @@ export function createOwnerRoutes(owner: OwnerAuth) {
           c.json({ state: "reauthenticated" as const }, 200),
           headers,
         );
-      },
-    )
-    .openapi(
-      createRoute({
-        method: "post",
-        path: "/owner/sensitive-probe",
-        responses: actionResponses,
-      }),
-      async (c) => {
-        // Synthetic auth is the only mounted adapter. No business command/effect.
-        const result = await owner.withRecentOwner(
-          c.req.raw.headers,
-          async () => ({ state: "probe-accepted" as const }),
-        );
-        return sessionResponse(c.json(result.data, 200), result.headers);
       },
     )
     .openapi(command("/owner/setup", setupCommandSchema), async (c) => {

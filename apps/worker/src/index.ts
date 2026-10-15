@@ -16,7 +16,7 @@ try {
     if (outcome === "timed-out") process.exit(1);
   });
   console.info(
-    `aarili-worker ready: ${runtime.handlers.join(", ")}; real providers disabled`,
+    `aarili-worker ready: ${runtime.handlers.length ? runtime.handlers.join(", ") : "no job consumers registered"}; real providers disabled`,
   );
 } catch {
   console.error(

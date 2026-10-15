@@ -14,40 +14,17 @@ import { commandRepository } from "@aarili/db/command-repository";
 import { syntheticJobRepository } from "@aarili/db/jobs-repository";
 import type { SyntheticJobWriter } from "@aarili/db/repositories/jobs";
 import { restoreRepository } from "@aarili/db/restore-repository";
-import { fromDrizzle, PgBoss } from "pg-boss";
+import { fromDrizzle, type PgBoss } from "pg-boss";
+import { startQueue } from "./queue.js";
 
 export const syntheticQueue = "foundation.synthetic";
 
-// No privileged URL; uses the supplied app_user database. Provisioning happens
-// separately in reviewed SQL. Runtime composition never provisions queues.
-export async function startSyntheticQueue(
+// Verification composition alone selects the foundation queue.
+export function startSyntheticQueue(
   db: Database,
   requiredQueue = syntheticQueue,
 ) {
-  await requireRuntimeRole(db);
-  const boss = new PgBoss({
-    db: fromDrizzle(db, sql),
-    schema: "pgboss",
-    migrate: false,
-    createSchema: false,
-    supervise: false,
-    schedule: false,
-    registerInstance: false,
-    persistWarnings: false,
-    persistQueueStats: false,
-    useListenNotify: false,
-  });
-  boss.on("error", () => console.error("Synthetic queue unavailable"));
-  try {
-    await boss.start();
-    if (!(await boss.getQueue(requiredQueue))) throw new Error("Queue missing");
-    return boss;
-  } catch {
-    await boss.stop();
-    throw new Error(
-      "Synthetic queue setup missing or incompatible; provision with migration authority",
-    );
-  }
+  return startQueue(db, [requiredQueue]);
 }
 
 export function syntheticJobWriter(
