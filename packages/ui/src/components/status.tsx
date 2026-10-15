@@ -1,7 +1,9 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   CircleCheckIcon,
+  CircleIcon,
   CircleXIcon,
+  ClockIcon,
   InfoIcon,
   TriangleAlertIcon,
 } from "lucide-react";
@@ -15,6 +17,8 @@ const statusVariants = cva("ui-status", {
       warning: "bg-warning text-warning-foreground",
       info: "bg-info text-info-foreground",
       error: "bg-error text-error-foreground",
+      neutral: "bg-neutral-status text-neutral-status-foreground",
+      progress: "bg-progress text-progress-foreground",
     },
   },
   defaultVariants: { tone: "info" },
@@ -24,6 +28,8 @@ const icons = {
   warning: TriangleAlertIcon,
   info: InfoIcon,
   error: CircleXIcon,
+  neutral: CircleIcon,
+  progress: ClockIcon,
 };
 function Status({
   tone = "info",

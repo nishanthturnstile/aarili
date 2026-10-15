@@ -9,6 +9,10 @@ acceptance evidence and activation limits. Phase 0.3's six implementation ticket
 are also merged; its [closeout review](agents/Phase_0_3_Closeout_Acceptance.md)
 records fresh validation and the separate verification-repair review gate.
 Phase 0.4 and later retain concrete draft, review and publication approval.
+Before the next feature slice, the owner approved [design trial #45](https://github.com/nishanthturnstile/aarili/issues/45),
+a focused follow-up to foundation 0.1.1c / #3. It evaluates the [Grounded Editorial candidate](aarili-design-system.md)
+in local development against USE-01/02/09 and architecture §§5.2, 7.1, 9.2 and 15.
+It does not adopt a final theme or implement Phase 0.4 capabilities.
 This roadmap alone authorises no new
 implementation or GitHub Issue generation; later release allocation remains provisional.
 

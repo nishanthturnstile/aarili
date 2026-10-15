@@ -1,12 +1,17 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
+import { setOwnerLanguage } from "./owner-language.mjs";
 
 test.use({ trace: "off", screenshot: "off" });
 test.afterEach(async ({ page }) => {
   if (!page.isClosed()) await page.goto("about:blank");
 });
 const original = "synthetic-ui-old-password-13";
+const captureRoot =
+  process.env.AARILI_OWNER_UI_TRIAL === "true"
+    ? "docs/agents/design-trial"
+    : "docs/agents";
 const replacement = "synthetic-ui-new-password-13";
 const email = "owner@example.test";
 const words = {
@@ -102,15 +107,7 @@ for (const locale of ["ta", "en"])
             thirdParty.push(request.url());
         });
         async function language() {
-          if (
-            locale === "en" &&
-            (await page
-              .getByRole("button", { name: "English", exact: true })
-              .isVisible())
-          )
-            await page
-              .getByRole("button", { name: "English", exact: true })
-              .click();
+          await setOwnerLanguage(page, locale);
         }
         async function axe() {
           expect((await new AxeBuilder({ page }).analyze()).violations).toEqual(
@@ -137,7 +134,7 @@ for (const locale of ["ta", "en"])
           );
           await page.screenshot({
             fullPage: true,
-            path: `docs/agents/auth-recovery/captures/${info.project.name}-${locale}-${state}.png`,
+            path: `${captureRoot}/auth-recovery/captures/${info.project.name}-${locale}-${state}.png`,
           });
         }
         async function login(password) {

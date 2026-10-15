@@ -18,7 +18,9 @@ import {
 } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
 import { Status } from "@aarili/ui/components/status";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DesignSpecimens } from "./specimens";
 
 const copy = {
   en: {
@@ -94,24 +96,42 @@ const copy = {
   },
 };
 
-export function DesignPreview() {
+export function DesignPreview({
+  initialCandidate = false,
+}: {
+  initialCandidate?: boolean;
+}) {
   const [locale, setLocale] = useState<"en" | "ta">("en");
   const [dark, setDark] = useState(false);
+  const [candidate, setCandidate] = useState(initialCandidate);
   const t = copy[locale];
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = {
+      dark: root.classList.contains("dark"),
+      lang: root.lang,
+      theme: root.getAttribute("data-aarili-theme"),
+    };
+    return () => {
+      root.classList.toggle("dark", previous.dark);
+      root.lang = previous.lang;
+      if (previous.theme === null) root.removeAttribute("data-aarili-theme");
+      else root.setAttribute("data-aarili-theme", previous.theme);
+    };
+  }, []);
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle("dark", dark);
     root.lang = locale;
-    return () => {
-      root.classList.remove("dark");
-      root.lang = "en";
-    };
-  }, [locale, dark]);
+    if (candidate && !dark)
+      root.setAttribute("data-aarili-theme", "grounded-editorial");
+    else root.removeAttribute("data-aarili-theme");
+  }, [locale, dark, candidate]);
   return (
     <main className="aarili-main" lang={locale}>
       <header className="preview-header">
         <div className="preview-controls justify-between">
-          <h1>{t.title}</h1>
+          <h1 className="editorial">{t.title}</h1>
           <div className="preview-controls">
             <Button
               variant="outline"
@@ -131,6 +151,39 @@ export function DesignPreview() {
         </div>
         <p className="mt-3 max-w-prose text-muted-foreground">{t.intro}</p>
       </header>
+      <fieldset
+        className="lab-switches"
+        aria-label="Theme comparison"
+        lang="en"
+      >
+        {(["Current light", "Candidate light", "Current dark"] as const).map(
+          (name) => (
+            <Button
+              key={name}
+              variant="outline"
+              aria-pressed={
+                name === "Current dark"
+                  ? dark
+                  : !dark &&
+                    (name === "Candidate light" ? candidate : !candidate)
+              }
+              onClick={() => {
+                setDark(name === "Current dark");
+                setCandidate(name === "Candidate light");
+              }}
+            >
+              {name}
+            </Button>
+          ),
+        )}
+        <Link
+          href="/sign-in"
+          className="ui-button inline-flex items-center bg-secondary text-secondary-foreground"
+        >
+          Review sign-in screen
+        </Link>
+      </fieldset>
+      <DesignSpecimens locale={locale} />
       <section className="preview-section" aria-labelledby="actions-title">
         <h2 id="actions-title" className="mb-4">
           {t.actions}

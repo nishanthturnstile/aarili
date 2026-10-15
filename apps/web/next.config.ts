@@ -7,6 +7,9 @@ validateEnvironment(process.env);
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  // Raw development URLs can contain OAuth codes; browser errors can echo
+  // entered values. Keep both out of the unsanitized framework terminal log.
+  logging: { incomingRequests: false, browserToTerminal: false },
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   typedRoutes: true,
@@ -30,6 +33,12 @@ const nextConfig: NextConfig = {
 export default function configureNext(phase: string): NextConfig {
   return {
     ...nextConfig,
+    // These fixtures restart Next with a new database/origin for every case.
+    // Reusing persisted development chunks can produce HMR hash reload loops.
+    ...(process.env.AARILI_OWNER_UI_TRIAL === "true" &&
+    phase === PHASE_DEVELOPMENT_SERVER
+      ? { experimental: { turbopackFileSystemCacheForDev: false } }
+      : {}),
     distDir:
       process.env.AARILI_UI_VERIFICATION === "true" &&
       phase === PHASE_DEVELOPMENT_SERVER

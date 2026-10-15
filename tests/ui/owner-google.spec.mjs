@@ -5,9 +5,14 @@ import {
   syntheticGoogle,
 } from "../../scripts/test-support/google-provider.mjs";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
+import { setOwnerLanguage } from "./owner-language.mjs";
 
 test.use({ trace: "off", screenshot: "off" });
 const password = "synthetic-ui-google-password-14";
+const captureRoot =
+  process.env.AARILI_OWNER_UI_TRIAL === "true"
+    ? "docs/agents/design-trial"
+    : "docs/agents";
 const words = {
   en: {
     signIn: "Sign in",
@@ -119,19 +124,7 @@ for (const locale of ["ta", "en"])
             });
           });
           async function language() {
-            if (
-              locale === "en" &&
-              (await page
-                .getByRole("button", { name: "English", exact: true })
-                .isVisible())
-            )
-              await page
-                .getByRole("button", { name: "English", exact: true })
-                .click();
-            await expect(page.locator("main[lang]")).toHaveAttribute(
-              "lang",
-              locale,
-            );
+            await setOwnerLanguage(page, locale);
           }
           async function googleReturn(path, activate) {
             // OAuth can return to the same URL. An alert/focus assertion or
@@ -178,7 +171,7 @@ for (const locale of ["ta", "en"])
             for (const value of privateValues)
               expect((await page.content()).includes(value)).toBe(false);
             await page.screenshot({
-              path: `docs/agents/auth-google/captures/${info.project.name}-${locale}-${name}.png`,
+              path: `${captureRoot}/auth-google/captures/${info.project.name}-${locale}-${name}.png`,
               fullPage: true,
             });
           }

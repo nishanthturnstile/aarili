@@ -6,8 +6,14 @@ export const metadata: Metadata = {
   description: "Synthetic development scaffold",
 };
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const trial =
+    process.env.NODE_ENV === "development" &&
+    process.env.AARILI_DESIGN_TRIAL === "grounded-editorial";
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      data-aarili-theme={trial ? "grounded-editorial" : undefined}
+    >
       <body>{children}</body>
     </html>
   );

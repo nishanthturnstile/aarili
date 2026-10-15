@@ -1,7 +1,11 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "stream",
-  "globalPassThroughEnv": ["npm_execpath", "OUTBOUND_EFFECTS"],
+  "globalPassThroughEnv": [
+    "npm_execpath",
+    "OUTBOUND_EFFECTS",
+    "AARILI_OWNER_UI_TRIAL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -15,6 +19,7 @@
     "dev": {
       "dependsOn": ["^build"],
       "passThroughEnv": [
+        "AARILI_DESIGN_TRIAL",
         "DATABASE_URL",
         "AARILI_SYNTHETIC_AUTH",
         "AUTH_ORIGIN",

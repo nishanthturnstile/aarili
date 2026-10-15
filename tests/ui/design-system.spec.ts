@@ -13,6 +13,9 @@ for (const locale of ["en", "ta"] as const) {
           externalRequests.push(request.url());
       });
       await page.goto("/dev/design-system");
+      await page
+        .getByRole("button", { name: "Current light", exact: true })
+        .click();
       if (locale === "ta")
         await page.getByRole("button", { name: "தமிழ்", exact: true }).click();
       if (dark)
@@ -56,7 +59,7 @@ for (const locale of ["en", "ta"] as const) {
       }
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
-        path: `docs/agents/design-system/captures/${testInfo.project.name}-${locale}-${dark ? "dark" : "light"}.png`,
+        path: `.scratch/design-system-baseline/${testInfo.project.name}-${locale}-${dark ? "dark" : "light"}.png`,
         fullPage: true,
       });
       const trigger = page.getByRole("button", {
@@ -91,7 +94,7 @@ for (const locale of ["en", "ta"] as const) {
           .toBe(true);
       }
       await page.screenshot({
-        path: `docs/agents/design-system/captures/${testInfo.project.name}-${locale}-${dark ? "dark" : "light"}-dialog.png`,
+        path: `.scratch/design-system-baseline/${testInfo.project.name}-${locale}-${dark ? "dark" : "light"}-dialog.png`,
         fullPage: true,
       });
       await page.keyboard.press("Escape");
@@ -106,6 +109,9 @@ test("USE-02/09 Tamil composition, empty input and reduced motion remain intact"
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/dev/design-system");
+  await page
+    .getByRole("button", { name: "Current light", exact: true })
+    .click();
   const input = page.locator("#sample-text");
   await input.focus();
   await input.dispatchEvent("compositionstart", { data: "" });
@@ -133,6 +139,9 @@ test("0.1.1c editing canonical token declarations changes controls and app surfa
   page,
 }, testInfo) => {
   await page.goto("/dev/design-system");
+  await page
+    .getByRole("button", { name: "Current light", exact: true })
+    .click();
   const button = page.getByRole("button", { name: "Continue to review" });
   const card = page.locator('[data-slot="card"]').last();
   async function styles() {
@@ -182,7 +191,7 @@ test("0.1.1c editing canonical token declarations changes controls and app surfa
     expect(after.card[index]).not.toBe(before.card[index]);
   expect(after.main).not.toBe(before.main);
   await page.screenshot({
-    path: `docs/agents/design-system/captures/${testInfo.project.name}-token-change.png`,
+    path: `.scratch/design-system-baseline/${testInfo.project.name}-token-change.png`,
     fullPage: true,
   });
 });

@@ -39,13 +39,19 @@ type Mode =
 // Google is a focused extension of the existing owner access surface.
 export function OwnerFlow({ mode }: { mode: Mode }) {
   const [locale, setLocale] = useState<"ta" | "en">("ta");
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   return (
     <NextIntlClientProvider
       locale={locale}
       messages={ownerMessages[locale]}
       timeZone="Asia/Kolkata"
     >
-      <main className="aarili-main owner-shell" lang={locale}>
+      <main
+        className="aarili-main owner-shell"
+        lang={locale}
+        data-owner-ready={ready}
+      >
         <header className="preview-header owner-heading">
           <a href="/sign-in">Aarili · ஆரிலி</a>
           <Button

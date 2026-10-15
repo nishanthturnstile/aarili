@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { once } from "node:events";
@@ -11,12 +12,15 @@ import pg from "pg";
 import { migrateDatabase } from "../migrate.mjs";
 import { withPostgres } from "./postgres.mjs";
 
-// Each UI language/device scenario gets its own disposable DB + production web
-// process. Migration credentials stay in this fixture, never the web environment.
+// Each scenario gets a disposable DB and web process (production by default;
+// development for the explicit design trial). Migration credentials stay here.
 export async function withOwnerWeb(
   run,
   { onFailure, secrets = [], google } = {},
 ) {
+  const designTrial =
+    process.env.AARILI_DESIGN_TRIAL === "grounded-editorial" &&
+    process.env.AARILI_OWNER_UI_TRIAL === "true";
   return withPostgres(
     async ({ connectionString, migrationConnectionString }) => {
       await migrateDatabase(migrationConnectionString);
@@ -40,7 +44,9 @@ export async function withOwnerWeb(
         // Accidental provider configuration cannot select a transport.
         RESEND_API_KEY: "synthetic-outbound-disabled-canary",
         SMTP_URL: "https://invalid.example.test",
-        NODE_ENV: "production",
+        NODE_ENV: designTrial ? "development" : "production",
+        // Force the flag even in baseline production checks: it must be ignored.
+        AARILI_DESIGN_TRIAL: "grounded-editorial",
         ...(google
           ? {
               AUTH_GOOGLE_ENABLED: "true",
@@ -60,7 +66,7 @@ export async function withOwnerWeb(
         process.execPath,
         [
           resolve("apps/web/node_modules/next/dist/bin/next"),
-          "start",
+          designTrial ? "dev" : "start",
           "--hostname",
           "127.0.0.1",
           "--port",
@@ -112,7 +118,7 @@ export async function withOwnerWeb(
       }
       try {
         let ready = false;
-        for (let n = 0; n < 150; n++) {
+        for (let n = 0; n < 600; n++) {
           if (web.exitCode !== null)
             throw new Error("Synthetic web failed to boot");
           try {
@@ -124,6 +130,12 @@ export async function withOwnerWeb(
           await delay(100);
         }
         if (!ready) throw new Error("Synthetic web boot timed out");
+        const signInHtml = await (await fetch(`${origin}/sign-in`)).text();
+        assert.equal(
+          /<html[^>]*data-aarili-theme="grounded-editorial"/.test(signInHtml),
+          designTrial,
+          "Trial must be server-applied only in development",
+        );
         await run({ origin, setupToken, code, runtime });
         if (output.includes(setupToken))
           throw new Error("Setup token entered server logs");

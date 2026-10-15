@@ -55,6 +55,7 @@ await withPostgres(
     const web = child([".next/standalone/apps/web/server.js"], "apps/web", {
       HOSTNAME: "127.0.0.1",
       PORT: String(port),
+      AARILI_DESIGN_TRIAL: "grounded-editorial",
       DATABASE_URL: connectionString,
     });
     const worker = child(["dist/index.js"], "apps/worker", {
@@ -75,6 +76,7 @@ await withPostgres(
       assert.equal(page.status, 200);
       const html = await page.text();
       assert.match(html, /The development workspace is running/);
+      assert.doesNotMatch(html, /<html[^>]*data-aarili-theme=/);
       const asset = html.match(/src="([^"]*\/_next\/static\/[^"]+)"/)?.[1];
       assert(asset, "Production page has no client asset");
       assert.equal(
