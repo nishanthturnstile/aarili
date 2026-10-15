@@ -23,5 +23,5 @@ if (
   throw new Error("Expected exactly five invalid UI diagnostics");
 }
 console.info(
-  "0.1.2a: TypeScript rejects four invalid component variants and incompatible health UI data.",
+  "0.1.2a: TypeScript rejects four invalid component variants and incompatible operational health data.",
 );

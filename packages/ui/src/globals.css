@@ -79,6 +79,8 @@
   --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --focus-width: 3px;
   --focus-offset: 3px;
+  --disabled-background: var(--secondary);
+  --disabled-foreground: var(--muted-foreground);
 }
 
 .dark {
@@ -190,6 +192,7 @@
     line-height: var(--line-body);
     font-weight: var(--weight-body);
     scrollbar-color: var(--border) var(--background);
+    overflow-wrap: anywhere;
   }
   :lang(ta) {
     font-family: var(--font-tamil);
@@ -228,6 +231,9 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-control);
+    flex-wrap: wrap;
+    padding-block-end: var(--space-page);
+    border-bottom: 1px solid var(--border);
   }
   .owner-content {
     max-width: calc(var(--content-width) / 2);
@@ -249,23 +255,11 @@
     margin-inline: auto;
     padding: var(--space-page);
   }
-  .preview-section {
-    margin-block-start: var(--space-section);
-  }
-  .preview-header {
-    padding-block-end: var(--space-page);
-    border-bottom: 1px solid var(--border);
-  }
-  .preview-controls {
+  .owner-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-control);
-  }
-  .preview-grid {
-    display: grid;
-    gap: var(--space-page);
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   }
   .ui-button {
     min-height: var(--control-height);
@@ -275,7 +269,8 @@
     white-space: normal;
     overflow-wrap: anywhere;
     line-height: inherit;
-    transition: background-color var(--motion-duration) var(--motion-ease);
+    /* Swap paired foreground/background roles together to retain contrast. */
+    transition: none;
   }
   .ui-button-icon {
     width: var(--control-height);
@@ -297,6 +292,9 @@
   }
   .ui-input[aria-invalid="true"] {
     border-color: var(--destructive);
+  }
+  .ui-input[readonly] {
+    background: var(--secondary);
   }
   .ui-field {
     display: flex;
@@ -348,6 +346,8 @@
     z-index: 50;
     max-height: calc(100dvh - var(--space-page) * 2);
     overflow-y: auto;
+    overflow-wrap: anywhere;
+    overscroll-behavior: contain;
     display: grid;
     gap: var(--space-control);
     padding: var(--space-page);
@@ -382,6 +382,24 @@
       align-items: start;
       flex-direction: column;
     }
+  }
+}
+
+@layer utilities {
+  .ui-button:disabled,
+  .ui-input:disabled {
+    background: var(--disabled-background);
+    color: var(--disabled-foreground);
+    border-color: var(--input);
+    opacity: 1;
+  }
+  .ui-button:active:enabled:not(:focus-visible) {
+    outline: 1px solid currentColor;
+    outline-offset: calc(var(--focus-offset) * -1);
+  }
+  .ui-button[aria-pressed="true"] {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 }
 

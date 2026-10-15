@@ -8,6 +8,11 @@
 acceptance evidence and activation limits. Phase 0.3's six implementation tickets
 are also merged; its [closeout review](agents/Phase_0_3_Closeout_Acceptance.md)
 records fresh validation and the separate verification-repair review gate.
+Before Phase 0.4, the owner selected the existing Current light/Current dark
+foundation and approved cleanup [#47](https://github.com/nishanthturnstile/aarili/issues/47)
+and [#48](https://github.com/nishanthturnstile/aarili/issues/48). The candidate trial
+in #45/PR #46 is superseded without merging. The [cleanup plan](agents/Design_System_Adoption_Plan.md)
+preserves verification safeguards and sequences UI cleanup before runtime exemplar cleanup.
 Phase 0.4 and later retain concrete draft, review and publication approval.
 This roadmap alone authorises no new
 implementation or GitHub Issue generation; later release allocation remains provisional.

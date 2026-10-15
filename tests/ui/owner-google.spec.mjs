@@ -5,6 +5,7 @@ import {
   syntheticGoogle,
 } from "../../scripts/test-support/google-provider.mjs";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
+import { prepareOwnerScreen } from "./owner-presentation.mjs";
 
 test.use({ trace: "off", screenshot: "off" });
 const password = "synthetic-ui-google-password-14";
@@ -119,19 +120,7 @@ for (const locale of ["ta", "en"])
             });
           });
           async function language() {
-            if (
-              locale === "en" &&
-              (await page
-                .getByRole("button", { name: "English", exact: true })
-                .isVisible())
-            )
-              await page
-                .getByRole("button", { name: "English", exact: true })
-                .click();
-            await expect(page.locator("main[lang]")).toHaveAttribute(
-              "lang",
-              locale,
-            );
+            await prepareOwnerScreen(page, locale);
           }
           async function googleReturn(path, activate) {
             // OAuth can return to the same URL. An alert/focus assertion or
@@ -166,7 +155,10 @@ for (const locale of ["ta", "en"])
                 localStorage.length,
                 sessionStorage.length,
               ]),
-            ).toEqual([0, 0]);
+            ).toEqual([locale === "ta" ? 1 : 0, 0]);
+            expect(
+              await page.evaluate(() => Object.keys(localStorage)),
+            ).toEqual(locale === "ta" ? ["aarili-appearance"] : []);
             expect(await page.evaluate(() => caches.keys())).toEqual([]);
             expect(
               await page.evaluate(() =>
@@ -178,7 +170,7 @@ for (const locale of ["ta", "en"])
             for (const value of privateValues)
               expect((await page.content()).includes(value)).toBe(false);
             await page.screenshot({
-              path: `docs/agents/auth-google/captures/${info.project.name}-${locale}-${name}.png`,
+              path: `.scratch/design-cleanup/auth-google/captures/${info.project.name}-${locale}-${name}.png`,
               fullPage: true,
             });
           }
@@ -294,12 +286,66 @@ for (const locale of ["ta", "en"])
           await page
             .getByRole("button", { name: w.disconnect, exact: true })
             .click();
+          const dialog = page.getByRole("dialog");
+          await expect(dialog).toBeVisible();
+          await expect(dialog).toHaveAttribute("lang", locale);
+          await expect(
+            page.getByRole("button", { name: w.confirm, exact: true }),
+          ).toBeFocused();
+          for (let index = 0; index < 5; index++) {
+            await page.keyboard.press("Tab");
+            await expect
+              .poll(() =>
+                dialog.evaluate((element) =>
+                  element.contains(document.activeElement),
+                ),
+              )
+              .toBe(true);
+          }
+          await page.keyboard.press("Escape");
+          await expect(dialog).not.toBeVisible();
+          await expect(
+            page.getByRole("button", { name: w.disconnect, exact: true }),
+          ).toBeFocused();
+          await page
+            .getByRole("button", { name: w.disconnect, exact: true })
+            .click();
           await page
             .getByRole("button", { name: w.cancel, exact: true })
             .click();
           await expect(
             page.getByRole("button", { name: w.disconnect, exact: true }),
           ).toBeVisible();
+          let releaseFailure;
+          const failureGate = new Promise((resolve) => {
+            releaseFailure = resolve;
+          });
+          await page.route("**/api/owner/google/disconnect", async (route) => {
+            await failureGate;
+            await route.fulfill({
+              status: 503,
+              json: {
+                error: {
+                  code: "SERVICE_UNAVAILABLE",
+                  message: "Request failed",
+                },
+              },
+            });
+          });
+          await page
+            .getByRole("button", { name: w.disconnect, exact: true })
+            .click();
+          await page
+            .getByRole("button", { name: w.confirm, exact: true })
+            .click();
+          for (const button of await dialog.getByRole("button").all())
+            await expect(button).toBeDisabled();
+          await page.keyboard.press("Escape");
+          await expect(dialog).toBeVisible();
+          releaseFailure();
+          await expect(dialog).not.toBeVisible();
+          await expect(page.locator("main").getByRole("alert")).toBeFocused();
+          await page.unroute("**/api/owner/google/disconnect");
           await page
             .getByRole("button", { name: w.disconnect, exact: true })
             .click();

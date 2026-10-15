@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
+import { prepareOwnerScreen } from "./owner-presentation.mjs";
 
 test.use({ trace: "off", screenshot: "off" });
 test.afterEach(async ({ page }) => {
@@ -102,15 +103,7 @@ for (const locale of ["ta", "en"])
             thirdParty.push(request.url());
         });
         async function language() {
-          if (
-            locale === "en" &&
-            (await page
-              .getByRole("button", { name: "English", exact: true })
-              .isVisible())
-          )
-            await page
-              .getByRole("button", { name: "English", exact: true })
-              .click();
+          await prepareOwnerScreen(page, locale);
         }
         async function axe() {
           expect((await new AxeBuilder({ page }).analyze()).violations).toEqual(
@@ -137,7 +130,7 @@ for (const locale of ["ta", "en"])
           );
           await page.screenshot({
             fullPage: true,
-            path: `docs/agents/auth-recovery/captures/${info.project.name}-${locale}-${state}.png`,
+            path: `.scratch/design-cleanup/auth-recovery/captures/${info.project.name}-${locale}-${state}.png`,
           });
         }
         async function login(password) {
@@ -207,8 +200,14 @@ for (const locale of ["ta", "en"])
         await runtime.query(
           "update auth_session set created_at=now()-interval '10 minutes'",
         );
-        await page.getByRole("button", { name: w.recent, exact: true }).click();
-        await expect(page.locator("main").getByRole("alert")).toBeFocused();
+        // Diagnostic UI is removed; retain stale/recent/expired API proofs.
+        const probe = () =>
+          page.request.post(`${origin}/api/owner/sensitive-probe`, {
+            headers: { Origin: origin },
+          });
+        const stale = await probe();
+        expect(stale.status()).toBe(403);
+        expect((await stale.json()).error.code).toBe("AUTHENTICATION_STALE");
         await axe();
         await page
           .getByRole("link", { name: w.confirm, exact: true })
@@ -228,12 +227,15 @@ for (const locale of ["ta", "en"])
           .click();
         await expect(page).toHaveURL(`${origin}/owner`);
         await language();
-        await page.getByRole("button", { name: w.recent, exact: true }).click();
-        await expect(page.locator("main").getByRole("status")).toBeFocused();
+        const recent = await probe();
+        expect(recent.status()).toBe(200);
+        expect(await recent.json()).toEqual({ state: "probe-accepted" });
         await runtime.query(
           "update auth_session set expires_at=now()-interval '1 second'",
         );
-        await page.getByRole("button", { name: w.recent, exact: true }).click();
+        expect((await probe()).status()).toBe(401);
+        await page.goto(`${origin}/owner`);
+        await language();
         await expect(page.locator("main").getByRole("alert")).toHaveText(
           w.expired,
         );
@@ -259,7 +261,15 @@ for (const locale of ["ta", "en"])
             caches: await caches.keys(),
             workers: (await navigator.serviceWorker.getRegistrations()).length,
           })),
-        ).toEqual({ local: 0, session: 0, caches: [], workers: 0 });
+        ).toEqual({
+          local: locale === "ta" ? 1 : 0,
+          session: 0,
+          caches: [],
+          workers: 0,
+        });
+        expect(await page.evaluate(() => Object.keys(localStorage))).toEqual(
+          locale === "ta" ? ["aarili-appearance"] : [],
+        );
         expect(thirdParty.length).toBe(0);
       },
       {

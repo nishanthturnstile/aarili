@@ -6,7 +6,6 @@ import {
   OwnerRequestError,
   onOwnerInvalidation,
   ownerSession,
-  probeRecentOwner,
   readGoogleConnection,
   readOwnerShop,
   reauthenticateOwner,
@@ -18,14 +17,24 @@ import {
   verifyOwner,
 } from "@aarili/api/client";
 import { Button } from "@aarili/ui/components/button";
+import { Card } from "@aarili/ui/components/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@aarili/ui/components/dialog";
 import {
   Field,
   FieldDescription,
   FieldLabel,
 } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
-import { NextIntlClientProvider, useTranslations } from "next-intl";
+import { Status } from "@aarili/ui/components/status";
+import { NextIntlClientProvider, useLocale, useTranslations } from "next-intl";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { AppearanceControl } from "./appearance-control";
 import { ownerMessages } from "./owner-messages";
 
 type Mode =
@@ -38,23 +47,36 @@ type Mode =
   | "connections";
 // Google is a focused extension of the existing owner access surface.
 export function OwnerFlow({ mode }: { mode: Mode }) {
-  const [locale, setLocale] = useState<"ta" | "en">("ta");
+  const [locale, setLocale] = useState<"ta" | "en">("en");
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   return (
     <NextIntlClientProvider
       locale={locale}
       messages={ownerMessages[locale]}
       timeZone="Asia/Kolkata"
     >
-      <main className="aarili-main owner-shell" lang={locale}>
-        <header className="preview-header owner-heading">
-          <a href="/sign-in">Aarili · ஆரிலி</a>
-          <Button
-            variant="outline"
-            onClick={() => setLocale(locale === "ta" ? "en" : "ta")}
-            aria-label={locale === "ta" ? "English" : "தமிழ்"}
-          >
-            {locale === "ta" ? "English" : "தமிழ்"}
-          </Button>
+      <main
+        className="aarili-main owner-shell"
+        lang={locale}
+        data-owner-ready={ready}
+      >
+        <header className="owner-heading">
+          <a href="/sign-in">{locale === "en" ? "Aarili" : "ஆரிலி"}</a>
+          <div className="owner-actions">
+            <AppearanceControl
+              lightLabel={ownerMessages[locale].lightTheme}
+              darkLabel={ownerMessages[locale].darkTheme}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setLocale(locale === "ta" ? "en" : "ta")}
+              aria-label={locale === "ta" ? "English" : "தமிழ்"}
+              lang={locale === "ta" ? "en" : "ta"}
+            >
+              {locale === "ta" ? "English" : "தமிழ்"}
+            </Button>
+          </div>
         </header>
         <Flow mode={mode} />
       </main>
@@ -63,6 +85,7 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
 }
 function Flow({ mode }: { mode: Mode }) {
   const t = useTranslations();
+  const locale = useLocale();
   const [step, setStep] = useState<"initial" | "resume" | "verify">("initial");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -79,9 +102,6 @@ function Flow({ mode }: { mode: Mode }) {
   const confirmRef = useRef<HTMLButtonElement>(null);
   const key = useRef<string | undefined>(undefined);
   const lastInput = useRef("");
-  useEffect(() => {
-    (confirmDisconnect ? confirmRef : disconnectRef).current?.focus();
-  }, [confirmDisconnect]);
   useEffect(() => {
     if (mode !== "connections" && mode !== "sign-in") return;
     const result = window.location.hash;
@@ -163,6 +183,7 @@ function Flow({ mode }: { mode: Mode }) {
     try {
       await action();
     } catch (error) {
+      setConfirmDisconnect(false);
       const code = error instanceof OwnerRequestError ? error.code : "";
       setFailure(
         code === "GOOGLE_DENIED"
@@ -322,8 +343,7 @@ function Flow({ mode }: { mode: Mode }) {
       {mode === "setup" && (
         <>
           <p>{t(step === "verify" ? "verificationHelp" : "intro")}</p>
-          <p className="text-sm text-muted-foreground">{t("synthetic")}</p>
-          <nav className="preview-controls" aria-label={t("setup")}>
+          <nav className="owner-actions" aria-label={t("setup")}>
             {(["initial", "resume", "verify"] as const).map((item) => (
               <Button
                 key={item}
@@ -349,7 +369,9 @@ function Flow({ mode }: { mode: Mode }) {
           tabIndex={-1}
           role={failure ? "alert" : "status"}
         >
-          {t(failure || notice)}
+          <Status tone={failure ? "error" : "success"}>
+            {t(failure || notice)}
+          </Status>
         </p>
       )}
       {mode !== "owner" && mode !== "connections" && (
@@ -443,42 +465,64 @@ function Flow({ mode }: { mode: Mode }) {
                   {busy ? t("working") : t("googleLink")}
                 </Button>
               )}
-              {connection.linked &&
-                (!confirmDisconnect ? (
+              {connection.linked && (
+                <>
                   <Button
                     variant="outline"
                     disabled={busy}
-                    onClick={() => setConfirmDisconnect(true)}
+                    onClick={() => {
+                      setFailure("");
+                      setConfirmDisconnect(true);
+                    }}
                     ref={disconnectRef}
                   >
                     {t("googleDisconnect")}
                   </Button>
-                ) : (
-                  <div className="owner-form">
-                    <p>{t("googleDisconnectHelp")}</p>
-                    <Button
-                      ref={confirmRef}
-                      disabled={busy}
-                      onClick={() =>
-                        void run(async () => {
-                          await disconnectOwnerGoogle();
-                          window.location.replace(
-                            "/sign-in#google-disconnected",
-                          );
-                        })
+                  <Dialog
+                    open={confirmDisconnect}
+                    onOpenChange={(open, details) => {
+                      if (busy) details.cancel();
+                      else setConfirmDisconnect(open);
+                    }}
+                  >
+                    <DialogContent
+                      lang={locale}
+                      closeLabel={t("close")}
+                      closeDisabled={busy}
+                      initialFocus={confirmRef}
+                      finalFocus={() =>
+                        failure ? noticeRef.current : disconnectRef.current
                       }
                     >
-                      {busy ? t("working") : t("googleConfirmDisconnect")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      disabled={busy}
-                      onClick={() => setConfirmDisconnect(false)}
-                    >
-                      {t("cancel")}
-                    </Button>
-                  </div>
-                ))}
+                      <DialogTitle className="ui-dialog-title font-semibold">
+                        {t("googleDisconnect")}
+                      </DialogTitle>
+                      <DialogDescription className="text-muted-foreground">
+                        {t("googleDisconnectHelp")}
+                      </DialogDescription>
+                      <Button
+                        ref={confirmRef}
+                        disabled={busy}
+                        onClick={() =>
+                          void run(async () => {
+                            await disconnectOwnerGoogle();
+                            window.location.replace(
+                              "/sign-in#google-disconnected",
+                            );
+                          })
+                        }
+                      >
+                        {busy ? t("working") : t("googleConfirmDisconnect")}
+                      </Button>
+                      <DialogClose
+                        render={<Button variant="ghost" disabled={busy} />}
+                      >
+                        {t("cancel")}
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
               <a href="/reauthenticate">{t("reauthenticateLink")}</a>
             </section>
           )}
@@ -509,23 +553,13 @@ function Flow({ mode }: { mode: Mode }) {
           )}
           {shop?.state === "complete" && (
             <>
-              <h2>{shop.name}</h2>
-              <p>{t("complete")}</p>
+              <Card>
+                <h2>{shop.name}</h2>
+                <p>{t("complete")}</p>
+              </Card>
               <p>
                 <a href="/connections">{t("connections")}</a>
               </p>
-              <p>{t("probeHelp")}</p>
-              <Button
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    await probeRecentOwner();
-                    setNotice("recentAccepted");
-                  })
-                }
-              >
-                {t("checkRecent")}
-              </Button>
               <p>
                 <a href="/reauthenticate">{t("reauthenticateLink")}</a>
               </p>

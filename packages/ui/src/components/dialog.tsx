@@ -15,8 +15,12 @@ function DialogContent({
   className,
   children,
   closeLabel,
+  closeDisabled = false,
   ...props
-}: DialogPrimitive.Popup.Props & { closeLabel: string }) {
+}: DialogPrimitive.Popup.Props & {
+  closeLabel: string;
+  closeDisabled?: boolean;
+}) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Backdrop className="ui-dialog-overlay" />
@@ -27,6 +31,7 @@ function DialogContent({
       >
         {children}
         <DialogPrimitive.Close
+          disabled={closeDisabled}
           render={
             <Button
               variant="ghost"

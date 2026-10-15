@@ -1,5 +1,8 @@
 export const ownerMessages = {
   en: {
+    lightTheme: "Use light theme",
+    close: "Close",
+    darkTheme: "Use dark theme",
     connections: "Sign-in connections",
     googleHelp:
       "Link your approved Google account after confirming your password. Email and password remain available.",
@@ -46,16 +49,12 @@ export const ownerMessages = {
       "Confirm your password before continuing with this sensitive request.",
     badReset:
       "This reset code is invalid, expired or already used. Request another code.",
-    probeHelp: "Synthetic access check only. No business records are changed.",
-    checkRecent: "Check recent access",
-    recentAccepted: "Recent authentication confirmed. The access check passed.",
     validation:
       "Check the required fields and follow the hints, then try again.",
     setup: "Set up your owner account",
     signIn: "Sign in to Aarili",
     owner: "Your shop",
     intro: "Create your account, verify your email, then open your shop.",
-    synthetic: "Synthetic development only. Use a test email and shop name.",
     name: "Owner name",
     email: "Email",
     password: "Password",
@@ -102,9 +101,12 @@ export const ownerMessages = {
     setupLink: "First time? Set up the owner account",
     signInLink: "Already verified? Sign in",
     unavailable:
-      "Owner setup is unavailable. Ask your operator to check the synthetic configuration.",
+      "Owner setup is unavailable. Ask your operator to check the configuration.",
   },
   ta: {
+    lightTheme: "வெளிர் தோற்றம்",
+    close: "மூடு",
+    darkTheme: "இருண்ட தோற்றம்",
     connections: "உள்நுழைவு இணைப்புகள்",
     googleHelp:
       "கடவுச்சொல்லை உறுதிசெய்த பின் அனுமதிக்கப்பட்ட Google கணக்கை இணைக்கவும். மின்னஞ்சலும் கடவுச்சொல்லும் தொடர்ந்து பயன்படும்.",
@@ -150,17 +152,12 @@ export const ownerMessages = {
     stale: "இந்த முக்கியமான கோரிக்கையைத் தொடரும் முன் கடவுச்சொல்லை உறுதிசெய்யவும்.",
     badReset:
       "மீட்புக் குறியீடு தவறானது, காலாவதியானது அல்லது பயன்படுத்தப்பட்டது. புதிய குறியீட்டைக் கோரவும்.",
-    probeHelp: "சோதனை அணுகல் சரிபார்ப்பு மட்டுமே. வணிகப் பதிவுகள் மாற்றப்படாது.",
-    checkRecent: "அண்மைய அணுகலைச் சரிபார்",
-    recentAccepted:
-      "அண்மைய உள்நுழைவு உறுதிசெய்யப்பட்டது. அணுகல் சரிபார்ப்பு வெற்றி பெற்றது.",
     validation:
       "தேவையான புலங்களையும் குறிப்புகளையும் சரிபார்த்து மீண்டும் முயற்சி செய்யவும்.",
     setup: "உரிமையாளர் கணக்கை அமைக்கவும்",
     signIn: "ஆரிலியில் உள்நுழையவும்",
     owner: "உங்கள் கடை",
     intro: "கணக்கை உருவாக்கி, மின்னஞ்சலை உறுதிசெய்து, கடையைத் தொடங்கவும்.",
-    synthetic: "சோதனைக்காக மட்டுமே. மாதிரி மின்னஞ்சல் மற்றும் கடைப் பெயரைப் பயன்படுத்தவும்.",
     name: "உரிமையாளர் பெயர்",
     email: "மின்னஞ்சல்",
     password: "கடவுச்சொல்",
@@ -206,6 +203,6 @@ export const ownerMessages = {
     setupLink: "முதல் முறையா? உரிமையாளர் கணக்கை அமைக்கவும்",
     signInLink: "உறுதிசெய்துவிட்டீர்களா? உள்நுழையவும்",
     unavailable:
-      "உரிமையாளர் அமைப்பு கிடைக்கவில்லை. சோதனை அமைப்பைச் சரிபார்க்க நிர்வாகியிடம் கேட்கவும்.",
+      "உரிமையாளர் அமைப்பு கிடைக்கவில்லை. அமைப்பைச் சரிபார்க்க நிர்வாகியிடம் கேட்கவும்.",
   },
 };
