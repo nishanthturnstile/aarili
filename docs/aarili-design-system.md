@@ -28,6 +28,12 @@ theme from working in the current page. No business data belongs in browser stor
 
 ## Typography, geometry and states
 
+Owner clarification, 15 October 2026: every current screen starts in **English**,
+including after reload/navigation and when the browser prefers Tamil. Tamil
+interface copy and branding appear only after the user selects the `தமிழ்`
+control. Entered names/notes keep their original scripts. Language is not saved
+or inferred yet; a persisted preference belongs to future settings/profile work.
+
 - Self-host Noto Sans Latin and Noto Sans Tamil, normal weights 400 and 600,
   using the existing exact Fontsource 5.3.0 pins. No runtime font-service calls.
 - Body text is 16px, with 1.6 line height; Tamil uses 1.85, normal letter spacing

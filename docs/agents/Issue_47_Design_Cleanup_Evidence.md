@@ -36,7 +36,7 @@ layout/redirect documentation were checked for this implementation.
 
 ## Command results
 
-- `pnpm verify`: passed on the settled implementation: lint, Knip, strict types,
+- `pnpm verify` for cleanup commit `53bca5d`: passed: lint, Knip, strict types,
   76 unit/property tests, compiled negative fixtures, OpenAPI, 65 real PostgreSQL
   integration tests, production build, standalone readiness/outage and worker
   shutdown smoke, and 19 browser artifacts scanned for private configuration.
@@ -49,6 +49,25 @@ layout/redirect documentation were checked for this implementation.
   The final full browser run also covers the settled busy-close behaviour.
 - `git diff --check`: passed after final source and evidence updates.
 
+### English-default clarification
+
+The owner subsequently requested English on every initial page load, with Tamil
+only after explicit selection. Current branding follows the chosen language; the
+language button identifies its own script for assistive technology. Locale is not
+inferred from the browser or stored, and reload/navigation starts in English.
+Saved profile/settings preferences remain future work.
+
+Fresh follow-up checks passed: lint, Knip, strict types, 76 unit/property tests,
+compiled negative checks, production build and **48 browser tests (4.7 minutes)**,
+plus standalone production smoke and the 19-artifact scan. The added regression
+visits all seven current owner routes with a Tamil-preferring browser, checks
+server-rendered English and hydrated English, then tests explicit Tamil selection,
+reload and navigation. Both language/theme matrices and real owner flows remain
+covered. The 65 database integration cases above were not rerun for this locale-only
+follow-up; no API/database/auth/business logic changed. CI runs the full suite.
+
+The curated captures and font measurements below are refreshed for this follow-up.
+
 Initial checks exposed an intermediate disabled-colour contrast failure, old
 zero-storage assertions, duplicate language switching in test setup and a
 server-boundary fixture still tied to the removed gallery. These were corrected
@@ -59,12 +78,13 @@ results above supersede them.
 ## Font/network measurement
 
 Fresh Chromium contexts at 360px on the actual development sign-in screen loaded
-four same-origin WOFF2 resources, totalling **56,760 encoded body bytes** in each
-of English/light, English/dark, Tamil/light and Tamil/dark. External requests:
-zero. No candidate family was loaded. This matches the retained foundation font
-payload; it is not total wire traffic, a cold production performance budget or
-a physical-phone measurement. Browser resource details are captured alongside
-the curated evidence.
+three same-origin WOFF2 resources, totalling **42,208 encoded body bytes** in
+English/light and English/dark. Selecting Tamil loads the Tamil body face:
+four resources, **56,760 bytes**, in Tamil/light and Tamil/dark. External
+requests: zero. No candidate family was loaded. These refreshed measurements
+reflect the owner's English-default clarification; they are not total wire
+traffic, a cold production performance budget or a physical-phone measurement.
+Browser resource details are captured alongside the curated evidence.
 
 [Font resource details](design-cleanup/font-payloads.json) record all four
 combinations. Curated captures cover [English/light phone](design-cleanup/captures/phone-en-light.png),

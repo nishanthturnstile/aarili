@@ -7,6 +7,9 @@ PR #46 and issue #45 are closed as superseded without merging. Implementation of
 
 ## Confirmed owner decisions
 
+- Follow-up clarification: default to English on every current page load; switch
+  to Tamil only on explicit selection. Saved language settings remain future work.
+
 - Keep the Design Lab's **Current light** and **Current dark**, including their
   existing Noto Sans and Noto Sans Tamil fonts. Remove **Candidate light**.
 - Remove demos and sample records from the running application. Keep synthetic

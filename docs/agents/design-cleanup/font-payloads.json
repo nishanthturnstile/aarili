@@ -4,23 +4,19 @@
     "dark": false,
     "fonts": [
       {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-400-normal.3c1l-ljusg1x0.woff2",
-        "bytes": 14552
-      },
-      {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
-        "bytes": 15592
-      },
-      {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-400-normal.25gl__q4lp_ic.woff2",
         "bytes": 13120
       },
       {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-600-normal.06jvb5h_ivkf5.woff2",
         "bytes": 13496
+      },
+      {
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
+        "bytes": 15592
       }
     ],
-    "bytes": 56760,
+    "bytes": 42208,
     "outside": []
   },
   {
@@ -28,23 +24,19 @@
     "dark": true,
     "fonts": [
       {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-400-normal.3c1l-ljusg1x0.woff2",
-        "bytes": 14552
-      },
-      {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
-        "bytes": 15592
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-600-normal.06jvb5h_ivkf5.woff2",
+        "bytes": 13496
       },
       {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-400-normal.25gl__q4lp_ic.woff2",
         "bytes": 13120
       },
       {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-600-normal.06jvb5h_ivkf5.woff2",
-        "bytes": 13496
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
+        "bytes": 15592
       }
     ],
-    "bytes": 56760,
+    "bytes": 42208,
     "outside": []
   },
   {
@@ -52,20 +44,20 @@
     "dark": false,
     "fonts": [
       {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-400-normal.3c1l-ljusg1x0.woff2",
-        "bytes": 14552
-      },
-      {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
-        "bytes": 15592
-      },
-      {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-400-normal.25gl__q4lp_ic.woff2",
         "bytes": 13120
       },
       {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-600-normal.06jvb5h_ivkf5.woff2",
         "bytes": 13496
+      },
+      {
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
+        "bytes": 15592
+      },
+      {
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-400-normal.3c1l-ljusg1x0.woff2",
+        "bytes": 14552
       }
     ],
     "bytes": 56760,
@@ -76,20 +68,20 @@
     "dark": true,
     "fonts": [
       {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-400-normal.3c1l-ljusg1x0.woff2",
-        "bytes": 14552
-      },
-      {
-        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
-        "bytes": 15592
-      },
-      {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-400-normal.25gl__q4lp_ic.woff2",
         "bytes": 13120
       },
       {
         "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-latin-600-normal.06jvb5h_ivkf5.woff2",
         "bytes": 13496
+      },
+      {
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-600-normal.0cdt6i0c27vcz.woff2",
+        "bytes": 15592
+      },
+      {
+        "name": "http://127.0.0.1:3103/_next/static/media/noto-sans-tamil-tamil-400-normal.3c1l-ljusg1x0.woff2",
+        "bytes": 14552
       }
     ],
     "bytes": 56760,

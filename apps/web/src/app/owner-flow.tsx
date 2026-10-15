@@ -47,7 +47,7 @@ type Mode =
   | "connections";
 // Google is a focused extension of the existing owner access surface.
 export function OwnerFlow({ mode }: { mode: Mode }) {
-  const [locale, setLocale] = useState<"ta" | "en">("ta");
+  const [locale, setLocale] = useState<"ta" | "en">("en");
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   return (
@@ -62,7 +62,7 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
         data-owner-ready={ready}
       >
         <header className="owner-heading">
-          <a href="/sign-in">Aarili · ஆரிலி</a>
+          <a href="/sign-in">{locale === "en" ? "Aarili" : "ஆரிலி"}</a>
           <div className="owner-actions">
             <AppearanceControl
               lightLabel={ownerMessages[locale].lightTheme}
@@ -72,6 +72,7 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
               variant="outline"
               onClick={() => setLocale(locale === "ta" ? "en" : "ta")}
               aria-label={locale === "ta" ? "English" : "தமிழ்"}
+              lang={locale === "ta" ? "en" : "ta"}
             >
               {locale === "ta" ? "English" : "தமிழ்"}
             </Button>

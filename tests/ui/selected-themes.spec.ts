@@ -8,8 +8,8 @@ async function open(page: Page, locale: "en" | "ta", dark: boolean) {
     "data-owner-ready",
     "true",
   );
-  if (locale === "en")
-    await page.getByRole("button", { name: "English", exact: true }).click();
+  if (locale === "ta")
+    await page.getByRole("button", { name: "தமிழ்", exact: true }).click();
   if (dark)
     await page
       .getByRole("button", {
@@ -29,6 +29,61 @@ async function settled(page: Page) {
     ),
   );
 }
+
+test.describe("USE-02 English startup and explicit Tamil selection", () => {
+  test.use({ locale: "ta-IN" });
+  test("every current route, reload and navigation starts in English despite a Tamil browser locale", async ({
+    page,
+  }) => {
+    for (const [route, heading] of [
+      ["/setup", "Set up your owner account"],
+      ["/sign-in", "Sign in to Aarili"],
+      ["/recovery", "Recover your password"],
+      ["/reset-password", "Set a new password"],
+      ["/reauthenticate", "Confirm your password"],
+      ["/owner", "Your shop"],
+      ["/connections", "Sign-in connections"],
+    ]) {
+      const response = await page.goto(route ?? "/");
+      expect(await response?.text()).toMatch(/<main[^>]*lang="en"/);
+      await expect(page.locator("main")).toHaveAttribute(
+        "data-owner-ready",
+        "true",
+      );
+      await expect(page.locator("main")).toHaveAttribute("lang", "en");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        heading ?? "",
+      );
+      await expect(page.locator("header a")).toHaveText("Aarili");
+    }
+    await page.goto("/sign-in");
+    await expect(page.locator("main")).toHaveAttribute(
+      "data-owner-ready",
+      "true",
+    );
+    await page.getByRole("button", { name: "தமிழ்", exact: true }).click();
+    await expect(page.locator("main")).toHaveAttribute("lang", "ta");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "ஆரிலி",
+    );
+    await expect(page.locator("header a")).toHaveText("ஆரிலி");
+    expect(
+      await page.evaluate(() => [localStorage.length, sessionStorage.length]),
+    ).toEqual([0, 0]);
+    await page.reload();
+    await expect(page.locator("main")).toHaveAttribute(
+      "data-owner-ready",
+      "true",
+    );
+    await expect(page.locator("main")).toHaveAttribute("lang", "en");
+    await page.getByRole("button", { name: "தமிழ்", exact: true }).click();
+    await page.locator('a[href="/setup"]').click();
+    await expect(page.locator("main")).toHaveAttribute("lang", "en");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Set up your owner account",
+    );
+  });
+});
 
 function contrast(first: string, second: string) {
   function luminance(color: string) {

@@ -78,6 +78,7 @@ await withPostgres(
       assert(!html.includes("The development workspace is running"));
       assert(!html.includes("data-aarili-theme"));
       assert.match(html, /Aarili/);
+      assert.match(html, /<main[^>]*lang="en"/);
       const asset = html.match(/src="([^"]*\/_next\/static\/[^"]+)"/)?.[1];
       assert(asset, "Production page has no client asset");
       assert.equal(
