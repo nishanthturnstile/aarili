@@ -60,6 +60,27 @@ composition also passed. Hono's current routing documentation was resolved and
 fetched through Context7; `basePath` already prefixes later route registrations.
 The final full suite passed after this correction; it changes no application route.
 
+### Linux CI fixture follow-up
+
+On `83f8263`, both Linux scaffold verification runs and audits passed, and one
+Linux browser run passed all 48 cases. A second run timed out in English phone
+recovery; its rerun timed out in Tamil phone setup while recovery passed. Both
+runs passed their other 47 cases. The focused English phone case also passed
+locally. No action stack or failure artifact was available from those timeouts.
+
+Review found unread bodies in the fixture's added HTTP checks. Current Undici
+documentation ([fetch resource guidance](https://github.com/nodejs/undici#garbage-collection)),
+resolved/fetched through Context7, requires consuming or canceling
+fetch bodies to avoid connection stalls. The fixture now consumes readiness and
+removed-route responses and bounds those requests. Disposable web cleanup has
+a bounded graceful wait, then force-stops only its own child; production graceful
+shutdown remains independently asserted by smoke. Fixed phase-only diagnostics
+preserve redaction and make later hangs localizable. This addresses concrete
+fixture resource/cleanup defects; the original timeout location is not established.
+No application code, test timeout, assertion or retry policy changed in this follow-up.
+Lint, Knip, strict types and 80 unit/property tests passed again; final browser/CI
+results for the correction are recorded in the PR.
+
 ## Recovery and limits
 
 Recovery is a source revert, with no schema or data rollback. Historical queues,
