@@ -15,6 +15,7 @@ COPY packages/jobs/package.json ./packages/jobs/
 COPY packages/money/package.json ./packages/money/
 COPY packages/platform/package.json ./packages/platform/
 COPY packages/ui/package.json ./packages/ui/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY patches ./patches
 RUN pnpm install --frozen-lockfile
 RUN pnpm exec playwright install --with-deps chromium

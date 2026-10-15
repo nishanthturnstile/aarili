@@ -33,6 +33,8 @@ including after reload/navigation and when the browser prefers Tamil. Tamil
 interface copy and branding appear only after the user selects the `தமிழ்`
 control. Entered names/notes keep their original scripts. Language is not saved
 or inferred yet; a persisted preference belongs to future settings/profile work.
+English/Tamil owner catalogues live in the framework-free `@aarili/i18n`
+package. Explicit language switching preserves entered values.
 
 - Self-host Noto Sans Latin and Noto Sans Tamil, normal weights 400 and 600,
   using the existing exact Fontsource 5.3.0 pins. No runtime font-service calls.
@@ -54,15 +56,19 @@ or inferred yet; a persisted preference belongs to future settings/profile work.
 ## Components and layout
 
 Maintain the installed Button, Input, Field, Card, Status and Dialog modules in
-the shared UI package. These are owned source based on shadcn `base-nova` and
+the shared UI package, plus the owner shell's WorkspaceNavigation. These are
+owned source based on shadcn `base-nova` and
 Base UI; preserve their local semantic tokens and accessibility contracts.
 Install additional components only for a concrete approved workflow, reviewing
 official generator output with pinned CLI 4.21.4. No Radix, vaul, extra component
 library or theme manager. Table recipes must respect the architecture's Table v9.
 
 Phone is below 768px, tablet 768–1279px, desktop 1280px and above. Adapt component
-content to container width. These boundaries do not imply that the future
-navigation shell or business workflows have been implemented.
+content to container width. Once server-verified owner/shop setup is complete,
+Your shop and Sign-in connections show fixed bottom navigation on phone, a
+collapsible rail on tablet and a full sidebar on desktop. The sidebar displays
+the current shop name with wrapping. Navigation remains absent from authentication
+and incomplete setup screens. Business workflow destinations remain future work.
 
 ## Product surfaces and verification
 
@@ -73,8 +79,11 @@ product capabilities and have no product routes. Readiness APIs, synthetic test
 fixtures, recovery tools and historical evidence remain verification safeguards.
 
 Track delivery through [#47](https://github.com/nishanthturnstile/aarili/issues/47)
-and [#48](https://github.com/nishanthturnstile/aarili/issues/48), with scope in the
-[approved cleanup plan](agents/Design_System_Adoption_Plan.md).
+and [#48](https://github.com/nishanthturnstile/aarili/issues/48) for the selected
+design foundation, with scope in the [approved cleanup plan](agents/Design_System_Adoption_Plan.md).
+The responsive owner-shell extension is [#51](https://github.com/nishanthturnstile/aarili/issues/51);
+its [acceptance evidence](agents/Issue_51_Responsive_Shell_Evidence.md) retains the
+later physical-device and phase activation gates.
 Sources: product USE-01/02/08/09; architecture §§5.2, 7.1, 9.2 and 15.
 Run the repository verification and browser suites in both themes and languages,
 including failure paths. Record font payloads and unrun physical-device,

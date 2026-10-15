@@ -31,12 +31,19 @@ export async function readAuthorizedShop(shopId: string) {
     ),
   );
 }
-export async function readGoogleConnection() {
+export async function readGoogleConnection(signal?: AbortSignal) {
   return googleConnectionSchema.parse(
-    await authenticatedResult((signal) =>
+    await authenticatedResult((requestSignal) =>
       createOwnerClient().owner.google.$get(
         {},
-        { init: { cache: "no-store", signal } },
+        {
+          init: {
+            cache: "no-store",
+            signal: signal
+              ? AbortSignal.any([signal, requestSignal])
+              : requestSignal,
+          },
+        },
       ),
     ),
   );
@@ -127,12 +134,14 @@ async function ownerResult(response: Response, generation = ownerGeneration) {
   if (generation !== ownerGeneration)
     throw new OwnerRequestError("UNAUTHENTICATED");
   if (!response.ok) {
-    if (response.status === 401) clearOwnerState();
-    throw new OwnerRequestError(
-      apiErrorSchema.safeParse(data).success
-        ? apiErrorSchema.parse(data).error.code
-        : "REQUEST_FAILED",
-    );
+    const parsed = apiErrorSchema.safeParse(data);
+    const code = parsed.success ? parsed.data.error.code : "REQUEST_FAILED";
+    if (
+      response.status === 401 ||
+      (response.status === 403 && code === "SHOP_ACCESS_DENIED")
+    )
+      clearOwnerState();
+    throw new OwnerRequestError(code);
   }
   return data;
 }
@@ -168,12 +177,19 @@ export async function verifyOwner(code: string) {
     ),
   );
 }
-export async function readOwnerShop() {
+export async function readOwnerShop(signal?: AbortSignal) {
   return ownerShopSchema.parse(
-    await authenticatedResult((signal) =>
+    await authenticatedResult((requestSignal) =>
       createOwnerClient().owner.shop.$get(
         {},
-        { init: { cache: "no-store", signal } },
+        {
+          init: {
+            cache: "no-store",
+            signal: signal
+              ? AbortSignal.any([signal, requestSignal])
+              : requestSignal,
+          },
+        },
       ),
     ),
   );

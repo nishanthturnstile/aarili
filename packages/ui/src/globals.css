@@ -66,6 +66,8 @@
   --space-row: calc(var(--spacing) * 3);
   --content-width: 72rem;
   --control-height: 2.75rem;
+  --workspace-sidebar-width: 16rem;
+  --workspace-rail-width: 4.5rem;
   --font-body: "Noto Sans", "Noto Sans Tamil", sans-serif;
   --font-tamil: "Noto Sans Tamil", "Noto Sans", sans-serif;
   --type-body: 1rem;
@@ -226,6 +228,142 @@
 }
 
 @layer components {
+  .owner-skip-link {
+    position: fixed;
+    inset-block-start: var(--space-control);
+    inset-inline-start: var(--space-control);
+    padding: var(--space-control);
+    background: var(--card);
+    color: var(--foreground);
+    z-index: 50;
+    transform: translateY(-200%);
+  }
+  .owner-skip-link:focus {
+    transform: translateY(0);
+  }
+  .workspace-navigation {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    background: var(--sidebar);
+    color: var(--sidebar-foreground);
+    border-block-start: 1px solid var(--sidebar-border);
+    padding: var(--space-control);
+    padding-block-end: max(var(--space-control), env(safe-area-inset-bottom));
+    z-index: 20;
+    container-type: inline-size;
+  }
+  .workspace-navigation ul {
+    display: flex;
+    gap: var(--space-control);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .workspace-navigation li {
+    flex: 1;
+    min-width: 0;
+  }
+  .workspace-navigation a {
+    min-height: var(--control-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-control);
+    padding: var(--space-control);
+    border-radius: var(--radius);
+    color: var(--sidebar-foreground);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+  }
+  .workspace-navigation a:hover,
+  .workspace-navigation a[aria-current="page"] {
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+  .workspace-navigation a[aria-current="page"] {
+    font-weight: var(--weight-emphasis);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .workspace-navigation svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+  .workspace-current-shop {
+    display: none;
+  }
+  .owner-shell:has(.workspace-navigation) {
+    padding-block-end: calc(
+      var(--control-height) *
+      4 +
+      env(safe-area-inset-bottom)
+    );
+  }
+  @container (max-width: 25rem) {
+    .workspace-navigation a {
+      flex-direction: column;
+      gap: calc(var(--space-control) / 2);
+    }
+  }
+  @media (min-width: 768px) {
+    .owner-shell:has(.workspace-navigation) {
+      display: grid;
+      grid-template-columns: var(--workspace-rail-width) minmax(0, 1fr);
+      column-gap: var(--space-page);
+      padding-block-end: var(--space-page);
+    }
+    .owner-shell:has(.workspace-navigation[data-collapsed="false"]) {
+      grid-template-columns: var(--workspace-sidebar-width) minmax(0, 1fr);
+    }
+    .owner-shell:has(.workspace-navigation) .owner-heading {
+      grid-column: 1 / -1;
+    }
+    .workspace-navigation {
+      position: sticky;
+      inset: auto;
+      inset-block-start: var(--space-page);
+      align-self: start;
+      margin-block-start: var(--space-page);
+      padding: var(--space-control);
+      border: 1px solid var(--sidebar-border);
+      border-radius: var(--radius);
+    }
+    .workspace-navigation ul {
+      flex-direction: column;
+    }
+    .workspace-navigation a {
+      justify-content: start;
+    }
+    .workspace-current-shop {
+      display: grid;
+      gap: calc(var(--space-control) / 2);
+      overflow-wrap: anywhere;
+      padding-block: var(--space-control);
+      border-block-end: 1px solid var(--sidebar-border);
+      margin-block-end: var(--space-control);
+    }
+    .workspace-navigation[data-collapsed="true"] .workspace-current-shop,
+    .workspace-navigation[data-collapsed="true"] .workspace-destination-label {
+      display: none;
+    }
+    .owner-shell:has(.workspace-navigation) .owner-content {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+  @media (min-width: 1280px) {
+    .owner-shell:has(.workspace-navigation) {
+      grid-template-columns: var(--workspace-sidebar-width) minmax(0, 1fr);
+    }
+    .workspace-navigation[data-collapsed="true"] .workspace-current-shop {
+      display: grid;
+    }
+    .workspace-navigation[data-collapsed="true"] .workspace-destination-label {
+      display: inline;
+    }
+  }
   .owner-heading {
     display: flex;
     align-items: center;

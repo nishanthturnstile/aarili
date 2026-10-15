@@ -12,7 +12,7 @@
     "dev:web": "pnpm build:packages && pnpm --filter @aarili/web dev",
     "dev:worker": "pnpm build:packages && pnpm --filter @aarili/worker dev",
     "db:migrate": "node scripts/migrate.mjs",
-    "build:packages": "turbo run build --filter=@aarili/contracts --filter=@aarili/platform --filter=@aarili/db --filter=@aarili/core --filter=@aarili/auth --filter=@aarili/api --filter=@aarili/money --filter=@aarili/jobs",
+    "build:packages": "turbo run build --filter=@aarili/contracts --filter=@aarili/platform --filter=@aarili/db --filter=@aarili/core --filter=@aarili/auth --filter=@aarili/api --filter=@aarili/money --filter=@aarili/jobs --filter=@aarili/i18n",
     "build": "turbo run build",
     "lint": "biome check . && pnpm boundaries && pnpm tokens",
     "format": "biome check --write .",
@@ -61,6 +61,7 @@
     "typescript": "7.0.2",
     "vitest": "5.0.4",
     "@aarili/money": "workspace:*",
-    "@aarili/jobs": "workspace:*"
+    "@aarili/jobs": "workspace:*",
+    "@aarili/i18n": "workspace:*"
   }
 }

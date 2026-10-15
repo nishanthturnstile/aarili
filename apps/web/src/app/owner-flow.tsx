@@ -4,10 +4,9 @@ import {
   completeOwnerShop,
   disconnectOwnerGoogle,
   OwnerRequestError,
-  onOwnerInvalidation,
   ownerSession,
-  readGoogleConnection,
-  readOwnerShop,
+  type readGoogleConnection,
+  type readOwnerShop,
   reauthenticateOwner,
   requestOwnerRecovery,
   resendOwnerVerification,
@@ -16,6 +15,7 @@ import {
   startOwnerGoogle,
   verifyOwner,
 } from "@aarili/api/client";
+import { type Locale, ownerMessages } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Card } from "@aarili/ui/components/card";
 import {
@@ -32,10 +32,12 @@ import {
 } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
 import { Status } from "@aarili/ui/components/status";
+import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider, useLocale, useTranslations } from "next-intl";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { AppearanceControl } from "./appearance-control";
-import { ownerMessages } from "./owner-messages";
+import { createOwnerQueries } from "./owner-query";
 
 type Mode =
   | "setup"
@@ -47,43 +49,58 @@ type Mode =
   | "connections";
 // Google is a focused extension of the existing owner access surface.
 export function OwnerFlow({ mode }: { mode: Mode }) {
-  const [locale, setLocale] = useState<"ta" | "en">("en");
+  const [locale, setLocale] = useState<Locale>("en");
+  const [queries] = useState(createOwnerQueries);
   const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
+  useEffect(() => {
+    setReady(true);
+    return queries.connect();
+  }, [queries]);
   return (
-    <NextIntlClientProvider
-      locale={locale}
-      messages={ownerMessages[locale]}
-      timeZone="Asia/Kolkata"
-    >
-      <main
-        className="aarili-main owner-shell"
-        lang={locale}
-        data-owner-ready={ready}
+    <QueryClientProvider client={queries.client}>
+      <NextIntlClientProvider
+        locale={locale}
+        messages={ownerMessages[locale]}
+        timeZone="Asia/Kolkata"
       >
-        <header className="owner-heading">
-          <a href="/sign-in">{locale === "en" ? "Aarili" : "ஆரிலி"}</a>
-          <div className="owner-actions">
-            <AppearanceControl
-              lightLabel={ownerMessages[locale].lightTheme}
-              darkLabel={ownerMessages[locale].darkTheme}
-            />
-            <Button
-              variant="outline"
-              onClick={() => setLocale(locale === "ta" ? "en" : "ta")}
-              aria-label={locale === "ta" ? "English" : "தமிழ்"}
-              lang={locale === "ta" ? "en" : "ta"}
-            >
-              {locale === "ta" ? "English" : "தமிழ்"}
-            </Button>
-          </div>
-        </header>
-        <Flow mode={mode} />
-      </main>
-    </NextIntlClientProvider>
+        <main
+          className="aarili-main owner-shell"
+          lang={locale}
+          data-owner-ready={ready}
+        >
+          <a className="owner-skip-link" href="#owner-content">
+            {ownerMessages[locale].skipToContent}
+          </a>
+          <header className="owner-heading">
+            <a href="/sign-in">{locale === "en" ? "Aarili" : "ஆரிலி"}</a>
+            <div className="owner-actions">
+              <AppearanceControl
+                lightLabel={ownerMessages[locale].lightTheme}
+                darkLabel={ownerMessages[locale].darkTheme}
+              />
+              <Button
+                variant="outline"
+                onClick={() => setLocale(locale === "ta" ? "en" : "ta")}
+                aria-label={locale === "ta" ? "English" : "தமிழ்"}
+                lang={locale === "ta" ? "en" : "ta"}
+              >
+                {locale === "ta" ? "English" : "தமிழ்"}
+              </Button>
+            </div>
+          </header>
+          <Flow mode={mode} queries={queries} />
+        </main>
+      </NextIntlClientProvider>
+    </QueryClientProvider>
   );
 }
-function Flow({ mode }: { mode: Mode }) {
+function Flow({
+  mode,
+  queries,
+}: {
+  mode: Mode;
+  queries: ReturnType<typeof createOwnerQueries>;
+}) {
   const t = useTranslations();
   const locale = useLocale();
   const [step, setStep] = useState<"initial" | "resume" | "verify">("initial");
@@ -102,6 +119,23 @@ function Flow({ mode }: { mode: Mode }) {
   const confirmRef = useRef<HTMLButtonElement>(null);
   const key = useRef<string | undefined>(undefined);
   const lastInput = useRef("");
+  useEffect(
+    () =>
+      queries.onInvalidate(() => {
+        // Authentication forms keep their recoverable entered values on a
+        // rejected attempt. Only authorised workspace data is invalidated here.
+        if (mode !== "owner" && mode !== "connections") return;
+        setShop(undefined);
+        setConnection(undefined);
+        setConfirmDisconnect(false);
+        setLoading(false);
+        setNotice("");
+        setFailure("expired");
+        lastInput.current = "";
+        key.current = undefined;
+      }),
+    [queries, mode],
+  );
   useEffect(() => {
     if (mode !== "connections" && mode !== "sign-in") return;
     const result = window.location.hash;
@@ -112,17 +146,21 @@ function Flow({ mode }: { mode: Mode }) {
     if (result === "#google-disconnected") setNotice("googleDisconnected");
   }, [mode]);
   useEffect(() => {
-    if (mode !== "connections") return;
+    if (mode !== "connections" && mode !== "owner") return;
     let active = true;
-    const unsubscribe = onOwnerInvalidation(() => {
-      if (active) {
-        setConnection(undefined);
-        setFailure("expired");
-      }
+    const unsubscribe = queries.onInvalidate(() => {
+      active = false;
     });
-    readGoogleConnection()
+    const load =
+      mode === "connections"
+        ? queries.workspace()
+        : queries.shop().then((shop) => ({ shop, connection: undefined }));
+    load
       .then((data) => {
-        if (active) setConnection(data);
+        if (active) {
+          setShop(data.shop);
+          setConnection(data.connection);
+        }
       })
       .catch(() => {
         if (active) setFailure("expired");
@@ -134,7 +172,7 @@ function Flow({ mode }: { mode: Mode }) {
       active = false;
       unsubscribe();
     };
-  }, [mode]);
+  }, [mode, queries]);
   useEffect(() => {
     // Recovery uses pasted codes, never URL tokens or redirect parameters. Strip
     // accidental transient parameters immediately, including on failed resets.
@@ -147,30 +185,6 @@ function Flow({ mode }: { mode: Mode }) {
     return () => {
       window.removeEventListener("hashchange", strip);
       window.removeEventListener("popstate", strip);
-    };
-  }, [mode]);
-  useEffect(() => {
-    if (mode !== "owner") return;
-    let active = true;
-    const unsubscribe = onOwnerInvalidation(() => {
-      if (active) {
-        setShop(undefined);
-        setFailure("expired");
-      }
-    });
-    readOwnerShop()
-      .then((result) => {
-        if (active) setShop(result);
-      })
-      .catch(() => {
-        if (active) setFailure("expired");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-      unsubscribe();
     };
   }, [mode]);
   useEffect(() => {
@@ -329,284 +343,318 @@ function Flow({ mode }: { mode: Mode }) {
     });
   }
   return (
-    <section className="owner-content">
-      <h1>
-        {mode === "setup"
-          ? t(step === "verify" ? "verification" : "setup")
-          : t(
-              mode === "owner" ? "owner" : mode === "sign-in" ? "signIn" : mode,
-            )}
-      </h1>
-      {mode === "recovery" && <p>{t("recoveryHelp")}</p>}
-      {mode === "reset" && <p>{t("resetHelp")}</p>}
-      {mode === "reauthenticate" && <p>{t("reauthenticateHelp")}</p>}
-      {mode === "setup" && (
-        <>
-          <p>{t(step === "verify" ? "verificationHelp" : "intro")}</p>
-          <nav className="owner-actions" aria-label={t("setup")}>
-            {(["initial", "resume", "verify"] as const).map((item) => (
-              <Button
-                key={item}
-                variant={step === item ? "secondary" : "ghost"}
-                disabled={busy}
-                aria-pressed={step === item}
-                onClick={() => {
-                  setStep(item);
-                  setNotice("");
-                  setFailure("");
-                }}
-              >
-                {t(item)}
-              </Button>
-            ))}
-          </nav>
-        </>
-      )}
-      {(notice || failure) && (
-        <p
-          className={failure ? "text-destructive" : "text-success-foreground"}
-          ref={noticeRef}
-          tabIndex={-1}
-          role={failure ? "alert" : "status"}
-        >
-          <Status tone={failure ? "error" : "success"}>
-            {t(failure || notice)}
-          </Status>
-        </p>
-      )}
-      {mode !== "owner" && mode !== "connections" && (
-        <form key={step} method="post" className="owner-form" onSubmit={submit}>
-          {mode === "recovery" ? (
-            field("email", "email", "username")
-          ) : mode === "reset" ? (
-            <>
-              {field("resetCode", "text", "off")}
-              {field("newPassword", "password", "new-password", "passwordHelp")}
-            </>
-          ) : mode === "reauthenticate" ? (
-            field("password", "password", "current-password")
-          ) : step === "verify" && mode === "setup" ? (
-            field("code", "text", "off")
-          ) : (
-            <>
-              {mode === "setup" &&
-                step === "initial" &&
-                field("name", "text", "name")}
-              {field("email", "email", "username")}
-              {field(
-                "password",
-                "password",
-                mode === "setup" && step === "initial"
-                  ? "new-password"
-                  : "current-password",
-                mode === "setup" && step === "initial"
-                  ? "passwordHelp"
-                  : undefined,
+    <>
+      {shop?.state === "complete" &&
+        (mode === "owner" || mode === "connections") && (
+          <WorkspaceNavigation
+            current={mode}
+            shopName={shop.name}
+            labels={{
+              navigation: t("navigation"),
+              workspace: t("workspace"),
+              connections: t("connections"),
+              currentShop: t("currentShop"),
+              expandNavigation: t("expandNavigation"),
+              collapseNavigation: t("collapseNavigation"),
+            }}
+          />
+        )}
+      <section className="owner-content">
+        <h1 id="owner-content" tabIndex={-1}>
+          {mode === "setup"
+            ? t(step === "verify" ? "verification" : "setup")
+            : t(
+                mode === "owner"
+                  ? "owner"
+                  : mode === "sign-in"
+                    ? "signIn"
+                    : mode,
               )}
-              {mode === "setup" && step === "initial" && field("shopName")}
-              {mode === "setup" &&
-                field("token", "password", "off", "tokenHelp")}
-            </>
-          )}
-          <Button type="submit" disabled={busy}>
-            {busy
-              ? t("working")
-              : mode === "recovery"
-                ? t("requestReset")
-                : mode === "reset"
-                  ? t("resetPassword")
-                  : mode === "reauthenticate"
-                    ? t("confirmPassword")
-                    : mode === "sign-in"
-                      ? t("submit")
-                      : step === "initial"
-                        ? t("create")
-                        : step === "resume"
-                          ? t("resend")
-                          : t("verify")}
-          </Button>
-        </form>
-      )}
-      {mode === "sign-in" && (
-        <Button
-          variant="outline"
-          disabled={busy}
-          onClick={() =>
-            void run(async () => {
-              window.location.assign(await startOwnerGoogle(false));
-            })
-          }
-        >
-          {busy ? t("working") : t("googleSignIn")}
-        </Button>
-      )}
-      {mode === "connections" && (
-        <>
-          <p>{t("googleHelp")}</p>
-          {loading && <p role="status">{t("loading")}</p>}
-          {connection && (
-            <section aria-labelledby="google-heading" className="owner-form">
-              <h2 id="google-heading">Google</h2>
-              <p>
-                {t(
-                  connection.linked ? "googleConnected" : "googleNotConnected",
-                )}
-              </p>
-              {!connection.enabled && <p>{t("googleUnavailable")}</p>}
-              {!connection.linked && connection.enabled && (
+        </h1>
+        {mode === "recovery" && <p>{t("recoveryHelp")}</p>}
+        {mode === "reset" && <p>{t("resetHelp")}</p>}
+        {mode === "reauthenticate" && <p>{t("reauthenticateHelp")}</p>}
+        {mode === "setup" && (
+          <>
+            <p>{t(step === "verify" ? "verificationHelp" : "intro")}</p>
+            <nav className="owner-actions" aria-label={t("setup")}>
+              {(["initial", "resume", "verify"] as const).map((item) => (
                 <Button
+                  key={item}
+                  variant={step === item ? "secondary" : "ghost"}
                   disabled={busy}
-                  onClick={() =>
-                    void run(async () => {
-                      window.location.assign(await startOwnerGoogle(true));
-                    })
-                  }
+                  aria-pressed={step === item}
+                  onClick={() => {
+                    setStep(item);
+                    setNotice("");
+                    setFailure("");
+                  }}
                 >
-                  {busy ? t("working") : t("googleLink")}
+                  {t(item)}
                 </Button>
-              )}
-              {connection.linked && (
-                <>
-                  <Button
-                    variant="outline"
-                    disabled={busy}
-                    onClick={() => {
-                      setFailure("");
-                      setConfirmDisconnect(true);
-                    }}
-                    ref={disconnectRef}
-                  >
-                    {t("googleDisconnect")}
-                  </Button>
-                  <Dialog
-                    open={confirmDisconnect}
-                    onOpenChange={(open, details) => {
-                      if (busy) details.cancel();
-                      else setConfirmDisconnect(open);
-                    }}
-                  >
-                    <DialogContent
-                      lang={locale}
-                      closeLabel={t("close")}
-                      closeDisabled={busy}
-                      initialFocus={confirmRef}
-                      finalFocus={() =>
-                        failure ? noticeRef.current : disconnectRef.current
-                      }
-                    >
-                      <DialogTitle className="ui-dialog-title font-semibold">
-                        {t("googleDisconnect")}
-                      </DialogTitle>
-                      <DialogDescription className="text-muted-foreground">
-                        {t("googleDisconnectHelp")}
-                      </DialogDescription>
-                      <Button
-                        ref={confirmRef}
-                        disabled={busy}
-                        onClick={() =>
-                          void run(async () => {
-                            await disconnectOwnerGoogle();
-                            window.location.replace(
-                              "/sign-in#google-disconnected",
-                            );
-                          })
-                        }
-                      >
-                        {busy ? t("working") : t("googleConfirmDisconnect")}
-                      </Button>
-                      <DialogClose
-                        render={<Button variant="ghost" disabled={busy} />}
-                      >
-                        {t("cancel")}
-                      </DialogClose>
-                    </DialogContent>
-                  </Dialog>
-                </>
-              )}
-              <a href="/reauthenticate">{t("reauthenticateLink")}</a>
-            </section>
-          )}
-          <p>
-            <a href="/owner">{t("backToOwner")}</a>
+              ))}
+            </nav>
+          </>
+        )}
+        {(notice || failure) && (
+          <p
+            className={failure ? "text-destructive" : "text-success-foreground"}
+            ref={noticeRef}
+            tabIndex={-1}
+            role={failure ? "alert" : "status"}
+          >
+            <Status tone={failure ? "error" : "success"}>
+              {t(failure || notice)}
+            </Status>
           </p>
-        </>
-      )}
-      {mode === "owner" && (
-        <>
-          {loading && <p role="status">{t("loading")}</p>}
-          {shop?.state === "pending-shop" && (
-            <>
-              <p>{t("pendingShop")}</p>
-              <Button
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    await completeOwnerShop();
-                    setShop(await readOwnerShop());
-                    setNotice("complete");
-                  })
-                }
-              >
-                {busy ? t("working") : t("openShop")}
-              </Button>
-            </>
-          )}
-          {shop?.state === "complete" && (
-            <>
-              <Card>
-                <h2>{shop.name}</h2>
-                <p>{t("complete")}</p>
-              </Card>
-              <p>
-                <a href="/connections">{t("connections")}</a>
-              </p>
-              <p>
-                <a href="/reauthenticate">{t("reauthenticateLink")}</a>
-              </p>
-            </>
-          )}
+        )}
+        {mode !== "owner" && mode !== "connections" && (
+          <form
+            key={step}
+            method="post"
+            className="owner-form"
+            onSubmit={submit}
+          >
+            {mode === "recovery" ? (
+              field("email", "email", "username")
+            ) : mode === "reset" ? (
+              <>
+                {field("resetCode", "text", "off")}
+                {field(
+                  "newPassword",
+                  "password",
+                  "new-password",
+                  "passwordHelp",
+                )}
+              </>
+            ) : mode === "reauthenticate" ? (
+              field("password", "password", "current-password")
+            ) : step === "verify" && mode === "setup" ? (
+              field("code", "text", "off")
+            ) : (
+              <>
+                {mode === "setup" &&
+                  step === "initial" &&
+                  field("name", "text", "name")}
+                {field("email", "email", "username")}
+                {field(
+                  "password",
+                  "password",
+                  mode === "setup" && step === "initial"
+                    ? "new-password"
+                    : "current-password",
+                  mode === "setup" && step === "initial"
+                    ? "passwordHelp"
+                    : undefined,
+                )}
+                {mode === "setup" && step === "initial" && field("shopName")}
+                {mode === "setup" &&
+                  field("token", "password", "off", "tokenHelp")}
+              </>
+            )}
+            <Button type="submit" disabled={busy}>
+              {busy
+                ? t("working")
+                : mode === "recovery"
+                  ? t("requestReset")
+                  : mode === "reset"
+                    ? t("resetPassword")
+                    : mode === "reauthenticate"
+                      ? t("confirmPassword")
+                      : mode === "sign-in"
+                        ? t("submit")
+                        : step === "initial"
+                          ? t("create")
+                          : step === "resume"
+                            ? t("resend")
+                            : t("verify")}
+            </Button>
+          </form>
+        )}
+        {mode === "sign-in" && (
           <Button
             variant="outline"
             disabled={busy}
             onClick={() =>
               void run(async () => {
-                await ownerSession("sign-out");
-                setShop(undefined);
-                window.location.replace("/sign-in");
+                window.location.assign(await startOwnerGoogle(false));
               })
             }
           >
-            {t("signOut")}
+            {busy ? t("working") : t("googleSignIn")}
           </Button>
-        </>
-      )}
-      <footer className="owner-footer">
-        {mode !== "sign-in" ? (
-          <a href="/sign-in">{t("signInLink")}</a>
-        ) : (
-          <a href="/setup">{t("setupLink")}</a>
         )}
-        {mode === "sign-in" && (
-          <p>
-            <a href="/recovery">{t("forgotPassword")}</a>
-          </p>
+        {mode === "connections" && (
+          <>
+            <p>{t("googleHelp")}</p>
+            {loading && <p role="status">{t("loading")}</p>}
+            {connection && (
+              <section aria-labelledby="google-heading" className="owner-form">
+                <h2 id="google-heading">Google</h2>
+                <p>
+                  {t(
+                    connection.linked
+                      ? "googleConnected"
+                      : "googleNotConnected",
+                  )}
+                </p>
+                {!connection.enabled && <p>{t("googleUnavailable")}</p>}
+                {!connection.linked && connection.enabled && (
+                  <Button
+                    disabled={busy}
+                    onClick={() =>
+                      void run(async () => {
+                        window.location.assign(await startOwnerGoogle(true));
+                      })
+                    }
+                  >
+                    {busy ? t("working") : t("googleLink")}
+                  </Button>
+                )}
+                {connection.linked && (
+                  <>
+                    <Button
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => {
+                        setFailure("");
+                        setConfirmDisconnect(true);
+                      }}
+                      ref={disconnectRef}
+                    >
+                      {t("googleDisconnect")}
+                    </Button>
+                    <Dialog
+                      open={confirmDisconnect}
+                      onOpenChange={(open, details) => {
+                        if (busy) details.cancel();
+                        else setConfirmDisconnect(open);
+                      }}
+                    >
+                      <DialogContent
+                        lang={locale}
+                        closeLabel={t("close")}
+                        closeDisabled={busy}
+                        initialFocus={confirmRef}
+                        finalFocus={() =>
+                          failure ? noticeRef.current : disconnectRef.current
+                        }
+                      >
+                        <DialogTitle className="ui-dialog-title font-semibold">
+                          {t("googleDisconnect")}
+                        </DialogTitle>
+                        <DialogDescription className="text-muted-foreground">
+                          {t("googleDisconnectHelp")}
+                        </DialogDescription>
+                        <Button
+                          ref={confirmRef}
+                          disabled={busy}
+                          onClick={() =>
+                            void run(async () => {
+                              await disconnectOwnerGoogle();
+                              window.location.replace(
+                                "/sign-in#google-disconnected",
+                              );
+                            })
+                          }
+                        >
+                          {busy ? t("working") : t("googleConfirmDisconnect")}
+                        </Button>
+                        <DialogClose
+                          render={<Button variant="ghost" disabled={busy} />}
+                        >
+                          {t("cancel")}
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                )}
+                <a href="/reauthenticate">{t("reauthenticateLink")}</a>
+              </section>
+            )}
+            <p>
+              <a href="/owner">{t("backToOwner")}</a>
+            </p>
+          </>
         )}
-        {mode === "recovery" && (
-          <p>
-            <a href="/reset-password">{t("haveResetCode")}</a>
-          </p>
+        {mode === "owner" && (
+          <>
+            {loading && <p role="status">{t("loading")}</p>}
+            {shop?.state === "pending-shop" && (
+              <>
+                <p>{t("pendingShop")}</p>
+                <Button
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      const expected = queries.version();
+                      await completeOwnerShop();
+                      const result = await queries.shop();
+                      if (queries.isCurrent(expected)) {
+                        setShop(result);
+                        setNotice("complete");
+                      }
+                    })
+                  }
+                >
+                  {busy ? t("working") : t("openShop")}
+                </Button>
+              </>
+            )}
+            {shop?.state === "complete" && (
+              <>
+                <Card>
+                  <h2>{shop.name}</h2>
+                  <p>{t("complete")}</p>
+                </Card>
+                <p>
+                  <a href="/reauthenticate">{t("reauthenticateLink")}</a>
+                </p>
+              </>
+            )}
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  await ownerSession("sign-out");
+                  setShop(undefined);
+                  window.location.replace("/sign-in");
+                })
+              }
+            >
+              {t("signOut")}
+            </Button>
+          </>
         )}
-        {mode === "reset" && (
-          <p>
-            <a href="/recovery">{t("requestAnotherReset")}</a>
-          </p>
-        )}
-        {failure === "stale" && (
-          <p>
-            <a href="/reauthenticate">{t("reauthenticateLink")}</a>
-          </p>
-        )}
-      </footer>
-    </section>
+        <footer className="owner-footer">
+          {mode !== "sign-in" ? (
+            <a href="/sign-in">{t("signInLink")}</a>
+          ) : (
+            <a href="/setup">{t("setupLink")}</a>
+          )}
+          {mode === "sign-in" && (
+            <p>
+              <a href="/recovery">{t("forgotPassword")}</a>
+            </p>
+          )}
+          {mode === "recovery" && (
+            <p>
+              <a href="/reset-password">{t("haveResetCode")}</a>
+            </p>
+          )}
+          {mode === "reset" && (
+            <p>
+              <a href="/recovery">{t("requestAnotherReset")}</a>
+            </p>
+          )}
+          {failure === "stale" && (
+            <p>
+              <a href="/reauthenticate">{t("reauthenticateLink")}</a>
+            </p>
+          )}
+        </footer>
+      </section>
+    </>
   );
 }
