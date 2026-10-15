@@ -13,105 +13,10 @@ import {
   setupCommandSchema,
   shopRecordSchema,
 } from "@aarili/contracts";
-import {
-  type CommandError,
-  commandErrorSchema,
-  etagSchema,
-  idempotencyHeaderSchema,
-  syntheticChangeSchema,
-  syntheticCreateSchema,
-  syntheticRecordSchema,
-  syntheticSuccessSchema,
-} from "@aarili/contracts/command";
 import { hc } from "hono/client";
 import type { z } from "zod";
-import type { createCommandRoutes } from "./commands.js";
 import type { HealthRoutes } from "./index.js";
 import type { createOwnerRoutes } from "./owner.js";
-
-export function createCommandClient(baseUrl = "/api") {
-  return hc<ReturnType<typeof createCommandRoutes>>(baseUrl);
-}
-export class CommandRequestError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly body: CommandError,
-  ) {
-    super(body.error.code);
-  }
-}
-async function commandResult(response: Response, generation: number) {
-  const data: unknown = await response.json();
-  if (generation !== ownerGeneration)
-    throw new OwnerRequestError("UNAUTHENTICATED");
-  if (!response.ok) {
-    if (response.status === 401) clearOwnerState();
-    throw new CommandRequestError(
-      response.status,
-      commandErrorSchema.parse(data),
-    );
-  }
-  // Header is also an untrusted part of the wire contract.
-  etagSchema.parse(response.headers.get("ETag"));
-  return data;
-}
-export async function readSyntheticRecord(shopId: string, id: string) {
-  return syntheticRecordSchema.parse(
-    await authenticatedResult(
-      (signal) =>
-        createCommandClient().dev.shops[":shopId"].records[":id"].$get(
-          { param: { shopId, id } },
-          { init: { cache: "no-store", signal } },
-        ),
-      commandResult,
-    ),
-  );
-}
-export async function createSyntheticRecord(
-  shopId: string,
-  input: z.infer<typeof syntheticCreateSchema>,
-  key: string,
-) {
-  return syntheticSuccessSchema.parse(
-    await authenticatedResult(
-      (signal) =>
-        createCommandClient().dev.shops[":shopId"].records.$post(
-          {
-            param: { shopId },
-            json: syntheticCreateSchema.parse(input),
-            header: { "idempotency-key": idempotencyHeaderSchema.parse(key) },
-          },
-          { init: { cache: "no-store", signal } },
-        ),
-      commandResult,
-    ),
-  );
-}
-export async function changeSyntheticRecord(
-  shopId: string,
-  id: string,
-  input: z.infer<typeof syntheticChangeSchema>,
-  key: string,
-  ifMatch: string,
-) {
-  return syntheticSuccessSchema.parse(
-    await authenticatedResult(
-      (signal) =>
-        createCommandClient().dev.shops[":shopId"].records[":id"].$patch(
-          {
-            param: { shopId, id },
-            json: syntheticChangeSchema.parse(input),
-            header: {
-              "idempotency-key": idempotencyHeaderSchema.parse(key),
-              "if-match": etagSchema.parse(ifMatch),
-            },
-          },
-          { init: { cache: "no-store", signal } },
-        ),
-      commandResult,
-    ),
-  );
-}
 
 export function createOwnerClient() {
   return hc<ReturnType<typeof createOwnerRoutes>>("/api");
@@ -174,6 +79,9 @@ export class OwnerRequestError extends Error {
   }
 }
 let ownerGeneration = 0;
+export function isOwnerGeneration(generation: number) {
+  return generation === ownerGeneration;
+}
 const pendingOwnerRequests = new Set<AbortController>();
 const invalidationListeners = new Set<() => void>();
 export function clearOwnerState() {
@@ -188,7 +96,7 @@ export function onOwnerInvalidation(listener: () => void) {
     invalidationListeners.delete(listener);
   };
 }
-async function authenticatedResult(
+export async function authenticatedResult(
   run: (signal: AbortSignal) => Promise<Response>,
   parseResult: (
     response: Response,
@@ -314,16 +222,6 @@ export async function reauthenticateOwner(password: string) {
   );
   clearOwnerState();
   return ownerActionSchema.parse(result);
-}
-export async function probeRecentOwner() {
-  return ownerActionSchema.parse(
-    await authenticatedResult((signal) =>
-      createOwnerClient().owner["sensitive-probe"].$post(
-        {},
-        { init: { signal } },
-      ),
-    ),
-  );
 }
 export async function ownerSession(
   action: "sign-in/email" | "sign-out",

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import { createApi } from "@aarili/api";
+import { createCommandRoutes } from "@aarili/api/commands";
 import {
   commandErrorSchema,
   syntheticSuccessSchema,
@@ -30,7 +31,13 @@ async function fixture(run) {
     await f.migration.query(
       await readFile("tests/fixtures/command.sql", "utf8"),
     );
-    await run({ ...f, api: createApi(async () => true, f.owner, "test") });
+    await run({
+      ...f,
+      api: createApi(async () => true, f.owner).route(
+        "/",
+        createCommandRoutes(f.owner),
+      ),
+    });
   });
 }
 function request(f, path, method = "GET", body, headers = {}, identity = f.a) {
@@ -815,7 +822,7 @@ test("0.2.3 E9/E10 TRU-01 AC-38 new tenant catalog, bidirectional isolation, 30-
     await reject(rate, 429, "RATE_LIMITED");
     assert(Number(rate.headers.get("Retry-After")) > 0);
     assert.deepEqual(await counts(f), before);
-    const production = createApi(async () => true, f.owner, "production");
+    const production = createApi(async () => true, f.owner);
     for (const method of ["GET", "POST", "PATCH"])
       assert.equal(
         (

@@ -1,6 +1,58 @@
 import { expect, test } from "vitest";
 import { checkBoundaries } from "../scripts/check-boundaries.mjs";
 
+test("#48 application graph rejects direct and indirect exemplar imports", () => {
+  for (const root of [
+    "apps/worker/src/index.ts",
+    "apps/web/src/server/runtime.ts",
+  ]) {
+    const sources = new Map([
+      [root, 'import "./bridge.js";'],
+      [
+        root.replace(/[^/]+$/, "bridge.ts"),
+        'import "@aarili/jobs/foundation-runtime";',
+      ],
+      [
+        "packages/jobs/src/foundation-runtime.ts",
+        "export const fixture = true;",
+      ],
+    ]);
+    expect(checkBoundaries(sources)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(
+          "application graph reaches foundation exemplar",
+        ),
+      ]),
+    );
+  }
+  expect(
+    checkBoundaries(
+      new Map([
+        [
+          "apps/web/src/app/page.tsx",
+          '"use client"; import "@aarili/api/command-fixture-client";',
+        ],
+        [
+          "packages/api/src/command-fixture-client.ts",
+          "export const fixture = true;",
+        ],
+      ]),
+    ).length,
+  ).toBeGreaterThan(0);
+  expect(
+    checkBoundaries(
+      new Map([
+        ["packages/api/src/client.ts", 'import "@aarili/contracts/command";'],
+        ["packages/contracts/src/command.ts", "export const fixture = true;"],
+      ]),
+    ),
+  ).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining("browser graph reaches exemplar contracts"),
+    ]),
+  );
+});
+
 test("0.3.2c F1 server instrumentation is an exact server entry; browser imports remain forbidden", () => {
   const sources = new Map([
     [

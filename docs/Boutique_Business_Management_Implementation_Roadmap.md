@@ -13,6 +13,11 @@ foundation and approved cleanup [#47](https://github.com/nishanthturnstile/aaril
 and [#48](https://github.com/nishanthturnstile/aarili/issues/48). The candidate trial
 in #45/PR #46 is superseded without merging. The [cleanup plan](agents/Design_System_Adoption_Plan.md)
 preserves verification safeguards and sequences UI cleanup before runtime exemplar cleanup.
+UI cleanup #47 merged through PR #49 at `b13f176`; fresh full verification and
+48 browser cases passed before merge, followed by integrated build/smoke checks.
+Runtime cleanup #48 separates normal API/browser/worker composition from explicit
+verification exemplars; its [acceptance evidence](agents/Issue_48_Runtime_Cleanup_Evidence.md)
+records review status and validation. No business slice or activation gate changes.
 Phase 0.4 and later retain concrete draft, review and publication approval.
 This roadmap alone authorises no new
 implementation or GitHub Issue generation; later release allocation remains provisional.

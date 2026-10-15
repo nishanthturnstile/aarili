@@ -52,7 +52,7 @@ for (const locale of ["ta", "en"])
   }, info) => {
     test.setTimeout(120000);
     await withOwnerWeb(
-      async ({ origin, setupToken, code, runtime }) => {
+      async ({ origin, setupToken, code, runtime, probeRecent }) => {
         const w = words[locale];
         async function post(path, body, headers = {}) {
           return fetch(`${origin}/api${path}`, {
@@ -200,13 +200,20 @@ for (const locale of ["ta", "en"])
         await runtime.query(
           "update auth_session set created_at=now()-interval '10 minutes'",
         );
-        // Diagnostic UI is removed; retain stale/recent/expired API proofs.
-        const probe = () =>
-          page.request.post(`${origin}/api/owner/sensitive-probe`, {
-            headers: { Origin: origin },
-          });
+        // Explicit verification adapter uses the browser session, never a runtime endpoint.
+        const probe = async () => {
+          const cookies = await page.context().cookies(origin);
+          return probeRecent(
+            new Headers({
+              Origin: origin,
+              Cookie: cookies
+                .map(({ name, value }) => `${name}=${value}`)
+                .join("; "),
+            }),
+          );
+        };
         const stale = await probe();
-        expect(stale.status()).toBe(403);
+        expect(stale.status).toBe(403);
         expect((await stale.json()).error.code).toBe("AUTHENTICATION_STALE");
         await axe();
         await page
@@ -228,12 +235,12 @@ for (const locale of ["ta", "en"])
         await expect(page).toHaveURL(`${origin}/owner`);
         await language();
         const recent = await probe();
-        expect(recent.status()).toBe(200);
+        expect(recent.status).toBe(200);
         expect(await recent.json()).toEqual({ state: "probe-accepted" });
         await runtime.query(
           "update auth_session set expires_at=now()-interval '1 second'",
         );
-        expect((await probe()).status()).toBe(401);
+        expect((await probe()).status).toBe(401);
         await page.goto(`${origin}/owner`);
         await language();
         await expect(page.locator("main").getByRole("alert")).toHaveText(

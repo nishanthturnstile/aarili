@@ -7,8 +7,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
+import { ownerAuthFromEnvironment } from "@aarili/auth";
 import pg from "pg";
 import { migrateDatabase } from "../migrate.mjs";
+import { createOwnerVerificationApi } from "./owner-api.mjs";
 import { withPostgres } from "./postgres.mjs";
 
 // Each UI language/device scenario gets its own disposable DB + production web
@@ -75,6 +77,16 @@ export async function withOwnerWeb(
       const exit = once(web, "exit");
       let output = "";
       const runtime = new pg.Pool({ connectionString });
+      let probeOwner;
+      async function probeRecent(headers) {
+        probeOwner ??= ownerAuthFromEnvironment(webEnv);
+        return createOwnerVerificationApi(async () => true, probeOwner).fetch(
+          new Request(`${origin}/api/owner/sensitive-probe`, {
+            method: "POST",
+            headers,
+          }),
+        );
+      }
       web.stdout.on("data", (b) => {
         output += b;
       });
@@ -124,7 +136,22 @@ export async function withOwnerWeb(
           await delay(100);
         }
         if (!ready) throw new Error("Synthetic web boot timed out");
-        await run({ origin, setupToken, code, runtime });
+        for (const path of [
+          "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records",
+          "/api/dev/shops/019a5e55-2222-7000-8000-000000000001/records/019a5e55-2222-7000-8000-000000000002",
+          "/api/owner/sensitive-probe",
+          "/api/docs",
+          "/api/openapi.json",
+        ]) {
+          for (const method of ["GET", "POST", "PATCH"]) {
+            const response = await fetch(`${origin}${path}`, { method });
+            if (response.status !== 404)
+              throw new Error(
+                `Retired runtime route remains available: ${method} ${path}`,
+              );
+          }
+        }
+        await run({ origin, setupToken, code, runtime, probeRecent });
         if (output.includes(setupToken))
           throw new Error("Setup token entered server logs");
         await privateCaptures();
@@ -147,6 +174,7 @@ export async function withOwnerWeb(
         web.kill();
         await exit;
         await runtime.end();
+        await probeOwner?.close();
         await rm(captureDirectory, { recursive: true, force: true });
       }
     },

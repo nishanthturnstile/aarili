@@ -5,7 +5,7 @@ import {
   inspectJobStatus,
   redriveSyntheticJob,
   startInprocessJobs,
-} from "@aarili/jobs/runtime";
+} from "@aarili/jobs/foundation-runtime";
 import {
   configureSchedule,
   dueSchedule,

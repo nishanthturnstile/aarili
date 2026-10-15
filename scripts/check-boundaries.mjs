@@ -167,12 +167,44 @@ export function checkBoundaries(sources) {
       file === "packages/api/src/client.ts",
   );
   const visited = new Set();
+  const exemplars = new Set([
+    "packages/api/src/commands.ts",
+    "packages/api/src/command-fixture-client.ts",
+    "packages/api/src/money-fixture-client.ts",
+    "packages/jobs/src/foundation-runtime.ts",
+    "packages/jobs/src/index.ts",
+  ]);
+  // Application composition cannot reach fixtures, including through a helper.
+  const appVisited = new Set();
+  function visitApplication(file) {
+    if (appVisited.has(file)) return;
+    appVisited.add(file);
+    for (const { specifier, typeOnly } of graph.get(file) ?? []) {
+      if (!specifier || typeOnly) continue;
+      const target = resolveImport(file, specifier, sources);
+      if (target && exemplars.has(target))
+        errors.push(
+          `${file}: application graph reaches foundation exemplar: ${specifier}`,
+        );
+      if (target) visitApplication(target);
+    }
+  }
+  [...sources.keys()]
+    .filter((file) => file.startsWith("apps/"))
+    .forEach(visitApplication);
   function visitBrowser(file) {
     if (visited.has(file)) return;
     visited.add(file);
     for (const { specifier, typeOnly } of graph.get(file) ?? []) {
       if (!specifier) continue;
       const workspace = workspaceImport(specifier);
+      if (
+        workspace?.[1] === "contracts" &&
+        ["/command", "/jobs"].includes(workspace[2])
+      )
+        errors.push(
+          `${file}: browser graph reaches exemplar contracts: ${specifier}`,
+        );
       if (
         workspace &&
         !browserPackages.has(workspace[1]) &&

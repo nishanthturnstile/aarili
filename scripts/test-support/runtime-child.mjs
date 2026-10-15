@@ -2,7 +2,7 @@ import {
   startInprocessJobs,
   startJobRuntime,
   wireJobShutdown,
-} from "@aarili/jobs/runtime";
+} from "@aarili/jobs/foundation-runtime";
 
 // Disposable process fixture only. No production/environment fault switch.
 const [mode, phase, timeout] = process.argv.slice(2);
@@ -35,7 +35,10 @@ try {
         });
   if (mode === "reload") {
     const reloaded = await import(
-      new URL("../../packages/jobs/dist/runtime.js?reload=37", import.meta.url)
+      new URL(
+        "../../packages/jobs/dist/foundation-runtime.js?reload=37",
+        import.meta.url,
+      )
     );
     const again = await reloaded.startInprocessJobs({
       ...process.env,

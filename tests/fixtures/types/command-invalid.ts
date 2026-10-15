@@ -1,4 +1,4 @@
-import { changeSyntheticRecord, createCommandClient } from "@aarili/api/client";
+import { changeSyntheticRecord, createCommandClient } from "@aarili/api/command-fixture-client";
 import type { SyntheticRecord } from "@aarili/contracts/command";
 const client = createCommandClient();
 client.dev.shops[":shopId"].records.$post({ param: { shopId: "id" }, json: { value: 42 }, header: {} });

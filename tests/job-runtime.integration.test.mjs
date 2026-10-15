@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 import { sql, withShop } from "@aarili/db";
 import { assertIsolationCatalog } from "@aarili/db/isolation-catalog";
 import { scheduleRepository } from "@aarili/db/schedule-repository";
@@ -12,6 +13,10 @@ import {
   redriveSyntheticJob,
   startInprocessJobs,
   startJobRuntime,
+} from "@aarili/jobs/foundation-runtime";
+import {
+  startInprocessJobs as startNormalInprocess,
+  startJobRuntime as startNormalRuntime,
 } from "@aarili/jobs/runtime";
 import { test } from "vitest";
 import {
@@ -29,6 +34,68 @@ import {
   jobPayload,
 } from "../scripts/test-support/jobs.mjs";
 import { withRestoreFixture } from "../scripts/test-support/restore.mjs";
+
+test("#48 TRU-01/06/12 normal worker and opted-in web leave queued examples and due schedules untouched; explicit composition still consumes", async () => {
+  await withRestoreFixture(async (f) => {
+    await jobCommand(f);
+    await configureSchedule(f);
+    await dueSchedule(f);
+    const before = await jobCounts(f);
+    const due = (
+      await f.admin.query(
+        "select next_due::text from job_schedule order by task",
+      )
+    ).rows;
+    const connectionString = f.parallel.pool.options.connectionString;
+    const worker = await startNormalRuntime(connectionString, {
+      mode: "worker",
+      pollMilliseconds: 25,
+    });
+    const web = await startNormalInprocess({
+      NODE_ENV: "development",
+      RUN_JOBS_INPROCESS: "true",
+      DATABASE_URL: connectionString,
+    });
+    try {
+      assert.deepEqual(worker.handlers, []);
+      assert.deepEqual(web.handlers, []);
+      await delay(200);
+      assert.deepEqual(await jobCounts(f), before);
+      assert.deepEqual(
+        (
+          await f.admin.query(
+            "select next_due::text from job_schedule order by task",
+          )
+        ).rows,
+        due,
+      );
+      assert.equal((await scheduledRuns(f)).length, 0);
+      assert.equal(
+        (
+          await f.admin.query(
+            "select state from pgboss.job where name='foundation.synthetic'",
+          )
+        ).rows[0].state,
+        "created",
+      );
+    } finally {
+      await Promise.all([worker.stop(), web.stop()]);
+    }
+    const verification = await startJobRuntime(connectionString, {
+      mode: "worker",
+      pollMilliseconds: 25,
+    });
+    try {
+      assert.deepEqual(verification.handlers, [
+        "foundation.synthetic",
+        "foundation.schedule",
+      ]);
+      await eventually(async () => (await jobCounts(f)).effects === 1);
+    } finally {
+      await verification.stop();
+    }
+  });
+}, 120000);
 
 test("0.3.2c F2/F4 TRU-01/06 DAY-06 AC-38 registered authority, local dates, transactional schedule, revoked/forged identity and immutable history", async () => {
   await withRestoreFixture(async (f) => {
