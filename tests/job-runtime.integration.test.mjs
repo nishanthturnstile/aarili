@@ -233,7 +233,15 @@ test("0.3.2c F2/F4 TRU-01/06 DAY-06 AC-38 registered authority, local dates, tra
 test("0.3.2c F1/F3/F4/F6/F9 shared registry, duplicate reload/start, actual scheduler, singleton expiry, fake-only digest guards", async () => {
   await withRestoreFixture(async (f) => {
     await configureSchedule(f);
-    await dueSchedule(f, "foundation.daily", "2026-10-14");
+    // Use the latest due 06:00 occurrence on the database clock. A fixed past
+    // date lets the real polling scheduler catch up additional days, violating
+    // this fixture's one-occurrence premise as soon as the calendar advances.
+    const { date } = (
+      await f.admin.query(
+        "select ((clock_timestamp() at time zone 'Asia/Kolkata') - interval '6 hours')::date::text as date",
+      )
+    ).rows[0];
+    await dueSchedule(f, "foundation.daily", date);
     const env = {
       NODE_ENV: "development",
       RUN_JOBS_INPROCESS: "true",
@@ -260,10 +268,10 @@ test("0.3.2c F1/F3/F4/F6/F9 shared registry, duplicate reload/start, actual sche
           ).rows[0].n === 1,
       );
       const [run] = await scheduledRuns(f);
-      assert.equal(run.business_date, "2026-10-14");
+      assert.equal(run.business_date, date);
       // Repeat the exact fixture occurrence; durable date uniqueness wins even
       // after the queue's transient singleton protection has expired.
-      await dueSchedule(f, "foundation.daily", "2026-10-14");
+      await dueSchedule(f, "foundation.daily", date);
       await enqueueDueSchedules(f.parallel.db, f.boss);
       await f.admin.query(
         "update pgboss.job set singleton_on=singleton_on-interval '1 day' where name='foundation.schedule'",
