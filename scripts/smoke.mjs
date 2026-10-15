@@ -74,7 +74,10 @@ await withPostgres(
       const page = await fetch(`http://127.0.0.1:${port}`);
       assert.equal(page.status, 200);
       const html = await page.text();
-      assert.match(html, /The development workspace is running/);
+      assert.equal(new URL(page.url).pathname, "/sign-in");
+      assert(!html.includes("The development workspace is running"));
+      assert(!html.includes("data-aarili-theme"));
+      assert.match(html, /Aarili/);
       const asset = html.match(/src="([^"]*\/_next\/static\/[^"]+)"/)?.[1];
       assert(asset, "Production page has no client asset");
       assert.equal(
@@ -99,7 +102,7 @@ await withPostgres(
       assert.equal(
         preview.status,
         404,
-        "Development preview must be unavailable in production",
+        "Removed design preview must be unavailable in production",
       );
       const unsupported = await fetch(`http://127.0.0.1:${port}/api/healthz`, {
         method: "POST",

@@ -7,6 +7,8 @@ validateEnvironment(process.env);
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  // OAuth callback codes must not enter development request/browser logs.
+  logging: { incomingRequests: false, browserToTerminal: false },
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   typedRoutes: true,

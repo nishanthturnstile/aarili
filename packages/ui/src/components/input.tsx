@@ -8,10 +8,7 @@ function Input({ className, ...props }: ComponentProps<"input">) {
   return (
     <InputPrimitive
       data-slot="input"
-      className={cn(
-        "ui-input disabled:opacity-60 disabled:cursor-not-allowed",
-        className,
-      )}
+      className={cn("ui-input disabled:cursor-not-allowed", className)}
       {...props}
     />
   );

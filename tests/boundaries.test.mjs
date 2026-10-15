@@ -104,9 +104,9 @@ test("0.1.1a allows browser typed clients without traversing erased server types
   ).toEqual([]);
 });
 
-test("0.1.1c RSC preview gate is server-only; a client cannot import it to reach environment state", () => {
+test("0.1.1c server runtime configuration cannot be imported by client code", () => {
   const server = [
-    "apps/web/src/app/dev/design-system/page.tsx",
+    "apps/web/src/server/runtime-config.ts",
     'const enabled = process.env.NODE_ENV === "development";',
   ];
   expect(checkBoundaries(new Map([server]))).toEqual([]);
@@ -116,7 +116,7 @@ test("0.1.1c RSC preview gate is server-only; a client cannot import it to reach
         server,
         [
           "apps/web/src/client.tsx",
-          '/* client directive after a comment */ "use client"; import "@/app/dev/design-system/page";',
+          '/* client directive after a comment */ "use client"; import "@/server/runtime-config";',
         ],
       ]),
     ),

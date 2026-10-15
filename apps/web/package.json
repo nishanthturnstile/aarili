@@ -12,14 +12,13 @@
   "dependencies": {
     "@aarili/api": "workspace:*",
     "@aarili/auth": "workspace:*",
+    "@aarili/jobs": "workspace:*",
     "@aarili/platform": "workspace:*",
     "@aarili/ui": "workspace:*",
-    "@tanstack/react-query": "5.104.2",
     "next": "16.4.0",
     "next-intl": "4.14.9",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "@aarili/jobs": "workspace:*"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
