@@ -1,0 +1,41 @@
+{
+  "observed_at": "2026-10-16T15:16:47Z",
+  "repository": {
+    "default_branch": "development",
+    "allow_merge_commit": true,
+    "allow_squash_merge": true,
+    "allow_rebase_merge": false,
+    "delete_branch_on_merge": true
+  },
+  "branches": {
+    "development": {
+      "required_checks": [
+        "Dependency audit",
+        "Scaffold verification"
+      ],
+      "strict": true,
+      "approving_reviews": 0,
+      "dismiss_stale_reviews": true,
+      "enforce_admins": true,
+      "linear_history": true,
+      "force_pushes": false,
+      "deletions": false,
+      "conversation_resolution": true
+    },
+    "main": {
+      "required_checks": [
+        "Browser smoke and accessibility",
+        "Dependency audit",
+        "Scaffold verification"
+      ],
+      "strict": true,
+      "approving_reviews": 0,
+      "dismiss_stale_reviews": true,
+      "enforce_admins": true,
+      "linear_history": false,
+      "force_pushes": false,
+      "deletions": false,
+      "conversation_resolution": true
+    }
+  }
+}

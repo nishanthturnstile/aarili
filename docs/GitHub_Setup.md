@@ -1,6 +1,7 @@
 # Aarili GitHub setup
 
-**Configured:** 13 October 2026, after owner authorisation to configure GitHub and install to-tickets.
+**Initial configuration:** 13 October 2026. Branch flow and CI were updated on
+16 October 2026 at the owner's request.
 
 Repository: [nishanthturnstile/aarili](https://github.com/nishanthturnstile/aarili). GitHub CLI is authenticated as `nishanthturnstile` with administrator permission. CLI access works independently of the previously inspected GitHub App connection.
 
@@ -8,29 +9,35 @@ Repository: [nishanthturnstile/aarili](https://github.com/nishanthturnstile/aari
 
 | Setting | Configuration |
 |---|---|
-| Main branch | Pull requests required, including administrators |
+| `main` | Protected; PRs required, including administrators; promotion comes only from `development` |
+| `development` | Protected integration branch; agents create all new topic branches from it and send feature PRs to it |
+| Default branch | `development`, so GitHub's new-branch and PR defaults use the integration lane |
 | Required approving reviews | Zero: the owner is the only maintainer; deliberate owner review remains the workflow |
 | Existing approvals | Dismissed when new commits change the PR |
 | Review conversations | Must be resolved before merge |
-| History | Linear; squash merge only, with PR title/body as the commit message |
-| Force push / delete main | Disabled |
+| History | Feature PRs to `development` are squash-merged; the `development` → `main` promotion uses a merge commit to preserve ancestry |
+| Force push / delete `development` and `main` | Disabled |
 | Automatic merge | Disabled |
 | Merged topic branches | Automatically deleted |
 | GitHub Actions | Enabled; actions must use full commit SHAs |
 | Workflow token | Read-only default; workflow cannot approve PRs |
 | Issue readiness label | `ready-for-agent`, meaning approved ticket with all blockers checked before starting |
-| Required CI checks | `Scaffold verification`, `Browser smoke and accessibility`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches (issue #6) |
+| Required CI checks on `development` | `Scaffold verification`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches |
+| Required CI checks on `main` | `Scaffold verification`, `Browser smoke and accessibility`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches |
+| Main history rule | Linear history disabled so the `development` promotion can merge with a merge commit; squash remains enabled for feature PRs |
 | Dependency vulnerability alerts | Enabled and read back HTTP 204 (issue #6); hosted Renovate activation remains owner confirmation |
 
 The initial setup deliberately required no nonexistent check names. Issue #6
 added the verification workflow and demonstrated real failure/success on a
-branch before configuring the three observed check names above. Existing
-protections were preserved by REST read-back. See
+branch before configuring the three observed check names. The 16 October 2026
+development-branch update created and protected `development`, added its
+fast-check rule, retained all three checks on `main`, allowed merge commits for
+promotion ancestry, and removed duplicate full runs on branch pushes. See
 [the CI gate evidence](agents/Issue_6_CI_Gates_Evidence.md) for actual runs,
 snapshots and remaining hosted Renovate activation. Workflow schedules activate
-after owner review/merge; this does not authorize a live release.
+on the default `development` branch; this does not authorize a live release.
 
-Settings were checked against current [GitHub branch-protection](https://docs.github.com/en/rest/branches/branch-protection) and [repository settings](https://docs.github.com/en/rest/repos/repos) documentation, retrieved through Context7. REST read-back is the evidence for their applied state.
+Settings were checked against current [GitHub branch-protection](https://docs.github.com/en/rest/branches/branch-protection) and [repository settings](https://docs.github.com/en/rest/repos/repos) documentation, retrieved through Context7. The current [REST read-back snapshot](agents/ci/branch-policy-2026-10-16.json) records the branch and merge settings.
 
 ## Installed skill and tracker
 
