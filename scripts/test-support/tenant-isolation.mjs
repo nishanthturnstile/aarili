@@ -30,6 +30,10 @@ export const tenantPaths = [
   "syntheticFinancial/fakeOutbound",
   "scheduleRepository.run/enabled/effected/quarantine/apply",
   "enqueueDueSchedules/handleScheduledJob/redriveSyntheticJob",
+  "usageRepository.append/read",
+  "createUsageWriter.record/recordDraftEvent/read",
+  "vocabularyRepository.current/read/resolve/append/advance",
+  "reviseVocabulary/resolveVocabulary/searchSynthetic",
 ];
 const origin = "http://127.0.0.1:3103";
 export function apiRequest(api, path, headers = {}, body) {

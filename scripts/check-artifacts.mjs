@@ -75,6 +75,25 @@ function inspect(directory) {
         !output.includes("Invalid server environment configuration"),
         "Server validation code entered browser output",
       );
+      assert(
+        !output.includes("mutateDraft") &&
+          !output.includes("draftRepository") &&
+          !output.includes("enqueueDraftFixtureJob") &&
+          !output.includes("createDraftRoutes"),
+        "0.4.2a draft/server code entered browser output",
+      );
+      for (const marker of [
+        "createPrivateTelemetry",
+        "aarili-private-observability",
+        "SENTRY_DSN",
+        "private-name-canary-54",
+        "private-token-canary-54",
+      ]) {
+        assert(
+          !output.includes(marker),
+          "0.4.1d private telemetry entered browser artifacts",
+        );
+      }
       checked++;
     }
   }

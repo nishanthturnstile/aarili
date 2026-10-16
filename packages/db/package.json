@@ -99,6 +99,26 @@
     "./draft-schema": {
       "types": "./dist/draft-schema.d.ts",
       "import": "./dist/draft-schema.js"
+    },
+    "./repositories/usage": {
+      "types": "./dist/repositories/usage.d.ts",
+      "import": "./dist/repositories/usage.js"
+    },
+    "./usage-repository": {
+      "types": "./dist/usage-repository.d.ts",
+      "import": "./dist/usage-repository.js"
+    },
+    "./usage-schema": {
+      "types": "./dist/usage-schema.d.ts",
+      "import": "./dist/usage-schema.js"
+    },
+    "./vocabulary-repository": {
+      "types": "./dist/vocabulary-repository.d.ts",
+      "import": "./dist/vocabulary-repository.js"
+    },
+    "./repositories/vocabulary": {
+      "types": "./dist/repositories/vocabulary.d.ts",
+      "import": "./dist/repositories/vocabulary.js"
     }
   },
   "scripts": {

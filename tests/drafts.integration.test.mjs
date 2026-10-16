@@ -9,9 +9,11 @@ import {
   productionDraftRetention,
   readDraft,
 } from "@aarili/core/drafts";
+import { createUsageWriter } from "@aarili/core/usage";
 import { sql, withShop } from "@aarili/db";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { assertIsolationCatalog } from "@aarili/db/isolation-catalog";
+import { usageRepository } from "@aarili/db/usage-repository";
 import { startSyntheticQueue } from "@aarili/jobs";
 import { test } from "vitest";
 import { syntheticDraftRegistry } from "../scripts/test-support/drafts.mjs";
@@ -30,36 +32,60 @@ const save = (payload) => ({
   payload,
 });
 async function fixture(run) {
-  await withTenantFixture(async (f) => {
-    await f.migration.query(
-      await readFile("tests/fixtures/drafts.sql", "utf8"),
-    );
-    const instrumentation = [];
-    const owner = {
-      ...f.owner,
-      origin,
-      commandLimit: f.owner.commandLimit,
-      withOwnerDraft(headers, shopId, run) {
-        return f.owner.withOwnerTransaction(headers, shopId, (tx, userId) =>
-          run({
-            shopId,
-            actor: { type: "user", id: userId },
-            repository: draftRepository(tx, shopId),
-            workflows: syntheticDraftRegistry(tx, shopId),
-            instrumentation: {
-              async recordDraftEvent(e) {
-                instrumentation.push(e);
-              },
-            },
-          }),
-        );
+  const instrumentation = [];
+  const transactions = new WeakMap();
+  let failUsage = false;
+  await withTenantFixture(
+    async (f) => {
+      await f.migration.query(
+        await readFile("tests/fixtures/drafts.sql", "utf8"),
+      );
+      const owner = {
+        ...f.owner,
+        withOwnerDraft(headers, shopId, run) {
+          return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
+            assert.equal(ctx.workflows.size, 0);
+            assert.ok(ctx.instrumentation);
+            // Only test-only workflow construction obtains the transaction; the
+            // actual auth factory, repository and private writer remain intact.
+            const tx = transactions.get(ctx.instrumentation);
+            assert.ok(tx);
+            return run({
+              ...ctx,
+              workflows: syntheticDraftRegistry(tx, shopId),
+            });
+          });
+        },
+      };
+      // Exercise the real owner-before-drafts mount used by the Next route.
+      const api = createApi(async () => true, owner);
+      await run({
+        ...f,
+        api,
+        instrumentation,
+        setUsageFailure(value) {
+          failUsage = value;
+        },
+      });
+    },
+    {
+      draftInstrumentation(tx, shopId) {
+        const writer = createUsageWriter(usageRepository(tx, shopId));
+        const adapter = {
+          async recordDraftEvent(event) {
+            await writer.recordDraftEvent(event);
+            if (failUsage)
+              throw Error("Injected private usage failure after insert");
+            instrumentation.push(event);
+          },
+        };
+        transactions.set(adapter, tx);
+        return adapter;
       },
-    };
-    // Exercise the real owner-before-drafts mount used by the Next route.
-    const api = createApi(async () => true, owner);
-    await run({ ...f, api, instrumentation });
-  });
+    },
+  );
 }
+
 async function id(f) {
   return (await f.admin.query("select uuidv7() as id")).rows[0].id;
 }
@@ -770,45 +796,106 @@ test("0.4.2a E4/E7 AC-38 real transactional pg-boss draft promotion and result-o
   });
 }, 120000);
 
-test("0.4.2a E8 private instrumentation factory composes on verified owner shop transaction", async () => {
-  let captured;
-  await withTenantFixture(
-    async (f) => {
-      const draftId = await id(f);
-      const saved = await command(f, draftId, "save", save({}));
-      const audit = (
-        await f.admin.query("select id from audit_event where entity_id=$1", [
-          draftId,
-        ])
-      ).rows[0].id;
-      const response = await f.owner.withOwnerDraft(
-        new Headers({ Cookie: f.a.cookie }),
-        f.a.shop,
-        async (ctx) => {
-          assert.equal(ctx.workflows.size, 0);
-          assert.ok(ctx.instrumentation);
-          await ctx.instrumentation.recordDraftEvent({
-            actionId: audit,
-            draftId,
-            event: "saved",
-            schemaVersion: 1,
-          });
-          return readDraft(ctx, draftId);
-        },
+test("0.4.2a E8 real private usage factory composes through production API with replay and atomic rollback", async () => {
+  await fixture(async (f) => {
+    const draftId = await id(f);
+    const saveKey = randomUUID();
+    const period = {
+      from: new Date(Date.now() - 86400000).toISOString(),
+      to: new Date(Date.now() + 86400000).toISOString(),
+    };
+    const usage = (who = f.a) =>
+      withShop(f.runtime.db, who.user, who.shop, (tx) =>
+        createUsageWriter(usageRepository(tx, who.shop)).read(period),
       );
-      assert.deepEqual(response.data, saved.draft);
-      assert.equal(captured.draftId, draftId);
-    },
-    {
-      draftInstrumentation: (tx, shopId) => ({
-        async recordDraftEvent(event) {
-          const audit = await tx.execute(
-            sql`select id from audit_event where shop_id=${shopId}::uuid and id=${event.actionId}::uuid and entity_id=${event.draftId}::uuid`,
-          );
-          assert.equal(audit.rowCount, 1);
-          captured = event;
-        },
-      }),
-    },
-  );
+    const saved = await put(f, draftId, complete, {
+      "Idempotency-Key": saveKey,
+    });
+    assert.equal((await usage()).totals.events, "1");
+    assert.deepEqual(
+      await put(f, draftId, complete, { "Idempotency-Key": saveKey }),
+      saved,
+    );
+    assert.equal((await usage()).totals.events, "1");
+    assert.equal(f.instrumentation.length, 1);
+    assert.equal((await usage(f.b)).totals.events, "0");
+    await state(f, draftId);
+    const before = await counts(f);
+    const promoteKey = randomUUID();
+    f.setUsageFailure(true);
+    await reject(
+      await request(
+        f,
+        f.a,
+        `/${draftId}/promote`,
+        "POST",
+        {},
+        { "Idempotency-Key": promoteKey, "If-Match": '"v1"' },
+      ),
+      503,
+      "SERVICE_UNAVAILABLE",
+    );
+    assert.deepEqual(await counts(f), before);
+    assert.equal((await usage()).totals.events, "1");
+    assert.equal(f.instrumentation.length, 1);
+    assert.equal(
+      (await (await request(f, f.a, `/${draftId}`)).json()).lifecycle,
+      "active",
+    );
+    f.setUsageFailure(false);
+    const promotedResponse = await request(
+      f,
+      f.a,
+      `/${draftId}/promote`,
+      "POST",
+      {},
+      { "Idempotency-Key": promoteKey, "If-Match": '"v1"' },
+    );
+    assert.equal(
+      promotedResponse.status,
+      200,
+      JSON.stringify(await promotedResponse.clone().json()),
+    );
+    const promoted = await promotedResponse.json();
+    assert.equal(promoted.draft.lifecycle, "promoted");
+    const replay = await request(
+      f,
+      f.a,
+      `/${draftId}/promote`,
+      "POST",
+      {},
+      { "Idempotency-Key": promoteKey, "If-Match": '"v1"' },
+    );
+    assert.equal(replay.status, 200);
+    assert.deepEqual(await replay.json(), promoted);
+    const readout = await usage();
+    assert.equal(readout.totals.events, "2");
+    assert.equal(readout.totals.draftsSaved, "1");
+    assert.equal(readout.totals.draftsPromoted, "1");
+    assert.equal(f.instrumentation.length, 2);
+    assert.equal((await usage(f.b)).totals.events, "0");
+    const binding = await f.admin.query(
+      "select p.name,p.subject_id,a.entity_id,p.occurred_at=a.occurred_at as same_time from product_event p join audit_event a on a.shop_id=p.shop_id and a.id=p.action_id where p.shop_id=$1 order by p.occurred_at,p.action_id",
+      [f.a.shop],
+    );
+    assert.deepEqual(
+      binding.rows.map((row) => row.name),
+      ["draft.saved", "draft.promoted"],
+    );
+    assert.ok(
+      binding.rows.every(
+        (row) =>
+          row.subject_id === draftId &&
+          row.entity_id === draftId &&
+          row.same_time,
+      ),
+    );
+    assert.deepEqual(await counts(f), {
+      drafts: 1,
+      results: 1,
+      enlisted: 1,
+      audit: 2,
+      keys: 2,
+    });
+  });
 }, 120000);

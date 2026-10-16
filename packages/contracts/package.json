@@ -27,6 +27,14 @@
     "./drafts": {
       "types": "./dist/drafts.d.ts",
       "import": "./dist/drafts.js"
+    },
+    "./usage": {
+      "types": "./dist/usage.d.ts",
+      "import": "./dist/usage.js"
+    },
+    "./vocabulary": {
+      "types": "./dist/vocabulary.d.ts",
+      "import": "./dist/vocabulary.js"
     }
   },
   "scripts": {

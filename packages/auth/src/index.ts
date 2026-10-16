@@ -17,6 +17,7 @@ import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
+import { createUsageWriter } from "@aarili/core/usage";
 import {
   createDatabase,
   type Database,
@@ -31,6 +32,7 @@ import { commandRepository } from "@aarili/db/command-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { shopRepository } from "@aarili/db/shop-repository";
+import { usageRepository } from "@aarili/db/usage-repository";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -1284,6 +1286,8 @@ export function ownerAuthFromEnvironment(
     secret: BETTER_AUTH_SECRET,
     setupToken: SETUP_TOKEN ?? "",
     google: googleFromEnvironment(env),
+    draftInstrumentation: (tx, shopId) =>
+      createUsageWriter(usageRepository(tx, shopId)),
     capture: async (message) => {
       await mkdir(AUTH_CAPTURE_DIRECTORY, { recursive: true, mode: 0o700 });
       await writeFile(

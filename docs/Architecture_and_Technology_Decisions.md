@@ -190,7 +190,7 @@ or activation of later queue/provider capabilities.
 | Search | PostgreSQL `pg_trgm` + stored search keys built by an in-house function; `@indic-transliteration/sanscript` optional for the Tamil-to-Latin step | sanscript 1.3.3 | P1 | Section 9.1 |
 | Environment validation | `@t3-oss/env-nextjs` / `env-core` | 0.13.11 | P1 | Server secrets never go in `NEXT_PUBLIC_*` variables |
 | Logging | pino (JSON to stdout); pino-pretty in dev | 10.4.0 | P1 | Redact names, phone numbers, tokens, cookies and measurement values |
-| Error tracking | Sentry SaaS, Developer (free) plan | `@sentry/nextjs` / `@sentry/node` 11.6.0 | P1 | `sendDefaultPii: false`, a scrubber, no session replay |
+| Error tracking | Sentry SaaS, Developer (free) plan | `@sentry/nextjs` / `@sentry/node` 11.6.0 | P1 | Explicit deny-all `dataCollection`, `includeServerName: false`, a scrubber, no session replay (owner-approved Sentry 11.6.0 configuration correction, 16 October 2026; replaces removed `sendDefaultPii`) |
 | Pilot metrics | An in-house `product_event` table | — | P1 | Pilot measures (product plan §28) need joins with business data; keeps personal data in-house |
 | Rate limiting | Better Auth's built-in limiter, stored in the database, plus `rate-limiter-flexible` with a PostgreSQL store | 11.2.1 | P1 | No Redis |
 | Transactional email | Resend | SDK 6.32.1 | P1 | Email verification and password reset only (free tier) |

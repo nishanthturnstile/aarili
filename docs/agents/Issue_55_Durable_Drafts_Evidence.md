@@ -80,6 +80,21 @@ smoke and 29 artifact scans. An independent agent re-review confirmed the findin
 resolved and identified no additional actionable finding. Integration onto current
 main and required CI remain separately controlled by the coordinator.
 
+After #66 merged, the five-case real draft suite was strengthened to inject the
+actual private usage writer through `AuthConfiguration.draftInstrumentation` and
+delegate to the production `withOwnerDraft` context. A test-only WeakMap supplies
+the same transaction solely for synthetic workflow registration; repository,
+authorization and instrumentation composition stay real. The fifth case now
+asserts real product-event save/promotion counts, replay deduplication, failure
+after the usage INSERT rolling back business/audit/key/result changes, same-key
+recovery, tenant B's zero count and exact audit-subject/time binding. On this
+combined main/#55 tree, `pnpm install --frozen-lockfile` passed with no resolution
+or lockfile changes (13 workspace projects, pnpm 12.11.2). `pnpm build:packages`
+passed all nine package builds in 9.51 seconds; the focused real PostgreSQL draft
+suite passed all five cases in 26.44 seconds. These checks preserve a durable CI
+regression for actual auth/private-usage composition, rather than relying only
+on the earlier external composition probe.
+
 ## Recovery, isolation and activation gates
 
 Migration `0011_durable_drafts.sql` is additive and runs through the existing
@@ -115,3 +130,25 @@ dependencies changed. The overlapping pure request hash helper and optional auth
 instrumentation field are coordinated byte-identical additions across the three
 independent PRs; subsequent merges must retain the union of additive exports,
 OpenAPI, artifact and tenant-catalog expectations and rerun affected checks.
+
+## Integrated-main review and merge authorization
+
+The owner authorized sequential merges after re-review on 16 October 2026.
+PR #64 merged as 6860c13 and PR #66 as a29c707. Their updated-main frozen installs,
+production builds, smoke checks and 29-artifact scans passed before this branch
+was reconciled. The resolution retains all additive exports and tenant/catalog
+inventories, the identical request-binding helper once, the API final-response
+observer together with draft routes, and the real auth usage factory together
+with withOwnerDraft attachment. Migrations 0009, 0010 and 0011 remain distinct.
+Independent review found no lost changes or additional actionable findings.
+
+On the stable combined tree, the coordinator's aarili-65-integrated-final.log
+exited 0: lint, Knip, strict types, 26 focused draft/client/owner/usage unit tests,
+negative contracts, OpenAPI, four affected PostgreSQL session/catalog/bootstrap/
+upgrade cases (10 unrelated cases skipped), production build (11 tasks, 12.644
+seconds), smoke and the 29-artifact scan passed. The implementation agent's
+captured tool output separately confirms the five strengthened real PostgreSQL
+draft cases passed in 26.44 seconds after frozen installation and nine package
+builds; these commands retained output in its tool transcript, not a local log.
+No full local browser suite was rerun. Required CI must pass on the reconciled
+head before the authorized squash merge; activation/privacy/pilot gates remain.
