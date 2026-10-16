@@ -79,6 +79,18 @@
     "./schedule-repository": {
       "types": "./dist/schedule-repository.d.ts",
       "import": "./dist/schedule-repository.js"
+    },
+    "./repositories/usage": {
+      "types": "./dist/repositories/usage.d.ts",
+      "import": "./dist/repositories/usage.js"
+    },
+    "./usage-repository": {
+      "types": "./dist/usage-repository.d.ts",
+      "import": "./dist/usage-repository.js"
+    },
+    "./usage-schema": {
+      "types": "./dist/usage-schema.d.ts",
+      "import": "./dist/usage-schema.js"
     }
   },
   "scripts": {

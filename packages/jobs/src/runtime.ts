@@ -56,9 +56,22 @@ export async function startJobRuntime(
     mode,
     pollMilliseconds = 1000,
     hooks = {},
-  }: { mode: Mode; pollMilliseconds?: number; hooks?: Hooks },
+    reportFailure,
+  }: {
+    mode: Mode;
+    pollMilliseconds?: number;
+    hooks?: Hooks;
+    reportFailure?: () => void;
+  },
   composition: RuntimeComposition = emptyComposition,
 ) {
+  const report = () => {
+    try {
+      reportFailure?.();
+    } catch {
+      /* Diagnostics do not decide job outcomes. */
+    }
+  };
   const database = createDatabase(connectionString);
   let boss: PgBoss;
   try {
@@ -115,6 +128,7 @@ export async function startJobRuntime(
           });
         else await boss.complete(name, job, { outcome });
       } catch {
+        report();
         if (!aborted)
           await boss.fail(name, job, { error: "HANDLER_RETRYABLE_FAILURE" });
       }
@@ -124,9 +138,10 @@ export async function startJobRuntime(
   const tick = () => {
     if (stopping || active) return;
     active = cycle()
-      .catch(() =>
-        console.error("Job runtime unavailable; inspect database readiness"),
-      )
+      .catch(() => {
+        report();
+        console.error("Job runtime unavailable; inspect database readiness");
+      })
       .finally(() => {
         active = undefined;
       });
@@ -171,6 +186,7 @@ const inprocessKey = Symbol.for("aarili.job-runtime.inprocess");
 export async function startInprocessJobs(
   env: Record<string, string | undefined>,
   composition: RuntimeComposition = emptyComposition,
+  reportFailure?: () => void,
 ) {
   const connectionString = jobRuntimeConfiguration(env, "inprocess");
   if (!connectionString) return;
@@ -184,6 +200,7 @@ export async function startInprocessJobs(
       connectionString,
       {
         mode: "inprocess",
+        ...(reportFailure ? { reportFailure } : {}),
       },
       composition,
     )

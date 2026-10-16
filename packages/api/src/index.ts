@@ -25,32 +25,44 @@ const healthRoute = createRoute({
 export function createApi(
   checkDatabase: () => Promise<boolean>,
   owner?: OwnerAuth,
+  reportFailure?: () => void,
 ) {
-  const app = new OpenAPIHono()
-    .basePath("/api")
-    .openapi(healthRoute, async (c) => {
-      c.header("Cache-Control", "no-store");
-      let ready = false;
+  const router = new OpenAPIHono().basePath("/api");
+  router.use("*", async (c, next) => {
+    await next();
+    // Observe final responses, including child routes with their own onError.
+    // Health 503 is also an operational failure; no request/error data leaves.
+    if (c.res.status >= 500) {
       try {
-        ready = await checkDatabase();
+        reportFailure?.();
       } catch {
-        /* Never expose driver/configuration errors. */
+        /* Diagnostics never change responses. */
       }
-      if (!ready)
-        return c.json(
-          healthUnavailableSchema.parse({
-            error: {
-              code: "DATABASE_UNAVAILABLE",
-              message: "Database is unavailable",
-            },
-          }),
-          503,
-        );
+    }
+  });
+  const app = router.openapi(healthRoute, async (c) => {
+    c.header("Cache-Control", "no-store");
+    let ready = false;
+    try {
+      ready = await checkDatabase();
+    } catch {
+      /* Never expose driver/configuration errors. */
+    }
+    if (!ready)
       return c.json(
-        healthResponseSchema.parse({ status: "ok", service: "aarili-web" }),
-        200,
+        healthUnavailableSchema.parse({
+          error: {
+            code: "DATABASE_UNAVAILABLE",
+            message: "Database is unavailable",
+          },
+        }),
+        503,
       );
-    });
+    return c.json(
+      healthResponseSchema.parse({ status: "ok", service: "aarili-web" }),
+      200,
+    );
+  });
   if (owner) app.route("/", createOwnerRoutes(owner));
   app.notFound((c) =>
     c.json(
@@ -60,14 +72,14 @@ export function createApi(
       404,
     ),
   );
-  app.onError((_error, c) =>
-    c.json(
+  app.onError((_error, c) => {
+    return c.json(
       apiErrorSchema.parse({
         error: { code: "INTERNAL_ERROR", message: "Request failed" },
       }),
       500,
-    ),
-  );
+    );
+  });
   return app;
 }
 export type HealthRoutes = ReturnType<typeof createApi>;

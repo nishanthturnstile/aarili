@@ -54,6 +54,8 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "syntheticFinancial/fakeOutbound",
       "scheduleRepository.run/enabled/effected/quarantine/apply",
       "enqueueDueSchedules/handleScheduledJob/redriveSyntheticJob",
+      "usageRepository.append/read",
+      "createUsageWriter.record/recordDraftEvent/read",
     ]);
     for (const [own, foreign] of [
       [a, b],
@@ -452,6 +454,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.job_schedule_run",
       "public.journal_batch",
       "public.journal_entry",
+      "public.product_event",
       "public.shop",
       "public.shop_membership",
     ]);
@@ -604,6 +607,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.job_schedule_run",
         "public.journal_batch",
         "public.journal_entry",
+        "public.product_event",
         "public.shop",
         "public.shop_membership",
       ]);

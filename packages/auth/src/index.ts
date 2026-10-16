@@ -15,6 +15,7 @@ import {
 } from "@aarili/contracts";
 import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
+import { createUsageWriter } from "@aarili/core/usage";
 import {
   createDatabase,
   type Database,
@@ -28,6 +29,7 @@ import * as schema from "@aarili/db/auth-schema";
 import { commandRepository } from "@aarili/db/command-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { shopRepository } from "@aarili/db/shop-repository";
+import { usageRepository } from "@aarili/db/usage-repository";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -80,6 +82,17 @@ export type AuthConfiguration = {
   policy?: Partial<Policy>;
   now?: () => Date;
   google?: GoogleConfiguration | undefined;
+  draftInstrumentation?: (
+    tx: Transaction,
+    shopId: string,
+  ) => {
+    recordDraftEvent(event: {
+      actionId: string;
+      draftId: string;
+      event: "saved" | "promoted" | "abandoned";
+      schemaVersion: number;
+    }): Promise<void>;
+  };
   // Injection point for rollback evidence; runtime never configures it.
   checkpoint?: (
     step:
@@ -1247,6 +1260,8 @@ export function ownerAuthFromEnvironment(
     secret: BETTER_AUTH_SECRET,
     setupToken: SETUP_TOKEN ?? "",
     google: googleFromEnvironment(env),
+    draftInstrumentation: (tx, shopId) =>
+      createUsageWriter(usageRepository(tx, shopId)),
     capture: async (message) => {
       await mkdir(AUTH_CAPTURE_DIRECTORY, { recursive: true, mode: 0o700 });
       await writeFile(
