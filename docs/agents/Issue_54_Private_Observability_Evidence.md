@@ -211,3 +211,23 @@ fluent-Tamil phase closeout, and live activation remain separate gates.
   production monitoring await the privacy/recovery/pilot gates.
 - Physical Android/fluent Tamil review and phase-wide accessibility/recovery evidence
   remain manual closeout gates; this foundation adds no new business UI.
+
+## Integration review after PR #64
+
+The owner authorized sequential merges on 16 October 2026. PR #64 merged as
+6860c13802a8d1a7f1f29ff18aa94dc41a100077, and its integrated main build, production
+smoke and 29-artifact scan passed. This branch reconciles that main by retaining
+both sets of additive package exports, the core/i18n lock importer, append-only
+catalog entries, tenant paths and sorted table inventories. Migrations 0009 and
+0010 remain distinct. Independent cross-review found no actionable issue.
+
+The reconciled branch passed frozen installation, lint, Knip, strict types,
+12 focused usage/search/vocabulary unit tests, negative contracts and OpenAPI,
+three affected PostgreSQL catalog/bootstrap/upgrade cases (11 unrelated cases
+skipped), all seven usage/vocabulary PostgreSQL cases, production build (11 tasks,
+11.619 seconds), smoke and the 29-artifact scan. The coordinator read the exit-0
+output in aarili-66-main-reconciliation.log. The full local browser suite was not
+repeated. The additional owner-requested rerun of only the two previously timed
+out B5 cases passed phone and desktop 2/2 in 11.2 seconds under the unchanged
+30-second timeout; the initial timeout cause remains unconfirmed. Hosted checks
+must pass for the reconciled head before merge.

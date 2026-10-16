@@ -388,6 +388,9 @@ importers:
       '@aarili/db':
         specifier: workspace:*
         version: link:../db
+      '@aarili/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@aarili/money':
         specifier: workspace:*
         version: link:../money

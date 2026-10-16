@@ -91,6 +91,14 @@
     "./usage-schema": {
       "types": "./dist/usage-schema.d.ts",
       "import": "./dist/usage-schema.js"
+    },
+    "./vocabulary-repository": {
+      "types": "./dist/vocabulary-repository.d.ts",
+      "import": "./dist/vocabulary-repository.js"
+    },
+    "./repositories/vocabulary": {
+      "types": "./dist/repositories/vocabulary.d.ts",
+      "import": "./dist/repositories/vocabulary.js"
     }
   },
   "scripts": {

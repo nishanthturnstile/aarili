@@ -241,6 +241,8 @@ export async function assertIsolationCatalog(db: Database) {
     if (
       [
         "public.product_event",
+        "public.vocabulary_revision",
+        "public.vocabulary_search_key",
         "public.journal_batch",
         "public.journal_entry",
         "public.synthetic_job_request",
