@@ -240,6 +240,7 @@ export async function assertIsolationCatalog(db: Database) {
     if (row.unsafe_grants || !row.backup_read) fail("tenant grants");
     if (
       [
+        "public.product_event",
         "public.vocabulary_revision",
         "public.vocabulary_search_key",
         "public.journal_batch",

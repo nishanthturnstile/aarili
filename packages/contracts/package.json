@@ -20,6 +20,10 @@
       "types": "./dist/jobs.d.ts",
       "import": "./dist/jobs.js"
     },
+    "./usage": {
+      "types": "./dist/usage.d.ts",
+      "import": "./dist/usage.js"
+    },
     "./vocabulary": {
       "types": "./dist/vocabulary.d.ts",
       "import": "./dist/vocabulary.js"
