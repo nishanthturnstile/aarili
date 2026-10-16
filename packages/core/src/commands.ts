@@ -1,8 +1,12 @@
+import { requestHash } from "./request-binding.js";
+import { parseExpectedVersion } from "./request-version.js";
+
+export { canonicalJson, requestHash } from "./request-binding.js";
+
 import {
   type Actor,
   actorSchema,
   type CommandError,
-  etagSchema,
   idempotencyHeaderSchema,
   type SyntheticRecord,
   syntheticCommandSchema,
@@ -45,46 +49,12 @@ function fail(
     ...(current ? { current } : {}),
   });
 }
-export function versionTag(version: number) {
-  return `"v${version}"`;
-}
+
+export { versionTag } from "./request-version.js";
 export function expectedVersion(header: string | undefined) {
-  if (header === undefined) fail(428, "PRECONDITION_REQUIRED");
-  if (!etagSchema.safeParse(header).success) fail(422, "VALIDATION_FAILED");
-  return Number(header.slice(2, -1));
-}
-// Canonical JSON v1: sorted UTF-16 keys, JSON string escaping, preserved array
-// order; reject non-JSON values rather than silently omitting/coercing them.
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === "string" || typeof value === "boolean")
-    return JSON.stringify(value);
-  if (typeof value === "number" && Number.isFinite(value))
-    return JSON.stringify(value);
-  if (Array.isArray(value))
-    return `[${Array.from(value, canonicalJson).join(",")}]`;
-  if (
-    typeof value === "object" &&
-    value &&
-    [Object.prototype, null].includes(Object.getPrototypeOf(value))
-  ) {
-    return `{${Object.keys(value)
-      .sort()
-      .map(
-        (key) =>
-          `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`,
-      )
-      .join(",")}}`;
-  }
-  throw new Error("Non-JSON request binding");
-}
-export async function requestHash(value: unknown) {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(canonicalJson(value)),
-  );
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
+  const parsed = parseExpectedVersion(header);
+  if (!parsed.ok) fail(parsed.status, parsed.code);
+  return parsed.version;
 }
 export function idempotencyCutoff(now: Date) {
   return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);

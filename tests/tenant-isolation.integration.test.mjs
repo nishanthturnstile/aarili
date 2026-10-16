@@ -40,6 +40,8 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
     assert.deepEqual(tenantPaths, [
       "shopRepository.read",
       "owner.ownerShop",
+      "draftRepository.read/list/insert/update/audit",
+      "shops/:shopId/drafts",
       "shops/:shopId",
       "membership-bootstrap",
       "commandRepository.read/insert/update/correctionExists",
@@ -442,6 +444,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
   await withTenantFixture(async ({ runtime, migration, admin }) => {
     assert.deepEqual(await assertIsolationCatalog(runtime.db), [
       "public.audit_event",
+      "public.durable_draft",
       "public.idempotency_key",
       "public.isolation_child",
       "public.isolation_parent",
@@ -596,6 +599,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       );
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
+        "public.durable_draft",
         "public.idempotency_key",
         "public.job_schedule",
         "public.job_schedule_effect",

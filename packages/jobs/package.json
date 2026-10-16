@@ -15,6 +15,10 @@
     "./foundation-runtime": {
       "types": "./dist/foundation-runtime.d.ts",
       "import": "./dist/foundation-runtime.js"
+    },
+    "./draft-fixture": {
+      "types": "./dist/draft-fixture.d.ts",
+      "import": "./dist/draft-fixture.js"
     }
   },
   "scripts": {

@@ -178,6 +178,7 @@ export function checkBoundaries(sources) {
     "packages/api/src/money-fixture-client.ts",
     "packages/jobs/src/foundation-runtime.ts",
     "packages/jobs/src/index.ts",
+    "packages/jobs/src/draft-fixture.ts",
   ]);
   // Application composition cannot reach fixtures, including through a helper.
   const appVisited = new Set();

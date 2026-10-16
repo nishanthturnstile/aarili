@@ -4,11 +4,13 @@ import type {
   SyntheticSuccess,
 } from "@aarili/contracts/command";
 
-export type RequestBinding = { actor: Actor; action: string; hash: string };
-export type StoredResponse = RequestBinding & {
-  response: SyntheticSuccess;
-  status: 200;
-};
+import type {
+  StoredResponse as GenericStoredResponse,
+  RequestRepository,
+} from "./request.js";
+
+export type { RequestBinding } from "./request.js";
+export type StoredResponse = GenericStoredResponse<SyntheticSuccess>;
 export type AuditWrite = {
   id: string;
   actor: Actor;
@@ -22,15 +24,7 @@ export type AuditWrite = {
 };
 // Bound once by server composition to an already authorised Transaction.
 // No pool, transaction creation, driver, queue abstraction or vendor type leaks.
-export interface CommandRepository {
-  lockKey(key: string): Promise<void>;
-  replay(key: string): Promise<StoredResponse | undefined>;
-  persist(
-    key: string,
-    binding: RequestBinding,
-    response: SyntheticSuccess,
-  ): Promise<void>;
-  expiredKeys(cutoff: Date): Promise<string[]>;
+export interface CommandRepository extends RequestRepository<SyntheticSuccess> {
   ids(): Promise<{ id: string; eventId: string }>;
   read(id: string, lock?: boolean): Promise<SyntheticRecord | undefined>;
   insert(record: SyntheticRecord): Promise<void>;

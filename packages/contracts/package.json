@@ -19,6 +19,14 @@
     "./jobs": {
       "types": "./dist/jobs.d.ts",
       "import": "./dist/jobs.js"
+    },
+    "./request": {
+      "types": "./dist/request.d.ts",
+      "import": "./dist/request.js"
+    },
+    "./drafts": {
+      "types": "./dist/drafts.d.ts",
+      "import": "./dist/drafts.js"
     }
   },
   "scripts": {

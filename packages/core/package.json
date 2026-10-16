@@ -31,6 +31,18 @@
     "./schedules": {
       "types": "./dist/schedules.d.ts",
       "import": "./dist/schedules.js"
+    },
+    "./request-binding": {
+      "types": "./dist/request-binding.d.ts",
+      "import": "./dist/request-binding.js"
+    },
+    "./drafts": {
+      "types": "./dist/drafts.d.ts",
+      "import": "./dist/drafts.js"
+    },
+    "./request-version": {
+      "types": "./dist/request-version.d.ts",
+      "import": "./dist/request-version.js"
     }
   },
   "scripts": {

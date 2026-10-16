@@ -161,3 +161,30 @@ if (
 console.info(
   "0.3.2a D3/D7 compiled queue declarations rejected all four invalid payload/write uses.",
 );
+
+const drafts = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/drafts-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const draftsOutput = drafts.stdout + drafts.stderr;
+if (
+  drafts.status === 0 ||
+  (draftsOutput.match(/error TS/g) ?? []).length !== 5 ||
+  ![3, 4, 5, 6, 7].every((line) =>
+    draftsOutput.includes(`drafts-invalid.ts(${line},`),
+  )
+) {
+  console.error(draftsOutput);
+  throw Error(
+    "0.4.2a draft DTO/client types must reject five schema/lifecycle/method/body/header misuses",
+  );
+}
+console.info(
+  "0.4.2a E8 five invalid draft contract/client uses rejected by compiled declarations.",
+);

@@ -79,6 +79,26 @@
     "./schedule-repository": {
       "types": "./dist/schedule-repository.d.ts",
       "import": "./dist/schedule-repository.js"
+    },
+    "./repositories/request": {
+      "types": "./dist/repositories/request.d.ts",
+      "import": "./dist/repositories/request.js"
+    },
+    "./repositories/drafts": {
+      "types": "./dist/repositories/drafts.d.ts",
+      "import": "./dist/repositories/drafts.js"
+    },
+    "./request-repository": {
+      "types": "./dist/request-repository.d.ts",
+      "import": "./dist/request-repository.js"
+    },
+    "./draft-repository": {
+      "types": "./dist/draft-repository.d.ts",
+      "import": "./dist/draft-repository.js"
+    },
+    "./draft-schema": {
+      "types": "./dist/draft-schema.d.ts",
+      "import": "./dist/draft-schema.js"
     }
   },
   "scripts": {

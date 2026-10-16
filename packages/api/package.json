@@ -23,6 +23,14 @@
     "./command-fixture-client": {
       "types": "./dist/command-fixture-client.d.ts",
       "import": "./dist/command-fixture-client.js"
+    },
+    "./drafts": {
+      "types": "./dist/drafts.d.ts",
+      "import": "./dist/drafts.js"
+    },
+    "./draft-client": {
+      "types": "./dist/draft-client.d.ts",
+      "import": "./dist/draft-client.js"
     }
   },
   "scripts": {

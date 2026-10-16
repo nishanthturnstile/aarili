@@ -41,6 +41,13 @@ function inspect(directory) {
         "0.2.3 command/server code entered browser output",
       );
       assert(
+        !output.includes("mutateDraft") &&
+          !output.includes("draftRepository") &&
+          !output.includes("enqueueDraftFixtureJob") &&
+          !output.includes("createDraftRoutes"),
+        "0.4.2a draft/server code entered browser output",
+      );
+      assert(
         !output.includes("@t3-oss/env-core"),
         "Server environment package entered browser output",
       );
