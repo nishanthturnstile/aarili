@@ -444,6 +444,8 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
         "journal_entry",
         "media_asset",
         "media_attempt",
+        "media_cleanup_intent",
+        "media_derivative",
         "media_reference",
         "product_event",
         "shop",

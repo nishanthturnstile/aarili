@@ -294,5 +294,7 @@ export {
   createMediaClient,
   MediaRequestError,
   requestMediaRead,
+  requestMediaStatus,
   requestMediaUpload,
+  requestMediaVariant,
 } from "./media-client.js";

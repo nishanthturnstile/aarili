@@ -267,8 +267,14 @@ export async function assertIsolationCatalog(db: Database) {
         "public.media_asset",
         "public.media_attempt",
         "public.media_reference",
+        "public.media_derivative",
+        "public.media_cleanup_intent",
       ].includes(row.table) &&
-      (row.delete || (row.table === "public.media_reference" && row.update))
+      (row.delete ||
+        (["public.media_reference", "public.media_derivative"].includes(
+          row.table,
+        ) &&
+          row.update))
     )
       fail("private media history grants");
     const membership = row.table === "public.shop_membership";

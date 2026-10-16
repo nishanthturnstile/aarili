@@ -15,7 +15,10 @@
       "ignore": ["tests/fixtures/**"]
     },
     "apps/web": {
-      "entry": ["test-support/draft-host-app.tsx"],
+      "entry": [
+        "test-support/draft-host-app.tsx",
+        "test-support/media-host-app.tsx"
+      ],
       "ignoreExportsUsedInFile": true,
       "project": ["src/**/*.{ts,tsx,css}"]
     },

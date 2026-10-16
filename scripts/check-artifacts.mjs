@@ -65,6 +65,12 @@ function inspect(directory) {
         "0.3.2a queue/server code entered browser output",
       );
       assert(
+        !output.includes("validatePrivateMedia") &&
+          !output.includes("media_derivative_guard") &&
+          !output.includes("libvips"),
+        "0.4.3b native decoder/server code entered browser output",
+      );
+      assert(
         !output.includes("guardedEffect") &&
           !output.includes("restoreRepository") &&
           !output.includes("prospectiveAuthDelivery") &&

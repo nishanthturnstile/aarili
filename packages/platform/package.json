@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./media-validation": {
+      "types": "./dist/media-validation.d.ts",
+      "import": "./dist/media-validation.js"
+    },
     "./abuse-limiter": {
       "types": "./dist/abuse-limiter.d.ts",
       "default": "./dist/abuse-limiter.js"
@@ -37,6 +41,7 @@
     "pg": "8.23.1",
     "pino": "10.4.0",
     "rate-limiter-flexible": "11.2.1",
+    "sharp": "0.35.5",
     "zod": "4.6.6"
   },
   "devDependencies": {

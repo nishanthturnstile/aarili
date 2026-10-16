@@ -1,6 +1,7 @@
 import { createDatabase, type Database, sql } from "@aarili/db";
 import { restoreRepository } from "@aarili/db/restore-repository";
 import type { PgBoss } from "pg-boss";
+import { productionJobComposition } from "./production.js";
 import { startQueue } from "./queue.js";
 
 type Mode = "inprocess" | "worker";
@@ -15,11 +16,6 @@ export type RuntimeComposition = {
   >;
   enqueue: (db: Database, boss: PgBoss) => Promise<unknown>;
   status: (db: Database) => Promise<unknown>;
-};
-const emptyComposition: RuntimeComposition = {
-  handlers: new Map(),
-  enqueue: async () => {},
-  status: async () => ({ queues: [], realProviders: "disabled" }),
 };
 
 export function jobRuntimeConfiguration(
@@ -63,7 +59,7 @@ export async function startJobRuntime(
     hooks?: Hooks;
     reportFailure?: () => void;
   },
-  composition: RuntimeComposition = emptyComposition,
+  composition: RuntimeComposition = productionJobComposition(),
 ) {
   const report = () => {
     try {
@@ -185,7 +181,7 @@ type JobRuntime = Awaited<ReturnType<typeof startJobRuntime>>;
 const inprocessKey = Symbol.for("aarili.job-runtime.inprocess");
 export async function startInprocessJobs(
   env: Record<string, string | undefined>,
-  composition: RuntimeComposition = emptyComposition,
+  composition: RuntimeComposition = productionJobComposition(),
   reportFailure?: () => void,
 ) {
   const connectionString = jobRuntimeConfiguration(env, "inprocess");

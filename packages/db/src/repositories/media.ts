@@ -1,4 +1,8 @@
-import type { MediaAdmission, MediaRecord } from "@aarili/contracts/media";
+import type {
+  MediaAdmission,
+  MediaDerivative,
+  MediaRecord,
+} from "@aarili/contracts/media";
 import type { Actor } from "@aarili/contracts/request";
 import type { RequestRepository } from "./request.js";
 export type MediaAsset = MediaRecord & {
@@ -20,6 +24,13 @@ export type MediaAttempt = {
   leaseUntil: string | null;
   state: "queued" | "processing" | "accepted" | "quarantined";
   initiatorId: string;
+};
+export type StoredMediaDerivative = MediaDerivative & { key: string };
+export type MediaCleanupIntent = {
+  id: string;
+  key: string;
+  fence: string;
+  epoch: string;
 };
 export interface MediaRepository extends RequestRepository<unknown> {
   now(): Promise<Date>;
@@ -45,7 +56,18 @@ export interface MediaRepository extends RequestRepository<unknown> {
     key: string,
     hash: string,
     bytes: number,
+    derivatives?: readonly StoredMediaDerivative[],
   ): Promise<MediaAsset>;
+  derivatives(assetId: string): Promise<StoredMediaDerivative[]>;
+  release(attemptId: string, fence: string): Promise<void>;
+  claims(assetId: string, before: string): Promise<{ fence: string }[]>;
+  cleanupIntents(assetId: string, epoch: string): Promise<MediaCleanupIntent[]>;
+  intent(
+    assetId: string,
+    intent: MediaCleanupIntent,
+    actorId: string,
+  ): Promise<boolean>;
+  cleaned(assetId: string, intentId: string, actionId: string): Promise<void>;
   quarantine(assetId: string, attemptId: string, fence: string): Promise<void>;
   expire(assetId: string): Promise<boolean>;
   referenced(assetId: string): Promise<boolean>;

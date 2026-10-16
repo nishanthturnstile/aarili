@@ -7,6 +7,8 @@ test("0.4.3a G1/G6 private media browser graph cannot import core, storage, repo
     "@aarili/db/media-repository",
     "@aarili/platform/media-storage",
     "@aarili/jobs/media",
+    "@aarili/jobs/production",
+    "@aarili/platform/media-validation",
   ]) {
     expect(
       checkBoundaries(
