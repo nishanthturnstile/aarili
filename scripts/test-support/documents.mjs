@@ -26,7 +26,9 @@ import { withTenantFixture } from "./tenant-isolation.mjs";
 export async function withDocuments(run) {
   const templates = await syntheticDocumentTemplates();
   const native =
-    process.platform === "win32" ? createDocumentRenderer(templates) : null;
+    process.platform === "win32" && process.env.AARILI_PDF_TEST_LINUX !== "true"
+      ? createDocumentRenderer(templates)
+      : null;
   const image = native ? null : await ensureDocumentImage();
   await withPrivateS3(async (config) => {
     const actual = createDocumentStorage(config),

@@ -90,6 +90,23 @@ Local evidence logs are retained under the operating-system temporary directory:
 `aarili59-standalone-final.log` and `aarili59-audit-final.log`.
 These use synthetic data only. Hosted CI remains a separate PR gate.
 
+The first hosted runs passed all **81 browser cases**, dependency audits and the
+Linux sandbox/golden check, but exposed five PDF integration failures. Reproducing
+the isolated Linux renderer path on Windows confirmed
+`DOCUMENT_TEMPLATE_UNAVAILABLE`: Vitest rewrote the test template's function
+bodies, so its code fingerprint differed from the actual retained module loaded
+in the renderer process. The fixture now loads that synchronous ESM module with
+Node 24's native `createRequire`, preserving its artifact identity rather than
+weakening the production fingerprint check. A test-only
+`AARILI_PDF_TEST_LINUX=true` switch makes the complete cross-process path
+reproducible locally. Quiet verification failures expose only a finite allowlist
+of diagnostic codes, never renderer inputs, PDF bytes or arbitrary stderr.
+The complete seven-case PostgreSQL/S3 integration file then passed using the
+restricted Linux renderer (**84.71 seconds**); the three affected units passed
+again. Logs: `aarili59-linux-integration-repro.log`,
+`aarili59-linux-integration-final.log`, `aarili59-ci-fix-static.log` and
+`aarili59-ci-browser-pr.log`. Hosted checks on the corrected commit remain gates.
+
 ## Runtime, packaging and recovery
 
 Playwright Core is pinned to the approved existing 1.64.0 release; vendored

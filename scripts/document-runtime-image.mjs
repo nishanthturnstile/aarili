@@ -51,17 +51,23 @@ export async function command(args, input, quiet = false) {
       if (!quiet) process.stderr.write(b);
     });
     p.on("error", () => no(Error("Document verification Docker unavailable")));
-    p.on("close", (code) =>
-      code === 0
-        ? ok(out)
-        : no(
-            Error(
-              quiet
-                ? "Document verification command failed"
-                : `Document Docker command failed (${code}): ${err.slice(-1500)}`,
-            ),
-          ),
-    );
+    p.on("close", (code) => {
+      if (code === 0) return ok(out);
+      const safe = [
+        "DOCUMENT_TEMPLATE_UNAVAILABLE",
+        "DOCUMENT_FONT_HASH_MISMATCH",
+        "DOCUMENT_FONT_MANIFEST_INVALID",
+        "DOCUMENT_FONTS_NOT_READY",
+        "DOCUMENT_SANDBOX_UNPROVEN",
+      ].find((value) => err.includes(value));
+      no(
+        Error(
+          quiet
+            ? `Document verification command failed${safe ? `: ${safe}` : ""}`
+            : `Document Docker command failed (${code}): ${err.slice(-1500)}`,
+        ),
+      );
+    });
     p.stdin.end(input);
   });
 }
