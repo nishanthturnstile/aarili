@@ -131,6 +131,14 @@
     "./media-schema": {
       "types": "./dist/media-schema.d.ts",
       "import": "./dist/media-schema.js"
+    },
+    "./document-repository": {
+      "types": "./dist/document-repository.d.ts",
+      "import": "./dist/document-repository.js"
+    },
+    "./repositories/documents": {
+      "types": "./dist/repositories/documents.d.ts",
+      "import": "./dist/repositories/documents.js"
     }
   },
   "scripts": {

@@ -61,8 +61,16 @@ test("0.3.2b E1/E2/E6 AC-56 combined epoch/authority revocation never silently c
       await handleSyntheticJob(f.parallel.db, await jobPayload(f, b)),
       "quarantined",
     );
-    for (let attempt = 0; attempt < 6; attempt++)
-      assert.equal(await consumeOne(f), "quarantined");
+    for (let attempt = 0; attempt < 6; attempt++) {
+      // Real retries have a due time. An immediately empty fetch does not mean
+      // quarantine failed; wait boundedly without relaxing the six outcomes.
+      let outcome = "empty";
+      for (let poll = 0; poll < 250 && outcome === "empty"; poll++) {
+        outcome = await consumeOne(f);
+        if (outcome === "empty") await delay(20);
+      }
+      assert.equal(outcome, "quarantined");
+    }
     const rows = (
       await f.admin.query(
         "select name,state,output,data,source_name,source_id,source_output from pgboss.job",

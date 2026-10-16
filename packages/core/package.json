@@ -55,6 +55,10 @@
     "./media": {
       "types": "./dist/media.d.ts",
       "import": "./dist/media.js"
+    },
+    "./documents": {
+      "types": "./dist/documents.d.ts",
+      "import": "./dist/documents.js"
     }
   },
   "scripts": {

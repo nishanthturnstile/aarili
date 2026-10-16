@@ -6,6 +6,7 @@ import { startQueue } from "./queue.js";
 
 type Mode = "inprocess" | "worker";
 export type RuntimeComposition = {
+  close?: () => Promise<void>;
   handlers: ReadonlyMap<
     string,
     (
@@ -146,6 +147,7 @@ export async function startJobRuntime(
   const timer = setInterval(tick, pollMilliseconds);
   tick();
   async function drain(timeoutMilliseconds = 10000) {
+    const stopStarted = Date.now();
     if (closed) return "stopped" as const;
     stopping = true;
     clearInterval(timer);
@@ -159,11 +161,38 @@ export async function startJobRuntime(
     if (timeout) clearTimeout(timeout);
     aborted = !drained;
     await boss.stop({ graceful: false });
+    let resourcesClosed = true;
+    if (drained) {
+      let resourceTimeout: ReturnType<typeof setTimeout> | undefined;
+      resourcesClosed = await Promise.race([
+        Promise.resolve()
+          .then(() => composition.close?.())
+          .then(
+            () => true,
+            () => {
+              report();
+              return false;
+            },
+          ),
+        new Promise<false>((resolve) => {
+          resourceTimeout = setTimeout(
+            () => resolve(false),
+            Math.max(1, timeoutMilliseconds - (Date.now() - stopStarted)),
+          );
+        }),
+      ]);
+      if (resourceTimeout) clearTimeout(resourceTimeout);
+    } else
+      void Promise.resolve()
+        .then(() => composition.close?.())
+        .catch(report);
     const close = database.pool.end();
     if (drained) await close;
     else void close.catch(() => {}); // in-process transaction vetoes on resumption
     closed = true;
-    return drained ? ("stopped" as const) : ("timed-out" as const);
+    return drained && resourcesClosed
+      ? ("stopped" as const)
+      : ("timed-out" as const);
   }
   function stop(timeoutMilliseconds = 10000) {
     stopPromise ??= drain(timeoutMilliseconds);

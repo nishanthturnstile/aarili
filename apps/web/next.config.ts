@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   // OAuth callback codes must not enter development request/browser logs.
   logging: { incomingRequests: false, browserToTerminal: false },
   output: "standalone",
+  serverExternalPackages: ["@aarili/documents"],
   outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   // Native runtime companions are not all discoverable from the .node addon
   // (notably Windows libvips DLLs). Include only installed sharp/libvips lib
@@ -17,6 +18,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": [
       "../../node_modules/.pnpm/@img+sharp-*/node_modules/@img/sharp-*/lib/**/*",
+      "../../packages/documents/assets/**/*",
     ],
   },
   typedRoutes: true,

@@ -1,4 +1,6 @@
+import { documentLocatorSchema } from "@aarili/contracts/documents";
 import { mediaJobLocatorSchema } from "@aarili/contracts/media";
+import { type DocumentRenderer, processDocument } from "@aarili/core/documents";
 import {
   inspectMediaProcessing,
   type MediaContext,
@@ -10,6 +12,7 @@ import {
   MediaContentRejected,
   validatePrivateMedia,
 } from "@aarili/platform/media-validation";
+import { type DocumentAdapters, documentProcessingHost } from "./documents.js";
 import { mediaProcessingHost } from "./media.js";
 import type { RuntimeComposition } from "./runtime.js";
 
@@ -23,9 +26,44 @@ export type PrivateMediaAdapters = (
 // the reviewed current subject-policy and private storage adapters explicitly.
 export function productionJobComposition(
   adapters?: PrivateMediaAdapters,
+  documents?: {
+    adapters: DocumentAdapters;
+    renderer: DocumentRenderer;
+    close?: () => Promise<void>;
+  },
 ): RuntimeComposition {
   return {
     handlers: new Map([
+      [
+        "pdf.render",
+        async (
+          db: Database,
+          input: unknown,
+          beforeCommit: () => Promise<void>,
+        ) => {
+          const parsed = documentLocatorSchema.safeParse(input);
+          if (!parsed.success) return "ignored";
+          if (!documents)
+            throw Error("Private document processing adapter unavailable");
+          const p = parsed.data;
+          try {
+            return await processDocument(
+              documentProcessingHost(
+                db,
+                p.shopId,
+                p.initiatorId,
+                documents.adapters,
+              ),
+              p,
+              documents.renderer,
+              beforeCommit,
+            );
+          } catch (error) {
+            if (error instanceof ShopAccessError) return "ignored";
+            throw error;
+          }
+        },
+      ],
       [
         "media.process",
         async (
@@ -80,9 +118,11 @@ export function productionJobComposition(
       ],
     ]),
     enqueue: async () => {},
+    ...(documents?.close ? { close: documents.close } : {}),
     status: async () => ({
-      queues: ["media.process"],
+      queues: ["pdf.render", "media.process"],
       privateAdapters: adapters ? "composed" : "disabled",
+      privateDocuments: documents ? "composed" : "disabled",
     }),
   };
 }

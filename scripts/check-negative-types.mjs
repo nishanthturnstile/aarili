@@ -215,3 +215,29 @@ if (
 console.info(
   "0.4.3a/b six invalid media DTO/client/status/variant uses rejected by compiled declarations.",
 );
+const documents = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/documents-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const documentsOutput = documents.stdout + documents.stderr;
+if (
+  documents.status === 0 ||
+  (documentsOutput.match(/error TS/g) ?? []).length !== 6 ||
+  ![2, 3, 4, 5, 6, 7].every((line) =>
+    documentsOutput.includes(`documents-invalid.ts(${line},`),
+  )
+) {
+  console.error(documentsOutput);
+  throw Error(
+    "Private document DTO/client negative contracts did not reject every invalid use",
+  );
+}
+console.info(
+  "0.4.4a six invalid document language/paper/revision/retry/method uses rejected by compiled declarations.",
+);
