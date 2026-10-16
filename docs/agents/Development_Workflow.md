@@ -46,7 +46,8 @@ controlled.
 2. Confirm the issue is approved, requested and unblocked, with every direct
    prerequisite merged. Do not start from an unmerged prerequisite PR merely
    because its local checks passed.
-3. Inspect the checkout and run the baseline checks that exist. Start the
+3. Inspect the checkout and establish baseline evidence using the verification
+   stages below. Start the
    focused branch from integrated main in the existing checkout or an explicitly
    approved worktree, preserving unrelated changes and existing branches.
 4. Implement only the selected outcome. Fetch current Context7 documentation
@@ -80,6 +81,89 @@ breakdown for approval before publishing new tickets. Honour existing approval
 for already-published tickets. Phase completion is verified against integrated
 main; it does not permit live data before the product's pilot/recovery gates.
 
+## Verification stages and evidence reuse
+
+Owner-approved workflow improvement, 16 October 2026. Preserve the existing
+implementation sequence, acceptance criteria, required CI checks and owner merge
+review. Reduce repetition around those gates rather than removing coverage.
+
+| Stage | Required evidence | Avoidable repetition |
+| --- | --- | --- |
+| Baseline | Inspect status and the integrated-main CI result; retain the post-merge local build/smoke result when available. Investigate relevant failures or local drift. | Do not run the entire suite again solely to start a branch from the same verified main. Historical baseline evidence never proves the new change. |
+| Development | Run focused checks for the affected behavior and meaningful failure paths while iterating. | Do not run full verification after each small edit. |
+| Final local verification | Run actual lint, Knip, strict types, relevant tests and production build. Implementation tickets requiring `pnpm verify`, `pnpm test:ui`, audit or other commands retain those requirements. | A successful `pnpm verify` already covers its component commands; do not immediately repeat lint, Knip, types, tests or build separately without a reason. |
+| Hosted PR verification | All three existing required checks must pass on the current PR revision. Draft PRs run checks too; no path, draft or risk-based skips are introduced. | Feature pushes use the PR workflow, not a second push workflow. Manual dispatch is for a specific need, not an automatic extra run. |
+| Integrated main | After an authorized merge, update the checkout and run the integrated production build/smoke; inspect main CI. | Do not automatically repeat the complete local suite and clean install just because the squash commit has a different SHA. Investigate integration differences and failures. |
+
+Clean-install/native-portability and additional Linux checks run when the ticket
+explicitly requires them, or when dependencies, lockfiles, package exports,
+toolchains, install/build scripts, runtime packaging or platform-sensitive paths
+change. Ordinary application changes use the full required hosted Linux checks;
+an additional local Linux verification image is not an automatic extra gate.
+Record why supplementary checks were required or not applicable. Do not broaden
+this rule into an exemption from an issue's explicit verification requirements.
+
+Evidence records name the command, result, tested revision (and any dirty files),
+environment and CI run URL where applicable. Reuse a result only while its inputs
+remain unchanged; edits, dependency/base changes, failures or uncovered acceptance
+criteria require affected checks to run again. Repeated failures need diagnosis,
+not reruns until green; retain the original failure and explain any retry.
+Keep real PostgreSQL isolation/transaction tests, financial concurrency/retry
+tests, security checks, PDF goldens and physical-device acceptance where required.
+Never describe unrun checks or earlier evidence as fresh verification.
+
+CI triggers are PRs targeting `main`, pushes to `main`, manual dispatch and the
+daily audit. A feature branch without a PR has no automatic hosted run: open a
+draft PR once publication is authorized and hosted feedback is needed. A PR
+checks the proposed integration; the main push checks the merged result. These
+are distinct gates. Existing cancellation of superseded runs remains in place.
+
+## Manual review packet
+
+Before requesting human acceptance, prepare a running review surface and the
+synthetic records needed for it. Use the existing approved local/test-host path;
+do not add a production demo, hosted tunnel or external activation for review.
+Provide one concise packet in the implementation evidence/PR:
+
+1. **Open and prepare:** exact URL/route, startup command if needed, synthetic
+   scenario and required device/browser/language. Keep credentials outside Git
+   and chat; point to the established private access method.
+2. **Try and observe:** a short numbered sequence with expected visible results,
+   each linked to its acceptance ID. Include material failure/recovery behavior
+   when human judgment is needed. Group related observations into one session.
+3. **Report:** a copyable `acceptance ID — pass/fail — observation` response;
+   request device/RAM/browser or fluent Tamil observations only where required.
+4. **Evidence and cleanup:** link automated results, state exactly which human
+   findings remain pending, and provide teardown steps for temporary access.
+
+The agent runs automatable setup, checks and diagnostics. Do not ask the owner
+to replay terminal tests already evidenced. Human review focuses on business
+policy, usability, language, assistive technology and actual-device behavior.
+Screenshots/emulation cannot replace required physical Android, Tamil or
+screen-reader observations. Record human reports separately from automation;
+pending acceptance remains pending. Owner merge authorization stays separate.
+
+## Measure the next five implementation deliveries
+
+Use [Delivery_Measurements.md](Delivery_Measurements.md) for the next five
+implementation PRs opened after this workflow change merges. Record timestamps
+as work happens; do not reconstruct active time from commit or PR timestamps.
+Keep measurement lightweight and use the implementation evidence/CI links
+already collected. No telemetry service, scheduler or tracking dependency is
+required.
+
+Record implementation start, review-ready time, merge time and the first time
+the owner could try the new behavior. Measure implementation, local verification,
+CI queue/execution, review waiting and rework separately. Mark unavailable values
+unknown and unfinished phases pending. Timers can overlap: do not add CI elapsed
+time to active implementation time to claim total delivery time. PR-to-merge
+time is elapsed review/integration time, not coding time.
+
+After five completed entries, compare medians, repeated failures and the largest
+waits, including time until usable behavior. Propose the next improvement from
+that evidence; do not promise a speedup before measurement. This is a manual
+delivery record, not a scheduled follow-up or permission to change scope/gates.
+
 ## Reusable implementation prompt
 
 ~~~text
@@ -100,7 +184,10 @@ official CLI output. Keep native Windows/Linux conventions, shared contracts
 and canonical visual tokens; do not add future-only dependencies.
 
 Run applicable checks and map acceptance criteria to fresh evidence. Self-review
-and update documentation. Commit and push the focused change, then open a draft
+and update documentation. Follow the verification stages, prepare the concise
+manual-review packet, and record delivery timings where applicable. Avoid
+repeating successful checks without changed inputs or another stated reason.
+Commit and push the focused change, then open a draft
 PR linked to the issue. Report checks, limitations and genuine blockers.
 Do not merge, deploy, touch live data, spend money or perform destructive resets.
 ~~~

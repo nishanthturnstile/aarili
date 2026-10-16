@@ -48,6 +48,7 @@ Phase 0.3 and later retain concrete draft, review and publication approval.
 - Each slice links product requirement IDs, acceptance scenarios, architecture sections, dependencies and activation decisions. Update roadmap traceability when scope changes; test names should expose the relevant IDs. Claims require fresh command output and a requirement-by-requirement check.
 - Run relevant unit/property tests (Vitest/fast-check), real PostgreSQL integration tests (Testcontainers), and Playwright/axe workflows. Financial/isolation/history changes require negative, concurrency, retry and failure tests; mocks cannot prove RLS or transactional queueing. CI checks every tenant table for forced policies (architecture §15).
 - Before completion run the repository's actual lint, Knip, typecheck, relevant tests and production build; report failures and checks not run. Do not claim commands exist before scaffolding. All pilot workflows need three screen sizes, Tamil PDF golden checks, search recall, real-device review and recovery evidence per architecture §15 and product §33.
+- Follow the verification stages and manual-review packet in [Development_Workflow.md](docs/agents/Development_Workflow.md). Avoid repeating completed checks without a new change, failure or uncovered requirement; explicit ticket checks still apply. Record timing evidence for the next five implementation deliveries in [Delivery_Measurements.md](docs/agents/Delivery_Measurements.md).
 
 ## GitHub workflow
 
