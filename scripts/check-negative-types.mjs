@@ -188,3 +188,30 @@ if (
 console.info(
   "0.4.2a E8 five invalid draft contract/client uses rejected by compiled declarations.",
 );
+
+const media = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/media-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const mediaOutput = media.stdout + media.stderr;
+if (
+  media.status === 0 ||
+  (mediaOutput.match(/error TS/g) ?? []).length !== 4 ||
+  ![2, 3, 4, 5].every((line) =>
+    mediaOutput.includes(`media-invalid.ts(${line},`),
+  )
+) {
+  console.error(mediaOutput);
+  throw Error(
+    "Private media DTO/client negative contracts did not reject every invalid use",
+  );
+}
+console.info(
+  "0.4.3a four invalid media DTO/client uses rejected by compiled declarations.",
+);

@@ -119,6 +119,18 @@
     "./repositories/vocabulary": {
       "types": "./dist/repositories/vocabulary.d.ts",
       "import": "./dist/repositories/vocabulary.js"
+    },
+    "./repositories/media": {
+      "types": "./dist/repositories/media.d.ts",
+      "import": "./dist/repositories/media.js"
+    },
+    "./media-repository": {
+      "types": "./dist/media-repository.d.ts",
+      "import": "./dist/media-repository.js"
+    },
+    "./media-schema": {
+      "types": "./dist/media-schema.d.ts",
+      "import": "./dist/media-schema.js"
     }
   },
   "scripts": {

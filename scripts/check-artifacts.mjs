@@ -94,6 +94,20 @@ function inspect(directory) {
           "0.4.1d private telemetry entered browser artifacts",
         );
       }
+      for (const marker of [
+        "createMediaStorage",
+        "mediaRepository",
+        "mediaJobWriter",
+        "mediaProcessingHost",
+        "processMedia",
+        "createMediaRoutes",
+        "GARAGE_DEFAULT_SECRET_KEY",
+      ]) {
+        assert(
+          !output.includes(marker),
+          "0.4.3a private media server code entered browser artifacts",
+        );
+      }
       checked++;
     }
   }

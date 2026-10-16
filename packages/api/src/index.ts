@@ -6,6 +6,7 @@ import {
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { createDraftRoutes } from "./drafts.js";
+import { createMediaRoutes } from "./media.js";
 import { createOwnerRoutes } from "./owner.js";
 
 const healthRoute = createRoute({
@@ -67,6 +68,7 @@ export function createApi(
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createDraftRoutes(owner));
+    app.route("/", createMediaRoutes(owner));
   }
   app.notFound((c) =>
     c.json(
