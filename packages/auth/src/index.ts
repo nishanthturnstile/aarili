@@ -15,6 +15,8 @@ import {
 } from "@aarili/contracts";
 import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
+import type { DraftContext } from "@aarili/core/drafts";
+import { productionDraftRegistry } from "@aarili/core/drafts";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
   createDatabase,
@@ -27,6 +29,7 @@ import {
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
 import { commandRepository } from "@aarili/db/command-repository";
+import { draftRepository } from "@aarili/db/draft-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
@@ -148,6 +151,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: CommandContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerDraft: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DraftContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   commandLimit: () => Promise<number>;
   withOwnerShop: <T>(
@@ -909,6 +917,23 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       run(shopRepository(tx)),
     );
   }
+  async function withOwnerDraft<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DraftContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run({
+        shopId,
+        actor: { type: "user", id: userId },
+        repository: draftRepository(tx, shopId),
+        workflows: productionDraftRegistry(),
+        ...(configuration.draftInstrumentation
+          ? { instrumentation: configuration.draftInstrumentation(tx, shopId) }
+          : {}),
+      }),
+    );
+  }
   async function withOwnerCommand<T>(
     headers: Headers,
     shopId: string,
@@ -1212,6 +1237,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     ownerShop,
     withOwnerShop,
     withOwnerCommand,
+    withOwnerDraft,
     withOwnerTransaction,
     commandLimit: () => guard(commandLimit),
     googleConnection,

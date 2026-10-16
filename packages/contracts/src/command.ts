@@ -1,22 +1,13 @@
 import { z } from "zod";
 import { apiErrorSchema } from "./index.js";
 
-export const actorSchema = z.discriminatedUnion("type", [
-  z.strictObject({ type: z.literal("user"), id: z.uuid() }),
-  z.strictObject({ type: z.literal("system"), id: z.uuid() }),
-  z.strictObject({ type: z.literal("import"), id: z.uuid() }),
-  z.strictObject({ type: z.literal("support"), id: z.uuid() }),
-]);
-export type Actor = z.infer<typeof actorSchema>;
-export const idempotencyHeaderSchema = z.uuid();
-export const etagSchema = z
-  .string()
-  .regex(/^"v[1-9][0-9]*"$/)
-  .refine(
-    (value) =>
-      Number.isSafeInteger(Number(value.slice(2, -1))) &&
-      Number(value.slice(2, -1)) <= 2147483647,
-  );
+export {
+  type Actor,
+  actorSchema,
+  etagSchema,
+  idempotencyHeaderSchema,
+} from "./request.js";
+
 // A synthetic, non-personal enum: no money/measurement coercion or business entity.
 const valueSchema = z.enum(["alpha", "beta", "gamma"]);
 export const syntheticDraftSchema = z.strictObject({

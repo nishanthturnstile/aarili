@@ -278,3 +278,13 @@ export async function readHealth(
     return healthUnavailableSchema.parse(await response.json());
   throw new Error("Health request failed");
 }
+
+export {
+  abandonDraft,
+  createDraftClient,
+  DraftRequestError,
+  getDraft,
+  getDrafts,
+  promoteDraft,
+  putDraft,
+} from "./draft-client.js";

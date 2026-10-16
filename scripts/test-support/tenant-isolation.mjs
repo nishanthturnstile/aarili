@@ -14,6 +14,8 @@ import { withPostgres } from "./postgres.mjs";
 export const tenantPaths = [
   "shopRepository.read",
   "owner.ownerShop",
+  "draftRepository.read/list/insert/update/audit",
+  "shops/:shopId/drafts",
   "shops/:shopId",
   "membership-bootstrap",
   "commandRepository.read/insert/update/correctionExists",
@@ -53,7 +55,10 @@ function cookies(response) {
     .map((s) => s.split(";")[0])
     .join("; ");
 }
-export async function withTenantFixture(run, { legacy = false } = {}) {
+export async function withTenantFixture(
+  run,
+  { legacy = false, draftInstrumentation } = {},
+) {
   return withPostgres(
     async ({
       connectionString,
@@ -78,6 +83,7 @@ export async function withTenantFixture(run, { legacy = false } = {}) {
         secret: randomBytes(32).toString("hex"),
         setupToken,
         policy: { signInMax: 100 },
+        ...(draftInstrumentation ? { draftInstrumentation } : {}),
         capture: async (message) => {
           capture.push(message);
         },

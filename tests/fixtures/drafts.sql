@@ -1,0 +1,23 @@
+SELECT pgboss.create_queue('foundation.synthetic', '{"policy":"standard","retryLimit":2,"retryDelay":0,"retryBackoff":false,"expireInSeconds":60,"deadLetter":"foundation.dead"}'::jsonb);
+-- Test-only workflow dependencies/results/enlisted job effect; never migrated.
+CREATE TABLE draft_synthetic_state(shop_id uuid NOT NULL REFERENCES shop(shop_id),id uuid NOT NULL,duplicate boolean NOT NULL DEFAULT false,authorized boolean NOT NULL DEFAULT false,PRIMARY KEY(shop_id,id));
+CREATE TABLE draft_synthetic_result(shop_id uuid NOT NULL REFERENCES shop(shop_id),id uuid NOT NULL DEFAULT uuidv7(),draft_id uuid NOT NULL,value text NOT NULL,PRIMARY KEY(shop_id,id),UNIQUE(shop_id,draft_id),FOREIGN KEY(shop_id,draft_id) REFERENCES durable_draft(shop_id,id) DEFERRABLE INITIALLY DEFERRED);
+CREATE TABLE draft_synthetic_enlisted(shop_id uuid NOT NULL REFERENCES shop(shop_id),id uuid NOT NULL,PRIMARY KEY(shop_id,id),FOREIGN KEY(shop_id,id) REFERENCES draft_synthetic_result(shop_id,id));
+ALTER TABLE draft_synthetic_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE draft_synthetic_state FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_context ON draft_synthetic_state AS RESTRICTIVE FOR ALL TO app_user USING(shop_context_allows(shop_id)) WITH CHECK(shop_context_allows(shop_id));
+CREATE POLICY tenant_access ON draft_synthetic_state FOR ALL TO app_user USING(shop_context_allows(shop_id)) WITH CHECK(shop_context_allows(shop_id));
+REVOKE ALL ON draft_synthetic_state FROM PUBLIC,app_user,app_privacy;
+GRANT SELECT,INSERT,UPDATE ON draft_synthetic_state TO app_user;
+ALTER TABLE draft_synthetic_result ENABLE ROW LEVEL SECURITY;
+ALTER TABLE draft_synthetic_result FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_context ON draft_synthetic_result AS RESTRICTIVE FOR ALL TO app_user USING(shop_context_allows(shop_id)) WITH CHECK(shop_context_allows(shop_id));
+CREATE POLICY tenant_access ON draft_synthetic_result FOR ALL TO app_user USING(shop_context_allows(shop_id)) WITH CHECK(shop_context_allows(shop_id));
+REVOKE ALL ON draft_synthetic_result FROM PUBLIC,app_user,app_privacy;
+GRANT SELECT,INSERT,UPDATE ON draft_synthetic_result TO app_user;
+ALTER TABLE draft_synthetic_enlisted ENABLE ROW LEVEL SECURITY;
+ALTER TABLE draft_synthetic_enlisted FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_context ON draft_synthetic_enlisted AS RESTRICTIVE FOR ALL TO app_user USING(shop_context_allows(shop_id)) WITH CHECK(shop_context_allows(shop_id));
+CREATE POLICY tenant_access ON draft_synthetic_enlisted FOR ALL TO app_user USING(shop_context_allows(shop_id)) WITH CHECK(shop_context_allows(shop_id));
+REVOKE ALL ON draft_synthetic_enlisted FROM PUBLIC,app_user,app_privacy;
+GRANT SELECT,INSERT,UPDATE ON draft_synthetic_enlisted TO app_user;

@@ -32,6 +32,18 @@
       "types": "./dist/schedules.d.ts",
       "import": "./dist/schedules.js"
     },
+    "./request-binding": {
+      "import": "./dist/request-binding.js",
+      "types": "./dist/request-binding.d.ts"
+    },
+    "./drafts": {
+      "types": "./dist/drafts.d.ts",
+      "import": "./dist/drafts.js"
+    },
+    "./request-version": {
+      "types": "./dist/request-version.d.ts",
+      "import": "./dist/request-version.js"
+    },
     "./usage": {
       "types": "./dist/usage.d.ts",
       "import": "./dist/usage.js"
@@ -39,10 +51,6 @@
     "./vocabulary": {
       "types": "./dist/vocabulary.d.ts",
       "import": "./dist/vocabulary.js"
-    },
-    "./request-binding": {
-      "import": "./dist/request-binding.js",
-      "types": "./dist/request-binding.d.ts"
     }
   },
   "scripts": {
