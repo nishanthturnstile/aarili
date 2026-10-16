@@ -286,7 +286,7 @@ test("0.4.3b H5/H6 worker-mode shutdown after usage vetoes final commit; crashed
       },
       f.composition,
     );
-    assert.deepEqual(runtime.handlers, ["media.process"]);
+    assert.deepEqual(runtime.handlers, ["pdf.render", "media.process"]);
     await barrier;
     assert.equal(await runtime.stop(20), "timed-out");
     release();

@@ -27,6 +27,10 @@
     "./media-storage": {
       "types": "./dist/media-storage.d.ts",
       "import": "./dist/media-storage.js"
+    },
+    "./document-storage": {
+      "types": "./dist/document-storage.d.ts",
+      "import": "./dist/document-storage.js"
     }
   },
   "scripts": {

@@ -4,8 +4,10 @@
 /apps/web/public/**/*.png binary
 /apps/web/public/**/*.woff2 binary
 /packages/** text eol=lf
+/packages/documents/assets/**/*.woff2 binary
 /scripts/** text eol=lf
 /tests/** text eol=lf
+/tests/goldens/**/*.png binary
 /*.json text eol=lf
 /pnpm-workspace.yaml text eol=lf
 /pnpm-lock.yaml text eol=lf

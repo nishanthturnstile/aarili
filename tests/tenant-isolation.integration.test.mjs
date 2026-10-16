@@ -38,6 +38,8 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "documentRepository.issue/claim/plan/accept/retry/cleanup",
+      "shops/:shopId/documents",
       "mediaRepository.read/insert/start/claim/accept/expire",
       "mediaRepository.derivatives/release",
       "mediaRepository.claims/cleanupIntents/intent/cleaned",
@@ -452,6 +454,11 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
   await withTenantFixture(async ({ runtime, migration, admin }) => {
     assert.deepEqual(await assertIsolationCatalog(runtime.db), [
       "public.audit_event",
+      "public.document_artifact",
+      "public.document_attempt",
+      "public.document_cleanup",
+      "public.document_output",
+      "public.document_revision",
       "public.durable_draft",
       "public.idempotency_key",
       "public.isolation_child",
@@ -616,6 +623,11 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       );
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
+        "public.document_artifact",
+        "public.document_attempt",
+        "public.document_cleanup",
+        "public.document_output",
+        "public.document_revision",
         "public.durable_draft",
         "public.idempotency_key",
         "public.job_schedule",

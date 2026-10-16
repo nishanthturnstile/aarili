@@ -1,7 +1,11 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "stream",
-  "globalPassThroughEnv": ["npm_execpath", "OUTBOUND_EFFECTS"],
+  "globalPassThroughEnv": [
+    "npm_execpath",
+    "OUTBOUND_EFFECTS",
+    "AARILI_PDF_TEST_LINUX"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

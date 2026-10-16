@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./document-runtime": {
+      "types": "./dist/document-runtime.d.ts",
+      "import": "./dist/document-runtime.js"
+    },
     "./production": {
       "types": "./dist/production.d.ts",
       "import": "./dist/production.js"
@@ -27,6 +31,10 @@
     "./media": {
       "types": "./dist/media.d.ts",
       "import": "./dist/media.js"
+    },
+    "./documents": {
+      "types": "./dist/documents.d.ts",
+      "import": "./dist/documents.js"
     }
   },
   "scripts": {
@@ -39,7 +47,8 @@
     "@aarili/core": "workspace:*",
     "@aarili/db": "workspace:*",
     "@aarili/platform": "workspace:*",
-    "pg-boss": "12.37.1"
+    "pg-boss": "12.37.1",
+    "@aarili/documents": "workspace:*"
   },
   "devDependencies": {
     "typescript": "7.0.2"

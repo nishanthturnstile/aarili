@@ -53,7 +53,7 @@ test("0.3.2a D1/D7 pg-boss missing schema/queue fails closed; migration authorit
             sql`select count(*)::int as n from pgboss.queue`,
           )
         ).rows[0].n,
-        3,
+        4,
       );
       await assert.rejects(() =>
         runtime.db.execute(sql`create schema runtime_ddl`),

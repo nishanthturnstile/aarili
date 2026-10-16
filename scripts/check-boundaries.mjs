@@ -154,6 +154,12 @@ export function checkBoundaries(sources) {
       }
       if (layer === "contracts" && workspace)
         fail("contracts must be independent of implementation packages");
+      if (
+        layer === "documents" &&
+        workspace &&
+        !["contracts", "documents"].includes(workspace[1])
+      )
+        fail("documents only consume immutable contracts and local assets");
       if (layer === "money" && !specifier.startsWith("."))
         fail("money primitives must be framework and vendor free");
     }
@@ -175,6 +181,7 @@ export function checkBoundaries(sources) {
   const exemplars = new Set([
     "apps/web/test-support/draft-host-app.tsx",
     "apps/web/test-support/media-host-app.tsx",
+    "apps/web/test-support/document-status-host.tsx",
     "packages/api/src/commands.ts",
     "packages/api/src/command-fixture-client.ts",
     "packages/api/src/money-fixture-client.ts",

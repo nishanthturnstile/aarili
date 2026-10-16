@@ -140,6 +140,7 @@ export async function assertIsolationCatalog(db: Database) {
             "foundation.schedule",
             "foundation.dead",
             "media.process",
+            "pdf.render",
           ].includes(String(q.name)) ||
           q.table_name !== "job_common" ||
           q.partition,
@@ -242,6 +243,9 @@ export async function assertIsolationCatalog(db: Database) {
     if (
       [
         "public.product_event",
+        "public.document_revision",
+        "public.document_output",
+        "public.document_artifact",
         "public.vocabulary_revision",
         "public.vocabulary_search_key",
         "public.journal_batch",
@@ -277,6 +281,13 @@ export async function assertIsolationCatalog(db: Database) {
           row.update))
     )
       fail("private media history grants");
+    if (
+      ["public.document_attempt", "public.document_cleanup"].includes(
+        row.table,
+      ) &&
+      row.delete
+    )
+      fail("document history grants");
     const membership = row.table === "public.shop_membership";
     const guard = row.policies.find(
       (p) => p.name === (membership ? "membership_identity" : "tenant_context"),

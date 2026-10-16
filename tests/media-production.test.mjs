@@ -4,7 +4,10 @@ import { test } from "vitest";
 
 test("0.4.3b H5 production registries contain only reviewed media consumer and unknown private adapters fail closed", async () => {
   const composition = productionJobComposition();
-  assert.deepEqual([...composition.handlers.keys()], ["media.process"]);
+  assert.deepEqual(
+    [...composition.handlers.keys()],
+    ["pdf.render", "media.process"],
+  );
   const handler = composition.handlers.get("media.process");
   assert.equal(
     await handler(null, { content: "not a locator" }, async () => {}),

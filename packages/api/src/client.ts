@@ -18,6 +18,15 @@ import type { z } from "zod";
 import type { HealthRoutes } from "./index.js";
 import type { createOwnerRoutes } from "./owner.js";
 
+export {
+  createDocumentClient,
+  DocumentRequestError,
+  requestDocumentAccess,
+  requestDocumentIssue,
+  requestDocumentRetry,
+  requestDocumentStatus,
+} from "./document-client.js";
+
 export function createOwnerClient() {
   return hc<ReturnType<typeof createOwnerRoutes>>("/api");
 }

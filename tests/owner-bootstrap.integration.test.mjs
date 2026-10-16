@@ -433,6 +433,11 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
       );
       assert.deepEqual(tables.rows.map((row) => row.relname).sort(), [
         "audit_event",
+        "document_artifact",
+        "document_attempt",
+        "document_cleanup",
+        "document_output",
+        "document_revision",
         "durable_draft",
         "idempotency_key",
         "job_schedule",

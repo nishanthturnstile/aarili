@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { createApi } from "@aarili/api";
 import { createCommandRoutes } from "@aarili/api/commands";
+import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
 
@@ -38,6 +39,18 @@ api.route(
       throw Error("Offline schema only");
     },
     withOwnerMedia: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createDocumentRoutes({
+    origin: "http://127.0.0.1:3159",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerDocument: async () => {
       throw Error("Offline schema only");
     },
   }),

@@ -15,6 +15,7 @@ import {
 } from "@aarili/contracts";
 import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
+import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
@@ -30,6 +31,7 @@ import {
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
 import { commandRepository } from "@aarili/db/command-repository";
+import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
@@ -92,6 +94,11 @@ export type AuthConfiguration = {
     shopId: string,
     userId: string,
   ) => Pick<MediaContext, "policy" | "storage" | "jobs">;
+  documentAdapters?: (
+    tx: Transaction,
+    shopId: string,
+    userId: string,
+  ) => Pick<DocumentContext, "templates" | "policy" | "storage" | "jobs">;
   draftInstrumentation?: (
     tx: Transaction,
     shopId: string,
@@ -147,6 +154,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerDocument: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DocumentContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerMedia: <T>(
     headers: Headers,
     shopId: string,
@@ -986,6 +998,30 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       });
     });
   }
+  async function withOwnerDocument<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DocumentContext) => Promise<T>,
+  ) {
+    shopId = shopId.toLowerCase();
+    return withOwnerTransaction(headers, shopId, (tx, userId) => {
+      const unavailable = async (): Promise<never> => {
+        throw Error("Private document adapter unavailable");
+      };
+      const adapters = configuration.documentAdapters?.(tx, shopId, userId) ?? {
+        templates: { resolve: async () => undefined },
+        policy: { authorize: async () => false },
+        storage: { put: unavailable, signGet: unavailable },
+        jobs: { enqueue: unavailable, phase: unavailable },
+      };
+      return run({
+        shopId,
+        actor: { type: "user", id: userId },
+        repository: documentRepository(tx, shopId),
+        ...adapters,
+      });
+    });
+  }
   async function withOwnerCommand<T>(
     headers: Headers,
     shopId: string,
@@ -1292,6 +1328,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerDraft,
     withOwnerTransaction,
     withOwnerMedia,
+    withOwnerDocument,
     commandLimit: () => guard(commandLimit),
     googleConnection,
     disconnectGoogle,
