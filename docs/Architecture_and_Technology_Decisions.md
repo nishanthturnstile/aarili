@@ -805,25 +805,27 @@ There is no separate API service, Redis, self-hosted storage server, PDF rendere
 | Region | Everything in **Singapore**, the nearest Railway region to Tamil Nadu. Measure real latency from the owner's phone on Jio/Airtel in week 1. If p95 API latency is regularly above about 300 ms, revisit hosting in Phase 2 |
 | Domains | Register one `.in` or `.com` domain, with DNS on Cloudflare (free). `app.<domain>` points to Railway, which manages TLS. The gallery is at `app.<domain>/g/<shop>`. Railway-generated domains are acceptable during synthetic development, but the production domain must be fixed before Google OAuth goes live and before any passkeys |
 
-**Local checkout policy (owner decision, 13 October 2026):** Use one existing
-native Windows Aarili checkout and work sequentially on focused topic branches,
-with a separate GitHub branch/PR per implementation. Do not create, restore or
-use Git worktrees or additional feature checkouts. Preserve unrelated edits and
-branches when switching. Disposable generator-output and install-verification
-directories are allowed for their scoped checks, not for development. After an
-owner-approved merge, update and verify main in this same checkout before
-starting an issue whose blockers have merged. See
+**Local checkout and branch policy (owner decision, 16 October 2026):** Use one
+existing native Windows Aarili checkout and work sequentially on focused topic
+branches created from the protected `development` branch. Each implementation
+has its own PR to `development`; a reviewed promotion PR targets `main`. Do not
+create, restore or use Git worktrees without explicit scenario approval.
+Preserve unrelated edits and branches when switching. Disposable
+generator-output and install-verification directories are allowed for their
+scoped checks, not for development. After a feature merge, update `development`
+in this same checkout before starting an issue whose blockers have merged. See
 [the development workflow](agents/Development_Workflow.md).
 
 ### 12.4 Delivery pipeline
 
-1. **GitHub Actions on PRs targeting `main` and pushes to `main`:**
-   Owner-approved verification correction, 16 October 2026: feature branches use
-   PR verification (including draft PR updates) instead of duplicate push and PR
-   runs. Open a draft PR when hosted verification is needed; a feature push before
-   a PR exists does not run automatically. Manual dispatch remains available,
-   and the daily dependency audit remains scheduled. Required check names and
-   their verification suites are unchanged.
+1. **GitHub Actions on PRs to `development` and `main`:** feature PRs to
+   `development` run scaffold verification and the dependency audit. The
+   `development` → `main` promotion PR runs all three required checks, including
+   the browser/accessibility suite. Manual dispatch runs all checks; the daily
+   dependency audit remains scheduled. Pushes to either branch do not duplicate
+   successful PR verification. Feature PRs are squash-merged to `development`;
+   promotion uses a merge commit so the long-lived branch does not repeat
+   previously promoted commits in later PRs.
    - Biome, Knip and `tsc --noEmit`;
    - Vitest unit and property tests;
    - Testcontainers integration tests (row-level security, queue, money);

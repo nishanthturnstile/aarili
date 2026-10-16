@@ -1,36 +1,43 @@
 # Aarili development workflow
 
-Owner decision, updated 16 October 2026: default to one local Aarili checkout
-and sequential topic branches. Create, restore or use Git worktrees only with
-explicit owner approval for the specific scenario. Approval does not carry over
-to later scenarios. Existing branches and remote PRs preserve work when switching
-tasks.
+Owner decision, updated 16 October 2026: use one local Aarili checkout and the
+long-lived `development` branch as the only base for new implementation
+branches. Feature PRs target `development`; one promotion PR carries its tested
+state to `main`. Create, restore or use Git worktrees only with explicit owner
+approval for the specific scenario. Approval does not carry over to later
+scenarios. Existing branches and remote PRs preserve work when switching tasks.
 
 The owner approved worktrees for the independent Phase 0.4 issues #53, #54 and
-#55 on 16 October 2026. This records the workspace exception; implementation
-starts only when requested, with direct blockers merged. Later tickets require
-their own applicable worktree approval. Merge and deployment remain separately
-controlled.
+#55 on 16 October 2026. Those branches predate this base-branch policy; all new
+branches start from `development`. Implementation starts only when requested,
+with direct blockers merged. Later tickets require their own applicable
+worktree approval. Merge and deployment remain separately controlled.
 
 ## Local workspace and branches
 
 - The development checkout is the owner's existing native Windows Aarili
   workspace. PowerShell, Node and pnpm run there; Docker Desktop supplies Linux
   infrastructure and verification containers.
-- Use a focused `codex/<slice-or-topic>` branch for each implementation and
-  push that branch to GitHub. Keep work in its assigned checkout throughout review.
+- Fetch `origin`, update local `development` from `origin/development`, then
+  create a focused `codex/<slice-or-topic>` branch from `development` for each
+  implementation. Push it and open its PR against `development`. Never start
+  new implementation branches from `main`. Keep work in its assigned checkout
+  throughout review.
+- Standard start commands are `git fetch origin`, `git switch development`,
+  `git pull --ff-only origin development`, then
+  `git switch -c codex/<slice-or-topic>`.
 - Inspect status before switching branches. Preserve unrelated edits; never
   reset, discard or automatically commit them to make a switch succeed.
   Finish or deliberately preserve pending changes before switching.
 - Do not run concurrent mutations of the same checkout. Without explicit owner
   approval, no agent or automation may create another worktree as a workaround.
 - For approved parallel worktrees, assign one issue and branch per worktree from
-  verified integrated main. Coordinate shared contracts, migration filenames and
+  verified integrated development. Coordinate shared contracts, migration filenames and
   lockfile changes before editing; isolate test databases, ports and build outputs.
   Run focused checks during development and schedule heavy final suites to avoid
   resource contention. Each PR needs its own acceptance evidence and owner review.
   Integrate PRs sequentially, reconcile overlaps and verify affected checks against
-  updated main before merge. Preserve work and obtain approval before cleanup that
+  updated development before merge. Preserve work and obtain approval before cleanup that
   would discard changes. Worktrees do not bypass dependency or activation gates.
 - Official scaffold generators may run in disposable temporary directories
   for output review; clean-install tests may use disposable install directories.
@@ -47,9 +54,9 @@ controlled.
    prerequisite merged. Do not start from an unmerged prerequisite PR merely
    because its local checks passed.
 3. Inspect the checkout and establish baseline evidence using the verification
-   stages below. Start the
-   focused branch from integrated main in the existing checkout or an explicitly
-   approved worktree, preserving unrelated changes and existing branches.
+   stages below. Start the focused branch from the latest `origin/development`
+   in the existing checkout or an explicitly approved worktree, preserving
+   unrelated changes and existing branches.
 4. Implement only the selected outcome. Fetch current Context7 documentation
    when required, verify supported exact versions and review official generator
    output before copying intended files. Honour native Windows/Linux boundaries,
@@ -66,15 +73,21 @@ controlled.
 ## Review, merge and the next issue
 
 Review the actual PR diff, issue acceptance coverage, checks and failure paths.
-Fix accepted findings in the same checkout and topic branch, then rerun affected
-checks. Before CI exists, local evidence and deliberate owner review are
-required; later require the actual CI checks established by the CI ticket.
+Feature PRs target `development` and require `Scaffold verification` and
+`Dependency audit`; the full browser suite is not a gate on these PRs. Run
+focused browser validation during UI development when the changed behavior needs
+it. The PR that promotes `development` to `main` runs all three checks,
+including `Browser smoke and accessibility`, against the release candidate.
 
-The owner explicitly authorises merge after review. Main always requires a PR;
-use squash merge and never push implementation directly to main or deploy
-automatically. After merge, update main in this same checkout and verify the
-integrated build and smoke checks. Confirm the issue closed and its dependants
-are unblocked before creating the next topic branch.
+The owner explicitly authorises merge after review. Feature PRs to `development`
+use squash merge. Promotion PRs from `development` to `main` use a merge commit
+so the long-lived development history remains an ancestor of main; do not squash
+the promotion. Never push directly to either protected branch or deploy
+automatically. After a feature merge, update `development` in this same checkout
+before starting the next issue. After promotion, update `main` and `development`
+and inspect the passing promotion CI; do not rerun the full local suite unless
+the integrated tree differs or a check failed. Confirm the issue closed and its
+dependants are unblocked before creating the next topic branch.
 
 Keep later-phase drafting, review and publication separate: propose a concrete
 breakdown for approval before publishing new tickets. Honour existing approval
@@ -89,17 +102,19 @@ review. Reduce repetition around those gates rather than removing coverage.
 
 | Stage | Required evidence | Avoidable repetition |
 | --- | --- | --- |
-| Baseline | Inspect status and the integrated-main CI result; retain the post-merge local build/smoke result when available. Investigate relevant failures or local drift. | Do not run the entire suite again solely to start a branch from the same verified main. Historical baseline evidence never proves the new change. |
+| Baseline | Inspect status and the latest `development` CI result; retain successful promotion CI for `main`. Investigate relevant failures or local drift. | Do not run the entire suite again solely to start a branch from the same verified `development`. Historical baseline evidence never proves the new change. |
 | Development | Run focused checks for the affected behavior and meaningful failure paths while iterating. | Do not run full verification after each small edit. |
 | Final local verification | Run actual lint, Knip, strict types, relevant tests and production build. Implementation tickets requiring `pnpm verify`, `pnpm test:ui`, audit or other commands retain those requirements. | A successful `pnpm verify` already covers its component commands; do not immediately repeat lint, Knip, types, tests or build separately without a reason. |
-| Hosted PR verification | All three existing required checks must pass on the current PR revision. Draft PRs run checks too; no path, draft or risk-based skips are introduced. | Feature pushes use the PR workflow, not a second push workflow. Manual dispatch is for a specific need, not an automatic extra run. |
-| Integrated main | After an authorized merge, update the checkout and run the integrated production build/smoke; inspect main CI. | Do not automatically repeat the complete local suite and clean install just because the squash commit has a different SHA. Investigate integration differences and failures. |
+| Hosted feature PR verification | `Scaffold verification` and `Dependency audit` must pass on PRs to `development`. Draft PRs run these checks too. | The full browser suite waits for the promotion PR. Feature pushes do not trigger duplicate push runs. |
+| Hosted promotion verification | All three checks, including browser smoke/accessibility, must pass on the `development` → `main` PR revision. | Do not dispatch another full run when the promotion PR already has current passing results. |
+| Integrated main | After an authorized promotion, update the checkout and inspect the successful promotion checks. | Main pushes do not repeat the full suite; investigate tree differences or failures rather than rerunning without cause. |
 
 Clean-install/native-portability and additional Linux checks run when the ticket
 explicitly requires them, or when dependencies, lockfiles, package exports,
 toolchains, install/build scripts, runtime packaging or platform-sensitive paths
-change. Ordinary application changes use the full required hosted Linux checks;
-an additional local Linux verification image is not an automatic extra gate.
+change. Feature PRs use the required fast hosted Linux checks; the full browser
+suite runs at promotion. An additional local Linux verification image is not an
+automatic extra gate.
 Record why supplementary checks were required or not applicable. Do not broaden
 this rule into an exemption from an issue's explicit verification requirements.
 
@@ -112,11 +127,13 @@ Keep real PostgreSQL isolation/transaction tests, financial concurrency/retry
 tests, security checks, PDF goldens and physical-device acceptance where required.
 Never describe unrun checks or earlier evidence as fresh verification.
 
-CI triggers are PRs targeting `main`, pushes to `main`, manual dispatch and the
-daily audit. A feature branch without a PR has no automatic hosted run: open a
-draft PR once publication is authorized and hosted feedback is needed. A PR
-checks the proposed integration; the main push checks the merged result. These
-are distinct gates. Existing cancellation of superseded runs remains in place.
+CI triggers are PRs targeting `development` or `main`, manual dispatch and the
+daily dependency audit. PRs to `development` run scaffold verification and the
+dependency audit; the browser job is skipped. PRs from `development` to `main`
+run all three checks. Main and development pushes do not start duplicate runs.
+A feature branch without a PR has no automatic hosted run: open a draft PR once
+publication is authorized and hosted feedback is needed. Manual dispatch runs
+all checks. Existing cancellation of superseded runs remains in place.
 
 ## Manual review packet
 
@@ -175,8 +192,9 @@ roadmap sections. Verify direct blockers are merged and preserve unrelated edits
 
 Default to the existing local Aarili checkout and sequential implementation.
 Use worktrees only when the owner explicitly approved this scenario; record the
-scope and follow the worktree coordination rules. Use one focused codex/ topic
-branch per issue from integrated main and push that branch to GitHub.
+scope and follow the worktree coordination rules. Start one focused `codex/`
+topic branch per issue from the latest `origin/development`, push it and open a
+PR to `development`. Only the reviewed promotion PR targets `main`.
 
 Implement the complete scoped outcome with required failure handling and
 integrity controls. Use current Context7 docs, exact supported pins and reviewed
