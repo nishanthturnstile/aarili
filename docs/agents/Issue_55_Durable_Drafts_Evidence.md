@@ -63,6 +63,23 @@ and proved committed-action replay deduplication, shop isolation, atomic usage
 rollback and recovery. The disposable PostgreSQL instance was cleaned. No
 production workflow or external service was activated.
 
+A later independent integration review found that owner middleware's broad shop
+wildcard rejected the draft list's `limit`/`cursor` query before the draft handler
+in the production `createApi(owner)` mount. The new exact-composition regression
+first failed with 422 instead of 200. Owner admission now applies to owner/auth
+routes and its single shop-read path; nested shop modules use their own rules.
+The green regression preserves owner shop-read query rejection, unrelated-module
+fallthrough and owner/draft origin protection. The real draft integration host
+now uses the production owner-before-drafts mount. After this correction, the API
+package compiled, five focused unit files / 20 tests passed, and all five actual
+PostgreSQL draft tests passed in 25.79 seconds. The coordinator then completed
+`TEMP/aarili-55-composition-fix-final.log` with exit 0: lint, Knip, strict types,
+the composition regression plus owner contracts/query checks (eight tests across
+three files), negative DTOs, OpenAPI, production build (11 tasks, 10.806 seconds),
+smoke and 29 artifact scans. An independent agent re-review confirmed the finding
+resolved and identified no additional actionable finding. Integration onto current
+main and required CI remain separately controlled by the coordinator.
+
 ## Recovery, isolation and activation gates
 
 Migration `0011_durable_drafts.sql` is additive and runs through the existing

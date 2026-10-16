@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createApi } from "@aarili/api";
-import { createDraftRoutes } from "@aarili/api/drafts";
 import {
   DraftFailure,
   draftDeletionEligible,
@@ -37,6 +36,7 @@ async function fixture(run) {
     );
     const instrumentation = [];
     const owner = {
+      ...f.owner,
       origin,
       commandLimit: f.owner.commandLimit,
       withOwnerDraft(headers, shopId, run) {
@@ -55,10 +55,8 @@ async function fixture(run) {
         );
       },
     };
-    const api = createApi(async () => true).route(
-      "/",
-      createDraftRoutes(owner),
-    );
+    // Exercise the real owner-before-drafts mount used by the Next route.
+    const api = createApi(async () => true, owner);
     await run({ ...f, api, instrumentation });
   });
 }

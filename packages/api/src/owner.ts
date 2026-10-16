@@ -71,10 +71,12 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     },
   });
   app.use("*", async (c, next) => {
-    // Only real owner/auth/shop routes use this middleware. Removed examples
-    // fall through to 404 before origin, query or authentication checks.
+    // Shop modules own their admission rules. This owner middleware protects
+    // owner/auth routes and its single shop-read path, not nested draft routes.
+    const ownerOrAuth = /^\/api\/(owner|auth)\//.test(c.req.path);
+    const shopRead = /^\/api\/shops\/[^/]+$/.test(c.req.path);
     if (
-      !/^\/api\/(owner|auth|shops)\//.test(c.req.path) ||
+      (!ownerOrAuth && !shopRead) ||
       c.req.path === "/api/owner/sensitive-probe"
     )
       return next();
