@@ -1,7 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
-import { prepareOwnerScreen } from "./owner-presentation.mjs";
+import {
+  expectStaticPwaStorage,
+  prepareOwnerScreen,
+} from "./owner-presentation.mjs";
 
 test.use({ trace: "off", screenshot: "off" });
 test.afterEach(async ({ page }) => {
@@ -269,15 +272,12 @@ for (const locale of ["ta", "en"])
           await page.evaluate(async () => ({
             local: localStorage.length,
             session: sessionStorage.length,
-            caches: await caches.keys(),
-            workers: (await navigator.serviceWorker.getRegistrations()).length,
           })),
         ).toEqual({
           local: locale === "ta" ? 1 : 0,
           session: 0,
-          caches: [],
-          workers: 0,
         });
+        await expectStaticPwaStorage(page);
         expect(await page.evaluate(() => Object.keys(localStorage))).toEqual(
           locale === "ta" ? ["aarili-appearance"] : [],
         );

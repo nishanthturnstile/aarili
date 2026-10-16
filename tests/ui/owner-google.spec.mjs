@@ -5,7 +5,10 @@ import {
   syntheticGoogle,
 } from "../../scripts/test-support/google-provider.mjs";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
-import { prepareOwnerScreen } from "./owner-presentation.mjs";
+import {
+  expectStaticPwaStorage,
+  prepareOwnerScreen,
+} from "./owner-presentation.mjs";
 
 test.use({ trace: "off", screenshot: "off" });
 const password = "synthetic-ui-google-password-14";
@@ -159,14 +162,7 @@ for (const locale of ["ta", "en"])
             expect(
               await page.evaluate(() => Object.keys(localStorage)),
             ).toEqual(locale === "ta" ? ["aarili-appearance"] : []);
-            expect(await page.evaluate(() => caches.keys())).toEqual([]);
-            expect(
-              await page.evaluate(() =>
-                navigator.serviceWorker
-                  .getRegistrations()
-                  .then((r) => r.length),
-              ),
-            ).toBe(0);
+            await expectStaticPwaStorage(page);
             for (const value of privateValues)
               expect((await page.content()).includes(value)).toBe(false);
             await page.screenshot({

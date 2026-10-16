@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
+import { expectStaticPwaStorage } from "./owner-presentation.mjs";
 
 test.use({ trace: "off", screenshot: "off", actionTimeout: 10000 });
 test.afterEach(async ({ page }) => {
@@ -213,7 +214,7 @@ for (const locale of ["en", "ta"])
           "aarili-appearance",
         ]);
         expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
-        expect(await page.evaluate(() => caches.keys())).toEqual([]);
+        await expectStaticPwaStorage(page);
         expect(await page.evaluate(() => indexedDB.databases())).toEqual([]);
         await writeFile(
           `.scratch/phase-0.4-shell/${info.project.name}-${locale}-timings.json`,

@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import theme from "../pwa-theme.json";
 import { appearanceBootstrap } from "./appearance";
 import "./globals.css";
 
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
   title: "Aarili",
   description: "Aarili boutique management",
 };
+export const viewport: Viewport = { themeColor: theme.primary };
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning>

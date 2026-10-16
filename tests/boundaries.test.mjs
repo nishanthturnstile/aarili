@@ -1,6 +1,18 @@
 import { expect, test } from "vitest";
 import { checkBoundaries } from "../scripts/check-boundaries.mjs";
 
+test("0.4.1b B1 generated JSON theme assets resolve without allowing executable imports", () => {
+  const sources = new Map([
+    ["apps/web/src/app/manifest.ts", 'import theme from "../pwa-theme.json";'],
+    ["apps/web/src/pwa-theme.json", '{"background":"linen"}'],
+  ]);
+  expect(checkBoundaries(sources)).toEqual([]);
+  sources.delete("apps/web/src/pwa-theme.json");
+  expect(checkBoundaries(sources)).toEqual([
+    expect.stringContaining("unresolved browser import"),
+  ]);
+});
+
 test("0.4.1a A5 i18n messages are browser-safe but cannot transitively expose server packages", () => {
   const sources = new Map([
     ["apps/web/src/app/page.tsx", '"use client"; import "@aarili/i18n";'],
