@@ -144,6 +144,53 @@ journeys use the real owner API, transactional repository and forced RLS. The
 new matrix is discovered by the normal `test:ui`/hosted browser job. Hosted CI
 and owner review, including the unresolved pagination observation, remain gates.
 
+### PR 68 CI reconnect investigation
+
+After PR 67 merged as `9998f505fbe55e7564f333a9e99cdf266e04eae3`, this branch
+merged current main and passed frozen install
+(`TEMP/aarili-56-merge67-install.log`). PR 68's browser run 38873424382 exposed
+11 draft failures: a supposedly unsaved offline value reappeared after reconnect.
+A bounded diagnostic against the actual browser/API/database proved a fixture
+interception error (`TEMP/aarili-56-route-precedence-proof.log`): the page-level
+route's `continue()` bypassed the context-level abort handler. Reconnect PUT
+returned 200, the abort handler ran zero times, and the real row advanced to
+version 3 with the offline value. Saving on reconnect was correct application
+behaviour; this test intended to hold that request uncommitted.
+
+The page handler now uses `fallback()` so the later context abort applies. The
+journey explicitly waits for that failed reconnect request, asserts the abort
+handler ran once and checks the database still contains the previously saved
+value at version 2 before closing the page. No application code, timeout or
+acceptance expectation changed. The earlier incomplete-page observation remains
+separate: the reconnect cause does not explain its one/18-row results.
+
+After the fixture correction, the affected draft matrix passed **12/12 in
+6.3 minutes**, exit 0 (`TEMP/aarili-56-repaired-draft-matrix.log`). Every locale,
+theme and screen size proved one aborted reconnect, unchanged committed version
+2, exactly 25 first-page rows and successful cursor continuation. All fixture
+and outer-runner disposable databases were cleaned. The earlier pagination
+observations remain recorded above; this fresh result is not a claimed cause
+or retroactive correction of those failures. The post-merge package build also
+passed all nine tasks (`TEMP/aarili-56-after67-packages.log`).
+
+The coordinator separately reproduced a disposable PWA host teardown flaw with
+an incomplete raw HTTP connection: `server.close()` remained pending until that
+socket was destroyed. The fixture now starts closing and calls
+`closeAllConnections()`, matching the existing HTTPS API fixture pattern. This
+proves the teardown flaw and its bounded correction; without a CI trace it does
+not prove that socket was the cause of the earlier bare B5 test timeout. PWA
+runtime behaviour and test timeouts remain unchanged.
+
+After that fixture correction, the focused B5 check passed all three configured
+screen projects in 19.5 seconds, exit 0
+(`TEMP/aarili-56-pwa-teardown-check.log`); its disposable database was cleaned.
+Final combined-source `pnpm lint`, `pnpm knip` and `pnpm typecheck` all exited 0
+(`TEMP/aarili-56-after67-static.log`): Biome checked 268 files without fixes,
+boundaries checked 151 sources, and all 21 Turbo typecheck tasks passed with
+app/test types. No unrelated browser or PostgreSQL suite was repeated for this
+test-harness-only correction. The updated combined branch still requires its
+hosted CI result before merge.
+
 ## Recovery and manual review gates
 
 Revert compatible controller/UI source to remove this feature. Existing durable

@@ -120,7 +120,7 @@ for (const locale of ["en", "ta"])
                 loseSave = false;
                 await route.fetch();
                 await route.abort("failed");
-              } else await route.continue();
+              } else await route.fallback();
             });
             await page.locator("#value").dispatchEvent("compositionend");
             await expect(page.getByRole("status")).toHaveText(t.checking);
@@ -148,12 +148,33 @@ for (const locale of ["en", "ta"])
             );
             // Hold failed edits across reconnect/reload: only already committed
             // values can reappear in a fresh page, never its in-memory pending key.
-            await context.route("**/api/shops/*/drafts/*", (route) =>
-              route.request().method() === "PUT"
-                ? route.abort()
-                : route.continue(),
-            );
+            let blockedReconnect = 0;
+            await context.route("**/api/shops/*/drafts/*", (route) => {
+              if (route.request().method() === "PUT") {
+                blockedReconnect++;
+                return route.abort();
+              }
+              return route.continue();
+            });
+            const failedReconnect = page.waitForEvent("requestfailed", {
+              predicate: (request) =>
+                request.method() === "PUT" &&
+                request.postDataJSON()?.payload?.value === "unsaved-offline",
+            });
             await context.setOffline(false);
+            await failedReconnect;
+            expect(blockedReconnect).toBe(1);
+            const committedAfterReconnect = (
+              await admin.query(
+                "select payload,version from durable_draft where shop_id=$1 and id=$2",
+                [a.shop, id],
+              )
+            ).rows[0];
+            expect(committedAfterReconnect.payload.value).toBe("later-தமிழ்");
+            expect(committedAfterReconnect.version).toBe(2);
+            console.info(
+              `Reconnect interception: ${JSON.stringify({ blocked: blockedReconnect, committedVersion: committedAfterReconnect.version })}`,
+            );
             await page.close();
             page = await context.newPage();
             await page.goto(savedUrl);
