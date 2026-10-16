@@ -31,6 +31,14 @@
     "./schedules": {
       "types": "./dist/schedules.d.ts",
       "import": "./dist/schedules.js"
+    },
+    "./vocabulary": {
+      "types": "./dist/vocabulary.d.ts",
+      "import": "./dist/vocabulary.js"
+    },
+    "./request-binding": {
+      "import": "./dist/request-binding.js",
+      "types": "./dist/request-binding.d.ts"
     }
   },
   "scripts": {
@@ -40,7 +48,8 @@
   "dependencies": {
     "@aarili/db": "workspace:*",
     "@aarili/contracts": "workspace:*",
-    "@aarili/money": "workspace:*"
+    "@aarili/money": "workspace:*",
+    "@aarili/i18n": "workspace:*"
   },
   "devDependencies": {
     "typescript": "7.0.2"
