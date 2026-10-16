@@ -3,6 +3,7 @@ import {
   type DocumentStatus,
   documentIssueSchema,
   documentLocatorSchema,
+  documentShareCommandSchema,
   documentStatusSchema,
 } from "@aarili/contracts/documents";
 import type { Actor } from "@aarili/contracts/request";
@@ -30,6 +31,7 @@ export type DocumentTemplates = {
   >;
 };
 export type DocumentStorage = {
+  read(key: string): Promise<Uint8Array>;
   put(key: string, bytes: Uint8Array, sha256: string): Promise<void>;
   signGet(key: string, filename: string): Promise<string>;
 };
@@ -112,6 +114,12 @@ async function binding(
   await ctx.repository.lockKey(key);
   const old = await ctx.repository.replay(key);
   const issued = await ctx.repository.issuedByKey(key);
+  const shared = await ctx.repository.shareByKey(key);
+  if (
+    shared &&
+    (shared.requestHash !== b.hash || shared.actorId !== ctx.actor.id)
+  )
+    fail(422, "IDEMPOTENCY_MISMATCH");
   if (
     issued &&
     (action !== "document.issue" ||
@@ -305,6 +313,100 @@ export async function documentAccess(
     ),
     sha256: artifact.sha256,
   };
+}
+// Same-origin bounded bytes avoid exposing storage capabilities to browser URLs,
+// cross-origin CORS, preview referrers or an external text-share target.
+export async function documentFile(
+  ctx: DocumentContext,
+  id: string,
+  revision: number,
+) {
+  await find(ctx, id, revision, "read");
+  const artifact = await ctx.repository.artifact(id, revision);
+  if (!artifact) fail(404, "DOCUMENT_NOT_READY");
+  let bytes: Uint8Array;
+  try {
+    bytes = await ctx.storage.read(artifact.key);
+  } catch {
+    fail(503, "DOCUMENT_STORAGE_UNAVAILABLE");
+  }
+  if (
+    bytes.length !== artifact.bytes ||
+    bytes.length > 25 * 1024 * 1024 ||
+    new TextDecoder().decode(bytes.subarray(0, 5)) !== "%PDF-"
+  )
+    fail(503, "DOCUMENT_BYTES_REJECTED");
+  const hash = Array.from(
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new Uint8Array(bytes)),
+    ),
+    (b) => b.toString(16).padStart(2, "0"),
+  ).join("");
+  if (hash !== artifact.sha256) fail(503, "DOCUMENT_BYTES_REJECTED");
+  // Storage I/O holds the authorising tenant transaction; policy may still change
+  // within an adapter, so check it once more before releasing private bytes.
+  await find(ctx, id, revision, "read");
+  return { bytes, sha256: hash };
+}
+export async function documentShareHistory(
+  ctx: DocumentContext,
+  id: string,
+  revision: number,
+) {
+  await find(ctx, id, revision, "read");
+  return ctx.repository.shares(id, revision);
+}
+export async function recordDocumentShare(
+  ctx: DocumentContext,
+  id: string,
+  revision: number,
+  input: unknown,
+  key: string,
+) {
+  locator(id, revision);
+  id = id.toLowerCase();
+  key = key.toLowerCase();
+  const parsed = documentShareCommandSchema.safeParse(input);
+  if (!parsed.success) fail(422, "VALIDATION_FAILED");
+  const command = parsed.data;
+  const { b } = await binding(ctx, key, `document.${command.kind}`, {
+    docId: id,
+    revision,
+    ...command,
+  });
+  await find(ctx, id, revision, "read");
+  const old = await ctx.repository.shareByKey(key);
+  if (old) {
+    const { requestHash: _, ...event } = old;
+    return event;
+  }
+  const artifact = await ctx.repository.artifact(id, revision);
+  if (!artifact) fail(409, "DOCUMENT_NOT_READY");
+  if (command.kind === "marked-sent") {
+    const prepared = await ctx.repository.share(
+      command.preparedId,
+      id,
+      revision,
+    );
+    if (
+      prepared?.kind !== "prepared" ||
+      prepared.actorId !== ctx.actor.id ||
+      prepared.sha256 !== artifact.sha256
+    )
+      fail(409, "DOCUMENT_PREPARATION_REQUIRED");
+  }
+  const event = {
+    id: await ctx.repository.id(),
+    kind: command.kind,
+    actorId: ctx.actor.id,
+    createdAt: (await ctx.repository.now()).toISOString(),
+    preparedId: command.kind === "marked-sent" ? command.preparedId : null,
+    sha256: artifact.sha256,
+  };
+  await ctx.repository.appendShare(id, revision, event, key, b.hash);
+  await audit(ctx, event.id, `document.${command.kind}`, id, key, key);
+  await ctx.repository.persist(key, b, event);
+  return event;
 }
 export async function retryDocument(
   ctx: DocumentContext,

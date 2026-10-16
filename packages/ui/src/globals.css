@@ -386,6 +386,14 @@
     display: grid;
     gap: var(--space-page);
   }
+  .document-sharing {
+    overflow-wrap: anywhere;
+  }
+  .document-preview iframe {
+    width: 100%;
+    min-height: 60dvh;
+    border: 0;
+  }
   .owner-form {
     display: grid;
     gap: var(--space-page);

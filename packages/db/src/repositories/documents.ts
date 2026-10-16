@@ -1,4 +1,7 @@
-import type { DocumentIssue } from "@aarili/contracts/documents";
+import type {
+  DocumentIssue,
+  DocumentShareEvent,
+} from "@aarili/contracts/documents";
 import type { Actor } from "@aarili/contracts/request";
 import type { RequestRepository } from "./request.js";
 
@@ -34,6 +37,22 @@ export type DocumentOutput = {
 };
 export type DocumentCleanup = { id: string; outputId: string; epoch: string };
 export interface DocumentRepository extends RequestRepository<unknown> {
+  shareByKey(
+    key: string,
+  ): Promise<(DocumentShareEvent & { requestHash: string }) | undefined>;
+  shares(docId: string, revision: number): Promise<DocumentShareEvent[]>;
+  share(
+    id: string,
+    docId: string,
+    revision: number,
+  ): Promise<DocumentShareEvent | undefined>;
+  appendShare(
+    docId: string,
+    revision: number,
+    event: DocumentShareEvent,
+    key: string,
+    hash: string,
+  ): Promise<void>;
   id(): Promise<string>;
   now(): Promise<Date>;
   lock(docId: string, revision: number): Promise<void>;

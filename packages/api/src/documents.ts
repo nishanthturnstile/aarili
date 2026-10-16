@@ -2,14 +2,20 @@ import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import {
   documentAccessSchema,
   documentIssueSchema,
+  documentShareCommandSchema,
+  documentShareEventSchema,
+  documentShareHistorySchema,
   documentStatusSchema,
 } from "@aarili/contracts/documents";
 import { etagSchema, idempotencyHeaderSchema } from "@aarili/contracts/request";
 import {
   DocumentFailure,
   documentAccess,
+  documentFile,
+  documentShareHistory,
   documentStatus,
   issueDocument,
+  recordDocumentShare,
   retryDocument,
 } from "@aarili/core/documents";
 import { versionTag } from "@aarili/core/request-version";
@@ -249,6 +255,115 @@ export function createDocumentRoutes(
         for (const cookie of r.headers.getSetCookie())
           c.header("Set-Cookie", cookie, { append: true });
         return c.json(documentAccessSchema.parse(r.data), 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/documents/{docId}/{revision}/file",
+        request: { params },
+        responses: {
+          200: {
+            description: "Authorised hash-verified immutable PDF",
+            content: {
+              "application/pdf": {
+                schema: z.string().openapi({ format: "binary" }),
+              },
+            },
+          },
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const { shopId, docId, revision } = c.req.valid("param");
+        const r = await owner.withOwnerDocument(
+          c.req.raw.headers,
+          shopId,
+          (ctx) => documentFile(ctx, docId, revision),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("Content-Type", "application/pdf");
+        c.header("X-Document-Sha256", r.data.sha256);
+        c.header(
+          "Content-Disposition",
+          `attachment; filename="document-${docId}-${revision}.pdf"`,
+        );
+        c.header("X-Content-Type-Options", "nosniff");
+        return c.body(new Uint8Array(r.data.bytes), 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/documents/{docId}/{revision}/history",
+        request: { params },
+        responses: {
+          200: {
+            description: "Latest 50 attributable manual-sharing events",
+            content: {
+              "application/json": { schema: documentShareHistorySchema },
+            },
+          },
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const { shopId, docId, revision } = c.req.valid("param");
+        const r = await owner.withOwnerDocument(
+          c.req.raw.headers,
+          shopId,
+          (ctx) => documentShareHistory(ctx, docId, revision),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(documentShareHistorySchema.parse(r.data), 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/documents/{docId}/{revision}/history",
+        request: {
+          params,
+          headers,
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: documentShareCommandSchema },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Explicit idempotent manual-sharing record",
+            content: {
+              "application/json": { schema: documentShareEventSchema },
+            },
+          },
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const { shopId, docId, revision } = c.req.valid("param"),
+          h = c.req.valid("header");
+        if (!h["idempotency-key"])
+          throw new DocumentFailure(422, "IDEMPOTENCY_KEY_REQUIRED");
+        const r = await owner.withOwnerDocument(
+          c.req.raw.headers,
+          shopId,
+          (ctx) =>
+            recordDocumentShare(
+              ctx,
+              docId,
+              revision,
+              c.req.valid("json"),
+              h["idempotency-key"] ?? "",
+            ),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(documentShareEventSchema.parse(r.data), 200);
       },
     );
   app.onError((e, c) => {
