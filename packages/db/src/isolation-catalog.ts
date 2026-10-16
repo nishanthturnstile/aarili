@@ -139,6 +139,7 @@ export async function assertIsolationCatalog(db: Database) {
             "foundation.synthetic",
             "foundation.schedule",
             "foundation.dead",
+            "media.process",
           ].includes(String(q.name)) ||
           q.table_name !== "job_common" ||
           q.partition,
@@ -261,6 +262,15 @@ export async function assertIsolationCatalog(db: Database) {
       (row.insert || row.update || row.delete)
     )
       fail("bootstrap-only write grants");
+    if (
+      [
+        "public.media_asset",
+        "public.media_attempt",
+        "public.media_reference",
+      ].includes(row.table) &&
+      (row.delete || (row.table === "public.media_reference" && row.update))
+    )
+      fail("private media history grants");
     const membership = row.table === "public.shop_membership";
     const guard = row.policies.find(
       (p) => p.name === (membership ? "membership_identity" : "tenant_context"),

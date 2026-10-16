@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createApi } from "@aarili/api";
 import { createCommandRoutes } from "@aarili/api/commands";
 import { createDraftRoutes } from "@aarili/api/drafts";
+import { createMediaRoutes } from "@aarili/api/media";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
@@ -29,6 +30,18 @@ api.route(
     },
   }),
 );
+api.route(
+  "/",
+  createMediaRoutes({
+    origin: "http://127.0.0.1:3157",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerMedia: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
@@ -39,5 +52,5 @@ await writeFile(
   `${JSON.stringify(document, null, 2)}\n`,
 );
 console.info(
-  `0.2.3 generated ${Object.keys(document.paths).length} health/command/draft paths without mounting production API docs.`,
+  `0.2.3 generated ${Object.keys(document.paths).length} health/command/draft/media paths without mounting production API docs.`,
 );

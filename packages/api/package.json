@@ -31,6 +31,10 @@
     "./draft-client": {
       "types": "./dist/draft-client.d.ts",
       "import": "./dist/draft-client.js"
+    },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "import": "./dist/media.js"
     }
   },
   "scripts": {
