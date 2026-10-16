@@ -22,7 +22,7 @@ Repository: [nishanthturnstile/aarili](https://github.com/nishanthturnstile/aari
 | GitHub Actions | Enabled; actions must use full commit SHAs |
 | Workflow token | Read-only default; workflow cannot approve PRs |
 | Issue readiness label | `ready-for-agent`, meaning approved ticket with all blockers checked before starting |
-| Required CI checks on `development` | `Scaffold verification`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches |
+| Required CI checks on `development` | `Fast verification`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches |
 | Required CI checks on `main` | `Scaffold verification`, `Browser smoke and accessibility`, `Dependency audit`; GitHub Actions App 15368; strict/up-to-date branches |
 | Main history rule | Linear history disabled so the `development` promotion can merge with a merge commit; squash remains enabled for feature PRs |
 | Dependency vulnerability alerts | Enabled and read back HTTP 204 (issue #6); hosted Renovate activation remains owner confirmation |
