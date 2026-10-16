@@ -817,7 +817,13 @@ starting an issue whose blockers have merged. See
 
 ### 12.4 Delivery pipeline
 
-1. **GitHub Actions on every push:**
+1. **GitHub Actions on PRs targeting `main` and pushes to `main`:**
+   Owner-approved verification correction, 16 October 2026: feature branches use
+   PR verification (including draft PR updates) instead of duplicate push and PR
+   runs. Open a draft PR when hosted verification is needed; a feature push before
+   a PR exists does not run automatically. Manual dispatch remains available,
+   and the daily dependency audit remains scheduled. Required check names and
+   their verification suites are unchanged.
    - Biome, Knip and `tsc --noEmit`;
    - Vitest unit and property tests;
    - Testcontainers integration tests (row-level security, queue, money);

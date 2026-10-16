@@ -2,7 +2,8 @@ name: Aarili verification
 
 on:
   push:
-    branches: ['**']
+    # Feature changes are verified by pull_request, avoiding a duplicate push run.
+    branches: [main]
   pull_request:
     branches: [main]
   schedule:
