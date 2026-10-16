@@ -819,9 +819,14 @@ in this same checkout before starting an issue whose blockers have merged. See
 ### 12.4 Delivery pipeline
 
 1. **GitHub Actions on PRs to `development` and `main`:** feature PRs to
-   `development` run scaffold verification and the dependency audit. The
-   `development` → `main` promotion PR runs all three required checks, including
-   the browser/accessibility suite. Manual dispatch runs all checks; the daily
+   `development` run a fast verification subset (Biome/boundaries/tokens, Knip,
+   `tsc --noEmit`, unit and property tests, negative client/UI type fixtures,
+   OpenAPI generation and the production build) and the dependency audit. The
+   `development` → `main` promotion PR runs the full scaffold verification
+   (real-PostgreSQL integration, Linux sandbox PDF goldens, production
+   readiness/outage and worker-shutdown smoke and the private-configuration
+   canary), the browser/accessibility suite and the dependency audit. Manual
+   dispatch runs all checks; the daily
    dependency audit remains scheduled. Pushes to either branch do not duplicate
    successful PR verification. Feature PRs are squash-merged to `development`;
    promotion uses a merge commit so the long-lived branch does not repeat

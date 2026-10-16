@@ -24,6 +24,7 @@
     "test:negative": "pnpm build:packages && node scripts/check-negative-types.mjs && node scripts/check-ui-types.mjs",
     "smoke": "node scripts/smoke.mjs",
     "verify": "pnpm lint && pnpm knip && pnpm typecheck && pnpm test && pnpm test:negative && pnpm openapi && pnpm test:pdf && pnpm test:integration && pnpm build && pnpm smoke && node scripts/check-artifacts.mjs",
+    "verify:fast": "pnpm lint && pnpm knip && pnpm typecheck && pnpm test && pnpm test:negative && pnpm openapi && pnpm build",
     "verify:clean": "node scripts/verify-clean.mjs",
     "tokens": "node scripts/check-design-tokens.mjs && node scripts/generate-pwa-assets.mjs --check",
     "test:ui": "pnpm build:packages && pnpm --filter @aarili/web build && node scripts/test-ui.mjs",

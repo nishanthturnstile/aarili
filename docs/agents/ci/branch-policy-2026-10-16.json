@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-16T15:16:47Z",
+  "observed_at": "2026-10-16T16:29:08Z",
   "repository": {
     "default_branch": "development",
     "allow_merge_commit": true,
@@ -11,7 +11,7 @@
     "development": {
       "required_checks": [
         "Dependency audit",
-        "Scaffold verification"
+        "Fast verification"
       ],
       "strict": true,
       "approving_reviews": 0,

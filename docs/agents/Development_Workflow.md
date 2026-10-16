@@ -73,8 +73,10 @@ worktree approval. Merge and deployment remain separately controlled.
 ## Review, merge and the next issue
 
 Review the actual PR diff, issue acceptance coverage, checks and failure paths.
-Feature PRs target `development` and require `Scaffold verification` and
-`Dependency audit`; the full browser suite is not a gate on these PRs. Run
+Feature PRs target `development` and require `Fast verification` and
+`Dependency audit`; the full `Scaffold verification` (real-PostgreSQL integration,
+Linux sandbox PDF goldens, production smoke and the private-configuration canary)
+and the full browser suite are not gates on these PRs. Run
 focused browser validation during UI development when the changed behavior needs
 it. The PR that promotes `development` to `main` runs all three checks,
 including `Browser smoke and accessibility`, against the release candidate.
@@ -100,12 +102,22 @@ Owner-approved workflow improvement, 16 October 2026. Preserve the existing
 implementation sequence, acceptance criteria, required CI checks and owner merge
 review. Reduce repetition around those gates rather than removing coverage.
 
+Owner decision, 16 October 2026: PRs into `development` run a fast, Docker-free
+subset (`pnpm verify:fast`: lint/boundaries/tokens, Knip, strict types, unit and
+negative-type tests, OpenAPI and the production build) plus the dependency audit.
+The full `Scaffold verification` (`pnpm verify`: real-PostgreSQL/S3/jobs/PDF
+integration, Linux sandbox PDF goldens, production readiness/outage and
+worker-shutdown smoke, artifact scans and the private-configuration canary) runs on
+the `development` → `main` promotion PR and on manual dispatch. The fast subset is
+a strict part of the full check, so no coverage is permanently removed; promotion
+retains the complete gate.
+
 | Stage | Required evidence | Avoidable repetition |
 | --- | --- | --- |
 | Baseline | Inspect status and the latest `development` CI result; retain successful promotion CI for `main`. Investigate relevant failures or local drift. | Do not run the entire suite again solely to start a branch from the same verified `development`. Historical baseline evidence never proves the new change. |
 | Development | Run focused checks for the affected behavior and meaningful failure paths while iterating. | Do not run full verification after each small edit. |
 | Final local verification | Run actual lint, Knip, strict types, relevant tests and production build. Implementation tickets requiring `pnpm verify`, `pnpm test:ui`, audit or other commands retain those requirements. | A successful `pnpm verify` already covers its component commands; do not immediately repeat lint, Knip, types, tests or build separately without a reason. |
-| Hosted feature PR verification | `Scaffold verification` and `Dependency audit` must pass on PRs to `development`. Draft PRs run these checks too. | The full browser suite waits for the promotion PR. Feature pushes do not trigger duplicate push runs. |
+| Hosted feature PR verification | `Fast verification` and `Dependency audit` must pass on PRs to `development`. Draft PRs run these checks too. | The full scaffold verification and browser suite wait for the promotion PR. Feature pushes do not trigger duplicate push runs. |
 | Hosted promotion verification | All three checks, including browser smoke/accessibility, must pass on the `development` → `main` PR revision. | Do not dispatch another full run when the promotion PR already has current passing results. |
 | Integrated main | After an authorized promotion, update the checkout and inspect the successful promotion checks. | Main pushes do not repeat the full suite; investigate tree differences or failures rather than rerunning without cause. |
 
@@ -128,9 +140,10 @@ tests, security checks, PDF goldens and physical-device acceptance where require
 Never describe unrun checks or earlier evidence as fresh verification.
 
 CI triggers are PRs targeting `development` or `main`, manual dispatch and the
-daily dependency audit. PRs to `development` run scaffold verification and the
-dependency audit; the browser job is skipped. PRs from `development` to `main`
-run all three checks. Main and development pushes do not start duplicate runs.
+daily dependency audit. PRs to `development` run fast verification and the
+dependency audit; the full scaffold verification and browser jobs are skipped.
+PRs from `development` to `main` run the full scaffold verification, the browser
+smoke/accessibility suite and the dependency audit. Main and development pushes do not start duplicate runs.
 A feature branch without a PR has no automatic hosted run: open a draft PR once
 publication is authorized and hosted feedback is needed. Manual dispatch runs
 all checks. Existing cancellation of superseded runs remains in place.

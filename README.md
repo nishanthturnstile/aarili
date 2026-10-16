@@ -214,9 +214,13 @@ credentials, global Docker overrides or disabled Ryuk are required.
 
 ## CI and dependency policy
 
-`.github/workflows/verify.yml` runs Linux scaffold verification and a dependency
-audit on PRs to `development`; its full phone/tablet/desktop browser/axe suite
-runs on the promotion PR from `development` to `main`. Manual dispatch runs all
+`.github/workflows/verify.yml` runs fast Linux verification (lint/boundaries/
+tokens, Knip, strict types, unit and negative-type tests, OpenAPI and the
+production build) and a dependency audit on PRs to `development`. The full
+scaffold verification (real-PostgreSQL integration, Linux sandbox PDF goldens,
+production readiness/outage smoke and the private-configuration canary) and the
+phone/tablet/desktop browser/axe suite run on the promotion PR from `development`
+to `main`. Manual dispatch runs all
 checks, and the daily schedule runs the dependency audit. There are no duplicate
 push runs. Each job uses exact Node/pnpm pins, a frozen install
 and Actions pinned to full commit SHAs. PostgreSQL remains disposable through
