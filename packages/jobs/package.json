@@ -19,6 +19,10 @@
     "./draft-fixture": {
       "types": "./dist/draft-fixture.d.ts",
       "import": "./dist/draft-fixture.js"
+    },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "import": "./dist/media.js"
     }
   },
   "scripts": {

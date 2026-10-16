@@ -17,6 +17,7 @@ import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
+import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
   createDatabase,
@@ -30,6 +31,7 @@ import {
 import * as schema from "@aarili/db/auth-schema";
 import { commandRepository } from "@aarili/db/command-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
@@ -85,6 +87,11 @@ export type AuthConfiguration = {
   policy?: Partial<Policy>;
   now?: () => Date;
   google?: GoogleConfiguration | undefined;
+  mediaAdapters?: (
+    tx: Transaction,
+    shopId: string,
+    userId: string,
+  ) => Pick<MediaContext, "policy" | "storage" | "jobs">;
   draftInstrumentation?: (
     tx: Transaction,
     shopId: string,
@@ -140,6 +147,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerMedia: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MediaContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   // Server composition may enlist another repository/vendor adapter only on
   // this exact verified-session, authorized shop transaction.
   withOwnerTransaction: <T>(
@@ -934,6 +946,46 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       }),
     );
   }
+  async function withOwnerMedia<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MediaContext) => Promise<T>,
+  ) {
+    shopId = shopId.toLowerCase();
+    return withOwnerTransaction(headers, shopId, (tx, userId) => {
+      const unavailable = async (): Promise<never> => {
+        throw Error("Private media adapter unavailable");
+      };
+      const adapters = configuration.mediaAdapters?.(tx, shopId, userId) ?? {
+        policy: deniedMediaPolicy,
+        storage: {
+          signPut: unavailable,
+          signGet: unavailable,
+          snapshot: unavailable,
+          seal: unavailable,
+          removeStaging: unavailable,
+        },
+        jobs: { enqueue: unavailable },
+      };
+      const writer = createUsageWriter(usageRepository(tx, shopId));
+      return run({
+        shopId,
+        actor: { type: "user", id: userId },
+        repository: mediaRepository(tx, shopId),
+        ...adapters,
+        instrumentation: {
+          stored: async (actionId, assetId, bytes) => {
+            await writer.record({
+              actionId,
+              subjectId: assetId,
+              name: "media.stored",
+              bytes,
+            });
+          },
+        },
+      });
+    });
+  }
   async function withOwnerCommand<T>(
     headers: Headers,
     shopId: string,
@@ -1239,6 +1291,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerCommand,
     withOwnerDraft,
     withOwnerTransaction,
+    withOwnerMedia,
     commandLimit: () => guard(commandLimit),
     googleConnection,
     disconnectGoogle,

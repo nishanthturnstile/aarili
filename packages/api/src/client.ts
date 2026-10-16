@@ -288,3 +288,11 @@ export {
   promoteDraft,
   putDraft,
 } from "./draft-client.js";
+
+export {
+  completeMediaUpload,
+  createMediaClient,
+  MediaRequestError,
+  requestMediaRead,
+  requestMediaUpload,
+} from "./media-client.js";
