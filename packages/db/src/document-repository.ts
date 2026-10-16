@@ -1,3 +1,4 @@
+import type { DocumentShareEvent } from "@aarili/contracts/documents";
 import { sql, type Transaction } from "./index.js";
 import type {
   DocumentAttempt,
@@ -10,6 +11,13 @@ import { restoreRepository } from "./restore-repository.js";
 
 const revisionColumns = sql`doc_id as "docId",revision,creator_id as "creatorId",template,template_revision as "templateRevision",font_revision as "fontRevision",template_hash as "templateHash",language,paper,model,model_hash as "modelHash",request_key as "requestKey",request_hash as "requestHash",issue_action_id as "issueActionId"`;
 const outputColumns = sql`id,doc_id as "docId",revision,fence,object_key as key,sha256,bytes,created_at as "createdAt"`;
+const shareColumns = sql`id,kind,actor_id as "actorId",created_at as "createdAt",prepared_id as "preparedId",sha256`;
+function shareEvent(row: Record<string, unknown>): DocumentShareEvent {
+  return {
+    ...row,
+    createdAt: new Date(row.createdAt as string).toISOString(),
+  } as DocumentShareEvent;
+}
 function output(row: Record<string, unknown>): DocumentOutput {
   return {
     ...row,
@@ -23,6 +31,32 @@ export function documentRepository(
   shopId = shopId.toLowerCase();
   return {
     ...requestRepository(tx, shopId),
+    async shareByKey(key) {
+      const r = await tx.execute(
+        sql`select ${shareColumns},request_hash as "requestHash" from document_share_event where shop_id=${shopId}::uuid and request_key=${key}::uuid`,
+      );
+      const row = r.rows[0];
+      return row
+        ? { ...shareEvent(row), requestHash: row.requestHash as string }
+        : undefined;
+    },
+    async shares(id, revision) {
+      const r = await tx.execute(
+        sql`select ${shareColumns} from document_share_event where shop_id=${shopId}::uuid and doc_id=${id}::uuid and revision=${revision} order by created_at desc,id desc limit 50`,
+      );
+      return r.rows.map(shareEvent);
+    },
+    async share(id, docId, revision) {
+      const r = await tx.execute(
+        sql`select ${shareColumns} from document_share_event where shop_id=${shopId}::uuid and id=${id}::uuid and doc_id=${docId}::uuid and revision=${revision}`,
+      );
+      return r.rows[0] ? shareEvent(r.rows[0]) : undefined;
+    },
+    async appendShare(docId, revision, e, key, hash) {
+      await tx.execute(
+        sql`insert into document_share_event(shop_id,id,doc_id,revision,kind,actor_id,created_at,prepared_id,sha256,request_key,request_hash) values(${shopId}::uuid,${e.id}::uuid,${docId}::uuid,${revision},${e.kind},${e.actorId}::uuid,${e.createdAt}::timestamptz,${e.preparedId}::uuid,${e.sha256},${key}::uuid,${hash})`,
+      );
+    },
     async id() {
       const r = await tx.execute<{ id: string }>(sql`select uuidv7() as id`);
       if (!r.rows[0]) throw Error("Document identity unavailable");

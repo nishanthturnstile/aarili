@@ -1011,7 +1011,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       const adapters = configuration.documentAdapters?.(tx, shopId, userId) ?? {
         templates: { resolve: async () => undefined },
         policy: { authorize: async () => false },
-        storage: { put: unavailable, signGet: unavailable },
+        storage: { put: unavailable, signGet: unavailable, read: unavailable },
         jobs: { enqueue: unavailable, phase: unavailable },
       };
       return run({

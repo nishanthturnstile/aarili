@@ -22,8 +22,11 @@ export {
   createDocumentClient,
   DocumentRequestError,
   requestDocumentAccess,
+  requestDocumentFile,
+  requestDocumentHistory,
   requestDocumentIssue,
   requestDocumentRetry,
+  requestDocumentShare,
   requestDocumentStatus,
 } from "./document-client.js";
 
