@@ -4,3 +4,4 @@ export { pwaMessages } from "./pwa-messages.js";
 export type Locale = "en" | "ta";
 export { documentMessages } from "./document-messages.js";
 export { mediaMessages } from "./media-messages.js";
+export { sharingMessages } from "./sharing-messages.js";

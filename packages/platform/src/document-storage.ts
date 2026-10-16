@@ -74,6 +74,39 @@ export function createDocumentStorage(config: Configuration) {
     }
   }
   return {
+    async read(key: string) {
+      check(key);
+      try {
+        const r = await s3.send(
+          new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+          { abortSignal: AbortSignal.timeout(10000) },
+        );
+        const body = r.Body;
+        if (!body) throw Error("DOCUMENT_STORAGE_UNAVAILABLE");
+        const close = () => {
+          if ("destroy" in body && typeof body.destroy === "function")
+            body.destroy();
+        };
+        if (!r.ContentLength || r.ContentLength > 25 * 1024 * 1024) {
+          close();
+          throw Error("DOCUMENT_BYTES_REJECTED");
+        }
+        const chunks: Buffer[] = [];
+        let size = 0;
+        for await (const b of body as AsyncIterable<Uint8Array>) {
+          size += b.length;
+          if (size > 25 * 1024 * 1024) {
+            close();
+            throw Error("DOCUMENT_BYTES_REJECTED");
+          }
+          chunks.push(Buffer.from(b));
+        }
+        if (size !== r.ContentLength) throw Error("DOCUMENT_BYTES_REJECTED");
+        return new Uint8Array(Buffer.concat(chunks));
+      } catch {
+        throw Error("DOCUMENT_STORAGE_UNAVAILABLE");
+      }
+    },
     async put(key: string, input: Uint8Array, sha256: string) {
       check(key);
       const bytes = Buffer.from(input);

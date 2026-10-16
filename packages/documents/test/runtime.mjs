@@ -188,7 +188,11 @@ try {
     try {
       await Promise.all([idle.render(make("A4")), idle.render(make("A3"))]);
       assert.equal(idle.observation().launches, 1);
-      await new Promise((r) => setTimeout(r, 180));
+      // Closing a real sandboxed browser can take longer than a fixed sleep on
+      // a CPU-limited host. Observe actual disconnection within a bounded budget.
+      const idleDeadline = Date.now() + 5000;
+      while (idle.observation().connected && Date.now() < idleDeadline)
+        await new Promise((r) => setTimeout(r, 50));
       assert.equal(idle.observation().connected, false);
       await idle.render(make("A4"));
       assert.equal(idle.observation().launches, 2);
