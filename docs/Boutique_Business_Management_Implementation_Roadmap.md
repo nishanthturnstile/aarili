@@ -18,6 +18,11 @@ UI cleanup #47 merged through PR #49 at `b13f176`; fresh full verification and
 Runtime cleanup #48 separates normal API/browser/worker composition from explicit
 verification exemplars; its [acceptance evidence](agents/Issue_48_Runtime_Cleanup_Evidence.md)
 records review status and validation. No business slice or activation gate changes.
+Phase 0.4's ten slices (#51–#60) merged through PRs #61–#71; the
+[Phase 0.4 closeout acceptance](agents/Phase_0_4_Closeout_Acceptance.md) records
+integrated verification, the deferred physical Android/fluent-Tamil gates and the
+remaining activation limits. Owner direction of 16 October 2026 holds Phase 0.5
+until immediately before deployment; local development continues on synthetic data.
 Phase 0.4 and later retain concrete draft, review and publication approval.
 This roadmap alone authorises no new
 implementation or GitHub Issue generation; later release allocation remains provisional.
@@ -225,13 +230,14 @@ still requires its own hosted checks and owner merge authorization.
 The owner approved the phase direction and requested implementation on 15 October
 2026. The [implementation plan and ten published ticket bodies](agents/Phase_0_4_Implementation_Plan.md)
 preserve the parent slices below, synthetic-only verification boundary, physical
-Android/Tamil review and pending retention approval. The approved breakdown is published as #51–#60 with verified native blockers.
-The #51 implementation merged through [PR #61](https://github.com/nishanthturnstile/aarili/pull/61), with
-[criterion-by-criterion evidence](agents/Issue_51_Responsive_Shell_Evidence.md)
-on integrated main. The #52 online-only PWA has
-[criterion-by-criterion evidence](agents/Issue_52_PWA_Evidence.md) for draft review;
-later slices retain their direct prerequisite merge gates. Phase closeout still
-requires the remaining slices and physical Android/Tamil acceptance.
+Android/Tamil review and pending retention approval. The approved breakdown was
+published as #51–#60 with verified native blockers and all ten slices are merged
+through PRs #61–#71 on integrated main `4eab791`, with the promotion PR #74
+passing all three required checks. The
+[Phase 0.4 closeout acceptance](agents/Phase_0_4_Closeout_Acceptance.md) records the
+reconciled A–J coverage, hosted verification and remaining gates. Phase closeout
+still leaves the physical Android/fluent-Tamil acceptance and the later privacy
+and activation gates open.
 
 #### Functionality — Bilingual navigation, server drafts and observable use
 
