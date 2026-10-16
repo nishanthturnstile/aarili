@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -157,6 +158,68 @@ export function createMediaStorage(config: {
         );
       } catch {
         throw Error("Private staging cleanup failed");
+      }
+    },
+    destroy() {
+      client.destroy();
+    },
+  };
+}
+// Explicit maintenance-only capability. Not returned by createMediaStorage and
+// never composed into API admission/read or a background sweep automatically.
+export function createMediaOrphanStorage(config: {
+  endpoint: string;
+  region: string;
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}) {
+  const client = new S3Client({
+    endpoint: config.endpoint,
+    region: config.region,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+    forcePathStyle: true,
+    maxAttempts: 1,
+    requestHandler: { requestTimeout: 10000, connectionTimeout: 3000 },
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
+  });
+  const uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+  const check = (key: string, complete: boolean) => {
+    if (
+      !new RegExp(
+        `^shops/${uuid}/private/${uuid}/${uuid}${complete ? `/${uuid}` : ""}$`,
+      ).test(key)
+    )
+      throw Error("Media maintenance key rejected");
+  };
+  return {
+    async list(prefix: string) {
+      check(prefix, false);
+      try {
+        const page = await client.send(
+          new ListObjectsV2Command({
+            Bucket: config.bucket,
+            Prefix: `${prefix}/`,
+            MaxKeys: 20,
+          }),
+        );
+        return (page.Contents ?? []).map((item) => item.Key ?? "");
+      } catch {
+        throw Error("Private reconciliation listing failed");
+      }
+    },
+    async remove(key: string) {
+      check(key, true);
+      try {
+        await client.send(
+          new DeleteObjectCommand({ Bucket: config.bucket, Key: key }),
+        );
+      } catch {
+        throw Error("Private reconciliation deletion failed");
       }
     },
     destroy() {

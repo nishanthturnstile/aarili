@@ -79,7 +79,7 @@ export function mediaRepository(
         sql`update media_attempt set state='processing',fence=${fence}::uuid,lease_until=${until}::timestamptz where shop_id=${shopId}::uuid and id=${id}::uuid`,
       );
     },
-    async accept(id, attempt, fence, key, hash, bytes) {
+    async accept(id, attempt, fence, key, hash, bytes, derivatives = []) {
       const r = await tx.execute(
         sql`update media_attempt set state='accepted' where shop_id=${shopId}::uuid and id=${attempt}::uuid and fence=${fence}::uuid returning id`,
       );
@@ -87,7 +87,45 @@ export function mediaRepository(
       const a = await tx.execute(
         sql`update media_asset set status='ready',version=version+1,accepted_key=${key},sha256=${hash},accepted_bytes=${bytes} where shop_id=${shopId}::uuid and id=${id}::uuid and attempt_id=${attempt}::uuid returning ${columns}`,
       );
+      for (const d of derivatives)
+        await tx.execute(
+          sql`insert into media_derivative(shop_id,asset_id,variant,object_key,sha256,accepted_bytes,width,height,content_type) values(${shopId}::uuid,${id}::uuid,${d.variant},${d.key},${d.sha256},${d.bytes},${d.width},${d.height},${d.contentType})`,
+        );
       return asset(a.rows[0] as Record<string, unknown>);
+    },
+    async derivatives(id) {
+      const r = await tx.execute(
+        sql`select variant,object_key as key,sha256,accepted_bytes as bytes,width,height,content_type as "contentType" from media_derivative where shop_id=${shopId}::uuid and asset_id=${id}::uuid order by variant`,
+      );
+      return r.rows as Awaited<ReturnType<MediaRepository["derivatives"]>>;
+    },
+    async release(id, fence) {
+      await tx.execute(
+        sql`update media_attempt set lease_until=clock_timestamp() where shop_id=${shopId}::uuid and id=${id}::uuid and fence=${fence}::uuid and state='processing'`,
+      );
+    },
+    async claims(id, before) {
+      const r = await tx.execute<{ fence: string }>(
+        sql`select id as fence from audit_event where shop_id=${shopId}::uuid and entity_type='media_asset' and entity_id=${id}::uuid and action='media.claim' and occurred_at<=${before}::timestamptz order by occurred_at,id limit 10`,
+      );
+      return r.rows;
+    },
+    async cleanupIntents(id, epoch) {
+      const r = await tx.execute(
+        sql`select id,object_key as key,claim_fence as fence,restore_epoch as epoch from media_cleanup_intent where shop_id=${shopId}::uuid and asset_id=${id}::uuid and restore_epoch=${epoch}::uuid and completed_at is null order by created_at,id limit 20`,
+      );
+      return r.rows as Awaited<ReturnType<MediaRepository["cleanupIntents"]>>;
+    },
+    async intent(id, p, actorId) {
+      const r = await tx.execute(
+        sql`insert into media_cleanup_intent(shop_id,id,asset_id,object_key,claim_fence,restore_epoch,actor_id) values(${shopId}::uuid,${p.id}::uuid,${id}::uuid,${p.key},${p.fence}::uuid,${p.epoch}::uuid,${actorId}::uuid) on conflict(shop_id,asset_id,object_key,restore_epoch) do nothing returning id`,
+      );
+      return !!r.rowCount;
+    },
+    async cleaned(id, intent, action) {
+      await tx.execute(
+        sql`update media_cleanup_intent set completed_at=clock_timestamp(),completion_action_id=${action}::uuid where shop_id=${shopId}::uuid and asset_id=${id}::uuid and id=${intent}::uuid and completed_at is null`,
+      );
     },
     async quarantine(id, attempt, fence) {
       const updated = await tx.execute(

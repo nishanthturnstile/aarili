@@ -7,9 +7,28 @@ import type { MediaAttempt } from "@aarili/db/repositories/media";
 import { usageRepository } from "@aarili/db/usage-repository";
 import { fromDrizzle, type PgBoss } from "pg-boss";
 // Composed only inside the verified media transaction. No queue start/provision
-// or content-processing activation; #58 will register the reviewed handler.
+// or provider activation. The production registry composes the reviewed handler.
 export function mediaJobWriter(boss: PgBoss, tx: Transaction, shopId: string) {
   return {
+    async status(
+      attempt: MediaAttempt,
+    ): Promise<"queued" | "running" | "retrying" | "failed" | "unavailable"> {
+      const result = await tx.execute(
+        sql`select state from pgboss.job where name='media.process' and id=${attempt.id}::uuid and data->>'shopId'=${shopId.toLowerCase()} and data->>'assetId'=${attempt.assetId.toLowerCase()} and data->>'attemptId'=${attempt.id.toLowerCase()}`,
+      );
+      const state = result.rows[0]?.state;
+      return state === "created"
+        ? "queued"
+        : state === "active"
+          ? "running"
+          : state === "retry"
+            ? "retrying"
+            : state === "failed" ||
+                state === "cancelled" ||
+                state === "completed"
+              ? "failed"
+              : "unavailable";
+    },
     async enqueue(attempt: MediaAttempt) {
       const id = await boss.send(
         "media.process",

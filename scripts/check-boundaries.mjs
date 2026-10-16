@@ -174,6 +174,7 @@ export function checkBoundaries(sources) {
   const visited = new Set();
   const exemplars = new Set([
     "apps/web/test-support/draft-host-app.tsx",
+    "apps/web/test-support/media-host-app.tsx",
     "packages/api/src/commands.ts",
     "packages/api/src/command-fixture-client.ts",
     "packages/api/src/money-fixture-client.ts",

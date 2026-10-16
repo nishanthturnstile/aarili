@@ -128,3 +128,74 @@ export const mediaReference = pgTable(
     ),
   ],
 );
+// 0013 additionally seals inserts to the exact accepting transaction and
+// denies later updates/deletes, including privileged accidental rewrites.
+export const mediaDerivative = pgTable(
+  "media_derivative",
+  {
+    shopId: uuid("shop_id").notNull(),
+    assetId: uuid("asset_id").notNull(),
+    variant: text("variant").notNull(),
+    objectKey: text("object_key").notNull(),
+    sha256: text("sha256").notNull(),
+    acceptedBytes: integer("accepted_bytes").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    contentType: text("content_type").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.assetId, t.variant] }),
+    unique().on(t.shopId, t.objectKey),
+    foreignKey({
+      columns: [t.shopId, t.assetId],
+      foreignColumns: [mediaAsset.shopId, mediaAsset.id],
+    }),
+    ...(["restrictive", "permissive"] as const).map((as) =>
+      pgPolicy(as === "restrictive" ? "tenant_context" : "tenant_access", {
+        as,
+        for: "all",
+        to: "app_user",
+        using: sql`shop_context_allows(${t.shopId})`,
+        withCheck: sql`shop_context_allows(${t.shopId})`,
+      }),
+    ),
+  ],
+);
+export const mediaCleanupIntent = pgTable(
+  "media_cleanup_intent",
+  {
+    shopId: uuid("shop_id").notNull(),
+    id: uuid("id").notNull(),
+    assetId: uuid("asset_id").notNull(),
+    objectKey: text("object_key").notNull(),
+    claimFence: uuid("claim_fence").notNull(),
+    restoreEpoch: uuid("restore_epoch").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    completionActionId: uuid("completion_action_id"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.id] }),
+    unique().on(t.shopId, t.assetId, t.objectKey, t.restoreEpoch),
+    foreignKey({
+      columns: [t.shopId, t.assetId],
+      foreignColumns: [mediaAsset.shopId, mediaAsset.id],
+    }),
+    foreignKey({
+      columns: [t.shopId, t.actorId],
+      foreignColumns: [shopMembership.shopId, shopMembership.userId],
+    }),
+    ...(["restrictive", "permissive"] as const).map((as) =>
+      pgPolicy(as === "restrictive" ? "tenant_context" : "tenant_access", {
+        as,
+        for: "all",
+        to: "app_user",
+        using: sql`shop_context_allows(${t.shopId})`,
+        withCheck: sql`shop_context_allows(${t.shopId})`,
+      }),
+    ),
+  ],
+);

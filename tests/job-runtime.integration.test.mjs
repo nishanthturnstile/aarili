@@ -57,8 +57,8 @@ test("#48 TRU-01/06/12 normal worker and opted-in web leave queued examples and 
       DATABASE_URL: connectionString,
     });
     try {
-      assert.deepEqual(worker.handlers, []);
-      assert.deepEqual(web.handlers, []);
+      assert.deepEqual(worker.handlers, ["media.process"]);
+      assert.deepEqual(web.handlers, ["media.process"]);
       await delay(200);
       assert.deepEqual(await jobCounts(f), before);
       assert.deepEqual(

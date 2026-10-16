@@ -133,10 +133,7 @@ await withPostgres(
         worker,
       );
       worker.proc.send("shutdown");
-      assert.match(
-        worker.output(),
-        /no job consumers registered; real providers disabled/,
-      );
+      assert.match(worker.output(), /media.process; real providers disabled/);
       assert(!worker.output().includes("foundation.synthetic"));
       assert(!worker.output().includes("foundation.schedule"));
       const [code] = await Promise.race([

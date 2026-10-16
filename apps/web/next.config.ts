@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
   logging: { incomingRequests: false, browserToTerminal: false },
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
+  // Native runtime companions are not all discoverable from the .node addon
+  // (notably Windows libvips DLLs). Include only installed sharp/libvips lib
+  // directories, across pnpm's platform package names; build scripts stay off.
+  outputFileTracingIncludes: {
+    "/*": [
+      "../../node_modules/.pnpm/@img+sharp-*/node_modules/@img/sharp-*/lib/**/*",
+    ],
+  },
   typedRoutes: true,
   async headers() {
     return [

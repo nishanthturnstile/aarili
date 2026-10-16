@@ -202,8 +202,8 @@ const media = spawnSync(
 const mediaOutput = media.stdout + media.stderr;
 if (
   media.status === 0 ||
-  (mediaOutput.match(/error TS/g) ?? []).length !== 4 ||
-  ![2, 3, 4, 5].every((line) =>
+  (mediaOutput.match(/error TS/g) ?? []).length !== 6 ||
+  ![2, 3, 4, 5, 6, 7].every((line) =>
     mediaOutput.includes(`media-invalid.ts(${line},`),
   )
 ) {
@@ -213,5 +213,5 @@ if (
   );
 }
 console.info(
-  "0.4.3a four invalid media DTO/client uses rejected by compiled declarations.",
+  "0.4.3a/b six invalid media DTO/client/status/variant uses rejected by compiled declarations.",
 );

@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./production": {
+      "types": "./dist/production.d.ts",
+      "import": "./dist/production.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
@@ -34,6 +38,7 @@
     "@aarili/contracts": "workspace:*",
     "@aarili/core": "workspace:*",
     "@aarili/db": "workspace:*",
+    "@aarili/platform": "workspace:*",
     "pg-boss": "12.37.1"
   },
   "devDependencies": {

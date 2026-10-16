@@ -1,6 +1,8 @@
 import {
   type MediaAdmission,
+  type MediaVariant,
   mediaReadSchema,
+  mediaStatusSchema,
   mediaSuccessSchema,
   mediaUploadSchema,
 } from "@aarili/contracts/media";
@@ -112,6 +114,36 @@ export async function requestMediaRead(shopId: string, id: string) {
       (signal) =>
         createMediaClient().shops[":shopId"].files[":id"].access.$get(
           { param: { shopId, id } },
+          { init: { signal, cache: "no-store" } },
+        ),
+      result,
+    ),
+  );
+}
+export async function requestMediaStatus(shopId: string, id: string) {
+  return mediaStatusSchema.parse(
+    await authenticatedResult(
+      (signal) =>
+        createMediaClient().shops[":shopId"].files[":id"].status.$get(
+          { param: { shopId, id } },
+          { init: { signal, cache: "no-store" } },
+        ),
+      result,
+    ),
+  );
+}
+export async function requestMediaVariant(
+  shopId: string,
+  id: string,
+  variant: MediaVariant,
+) {
+  return mediaReadSchema.parse(
+    await authenticatedResult(
+      (signal) =>
+        createMediaClient().shops[":shopId"].files[":id"].variants[
+          ":variant"
+        ].access.$get(
+          { param: { shopId, id, variant } },
           { init: { signal, cache: "no-store" } },
         ),
       result,

@@ -13,6 +13,8 @@ import { withPostgres } from "./postgres.mjs";
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
   "mediaRepository.read/insert/start/claim/accept/expire",
+  "mediaRepository.derivatives/release",
+  "mediaRepository.claims/cleanupIntents/intent/cleaned",
   "shops/:shopId/files",
   "shopRepository.read",
   "owner.ownerShop",

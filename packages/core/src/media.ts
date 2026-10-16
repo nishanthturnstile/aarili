@@ -2,8 +2,10 @@ import {
   type MediaAdmission,
   type MediaRecord,
   type MediaType,
+  type MediaVariant,
   mediaAdmissionSchema,
   mediaCompletionSchema,
+  mediaDerivativeSchema,
   mediaSuccessSchema,
 } from "@aarili/contracts/media";
 import {
@@ -15,6 +17,7 @@ import type {
   MediaAsset,
   MediaAttempt,
   MediaRepository,
+  StoredMediaDerivative,
 } from "@aarili/db/repositories/media";
 import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
@@ -45,7 +48,12 @@ export type MediaStorage = {
   seal(prefix: string, bytes: Uint8Array, type: MediaType): Promise<string>;
   removeStaging(key: string): Promise<void>;
 };
-export type MediaJobs = { enqueue(attempt: MediaAttempt): Promise<void> };
+export type MediaJobs = {
+  enqueue(attempt: MediaAttempt): Promise<void>;
+  status?(
+    attempt: MediaAttempt,
+  ): Promise<"queued" | "running" | "retrying" | "failed" | "unavailable">;
+};
 export type MediaContext = {
   shopId: string;
   actor: Actor;
@@ -278,17 +286,47 @@ export function mediaFilename(a: MediaAsset) {
   };
   return `file-${a.id}.${ext[a.contentType]}`;
 }
-export async function readMedia(ctx: MediaContext, id: string) {
+export async function mediaStatus(ctx: MediaContext, id: string) {
+  requireId(id);
+  const a = await ctx.repository.read(id);
+  if (!a || ["expired", "deleted"].includes(a.status)) fail(404, "NOT_FOUND");
+  await authority(ctx, a, "read");
+  return {
+    asset: publicMedia(a),
+    derivatives:
+      a.status === "ready"
+        ? (await ctx.repository.derivatives(id)).map(({ key: _key, ...d }) => d)
+        : [],
+    processingState:
+      a.status === "processing"
+        ? await (async () => {
+            const attempt = await ctx.repository.attempt(id);
+            return attempt && ctx.jobs.status
+              ? ctx.jobs.status(attempt)
+              : ("unavailable" as const);
+          })()
+        : null,
+  };
+}
+export async function readMedia(
+  ctx: MediaContext,
+  id: string,
+  variant?: MediaVariant,
+) {
   requireId(id);
   const a = await ctx.repository.read(id);
   if (a?.status !== "ready" || !a.acceptedKey) fail(404, "NOT_FOUND");
   await authority(ctx, a, "read");
   const now = await ctx.repository.now();
-  const filename = mediaFilename(a);
+  const derivative = variant
+    ? (await ctx.repository.derivatives(id)).find((d) => d.variant === variant)
+    : undefined;
+  if (variant && !derivative) fail(404, "NOT_FOUND");
+  const filename = derivative ? `file-${a.id}.webp` : mediaFilename(a);
   return {
     url: await ctx.storage.signGet(
-      a.acceptedKey,
-      a.contentType,
+      derivative?.key ?? a.acceptedKey,
+      derivative?.contentType ?? a.contentType,
       filename,
       300,
       now,
@@ -297,15 +335,28 @@ export async function readMedia(ctx: MediaContext, id: string) {
     expiresAt: new Date(now.getTime() + 300000).toISOString(),
   };
 }
-// #58 supplies a real validator. This capability is absent from normal runtime.
-// A validator returns only bytes from the bounded snapshot; no URL/key input.
+// Trusted server validator capability. Production composes the bounded native
+// validator; legacy byte-only adapters remain confined to synthetic proofs.
 export class MediaValidationFailure extends Error {
   constructor() {
     super("MEDIA_CONTENT_REJECTED");
   }
 }
+export type ValidatedMedia = {
+  original: Uint8Array;
+  derivatives: readonly {
+    variant: MediaVariant;
+    bytes: Uint8Array;
+    width: number;
+    height: number;
+    contentType: "image/webp";
+  }[];
+};
 export type MediaValidator = {
-  validate(bytes: Uint8Array, asset: MediaAsset): Promise<Uint8Array>;
+  validate(
+    bytes: Uint8Array,
+    asset: MediaAsset,
+  ): Promise<Uint8Array | ValidatedMedia>;
 };
 export type MediaProcessingHost = {
   transaction<T>(run: (ctx: MediaContext) => Promise<T>): Promise<T>;
@@ -316,11 +367,38 @@ function sameAttemptInitiator(ctx: MediaContext, attempt: MediaAttempt) {
     ctx.actor.id.toLowerCase() === attempt.initiatorId.toLowerCase()
   );
 }
+export async function inspectMediaProcessing(
+  ctx: MediaContext,
+  assetId: string,
+  attemptId: string,
+  epoch: string,
+) {
+  await ctx.repository.lock(assetId);
+  const asset = await ctx.repository.read(assetId),
+    attempt = await ctx.repository.attempt(assetId),
+    control = await ctx.repository.control();
+  if (
+    !asset ||
+    !attempt ||
+    attempt.id !== attemptId ||
+    !sameAttemptInitiator(ctx, attempt)
+  )
+    return "denied" as const;
+  if (!control?.outbound || epoch !== attempt.epoch || epoch !== control.epoch)
+    return "restore-blocked" as const;
+  await authority(ctx, asset, "process");
+  if (asset.status === "ready" && attempt.state === "accepted")
+    return "accepted" as const;
+  if (asset.status === "quarantined" && attempt.state === "quarantined")
+    return "content-rejected" as const;
+  return "pending" as const;
+}
 export async function processMedia(
   host: MediaProcessingHost,
   assetId: string,
   attemptId: string,
   validator: MediaValidator | null,
+  beforeAccept: () => Promise<void> = async () => {},
 ) {
   if (!validator) return "disabled" as const;
   requireId(assetId);
@@ -364,23 +442,125 @@ export async function processMedia(
     return { a, attempt, fence, storage: ctx.storage };
   });
   if (!claim) return "ignored" as const;
-  // Fresh fence-derived accepted key prevents a stale/crashed claimant from
-  // overwriting another claim. Never copy the mutable staging object after validation.
-  const prefix = `shops/${claim.a.shopId}/private/${assetId}/${claim.fence}`;
-  const snapshot = await claim.storage.snapshot(
-    claim.a.stagingKey,
-    claim.a.size,
-  );
-  let bytes: Uint8Array;
   try {
-    bytes = new Uint8Array(await validator.validate(snapshot, { ...claim.a }));
-    // Own the validated output: a validator retaining its input/output cannot
-    // mutate the buffer between hashing and storage consumption.
-    if (!bytes.length || bytes.length > 25 * 1024 * 1024)
-      throw new MediaValidationFailure();
-  } catch (error) {
-    if (!(error instanceof MediaValidationFailure)) throw error;
-    return host.transaction(async (ctx) => {
+    // Fresh fence-derived accepted key prevents a stale/crashed claimant from
+    // overwriting another claim. Never copy the mutable staging object after validation.
+    const prefix = `shops/${claim.a.shopId}/private/${assetId}/${claim.fence}`;
+    const snapshot = await claim.storage.snapshot(
+      claim.a.stagingKey,
+      claim.a.size,
+    );
+    let bytes: Uint8Array;
+    let derivatives: ValidatedMedia["derivatives"] = [];
+    try {
+      const validated = await validator.validate(snapshot, { ...claim.a });
+      bytes = new Uint8Array(
+        validated instanceof Uint8Array ? validated : validated.original,
+      );
+      if (!(validated instanceof Uint8Array)) {
+        derivatives = validated.derivatives.map((d) => ({
+          ...d,
+          bytes: new Uint8Array(d.bytes),
+        }));
+        if (
+          derivatives.length !==
+            (claim.a.contentType.startsWith("image/") ? 2 : 0) ||
+          new Set(derivatives.map((d) => d.variant)).size !==
+            derivatives.length ||
+          derivatives.some(
+            (d) =>
+              !mediaDerivativeSchema.safeParse({
+                ...d,
+                bytes: d.bytes.length,
+                sha256: "0".repeat(64),
+              }).success ||
+              d.width > (d.variant === "thumbnail" ? 320 : 1600) ||
+              d.height > (d.variant === "thumbnail" ? 320 : 1600) ||
+              d.bytes.length > 20 * 1024 * 1024,
+          )
+        )
+          throw new MediaValidationFailure();
+      }
+      // Own the validated output: a validator retaining its input/output cannot
+      // mutate the buffer between hashing and storage consumption.
+      if (!bytes.length || bytes.length > 25 * 1024 * 1024)
+        throw new MediaValidationFailure();
+    } catch (error) {
+      if (!(error instanceof MediaValidationFailure)) throw error;
+      return await host.transaction(async (ctx) => {
+        await ctx.repository.lock(assetId);
+        const a = await ctx.repository.read(assetId);
+        const attempt = await ctx.repository.attempt(assetId);
+        const control = await ctx.repository.control();
+        const now = await ctx.repository.now();
+        if (
+          a?.status !== "processing" ||
+          attempt?.id !== attemptId ||
+          !sameAttemptInitiator(ctx, attempt) ||
+          attempt.fence !== claim.fence ||
+          !attempt.leaseUntil ||
+          Date.parse(attempt.leaseUntil) <= now.getTime() ||
+          !control?.outbound ||
+          control.epoch !== attempt.epoch
+        )
+          return "orphaned" as const;
+        await authority(ctx, a, "process");
+        await beforeAccept();
+        await ctx.repository.quarantine(assetId, attemptId, claim.fence);
+        const actionId = await ctx.repository.id();
+        await ctx.repository.audit({
+          id: actionId,
+          actor: ctx.actor,
+          action: "media.quarantine",
+          assetId,
+          requestId: attemptId,
+          key: attemptId,
+        });
+        await beforeAccept();
+        return "quarantined" as const;
+      });
+    }
+    const digest = async (value: Uint8Array) =>
+      Array.from(
+        new Uint8Array(
+          await crypto.subtle.digest("SHA-256", new Uint8Array(value).buffer),
+        ),
+        (b) => b.toString(16).padStart(2, "0"),
+      ).join("");
+    const seal = async (value: Uint8Array, type: MediaType) => {
+      const key = await claim.storage.seal(prefix, value, type);
+      const suffix = key.startsWith(`${prefix}/`)
+        ? key.slice(prefix.length + 1)
+        : "";
+      if (
+        !idempotencyHeaderSchema.safeParse(suffix).success ||
+        key !== `${prefix}/${suffix}`
+      )
+        fail(503, "MEDIA_UNAVAILABLE");
+      return key;
+    };
+    const hash = await digest(bytes);
+    const key = await seal(bytes, claim.a.contentType);
+    const stored: StoredMediaDerivative[] = [];
+    for (const d of derivatives) {
+      const sha256 = await digest(d.bytes);
+      const derivativeKey = await seal(d.bytes, d.contentType);
+      if (
+        derivativeKey === key ||
+        stored.some((item) => item.key === derivativeKey)
+      )
+        fail(503, "MEDIA_UNAVAILABLE");
+      stored.push({
+        variant: d.variant,
+        key: derivativeKey,
+        sha256,
+        bytes: d.bytes.length,
+        width: d.width,
+        height: d.height,
+        contentType: d.contentType,
+      });
+    }
+    return await host.transaction(async (ctx) => {
       await ctx.repository.lock(assetId);
       const a = await ctx.repository.read(assetId);
       const attempt = await ctx.repository.attempt(assetId);
@@ -388,7 +568,8 @@ export async function processMedia(
       const now = await ctx.repository.now();
       if (
         a?.status !== "processing" ||
-        attempt?.id !== attemptId ||
+        !attempt ||
+        attempt.id !== attemptId ||
         !sameAttemptInitiator(ctx, attempt) ||
         attempt.fence !== claim.fence ||
         !attempt.leaseUntil ||
@@ -398,73 +579,55 @@ export async function processMedia(
       )
         return "orphaned" as const;
       await authority(ctx, a, "process");
-      await ctx.repository.quarantine(assetId, attemptId, claim.fence);
+      await beforeAccept();
+      await ctx.repository.accept(
+        assetId,
+        attemptId,
+        claim.fence,
+        key,
+        hash,
+        bytes.length,
+        stored,
+      );
       const actionId = await ctx.repository.id();
       await ctx.repository.audit({
         id: actionId,
         actor: ctx.actor,
-        action: "media.quarantine",
+        action: "media.accept",
         assetId,
         requestId: attemptId,
         key: attemptId,
       });
-      return "quarantined" as const;
+      await ctx.instrumentation?.stored(
+        actionId,
+        assetId,
+        bytes.length + stored.reduce((sum, d) => sum + d.bytes, 0),
+      );
+      await beforeAccept();
+      return "accepted" as const;
     });
+  } catch (error) {
+    // A caught I/O/transaction failure must not consume all queue retries while
+    // the five-minute durable lease remains busy. Release only this exact
+    // still-owned fence; crashes retain the lease until queue expiry/recovery.
+    try {
+      await host.transaction(async (ctx) => {
+        await ctx.repository.lock(assetId);
+        const a = await ctx.repository.read(assetId);
+        const attempt = await ctx.repository.attempt(assetId);
+        if (
+          a?.status === "processing" &&
+          attempt?.id === attemptId &&
+          attempt.fence === claim.fence &&
+          sameAttemptInitiator(ctx, attempt)
+        )
+          await ctx.repository.release(attemptId, claim.fence);
+      });
+    } catch {
+      /* Preserve original failure; successor recovers after lease expiry. */
+    }
+    throw error;
   }
-  const hash = Array.from(
-    new Uint8Array(
-      await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer),
-    ),
-    (b) => b.toString(16).padStart(2, "0"),
-  ).join("");
-  const key = await claim.storage.seal(prefix, bytes, claim.a.contentType);
-  const suffix = key.startsWith(`${prefix}/`)
-    ? key.slice(prefix.length + 1)
-    : "";
-  if (
-    !idempotencyHeaderSchema.safeParse(suffix).success ||
-    key !== `${prefix}/${suffix}`
-  )
-    fail(503, "MEDIA_UNAVAILABLE");
-  return host.transaction(async (ctx) => {
-    await ctx.repository.lock(assetId);
-    const a = await ctx.repository.read(assetId);
-    const attempt = await ctx.repository.attempt(assetId);
-    const control = await ctx.repository.control();
-    const now = await ctx.repository.now();
-    if (
-      a?.status !== "processing" ||
-      !attempt ||
-      attempt.id !== attemptId ||
-      !sameAttemptInitiator(ctx, attempt) ||
-      attempt.fence !== claim.fence ||
-      !attempt.leaseUntil ||
-      Date.parse(attempt.leaseUntil) <= now.getTime() ||
-      !control?.outbound ||
-      control.epoch !== attempt.epoch
-    )
-      return "orphaned" as const;
-    await authority(ctx, a, "process");
-    await ctx.repository.accept(
-      assetId,
-      attemptId,
-      claim.fence,
-      key,
-      hash,
-      bytes.length,
-    );
-    const actionId = await ctx.repository.id();
-    await ctx.repository.audit({
-      id: actionId,
-      actor: ctx.actor,
-      action: "media.accept",
-      assetId,
-      requestId: attemptId,
-      key: attemptId,
-    });
-    await ctx.instrumentation?.stored(actionId, assetId, bytes.length);
-    return "accepted" as const;
-  });
 }
 export async function cleanupMedia(
   ctx: MediaContext,
@@ -507,4 +670,141 @@ export async function cleanupMedia(
   // so completion cannot start between eligibility and external removal. Retry is safe.
   await ctx.storage.removeStaging(a.stagingKey);
   return true;
+}
+export type MediaOrphanStorage = {
+  list(prefix: string): Promise<readonly string[]>;
+  remove(key: string): Promise<void>;
+};
+// Explicit server/operator composition only: no endpoint, schedule or ambient
+// bucket. Never use this for accepted history, references or privacy erasure.
+export async function reconcileMediaOutputs(
+  host: MediaProcessingHost,
+  id: string,
+  storage: MediaOrphanStorage,
+  graceSeconds: number,
+) {
+  requireId(id);
+  id = id.toLowerCase();
+  if (!Number.isInteger(graceSeconds) || graceSeconds < 300)
+    fail(422, "VALIDATION_FAILED");
+  const valid = (key: string, fence: string, shop: string) => {
+    const prefix = `shops/${shop}/private/${id}/${fence}/`;
+    return (
+      key.startsWith(prefix) &&
+      idempotencyHeaderSchema.safeParse(key.slice(prefix.length)).success
+    );
+  };
+  await host.transaction(async (ctx) => {
+    await ctx.repository.lock(id);
+    const a = await ctx.repository.read(id),
+      control = await ctx.repository.control();
+    if (!a || !control?.outbound) return;
+    await authority(ctx, a, "process");
+    if (await ctx.repository.referenced(id)) return;
+    const now = await ctx.repository.now(),
+      attempt = await ctx.repository.attempt(id);
+    const kept = new Set([
+      a.acceptedKey,
+      ...(await ctx.repository.derivatives(id)).map((d) => d.key),
+    ]);
+    const claims = await ctx.repository.claims(
+      id,
+      new Date(now.getTime() - graceSeconds * 1000).toISOString(),
+    );
+    let count = 0;
+    for (const { fence } of claims) {
+      if (
+        attempt?.fence === fence &&
+        attempt.state === "processing" &&
+        attempt.leaseUntil &&
+        Date.parse(attempt.leaseUntil) > now.getTime()
+      )
+        continue;
+      const prefix = `shops/${ctx.shopId}/private/${id}/${fence}`;
+      const keys = await storage.list(prefix);
+      if (keys.length > 20) fail(503, "MEDIA_UNAVAILABLE");
+      for (const key of keys) {
+        if (!valid(key, fence, ctx.shopId)) fail(503, "MEDIA_UNAVAILABLE");
+        if (kept.has(key)) continue;
+        const intentId = await ctx.repository.id();
+        if (
+          await ctx.repository.intent(
+            id,
+            { id: intentId, key, fence, epoch: control.epoch },
+            ctx.actor.id,
+          )
+        )
+          await ctx.repository.audit({
+            id: intentId,
+            actor: ctx.actor,
+            action: "media.orphan-intent",
+            assetId: id,
+            requestId: intentId,
+            key: intentId,
+          });
+        if (++count >= 20) return;
+      }
+    }
+  });
+  // The first transaction (including deletion intent+audit) has committed.
+  // Each bounded deletion re-locks/rechecks current authority and restore state.
+  const intents = await host.transaction(async (ctx) => {
+    await ctx.repository.lock(id);
+    const a = await ctx.repository.read(id);
+    const control = await ctx.repository.control();
+    if (!a || !control?.outbound) return [];
+    await authority(ctx, a, "process");
+    return ctx.repository.cleanupIntents(id, control.epoch);
+  });
+  let removed = 0;
+  for (const intent of intents)
+    await host.transaction(async (ctx) => {
+      await ctx.repository.lock(id);
+      const a = await ctx.repository.read(id),
+        control = await ctx.repository.control(),
+        now = await ctx.repository.now();
+      if (
+        !a ||
+        !control?.outbound ||
+        control.epoch !== intent.epoch ||
+        !valid(intent.key, intent.fence, ctx.shopId)
+      )
+        return;
+      await authority(ctx, a, "process");
+      const pending = await ctx.repository.cleanupIntents(id, control.epoch);
+      if (!pending.some((p) => p.id === intent.id)) return;
+      if (
+        !(
+          await ctx.repository.claims(
+            id,
+            new Date(now.getTime() - graceSeconds * 1000).toISOString(),
+          )
+        ).some((claim) => claim.fence === intent.fence)
+      )
+        return;
+      const attempt = await ctx.repository.attempt(id);
+      if (
+        (attempt?.fence === intent.fence &&
+          attempt.state === "processing" &&
+          attempt.leaseUntil &&
+          Date.parse(attempt.leaseUntil) > now.getTime()) ||
+        (await ctx.repository.referenced(id)) ||
+        a.acceptedKey === intent.key ||
+        (await ctx.repository.derivatives(id)).some((d) => d.key === intent.key)
+      )
+        return;
+      await storage.remove(intent.key);
+      const actionId = await ctx.repository.id();
+      await ctx.repository.cleaned(id, intent.id, actionId);
+      await ctx.repository.audit({
+        id: actionId,
+        actor: ctx.actor,
+        action: "media.orphan-cleaned",
+        assetId: id,
+        requestId: intent.id,
+        key: intent.id,
+      });
+      removed++;
+    });
+  return removed;
 }

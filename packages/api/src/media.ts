@@ -3,14 +3,17 @@ import {
   mediaAdmissionSchema,
   mediaCompletionSchema,
   mediaReadSchema,
+  mediaStatusSchema,
   mediaSuccessSchema,
   mediaUploadSchema,
+  mediaVariantSchema,
 } from "@aarili/contracts/media";
 import { etagSchema, idempotencyHeaderSchema } from "@aarili/contracts/request";
 import {
   admitMedia,
   completeMedia,
   MediaFailure,
+  mediaStatus,
   readMedia,
 } from "@aarili/core/media";
 import { versionTag } from "@aarili/core/request-version";
@@ -114,6 +117,55 @@ export function createMediaRoutes(
     return next();
   });
   const app = router
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/files/{id}/status",
+        request: { params },
+        responses: {
+          200: {
+            description:
+              "Authorized private processing state and accepted derivative metadata",
+            content: { "application/json": { schema: mediaStatusSchema } },
+          },
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const { shopId, id } = c.req.valid("param");
+        const r = await owner.withOwnerMedia(c.req.raw.headers, shopId, (ctx) =>
+          mediaStatus(ctx, id),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", versionTag(r.data.asset.version));
+        return c.json(mediaStatusSchema.parse(r.data), 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/files/{id}/variants/{variant}/access",
+        request: { params: params.extend({ variant: mediaVariantSchema }) },
+        responses: {
+          200: {
+            description:
+              "Authorized immutable private image derivative capability",
+            content: { "application/json": { schema: mediaReadSchema } },
+          },
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const { shopId, id, variant } = c.req.valid("param");
+        const r = await owner.withOwnerMedia(c.req.raw.headers, shopId, (ctx) =>
+          readMedia(ctx, id, variant),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(mediaReadSchema.parse(r.data), 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",

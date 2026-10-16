@@ -607,6 +607,18 @@ test("0.4.3a G3/G4/G8 queue/database rollback, storage failure, crash lease retr
       (await f.transaction((c) => c.repository.read(a.asset.id))).status,
       "processing",
     );
+    const released = await attempt(f, a.asset.id);
+    assert(
+      Date.parse(released.leaseUntil) <=
+        (await f.transaction((c) => c.repository.now())).getTime(),
+      "caught infrastructure failure releases only its owned technical lease",
+    );
+    // Explicitly establish an unexpired technical lease to retain the separate
+    // claimant-exclusion proof. A caught failure is now immediately retryable.
+    await f.admin.query(
+      "update media_attempt set lease_until=now()+interval '5 minutes' where id=$1",
+      [p.id],
+    );
     assert.equal(
       await processMedia(f.host, a.asset.id, p.id, validator),
       "ignored",
@@ -631,7 +643,6 @@ test("0.4.3a G3/G4/G8 queue/database rollback, storage failure, crash lease retr
       ).rowCount,
       0,
     );
-    await expireLease(f, a.asset.id);
     assert.equal(
       await processMedia(f.host, a.asset.id, p.id, validator),
       "accepted",
