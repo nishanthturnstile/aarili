@@ -79,6 +79,14 @@
     "./schedule-repository": {
       "types": "./dist/schedule-repository.d.ts",
       "import": "./dist/schedule-repository.js"
+    },
+    "./vocabulary-repository": {
+      "types": "./dist/vocabulary-repository.d.ts",
+      "import": "./dist/vocabulary-repository.js"
+    },
+    "./repositories/vocabulary": {
+      "types": "./dist/repositories/vocabulary.d.ts",
+      "import": "./dist/repositories/vocabulary.js"
     }
   },
   "scripts": {

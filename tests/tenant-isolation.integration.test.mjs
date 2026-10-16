@@ -54,6 +54,8 @@ test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repos
       "syntheticFinancial/fakeOutbound",
       "scheduleRepository.run/enabled/effected/quarantine/apply",
       "enqueueDueSchedules/handleScheduledJob/redriveSyntheticJob",
+      "vocabularyRepository.current/read/resolve/append/advance",
+      "reviseVocabulary/resolveVocabulary/searchSynthetic",
     ]);
     for (const [own, foreign] of [
       [a, b],
@@ -454,6 +456,9 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.journal_entry",
       "public.shop",
       "public.shop_membership",
+      "public.vocabulary",
+      "public.vocabulary_revision",
+      "public.vocabulary_search_key",
     ]);
     for (const [alter, restore, pattern] of [
       [
@@ -606,6 +611,9 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.journal_entry",
         "public.shop",
         "public.shop_membership",
+        "public.vocabulary",
+        "public.vocabulary_revision",
+        "public.vocabulary_search_key",
       ]);
       assert.equal(
         (await apiRequest(api, `/shops/${a.shop}`, { Cookie: a.cookie }))
