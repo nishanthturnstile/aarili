@@ -26,7 +26,7 @@ override open prerequisites or authorise implementation without a request.
 - If the source is an existing issue, make the new tickets its sub-issues when supported; otherwise include a parent link/task list. Do not modify or close the parent without authorisation.
 - Do not create a parent/map issue just to group a phase unless the owner requests one. Stable slice IDs and phase references in each issue are sufficient.
 - Work the frontier: only tickets whose direct blockers are merged may start. PRs link their ticket, include verification and traceability, and use focused `codex/…` branches.
-- Keep one local Aarili checkout and work on one implementation branch at a time. Do not create or use Git worktrees or additional feature checkouts. Push the topic branch to GitHub; switch branches in the existing checkout while preserving unrelated edits. Follow [Development_Workflow.md](Development_Workflow.md).
+- Default to one local Aarili checkout and one implementation branch at a time. Worktrees require explicit owner approval for the specific scenario; the 16 October 2026 approval covers independent issues #53, #54 and #55. Keep one issue/branch per approved worktree, preserve unrelated edits, and push each topic branch for its own PR. Follow the coordination and integration rules in [Development_Workflow.md](Development_Workflow.md).
 
 **PRs as a triage request surface: no.**
 

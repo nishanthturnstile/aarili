@@ -1,9 +1,16 @@
 # Aarili development workflow
 
-Owner decision, 13 October 2026: use one local Aarili checkout and topic
-branches. Do not create, restore or use Git worktrees or additional feature
-checkouts. Work on one implementation at a time. Existing branches and remote
-PRs preserve work when switching tasks.
+Owner decision, updated 16 October 2026: default to one local Aarili checkout
+and sequential topic branches. Create, restore or use Git worktrees only with
+explicit owner approval for the specific scenario. Approval does not carry over
+to later scenarios. Existing branches and remote PRs preserve work when switching
+tasks.
+
+The owner approved worktrees for the independent Phase 0.4 issues #53, #54 and
+#55 on 16 October 2026. This records the workspace exception; implementation
+starts only when requested, with direct blockers merged. Later tickets require
+their own applicable worktree approval. Merge and deployment remain separately
+controlled.
 
 ## Local workspace and branches
 
@@ -11,12 +18,20 @@ PRs preserve work when switching tasks.
   workspace. PowerShell, Node and pnpm run there; Docker Desktop supplies Linux
   infrastructure and verification containers.
 - Use a focused `codex/<slice-or-topic>` branch for each implementation and
-  push that branch to GitHub. Keep the work in this checkout throughout review.
+  push that branch to GitHub. Keep work in its assigned checkout throughout review.
 - Inspect status before switching branches. Preserve unrelated edits; never
   reset, discard or automatically commit them to make a switch succeed.
   Finish or deliberately preserve pending changes before switching.
-- Do not run concurrent mutations of the checkout. No agent or automation may
-  create another worktree as a workaround.
+- Do not run concurrent mutations of the same checkout. Without explicit owner
+  approval, no agent or automation may create another worktree as a workaround.
+- For approved parallel worktrees, assign one issue and branch per worktree from
+  verified integrated main. Coordinate shared contracts, migration filenames and
+  lockfile changes before editing; isolate test databases, ports and build outputs.
+  Run focused checks during development and schedule heavy final suites to avoid
+  resource contention. Each PR needs its own acceptance evidence and owner review.
+  Integrate PRs sequentially, reconcile overlaps and verify affected checks against
+  updated main before merge. Preserve work and obtain approval before cleanup that
+  would discard changes. Worktrees do not bypass dependency or activation gates.
 - Official scaffold generators may run in disposable temporary directories
   for output review; clean-install tests may use disposable install directories.
   These are scoped verification steps, not feature workspaces or Git worktrees.
@@ -32,8 +47,8 @@ PRs preserve work when switching tasks.
    prerequisite merged. Do not start from an unmerged prerequisite PR merely
    because its local checks passed.
 3. Inspect the checkout and run the baseline checks that exist. Start the
-   focused branch from integrated main in this same checkout, preserving
-   unrelated changes and existing branches.
+   focused branch from integrated main in the existing checkout or an explicitly
+   approved worktree, preserving unrelated changes and existing branches.
 4. Implement only the selected outcome. Fetch current Context7 documentation
    when required, verify supported exact versions and review official generator
    output before copying intended files. Honour native Windows/Linux boundaries,
@@ -74,9 +89,10 @@ Read its full body/comments/blockers, AGENTS.md, docs/agents/issue-tracker.md,
 docs/agents/Development_Workflow.md and the relevant product, architecture and
 roadmap sections. Verify direct blockers are merged and preserve unrelated edits.
 
-Use only the existing local Aarili checkout. Do not create or use worktrees or
-extra feature checkouts. Work sequentially on a focused codex/ topic branch
-from integrated main and push that branch to GitHub.
+Default to the existing local Aarili checkout and sequential implementation.
+Use worktrees only when the owner explicitly approved this scenario; record the
+scope and follow the worktree coordination rules. Use one focused codex/ topic
+branch per issue from integrated main and push that branch to GitHub.
 
 Implement the complete scoped outcome with required failure handling and
 integrity controls. Use current Context7 docs, exact supported pins and reviewed
