@@ -8,9 +8,11 @@ remain later scope. See the [foundation acceptance record](docs/agents/Phase_0_C
 Read AGENTS.md and the product/architecture documents before implementing a selected issue.
 
 Use this single local checkout for all development, switching between focused
-topic branches. Do not create Git worktrees or extra feature checkouts. Follow
+topic branches based on `development`. Do not create Git worktrees or extra
+feature checkouts unless the owner explicitly approves that scenario. Follow
 [the development workflow](docs/agents/Development_Workflow.md); each issue gets
-its own GitHub branch/PR after its direct blockers have merged.
+its own PR to `development` after its direct blockers have merged. Only the
+release promotion PR targets `main`.
 
 ## Native Windows development
 
@@ -212,15 +214,17 @@ credentials, global Docker overrides or disabled Ryuk are required.
 
 ## CI and dependency policy
 
-`.github/workflows/verify.yml` runs Linux scaffold verification, the implemented
-phone/tablet/desktop browser/axe suite and a dependency audit on branch pushes
-and pull requests to main. Each job uses exact Node/pnpm pins, a frozen install
+`.github/workflows/verify.yml` runs Linux scaffold verification and a dependency
+audit on PRs to `development`; its full phone/tablet/desktop browser/axe suite
+runs on the promotion PR from `development` to `main`. Manual dispatch runs all
+checks, and the daily schedule runs the dependency audit. There are no duplicate
+push runs. Each job uses exact Node/pnpm pins, a frozen install
 and Actions pinned to full commit SHAs. PostgreSQL remains disposable through
 Testcontainers; no development or production database credentials are supplied.
 Workflow tokens are read-only, checkout credentials are not persisted, and no
 production promotion or deployment occurs.
 
-The daily audit schedule runs on main. Weekly compatible
+The daily audit schedule runs against the default `development` branch. Weekly compatible
 updates, manual major approval and immediate vulnerability-fix policy are in
 `renovate.json`. Selected-repository Renovate activity and an actual successful
 scheduled audit were observed on 14 October 2026; see the
