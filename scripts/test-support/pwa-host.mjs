@@ -81,6 +81,10 @@ boot();
   try {
     await run({ origin: `http://127.0.0.1:${server.address().port}`, config });
   } finally {
-    await new Promise((done) => server.close(done));
+    await new Promise((done) => {
+      server.close(done);
+      // Browser/service-worker sockets must not outlive this disposable host.
+      server.closeAllConnections();
+    });
   }
 }

@@ -173,6 +173,7 @@ export function checkBoundaries(sources) {
   );
   const visited = new Set();
   const exemplars = new Set([
+    "apps/web/test-support/draft-host-app.tsx",
     "packages/api/src/commands.ts",
     "packages/api/src/command-fixture-client.ts",
     "packages/api/src/money-fixture-client.ts",
@@ -228,7 +229,7 @@ export function checkBoundaries(sources) {
         !workspace &&
         !specifier.startsWith(".") &&
         !specifier.startsWith("@/") &&
-        !/^(react|react-dom|next|next-intl|zod|hono\/client|@tanstack\/react-query)(\/|$)/.test(
+        !/^(react|react-dom|next|next-intl|zod|react-hook-form|uuid|@hookform\/resolvers|hono\/client|@tanstack\/react-query)(\/|$)/.test(
           specifier,
         ) &&
         !(
