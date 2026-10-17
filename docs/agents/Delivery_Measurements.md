@@ -1,5 +1,48 @@
 # Delivery measurements
 
+## Supplemental delivery: shop calendar (#85 / 1.1.1b)
+
+- At the publication follow-up, owner authorized commit, PR and conditional merge,
+  then the next unblocked issue. Fresh pre-publication fast verification passed:
+  45 files/182 tests plus lint, Knip, types, declarations, OpenAPI and build.
+  Completion observed 2026-10-17T20:12+05:30; exact active preparation time unknown.
+  The first launcher returned 1 despite successful stages; the unchanged-source
+  installed `pnpm.cmd` diagnostic rerun confirmed exit 0 at 20:14 IST.
+- Owner requested implementation, confirming same-date ranges and independent
+  domain replacements. Branch `codex/shop-calendar` uses the existing checkout
+  from merged development `549955b`; #55/#56/#84 blockers are merged. No worktree,
+  publication or deployment was performed.
+- Actual implementation start and active coding time were not captured. First
+  retained timed checkpoint: 2026-10-17T18:54:28.9564175+05:30; this is not the
+  initial implementation start. Final review host was observed available at
+  2026-10-17T19:48:04+05:30, http://127.0.0.1:59499/settings. Initial first-try
+  preview timing is unknown.
+- Fast verification passed 182 unit tests, lint, Knip, strict declarations,
+  OpenAPI and production build. Focused calendar/draft PostgreSQL checks passed
+  eight tests in 53.95s. Full native clean verification reached 111/116 integration
+  passes in 1174.45s after successful clean install, unit and Linux PDF stages.
+  Four inventory expectations and one transaction-timestamp ordering assumption
+  failed; corrected targeted runs passed (bootstrap 10.09s, tenant/auth suites
+  138.92s, adjusted auth case 9.96s). The failed full command remains recorded.
+- Final scoped clean frozen-install/export/declaration check confirmed process
+  exit 0 and unchanged lockfile. An incongruent earlier wrapper exit prompted
+  that bounded diagnostic rerun. Production smoke and all 29 artifact scans
+  passed. Final UI corrections received refreshed lint/Knip/types and build.
+- Calendar browser cases: three size projects with English/Tamil and axe passed
+  in 4.3 minutes. Four existing customer/wearer/guardian/profile regression cases
+  passed in 5.1 minutes. All sixteen final responsive/error-state captures were
+  refreshed and inspected. Independent finish review returned scoped `ship`:
+  all three prior findings resolved. Earlier failures/rework are retained in the
+  [implementation evidence](Shop_Calendar_Implementation_Evidence.md).
+- Largest measured stage was broad PostgreSQL integration (19 minutes 34s;
+  full clean command approximately 26 minutes). Checking table/registry inventories
+  before the broad run would have avoided four expectation failures. No active
+  duration or benchmark improvement is inferred.
+- Owner review, physical Android, fluent Tamil, assistive technology, hosted CI,
+  publication, merge and deployment remain pending. Local review packet ready:
+  2026-10-17T19:49:31+05:30, after the scoped independent review. No CI or
+  merge-wait interval exists yet; active implementation duration remains unknown.
+
 ## Delivery 5: existing shop profile and history (#84 / 1.1.1a)
 
 - Implementation branch start observed 2026-10-17T15:46:59.4580104+05:30,

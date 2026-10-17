@@ -79,6 +79,10 @@
     "./shop-profile": {
       "types": "./dist/shop-profile.d.ts",
       "import": "./dist/shop-profile.js"
+    },
+    "./shop-calendar": {
+      "types": "./dist/shop-calendar.d.ts",
+      "import": "./dist/shop-calendar.js"
     }
   },
   "scripts": {

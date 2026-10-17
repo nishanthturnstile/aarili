@@ -363,7 +363,11 @@ and proceeding with the packet. Issues #84–#88 carry native blocker links.
 Selected 1.1.1a/#84 adds existing-shop profile editing and immutable revision
 history after its merged direct prerequisites; its
 [implementation evidence and owner review](agents/Shop_Profile_Implementation_Evidence.md)
-track executable acceptance and remaining human/merge gates. #85–#88 retain
+track executable acceptance and remaining human/merge gates. Selected 1.1.1b/#85
+adds independent customer/production calendars, durable drafts and immutable
+history after #55/#56/#84 merged; its
+[implementation evidence and owner review](agents/Shop_Calendar_Implementation_Evidence.md)
+track verification and outstanding gates. #86–#88 retain
 their merged-prerequisite gates. Complete 1.1.1, real category/order integration
 and live readiness are not declared by ticket A.
 
