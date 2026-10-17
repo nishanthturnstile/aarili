@@ -3,7 +3,12 @@ import {
   clearOwnerState,
   connectOwnerSessionChanges,
 } from "@aarili/api/client";
-import { customerMessages, type Locale, ownerMessages } from "@aarili/i18n";
+import {
+  customerMessages,
+  type Locale,
+  ownerMessages,
+  wearerMessages,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
@@ -69,6 +74,7 @@ export function OwnerFlow({
         messages={{
           ...ownerMessages[locale],
           customers: customerMessages[locale],
+          wearers: wearerMessages[locale],
         }}
         timeZone="Asia/Kolkata"
       >

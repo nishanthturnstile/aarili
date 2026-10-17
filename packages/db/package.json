@@ -147,6 +147,14 @@
     "./repositories/customers": {
       "types": "./dist/repositories/customers.d.ts",
       "import": "./dist/repositories/customers.js"
+    },
+    "./wearer-repository": {
+      "types": "./dist/wearer-repository.d.ts",
+      "import": "./dist/wearer-repository.js"
+    },
+    "./repositories/wearers": {
+      "types": "./dist/repositories/wearers.d.ts",
+      "import": "./dist/repositories/wearers.js"
     }
   },
   "scripts": {

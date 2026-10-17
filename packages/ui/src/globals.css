@@ -1146,3 +1146,80 @@
     }
   }
 }
+
+@layer components {
+  .wearer-workspace,
+  .wearer-selected {
+    display: grid;
+    gap: var(--space-page);
+    min-width: 0;
+    border-block-start: 1px solid var(--border);
+    padding-block-start: var(--space-page);
+  }
+  .wearer-workspace h3,
+  .wearer-workspace h4 {
+    font-weight: var(--weight-emphasis);
+    overflow-wrap: anywhere;
+  }
+  .wearer-workspace h3 {
+    font-size: 1.125rem;
+  }
+  .wearer-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-control);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .wearer-choices li,
+  .wearer-choices button {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .wearer-choices button {
+    white-space: normal;
+    height: auto;
+    text-align: start;
+    overflow-wrap: anywhere;
+  }
+  .wearer-definition {
+    display: contents;
+  }
+  .wearer-history {
+    padding-inline-start: var(--space-page);
+    overflow-wrap: anywhere;
+  }
+  .wearer-history li {
+    margin-block: var(--space-page);
+  }
+  .wearer-workspace select.ui-input {
+    height: auto;
+    min-height: var(--control-height);
+    color: var(--foreground);
+    background: var(--background);
+  }
+  .wearer-workspace .customer-form,
+  .wearer-workspace .customer-form fieldset,
+  .wearer-workspace .customer-optional {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wearer-workspace .ui-field {
+    min-width: 0;
+  }
+  .wearer-workspace button,
+  .wearer-workspace summary {
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 767px) {
+    .wearer-choices,
+    .wearer-choices li {
+      width: 100%;
+    }
+    .wearer-choices button {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+}

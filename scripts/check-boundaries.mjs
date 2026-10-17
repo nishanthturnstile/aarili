@@ -177,7 +177,8 @@ export function checkBoundaries(sources) {
           isClientModule(sources.get(file)))) ||
       file.startsWith("packages/ui/") ||
       file === "packages/api/src/client.ts" ||
-      file === "packages/api/src/customer-client.ts",
+      file === "packages/api/src/customer-client.ts" ||
+      file === "packages/api/src/wearer-client.ts",
   );
   const visited = new Set();
   const exemplars = new Set([
@@ -227,7 +228,9 @@ export function checkBoundaries(sources) {
         !browserPackages.has(workspace[1]) &&
         !(
           workspace[1] === "api" &&
-          ["/client", "/customer-client"].includes(workspace[2])
+          ["/client", "/customer-client", "/wearer-client"].includes(
+            workspace[2],
+          )
         )
       )
         errors.push(

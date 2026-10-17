@@ -38,6 +38,9 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "wearerRepository.read/list/search/insert/link/update/purpose/origin",
+      "shops/:shopId/customers/:customerId/wearers",
+      "customer.wearer draft promotion",
       "customerRepository.read/search/insert/correct/audit",
       "shops/:shopId/customers",
       "documentRepository.issue/claim/plan/accept/retry/cleanup",
@@ -460,6 +463,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.customer",
       "public.customer_person",
       "public.customer_search_key",
+      "public.customer_wearer_relationship",
       "public.document_artifact",
       "public.document_attempt",
       "public.document_cleanup",
@@ -489,6 +493,12 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.vocabulary",
       "public.vocabulary_revision",
       "public.vocabulary_search_key",
+      "public.wearer",
+      "public.wearer_age_event",
+      "public.wearer_preference_event",
+      "public.wearer_preferences",
+      "public.wearer_purpose_event",
+      "public.wearer_relationship_event",
     ]);
     for (const [alter, restore, pattern] of [
       [
@@ -635,6 +645,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.customer",
         "public.customer_person",
         "public.customer_search_key",
+        "public.customer_wearer_relationship",
         "public.document_artifact",
         "public.document_attempt",
         "public.document_cleanup",
@@ -662,6 +673,12 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.vocabulary",
         "public.vocabulary_revision",
         "public.vocabulary_search_key",
+        "public.wearer",
+        "public.wearer_age_event",
+        "public.wearer_preference_event",
+        "public.wearer_preferences",
+        "public.wearer_purpose_event",
+        "public.wearer_relationship_event",
       ]);
       assert.equal(
         (await apiRequest(api, `/shops/${a.shop}`, { Cookie: a.cookie }))

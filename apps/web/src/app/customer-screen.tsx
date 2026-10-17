@@ -33,6 +33,7 @@ import { useForm } from "react-hook-form";
 import { createCustomerQueries } from "./customer-query";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { WearerWorkspace } from "./wearer-workspace";
 
 type CustomerMode = "customers" | "customer-new" | "customer-profile";
 type Attempt = {
@@ -516,6 +517,8 @@ export function CustomerScreen({
                   <Button
                     variant="outline"
                     onClick={() => {
+                      if (!guard.safe() && !window.confirm(t("discard")))
+                        return;
                       confirmedLeave.current = false;
                       setEditing(true);
                       setNotice("");
@@ -564,6 +567,12 @@ export function CustomerScreen({
                       <dd>{t("recordedOwnerHelp")}</dd>
                     </dl>
                   </section>
+                  <WearerWorkspace
+                    customer={profile}
+                    shopId={shopId}
+                    queries={queries}
+                    guard={guard}
+                  />
                 </>
               )}
               {editing && (

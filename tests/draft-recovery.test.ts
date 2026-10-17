@@ -192,6 +192,75 @@ test("0.4.2b F2/F3 lost response replays exact key/payload/version before queued
   expect(save.mock.calls[2]?.[3]).toBe('"v1"');
   controller.dispose();
 });
+test("CW-13 a throttled retry cannot discard an unknown save key, payload or precondition", async () => {
+  vi.useFakeTimers();
+  const { controller, save } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  save.mockRejectedValueOnce(new TypeError("lost after commit"));
+  save.mockRejectedValueOnce(
+    new DraftRequestError(
+      429,
+      { error: { code: "RATE_LIMITED", message: "Wait before trying again" } },
+      null,
+    ),
+  );
+  save.mockResolvedValueOnce({ draft: record({ value: "first" }, 2) });
+  controller.edit({ value: "first" });
+  await controller.save();
+  controller.edit({ value: "later" });
+  await controller.retry();
+  expect(controller.snapshot()).toMatchObject({
+    status: "checking",
+    error: "RATE_LIMITED",
+    work: { dirty: true, inFlight: false, outcomeUnknown: true },
+  });
+  expect(save.mock.calls[2]).toEqual(save.mock.calls[1]);
+  expect(save.mock.calls[2]?.[3]).toBe('"v1"');
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(save).toHaveBeenCalledTimes(3);
+  await controller.retry();
+  expect(save.mock.calls[3]).toEqual(save.mock.calls[1]);
+  expect(controller.snapshot().committed?.payload).toEqual({ value: "first" });
+  expect(controller.snapshot().values).toEqual({ value: "later" });
+  expect(controller.snapshot().work.outcomeUnknown).toBe(false);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(save.mock.calls[4]?.[1].payload).toEqual({ value: "later" });
+  expect(save.mock.calls[4]?.[2]).toBe("key-3");
+  expect(save.mock.calls[4]?.[3]).toBe('"v2"');
+  controller.dispose();
+});
+test("CW-13 an unknown promotion stays locked across admission throttling and replays the same promotion", async () => {
+  const { controller, promote } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  promote.mockRejectedValueOnce(new TypeError("lost promotion response"));
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      429,
+      { error: { code: "RATE_LIMITED", message: "Wait before trying again" } },
+      null,
+    ),
+  );
+  await controller.promote();
+  await controller.retry();
+  expect(controller.snapshot()).toMatchObject({
+    status: "checking",
+    pendingPromotion: true,
+    work: { dirty: false, inFlight: false, outcomeUnknown: true },
+  });
+  controller.edit({ value: "must not replace the pending promotion" });
+  expect(controller.snapshot().values).toEqual({ value: "a" });
+  expect(promote.mock.calls[1]).toEqual(promote.mock.calls[0]);
+  await controller.retry();
+  expect(promote.mock.calls[2]).toEqual(promote.mock.calls[0]);
+  expect(controller.snapshot()).toMatchObject({
+    status: "promoted",
+    pendingPromotion: false,
+    work: { dirty: false, inFlight: false, outcomeUnknown: false },
+  });
+  controller.dispose();
+});
 test("0.4.2b F2/F3 one save in flight and late acknowledgement cannot label new input Saved", async () => {
   const { controller, save } = fixture();
   let resolve!: (value: { draft: DraftRecord }) => void;

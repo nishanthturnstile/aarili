@@ -47,6 +47,14 @@
     "./customers": {
       "types": "./dist/customers.d.ts",
       "import": "./dist/customers.js"
+    },
+    "./wearers": {
+      "types": "./dist/wearers.d.ts",
+      "import": "./dist/wearers.js"
+    },
+    "./wearer-client": {
+      "types": "./dist/wearer-client.d.ts",
+      "import": "./dist/wearer-client.js"
     }
   },
   "scripts": {
