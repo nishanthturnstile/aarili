@@ -1366,3 +1366,12 @@
     grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
   }
 }
+
+.policy-textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+.policy-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

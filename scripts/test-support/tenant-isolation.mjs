@@ -13,8 +13,11 @@ import { withPostgres } from "./postgres.mjs";
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
   "shopCalendarRepository.current/read/history/append/advance/origin",
+  "shopPoliciesRepository.current/read/history/append/advance/origin/pendingKinds",
   "shops/:shopId/settings/calendar/history/revisions",
+  "shops/:shopId/settings/policies/history/revisions/readiness",
   "shop.calendar draft promotion",
+  "shop.policies draft promotion",
   "shopProfileRepository.current/read/history/append/advance/logoReady",
   "shops/:shopId/settings/profile/history/revisions",
   "guardianRepository.read/search/claim/verify/purpose/origin",

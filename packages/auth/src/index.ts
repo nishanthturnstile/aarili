@@ -33,6 +33,10 @@ import {
   shopCalendarDraftWorkflow,
 } from "@aarili/core/shop-calendar";
 import {
+  type ShopPoliciesContext,
+  shopPoliciesDraftWorkflow,
+} from "@aarili/core/shop-policies";
+import {
   type ShopProfileContext,
   shopBrandingPolicy,
 } from "@aarili/core/shop-profile";
@@ -65,6 +69,7 @@ import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
 import { shopCalendarRepository } from "@aarili/db/shop-calendar-repository";
+import { shopPoliciesRepository } from "@aarili/db/shop-policies-repository";
 import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
@@ -192,6 +197,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerShopPolicies: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ShopPoliciesContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerShopCalendar: <T>(
     headers: Headers,
     shopId: string,
@@ -1171,6 +1181,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
           repository: shopCalendarRepository(tx, shopId),
         }),
       );
+      workflows.set(
+        "shop.policies",
+        shopPoliciesDraftWorkflow({
+          shopId,
+          actorId: userId,
+          repository: shopPoliciesRepository(tx, shopId),
+        }),
+      );
       const policy = wearerPolicy();
       if (policy.enabled && policy.synthetic)
         workflows.set(
@@ -1221,6 +1239,15 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) =>
       run(guardianContext(tx, shopId, userId)),
+    );
+  }
+  async function withOwnerShopPolicies<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ShopPoliciesContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run({ shopId, actorId, repository: shopPoliciesRepository(tx, shopId) }),
     );
   }
   async function withOwnerShopCalendar<T>(
@@ -1622,6 +1649,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerTransaction,
     withOwnerShopProfile,
     withOwnerShopCalendar,
+    withOwnerShopPolicies,
     withOwnerMedia,
     withOwnerDocument,
     commandLimit: () => guard(commandLimit),

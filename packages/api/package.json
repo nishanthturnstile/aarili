@@ -67,6 +67,10 @@
     "./shop-calendar-client": {
       "types": "./dist/shop-calendar-client.d.ts",
       "import": "./dist/shop-calendar-client.js"
+    },
+    "./shop-policies-client": {
+      "types": "./dist/shop-policies-client.d.ts",
+      "import": "./dist/shop-policies-client.js"
     }
   },
   "scripts": {

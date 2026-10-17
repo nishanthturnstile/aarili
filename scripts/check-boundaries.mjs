@@ -180,6 +180,7 @@ export function checkBoundaries(sources) {
       file === "packages/api/src/customer-client.ts" ||
       file === "packages/api/src/shop-profile-client.ts" ||
       file === "packages/api/src/shop-calendar-client.ts" ||
+      file === "packages/api/src/shop-policies-client.ts" ||
       file === "packages/api/src/wearer-client.ts",
   );
   const visited = new Set();
@@ -236,6 +237,7 @@ export function checkBoundaries(sources) {
             "/wearer-client",
             "/shop-profile-client",
             "/shop-calendar-client",
+            "/shop-policies-client",
           ].includes(workspace[2])
         )
       )
