@@ -1,6 +1,12 @@
 "use client";
 
-import { House, Link2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import {
+  House,
+  Link2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "./button";
 
@@ -9,12 +15,13 @@ export function WorkspaceNavigation({
   shopName,
   labels,
 }: {
-  current: "owner" | "connections";
+  current: "owner" | "connections" | "customers";
   shopName: string;
   labels: {
     navigation: string;
     workspace: string;
     connections: string;
+    customers?: string;
     currentShop: string;
     expandNavigation: string;
     collapseNavigation: string;
@@ -57,23 +64,31 @@ export function WorkspaceNavigation({
             id: "owner",
           },
           {
+            href: "/customers",
+            label: labels.customers,
+            Icon: Users,
+            id: "customers",
+          },
+          {
             href: "/connections",
             label: labels.connections,
             Icon: Link2,
             id: "connections",
           },
-        ].map(({ href, label, Icon, id }) => (
-          <li key={id}>
-            <a
-              href={href}
-              aria-current={current === id ? "page" : undefined}
-              aria-label={label}
-            >
-              <Icon aria-hidden="true" />
-              <span className="workspace-destination-label">{label}</span>
-            </a>
-          </li>
-        ))}
+        ]
+          .filter(({ label }) => !!label)
+          .map(({ href, label, Icon, id }) => (
+            <li key={id}>
+              <a
+                href={href}
+                aria-current={current === id ? "page" : undefined}
+                aria-label={label}
+              >
+                <Icon aria-hidden="true" />
+                <span className="workspace-destination-label">{label}</span>
+              </a>
+            </li>
+          ))}
       </ul>
     </nav>
   );

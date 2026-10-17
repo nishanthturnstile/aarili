@@ -13,6 +13,9 @@ const paths: OwnerEntryPath[] = [
   "/onboarding",
   "/dashboard",
   "/connections",
+  "/customers",
+  "/customers/new",
+  "/customers/019a5e55-2222-7000-8000-000000000001",
 ];
 test("ENTRY-03/04/05/07 finite entry routing never uses a first-login counter and has no redirect loops", () => {
   for (const path of paths) {
@@ -23,7 +26,10 @@ test("ENTRY-03/04/05/07 finite entry routing never uses a first-login counter an
       path === "/onboarding" ? undefined : "/onboarding",
     );
     expect(ownerDestination("ready", path)).toBe(
-      ["/dashboard", "/connections"].includes(path) ? undefined : "/dashboard",
+      ["/dashboard", "/connections", "/customers"].includes(path) ||
+        path.startsWith("/customers/")
+        ? undefined
+        : "/dashboard",
     );
     for (const state of ["signed-out", "needs-onboarding", "ready"] as const) {
       const next = ownerDestination(state, path);

@@ -16,8 +16,14 @@ import {
   recoveryResetSchema,
   setupCommandSchema,
 } from "@aarili/contracts";
+import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
+import {
+  blockedCustomerPolicy,
+  syntheticCustomerPolicy,
+} from "@aarili/core/customer-policy";
+import type { CustomerContext } from "@aarili/core/customers";
 import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
@@ -34,6 +40,7 @@ import {
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
 import { commandRepository } from "@aarili/db/command-repository";
+import { customerRepository } from "@aarili/db/customer-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
@@ -92,6 +99,7 @@ export type AuthConfiguration = {
   }) => Promise<void>;
   policy?: Partial<Policy>;
   now?: () => Date;
+  customerPolicy?: CustomerPolicy;
   google?: GoogleConfiguration | undefined;
   mediaAdapters?: (
     tx: Transaction,
@@ -181,6 +189,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: CommandContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerCustomer: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: CustomerContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   withOwnerDraft: <T>(
     headers: Headers,
@@ -1065,6 +1078,20 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       run(shopRepository(tx)),
     );
   }
+  async function withOwnerCustomer<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: CustomerContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run({
+        shopId,
+        actor: { type: "user", id: userId },
+        repository: customerRepository(tx, shopId),
+        policy: configuration.customerPolicy ?? blockedCustomerPolicy,
+      }),
+    );
+  }
   async function withOwnerDraft<T>(
     headers: Headers,
     shopId: string,
@@ -1451,6 +1478,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShop,
     withOwnerCommand,
     withOwnerDraft,
+    withOwnerCustomer,
     withOwnerTransaction,
     withOwnerMedia,
     withOwnerDocument,
@@ -1501,6 +1529,7 @@ export function ownerAuthFromEnvironment(
     secret: BETTER_AUTH_SECRET,
     setupToken: SETUP_TOKEN ?? "",
     google: googleFromEnvironment(env),
+    customerPolicy: syntheticCustomerPolicy,
     draftInstrumentation: (tx, shopId) =>
       createUsageWriter(usageRepository(tx, shopId)),
     capture: async (message) => {

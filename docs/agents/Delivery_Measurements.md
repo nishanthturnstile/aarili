@@ -1,5 +1,70 @@
 # Delivery measurements
 
+## Delivery 2: customer registration (#78 / 1.1.3a)
+
+- Branch: codex/customer-registration from 2ea55ac, onboarding PR #77's squash
+  merge. Preparation/start observed 2026-10-17T11:43:48.2900105+05:30; work resumed
+  on the owner's explicit #78 implementation request. Active implementation time
+  is unknown; do not infer it from Git timestamps.
+- Focused backend/entry verification: five unit tests passed at 12:01:12
+  (577ms); comprehensive PostgreSQL test at 12:01:13 (25.64s), after the
+  mixed-query regression and stronger context/invalid-body checks. Initial
+  focused backend checks also passed; later changed inputs required this rerun.
+- Strict typecheck, lint/boundaries/tokens, Knip and production web build passed.
+  Initial lint found the new typed client absent from the explicit browser
+  admission list; adding that exact client retained transitive boundary checking.
+- Local delivery gates passed; hosted CI, merge and human acceptance remain
+  pending. Test times overlap implementation; they are not additive coding-time
+  measurements. Active implementation/rework durations remain unknown.
+- Evidence/manual review: [customer registration](Customer_Registration_Implementation_Evidence.md).
+- First clean-native verification started at
+  2026-10-17T12:11:40.5399321+05:30. Frozen installation completed in 2m 9.7s;
+  the complete repository gate follows in the temporary path containing spaces.
+- Final synthetic customer review host observed ready at
+  2026-10-17T12:13:57+05:30, http://127.0.0.1:63304/customers. It includes a
+  ready shop and two separate shared-phone people; private sign-in stays in the
+  ignored local access file. Automated setup makes customer behavior immediately
+  available without repeating onboarding. This does not record human acceptance.
+- First clean-native attempt: 12:11:40.5399321 → 12:15:40.0746564+05:30,
+  failed before PDF verification because the helper omitted infra/pdf. Frozen
+  install, lint/Knip/types/unit/negative/OpenAPI stages passed. The scoped copy-set
+  correction requires a new complete attempt. No product/PDF runtime change.
+- First three-size customer browser matrix: 12:11:29.5293932 →
+  12:17:41.6079115+05:30, three passes (Playwright 6.1m). Final confirmation
+  passed all three projects (5.3m), ending 12:31:51.238606+05:30 after the
+  target-size/validation-feedback correction. Preserved owner-entry
+  and shell regression: 12:19:01.5970139 → 12:22:59.5863645+05:30, nine passes
+  (3.8m). The shell inventory now expects Customers as its third destination.
+- Final affected fast gate: 12:24:24.8789367 → 12:26:26.2988836+05:30, passed.
+  A later full-integration attempt found an old exact tenant-table inventory;
+  the corresponding current/legacy inventories were corrected without weakening
+  catalog checks. Four focused checks passed in 46.15s. Full clean gate restarted
+  12:28:42.1570394+05:30; earlier known-failing attempts were interrupted.
+- Updated final review host ready by 12:28:59+05:30 at
+  http://127.0.0.1:55074/customers; the previous host was stopped for rebuilding.
+- Complete final `pnpm verify:clean`: 12:28:42.1570394 to
+  12:49:36.3681302+05:30, exit 0 (20m 54.21s). All 159 unit tests and 100
+  PostgreSQL integration tests passed (integration stage 997.04s), with frozen
+  installation, lint/Knip/types/negative/OpenAPI, PDF golden checks, production
+  builds, smoke, private-artifact scan, lockfile equality and cleanup.
+- Tested source identity: 446 inputs in
+  [Tested_Source.sha256](customer-registration/Tested_Source.sha256), independently
+  rechecked unchanged at 12:48:50+05:30. Documentation-only finalization followed.
+- Review-ready local evidence completed after the full gate at 12:49:36+05:30;
+  owner-request start to this point was 65m 48s elapsed, including overlapping
+  verification and rework. First usable synthetic host was available after
+  30m 9s elapsed. Neither span measures active coding time.
+- Candidate improvement: review all exact tenant-table inventory fixtures when
+  introducing a tenant table, and include required runtime inputs in clean-copy
+  reviews. Preserve full verification and owner acceptance requirements.
+- [Draft PR #81](https://github.com/nishanthturnstile/aarili/pull/81) opened
+  2026-10-17T07:22:03Z (12:52:03+05:30), targeting development. Tested
+  implementation commit: `c73555a3dd4a21fd460bb799145fee6e07dc7e17`.
+  Fast verification and Dependency audit were queued at 07:22:06Z in
+  [initial CI run](https://github.com/nishanthturnstile/aarili/actions/runs/39013368434).
+  Final hosted results and owner review/merge are pending; subsequent commits
+  only record delivery metadata. CI queue/execution time is not yet known.
+
 Owner-approved process improvement, 16 October 2026. Follow the
 [development workflow](Development_Workflow.md). Record the next five
 implementation PRs opened after the workflow improvement merges, one entry per

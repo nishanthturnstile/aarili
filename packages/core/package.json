@@ -59,6 +59,14 @@
     "./documents": {
       "types": "./dist/documents.d.ts",
       "import": "./dist/documents.js"
+    },
+    "./customers": {
+      "types": "./dist/customers.d.ts",
+      "import": "./dist/customers.js"
+    },
+    "./customer-policy": {
+      "types": "./dist/customer-policy.d.ts",
+      "import": "./dist/customer-policy.js"
     }
   },
   "scripts": {

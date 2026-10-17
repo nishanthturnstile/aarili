@@ -3,7 +3,7 @@ import {
   clearOwnerState,
   connectOwnerSessionChanges,
 } from "@aarili/api/client";
-import { type Locale, ownerMessages } from "@aarili/i18n";
+import { customerMessages, type Locale, ownerMessages } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
@@ -21,10 +21,19 @@ type Mode =
   | "owner"
   | "connections"
   | "dashboard"
+  | "customers"
+  | "customer-new"
+  | "customer-profile"
   | "onboarding"
   | "entry-denied"
   | "entry-unavailable";
-export function OwnerFlow({ mode }: { mode: Mode }) {
+export function OwnerFlow({
+  mode,
+  customerId,
+}: {
+  mode: Mode;
+  customerId?: string | undefined;
+}) {
   const [locale, setLocale] = useState<Locale>("en");
   const [queries] = useState(createOwnerQueries);
   const [guard] = useState(createWorkGuard);
@@ -57,7 +66,10 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
     <QueryClientProvider client={queries.client}>
       <NextIntlClientProvider
         locale={locale}
-        messages={ownerMessages[locale]}
+        messages={{
+          ...ownerMessages[locale],
+          customers: customerMessages[locale],
+        }}
         timeZone="Asia/Kolkata"
       >
         <main
@@ -97,11 +109,15 @@ export function OwnerFlow({ mode }: { mode: Mode }) {
           ) : mode === "owner" ||
             mode === "connections" ||
             mode === "onboarding" ||
+            mode === "customers" ||
+            mode === "customer-new" ||
+            mode === "customer-profile" ||
             mode === "dashboard" ? (
             <OwnerEntryScreen
               mode={mode === "owner" ? "dashboard" : mode}
               queries={queries}
               guard={guard}
+              customerId={customerId}
             />
           ) : (
             <OwnerAccess mode={mode} guard={guard} />

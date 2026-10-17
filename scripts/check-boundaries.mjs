@@ -176,7 +176,8 @@ export function checkBoundaries(sources) {
         (!/\/(page|layout)\.tsx$/.test(file) ||
           isClientModule(sources.get(file)))) ||
       file.startsWith("packages/ui/") ||
-      file === "packages/api/src/client.ts",
+      file === "packages/api/src/client.ts" ||
+      file === "packages/api/src/customer-client.ts",
   );
   const visited = new Set();
   const exemplars = new Set([
@@ -224,7 +225,10 @@ export function checkBoundaries(sources) {
       if (
         workspace &&
         !browserPackages.has(workspace[1]) &&
-        !(workspace[1] === "api" && workspace[2] === "/client")
+        !(
+          workspace[1] === "api" &&
+          ["/client", "/customer-client"].includes(workspace[2])
+        )
       )
         errors.push(
           `${file}: browser graph reaches server package: ${specifier}`,

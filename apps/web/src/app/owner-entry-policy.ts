@@ -6,7 +6,9 @@ export type OwnerEntryPath =
   | "/setup"
   | "/onboarding"
   | "/dashboard"
-  | "/connections";
+  | "/connections"
+  | "/customers"
+  | `/customers/${string}`;
 
 // Both the server boundary and mounted client use this finite route policy.
 // An unavailable/denied read is never classified as a new or signed-out owner.
@@ -15,7 +17,10 @@ export function ownerDestination(state: OwnerEntryState, path: OwnerEntryPath) {
     return path === "/sign-in" || path === "/setup" ? undefined : "/sign-in";
   if (state === "needs-onboarding")
     return path === "/onboarding" ? undefined : "/onboarding";
-  return path === "/dashboard" || path === "/connections"
+  return path === "/dashboard" ||
+    path === "/connections" ||
+    path === "/customers" ||
+    path.startsWith("/customers/")
     ? undefined
     : "/dashboard";
 }

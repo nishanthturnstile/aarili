@@ -5,6 +5,7 @@ import {
   healthUnavailableSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createCustomerRoutes } from "./customers.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
@@ -68,6 +69,7 @@ export function createApi(
   });
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
+    app.route("/", createCustomerRoutes(owner));
     app.route("/", createDraftRoutes(owner));
     app.route("/", createMediaRoutes(owner));
     app.route("/", createDocumentRoutes(owner));
