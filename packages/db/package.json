@@ -179,6 +179,18 @@
     "./shop-calendar-schema": {
       "types": "./dist/shop-calendar-schema.d.ts",
       "import": "./dist/shop-calendar-schema.js"
+    },
+    "./shop-directory-repository": {
+      "types": "./dist/shop-directory-repository.d.ts",
+      "import": "./dist/shop-directory-repository.js"
+    },
+    "./repositories/shop-directory": {
+      "types": "./dist/repositories/shop-directory.d.ts",
+      "import": "./dist/repositories/shop-directory.js"
+    },
+    "./shop-directory-schema": {
+      "types": "./dist/shop-directory-schema.d.ts",
+      "import": "./dist/shop-directory-schema.js"
     }
   },
   "scripts": {

@@ -1,5 +1,6 @@
 import {
   clearOwnerState,
+  connectOwnerSessionChanges,
   onOwnerInvalidation,
   ownerSession,
   readOwnerShop,
@@ -206,3 +207,77 @@ test.each(["sign-in", "reauthentication"] as const)(
     }
   },
 );
+
+test("SS-03 command-resuming reauthentication rejects a late result after owner invalidation", async () => {
+  const published = vi.fn(),
+    applied = vi.fn();
+  vi.stubGlobal("window", {});
+  vi.stubGlobal(
+    "BroadcastChannel",
+    class {
+      onmessage: unknown = null;
+      postMessage = published;
+      close() {}
+    },
+  );
+  const disconnect = connectOwnerSessionChanges(() => {});
+  let release: ((r: Response) => void) | undefined;
+  let signal: AbortSignal | undefined;
+  vi.stubGlobal("fetch", (_request: unknown, init: RequestInit) => {
+    signal = init.signal ?? undefined;
+    return new Promise<Response>((resolve) => {
+      release = resolve;
+    });
+  });
+  const pending = reauthenticateOwner("synthetic-password", true);
+  const appliedResult = pending.then(applied, () => {});
+  const rejected = expect(pending).rejects.toMatchObject({
+    code: "UNAUTHENTICATED",
+  });
+  await vi.waitFor(() => expect(release).toBeDefined());
+  clearOwnerState();
+  expect(signal?.aborted).toBe(true);
+  release?.(Response.json({ state: "reauthenticated" }));
+  await rejected;
+  await appliedResult;
+  expect(applied).not.toHaveBeenCalled();
+  expect(published).not.toHaveBeenCalled();
+  disconnect();
+});
+
+test("SS-03 same-owner command resume retains local scope on success or a wrong-password rejection", async () => {
+  const invalidated = vi.fn(),
+    unsubscribe = onOwnerInvalidation(invalidated);
+  try {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          Response.json(
+            { error: { code: "INVALID_CREDENTIALS", message: "Denied" } },
+            { status: 401 },
+          ),
+        )
+        .mockResolvedValueOnce(Response.json({ state: "reauthenticated" })),
+    );
+    await expect(
+      reauthenticateOwner("synthetic-password", true),
+    ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
+    expect(invalidated).not.toHaveBeenCalled();
+    await reauthenticateOwner("synthetic-password", true);
+    expect(invalidated).not.toHaveBeenCalled();
+    vi.stubGlobal("fetch", async () =>
+      Response.json(
+        { error: { code: "UNAUTHENTICATED", message: "Session ended" } },
+        { status: 401 },
+      ),
+    );
+    await expect(
+      reauthenticateOwner("synthetic-password", true),
+    ).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+    expect(invalidated).toHaveBeenCalledOnce();
+  } finally {
+    unsubscribe();
+  }
+});

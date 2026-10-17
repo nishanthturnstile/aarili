@@ -29,6 +29,7 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  authorizePublication?(command: Record<string, unknown>): Promise<void>;
   schemaVersion: number;
   draftSchema: DraftSchema;
   commandSchema: DraftSchema;
@@ -179,7 +180,12 @@ export async function mutateDraft(
       prior.hash !== binding.hash
     )
       fail(422, "IDEMPOTENCY_MISMATCH");
-    return draftSuccessSchema.parse(prior.response);
+    const replay = draftSuccessSchema.parse(prior.response);
+    if (action === "promote")
+      await ctx.workflows
+        .get(replay.draft.workflow)
+        ?.authorizePublication?.(replay.draft.payload);
+    return replay;
   }
   // Advisory lock covers absent rows as well as existing IDs: an initial PUT can
   // never replace a committed draft while racing a different idempotency key.
@@ -228,6 +234,7 @@ export async function mutateDraft(
       const adapter = workflow(ctx, current.workflow, current.schemaVersion);
       const complete = adapter.commandSchema.safeParse(current.payload);
       if (!complete.success) fail(422, "VALIDATION_FAILED");
+      await adapter.authorizePublication?.(complete.data);
       await adapter.revalidate(complete.data, id);
       result = draftResultSchema.parse(
         await adapter.promote(complete.data, actionId, id, {

@@ -82,6 +82,7 @@ export const directoryCommandSchema = directoryDraftSchema.superRefine(
   },
 );
 export const directoryRevisionSchema = z.strictObject({
+  schemaVersion: z.literal(1),
   id: z.uuid(),
   entryId: z.uuid(),
   version: z.number().int().positive(),
@@ -139,3 +140,7 @@ export function summarizeDirectory(r: DirectoryRevision): DirectorySummary {
           : `••••@${c.upiId.split("@")[1] ?? ""}`,
   };
 }
+
+export const directoryEntrySchema = z.strictObject({
+  revision: directoryRevisionSchema.nullable(),
+});

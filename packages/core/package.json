@@ -83,6 +83,10 @@
     "./shop-calendar": {
       "types": "./dist/shop-calendar.d.ts",
       "import": "./dist/shop-calendar.js"
+    },
+    "./shop-directory": {
+      "types": "./dist/shop-directory.d.ts",
+      "import": "./dist/shop-directory.js"
     }
   },
   "scripts": {

@@ -166,7 +166,11 @@ export async function authenticatedResult(
     pendingOwnerRequests.delete(request);
   }
 }
-async function ownerResult(response: Response, generation = ownerGeneration) {
+async function ownerResult(
+  response: Response,
+  generation = ownerGeneration,
+  recoverableCredentialFailure = false,
+) {
   const data: unknown = await response.json();
   // Body parsing can finish after an auth transition even when headers arrived
   // earlier. Reject the old identity before applying any invalidation effects.
@@ -176,7 +180,8 @@ async function ownerResult(response: Response, generation = ownerGeneration) {
     const parsed = apiErrorSchema.safeParse(data);
     const code = parsed.success ? parsed.data.error.code : "REQUEST_FAILED";
     if (
-      response.status === 401 ||
+      (response.status === 401 &&
+        !(recoverableCredentialFailure && code === "INVALID_CREDENTIALS")) ||
       (response.status === 403 && code === "SHOP_ACCESS_DENIED")
     )
       clearOwnerState();
@@ -296,13 +301,23 @@ export async function resetOwnerPassword(
     clearOwnerState();
   }
 }
-export async function reauthenticateOwner(password: string) {
+export async function reauthenticateOwner(
+  password: string,
+  resumeCommand = false,
+) {
   const parsed = reauthenticationSchema.safeParse({ password });
   if (!parsed.success) throw new OwnerRequestError("VALIDATION_FAILED");
-  const result = await ownerResult(
-    await createOwnerClient().owner.reauthenticate.$post({ json: parsed.data }),
+  const result = await authenticatedResult(
+    (signal) =>
+      createOwnerClient().owner.reauthenticate.$post(
+        { json: parsed.data },
+        { init: { signal, cache: "no-store" } },
+      ),
+    (response, generation) => ownerResult(response, generation, true),
   );
-  clearOwnerState();
+  // Same verified owner rotates its session. A paused in-memory command may
+  // continue with its original key; other tabs still invalidate their caches.
+  if (!resumeCommand) clearOwnerState();
   publishSessionChange();
   return ownerActionSchema.parse(result);
 }
