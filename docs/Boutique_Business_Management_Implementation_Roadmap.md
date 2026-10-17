@@ -376,6 +376,20 @@ complete 1.1.1/1.1.2, change 1.2.1's dependencies, approve ticket publication or
 activate live data. Existing privacy notice, retention and guardian-policy inputs
 remain prerequisites; competitor behaviour cannot supply their approval.
 
+**Approved delivery packet (17 October 2026):**
+[Customer/wearer tickets](agents/Customer_Wearer_Ticket_Packet.md) are published
+as **#78 (1.1.3a customers) → #79 (1.1.3b adult wearers/preferences) →
+#80 (1.1.3c minor/guardian)**. This splits the existing slice into complete
+vertical outcomes without adding release scope. #78 starts only after the
+owner-entry prerequisite [PR #77](https://github.com/nishanthturnstile/aarili/pull/77)
+merges to development; later tickets retain their merged direct blockers.
+The owner permits clearly labelled, nonblank
+[draft privacy fixtures](agents/Customer_Wearer_Privacy_Draft.md) for synthetic
+implementation while final notice, retention and guardian inputs remain under
+review. This revises the research brief's implementation-input gate only;
+approved production policies and all Phase 0.5/live gates remain required.
+1.1.1/1.1.2 and 1.2.1 dependencies remain unchanged.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-01, CUS-02, CUS-04, CUS-07, TRU-01, TRU-03, TRU-04, TRU-05, TRU-07, TRU-13. Scenarios: AC-02, AC-39, AC-52, AC-53.
 - **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.

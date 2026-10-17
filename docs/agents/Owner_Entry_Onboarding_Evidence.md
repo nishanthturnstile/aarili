@@ -209,3 +209,17 @@ entry/proxy/API, admission, migration compatibility or invalidation. This does
 not replace owner review or the pending physical-device/Tamil/accessibility
 observations. Only synthetic fixtures/captures are included; private credentials
 and raw Nool captures remain outside Git. Hosted PR results remain separate.
+
+Check-in published as commit `78127b6` on `codex/owner-access-onboarding`, with
+[draft PR #77 to development](https://github.com/nishanthturnstile/aarili/pull/77).
+The owner's publication authorization did not authorize an automatic merge.
+The synthetic review host was rechecked at `http://127.0.0.1:49774/sign-in`
+and returned HTTP 200. Customer issues #78–#80 are published separately and
+cannot start app implementation until their merged prerequisites are satisfied.
+
+Initial source-commit CI succeeded: [run 39008824442](https://github.com/nishanthturnstile/aarili/actions/runs/39008824442)
+reported Fast verification and Dependency audit successful on `78127b6`.
+Full scaffold/browser jobs were skipped as designed for a development feature PR;
+promotion retains those gates. Later publication/traceability documentation
+updates require their own current PR check status; this run does not certify a
+different PR revision.

@@ -198,3 +198,12 @@ merge/split changes before authorizing publication. That review is distinct from
 approving policy wording, accepting implemented software or authorizing merge.
 Implementation can begin only after the selected-approved-ticket, relevant
 policy and integrated-onboarding/merged-prerequisite gates are satisfied.
+
+Subsequent owner decision and publication: onboarding/research work was checked
+in on the feature branch and opened as [PR #77](https://github.com/nishanthturnstile/aarili/pull/77).
+The owner approved [tickets #78–#80](Customer_Wearer_Ticket_Packet.md) and permits
+clearly draft synthetic policy fixtures while final privacy inputs remain open.
+That narrow exception supersedes the research session's earlier implementation
+policy gate for synthetic development only. It does not approve real-data use or
+bypass the onboarding PR's reviewed merge. This follow-up is a publication
+record, not additional REA or customer-implementation evidence.

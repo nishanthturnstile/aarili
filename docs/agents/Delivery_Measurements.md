@@ -144,3 +144,13 @@ further process change separately; retain the required verification and review.
   Largest measured final gate: browser command (22 minutes 19 seconds). The early
   enlarged-text failure suggests running the representative Tamil zoom check before
   the full matrix while retaining the required final gates.
+
+- Owner authorized check-in and publication on 17 October. Existing source
+  committed as `78127b6`; [draft PR #77](https://github.com/nishanthturnstile/aarili/pull/77)
+  targets development. Fresh `pnpm verify:fast` passed; manifest comparison proved
+  all 476 source files unchanged from the recorded full PostgreSQL/browser gates,
+  so those expensive unchanged-input checks were reused. Check-in preparation
+  active duration is unknown. Review host HTTP 200 was rechecked at
+  `http://127.0.0.1:49774/sign-in`. Hosted CI, owner review/merge and finished-product
+  human observations remain pending. No customer implementation timer is started
+  for publication of its research/ticket packet.

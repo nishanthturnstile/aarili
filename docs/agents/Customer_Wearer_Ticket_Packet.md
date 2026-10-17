@@ -7,6 +7,21 @@ This is a narrow revision to the brief's implementation-input gate, not approval
 of policy wording or real-data activation. Published IDs are recorded below once
 created. Merged-prerequisite and integrated-development gates still apply.
 
+Published on owner authorization:
+
+- A: [#78](https://github.com/nishanthturnstile/aarili/issues/78), native blockers
+  #16/#51/#53 (merged), plus the explicit integration prerequisite
+  [onboarding PR #77](https://github.com/nishanthturnstile/aarili/pull/77).
+- B: [#79](https://github.com/nishanthturnstile/aarili/issues/79), native blockers
+  #78/#55/#56; #78 must merge first.
+- C: [#80](https://github.com/nishanthturnstile/aarili/issues/80), native blocker
+  #79; #79 must merge first.
+
+All carry the existing `enhancement` and `ready-for-agent` labels. The label
+approves definition, not bypassing the PR/integration blockers. First selected
+implementation issue is #78 after #77 merges. Dependencies were read back from
+GitHub after creation. No parent/map issue or new label was created.
+
 Sources: [feature brief](Customer_Wearer_REA_Plan.md),
 [research evidence](Customer_Wearer_REA_Evidence.md),
 [independent design and acceptance matrix](Customer_Wearer_Design.md), product
@@ -40,17 +55,19 @@ A/B/C order with native blocking edges and existing `enhancement` /
 
 ## Gate record and common delivery obligations
 
-Fresh tracker inspection found no selected published 1.1.3 ticket and no open
-PR. Existing roadmap technical prerequisites are #16 (0.2.3, merged PR #21) and
+The pre-publication tracker inspection found no published 1.1.3 ticket/open PR;
+the owner-authorized publication above supersedes that inventory. Existing
+roadmap technical prerequisites are #16 (0.2.3, merged PR #21) and
 #51 (0.4.1a, merged PR #61). Additional reused foundations were checked through
 their closing PRs: #53 search → merged #64, #55 drafts → merged #65, #56 draft
 recovery → merged #68 (all merged 16 October). Recheck their integration into
 current development before starting. Do not treat CLOSED alone as a merge check.
 
-The local onboarding revision is uncommitted on `codex/owner-access-onboarding`.
-Its deliberate review/integration is a real implementation-base gate, not an
-instruction to commit it during this research. No branch switch, stash, reset
-or worktree workaround. After integration, refresh `origin/development`, inspect
+The onboarding revision and research packet were committed as `78127b6` on
+`codex/owner-access-onboarding`, pushed and opened as draft PR #77 on the owner's
+later authorization. Its reviewed merge remains a real implementation-base gate.
+No branch switch, stash, reset or worktree workaround occurred. After integration,
+refresh `origin/development`, inspect
 current CI, then start one requested approved unblocked issue on a focused branch
 in this same checkout. Recheck actual native blockers then.
 
