@@ -72,6 +72,10 @@
   not active coding time. Embedded preview navigation twice timed out; the direct
   running URL and private local access file remain the review path. Actual-device,
   language, accessibility and business-policy acceptance remain pending.
+- Draft [PR #82](https://github.com/nishanthturnstile/aarili/pull/82) published,
+  observed 13:54:36.9762870+05:30, implementation `39be40e` against development.
+  Fast verification and Dependency audit are running; no owner review or merge
+  authorization exists for #79. Only documentation metadata follows this source.
 - [Acceptance and manual review packet](Adult_Wearer_Implementation_Evidence.md).
 
 ## Delivery 2: customer registration (#78 / 1.1.3a)

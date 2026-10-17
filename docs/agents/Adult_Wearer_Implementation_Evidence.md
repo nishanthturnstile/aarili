@@ -4,6 +4,11 @@
 `codex/adult-wearer-registration` from integrated development `ac98740`.
 Customer PR #81 merged at 2026-10-17T07:32:07Z. Native blockers #55/#56/#78
 are closed; draft prerequisites were merged in PRs #65 and #68.
+Implementation commit `39be40e` is published in draft
+[PR #82](https://github.com/nishanthturnstile/aarili/pull/82) to `development`.
+Required Fast verification and Dependency audit were running at publication;
+owner review/merge and human acceptance are pending. Documentation-only PR
+metadata follows the source-fingerprinted implementation.
 
 Sources: [issue #79](https://github.com/nishanthturnstile/aarili/issues/79),
 [design](Customer_Wearer_Design.md), [REA evidence](Customer_Wearer_REA_Evidence.md),
