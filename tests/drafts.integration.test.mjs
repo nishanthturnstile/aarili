@@ -44,7 +44,7 @@ async function fixture(run) {
         ...f.owner,
         withOwnerDraft(headers, shopId, run) {
           return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
-            assert.equal(ctx.workflows.size, 0);
+            assert.deepEqual([...ctx.workflows.keys()], ["shop.calendar"]);
             assert.ok(ctx.instrumentation);
             // Only test-only workflow construction obtains the transaction; the
             // actual auth factory, repository and private writer remain intact.

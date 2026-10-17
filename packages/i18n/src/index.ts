@@ -8,4 +8,5 @@ export type Locale = "en" | "ta";
 export { documentMessages } from "./document-messages.js";
 export { mediaMessages } from "./media-messages.js";
 export { sharingMessages } from "./sharing-messages.js";
+export { shopCalendarMessages } from "./shop-calendar-messages.js";
 export { shopSettingsMessages } from "./shop-settings-messages.js";

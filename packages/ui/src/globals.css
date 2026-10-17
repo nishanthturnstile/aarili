@@ -1316,6 +1316,51 @@
 .shop-conflict {
   margin-block: 2rem;
 }
+.calendar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1.25rem;
+}
+.calendar-editor,
+.calendar-day,
+.calendar-ranges {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.calendar-editor > legend,
+.calendar-day > legend,
+.calendar-ranges > legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.75rem;
+}
+.calendar-day,
+.calendar-exception {
+  margin-block: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.calendar-day > div,
+.calendar-ranges {
+  margin-top: 1rem;
+}
+.calendar-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+.calendar-range > button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.calendar-review,
+.calendar-preview {
+  margin-block: 2rem;
+}
 @media (min-width: 1280px) {
   .shop-settings-layout {
     grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);

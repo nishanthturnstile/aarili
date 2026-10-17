@@ -258,8 +258,11 @@ test("0.2.1c C1/C3/C5 explicit owner Google link, original session and disconnec
         "select user_id,session_id,action from auth_connection_event order by created_at",
       );
       assert.deepEqual(
-        history.rows.map((r) => r.action),
-        ["linked", "disconnected"],
+        // Transaction-start timestamps do not define a total event order.
+        // The assertions after each command above establish the transition order;
+        // this final check proves both immutable provenance records exist once.
+        history.rows.map((r) => r.action).sort(),
+        ["disconnected", "linked"],
       );
       assert(
         history.rows.every(

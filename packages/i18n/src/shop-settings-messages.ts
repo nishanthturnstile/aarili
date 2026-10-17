@@ -88,7 +88,7 @@ export const shopSettingsMessages = {
     logoNotReady:
       "The selected logo is unavailable or has not passed validation. Choose another logo or remove it.",
     later:
-      "Calendar, receiving accounts, commercial policies and commitment rules are not available yet.",
+      "Working calendar is available in Settings. Receiving accounts, commercial policies and commitment rules are not available yet.",
   },
   ta: {
     loading: "கடை விவரம் பெறப்படுகிறது…",
@@ -178,6 +178,6 @@ export const shopSettingsMessages = {
     logoNotReady:
       "தேர்ந்தெடுத்த சின்னம் கிடைக்கவில்லை அல்லது சரிபார்க்கப்படவில்லை. வேறு படத்தைத் தேர்ந்தெடுக்கவும் அல்லது அதை நீக்கவும்.",
     later:
-      "நாட்காட்டி, பணம் பெறும் கணக்குகள், வணிகக் கொள்கைகள் மற்றும் ஒப்புதல் விதிகள் இன்னும் கிடைக்கவில்லை.",
+      "வேலை நாட்காட்டி அமைப்புகளில் உள்ளது. பணம் பெறும் கணக்குகள், வணிகக் கொள்கைகள் மற்றும் ஒப்புதல் விதிகள் இன்னும் கிடைக்கவில்லை.",
   },
 };

@@ -2,7 +2,7 @@ import type { OwnerEntry } from "@aarili/contracts";
 import { Button } from "@aarili/ui/components/button";
 import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
 import { OwnerConnections } from "./owner-connections";
 import {
@@ -11,6 +11,7 @@ import {
   type OwnerRequest,
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { ShopCalendarScreen } from "./shop-calendar-screen";
 import { ShopProfileScreen } from "./shop-profile-screen";
 export function OwnerWorkspace({
   mode,
@@ -40,6 +41,11 @@ export function OwnerWorkspace({
   onShopNameChanged: (name: string) => void;
 }) {
   const t = useTranslations();
+  const [calendar, setCalendar] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URL(window.location.href).searchParams.has("draft"),
+  );
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (document.activeElement === document.body) heading.current?.focus();
@@ -88,12 +94,44 @@ export function OwnerWorkspace({
                   )}
         </h1>
         {mode === "settings" ? (
-          <ShopProfileScreen
-            shopId={entry.shop.shopId}
-            queries={queries}
-            guard={guard}
-            onSaved={onShopNameChanged}
-          />
+          <>
+            <nav className="calendar-actions" aria-label={t("settings.title")}>
+              <Button
+                variant="outline"
+                aria-pressed={!calendar}
+                onClick={() => {
+                  if (guard.safe() || window.confirm(t("calendar.discard")))
+                    setCalendar(false);
+                }}
+              >
+                {t("settings.profile")}
+              </Button>
+              <Button
+                variant="outline"
+                aria-pressed={calendar}
+                onClick={() => {
+                  if (guard.safe() || window.confirm(t("calendar.discard")))
+                    setCalendar(true);
+                }}
+              >
+                {t("calendar.title")}
+              </Button>
+            </nav>
+            {calendar ? (
+              <ShopCalendarScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : (
+              <ShopProfileScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+                onSaved={onShopNameChanged}
+              />
+            )}
+          </>
         ) : mode === "customers" ||
           mode === "customer-new" ||
           mode === "customer-profile" ? (

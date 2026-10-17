@@ -63,6 +63,10 @@
     "./shop-profile-client": {
       "types": "./dist/shop-profile-client.d.ts",
       "import": "./dist/shop-profile-client.js"
+    },
+    "./shop-calendar-client": {
+      "types": "./dist/shop-calendar-client.d.ts",
+      "import": "./dist/shop-calendar-client.js"
     }
   },
   "scripts": {
