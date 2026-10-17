@@ -4,6 +4,9 @@
 squash merge `2ea55ac` in development. Sources: [issue #78](https://github.com/nishanthturnstile/aarili/issues/78),
 [design](Customer_Wearer_Design.md), [reference evidence](Customer_Wearer_REA_Evidence.md)
 and [privacy draft](Customer_Wearer_Privacy_Draft.md). This delivery covers 1.1.3a.
+Review: [draft PR #81](https://github.com/nishanthturnstile/aarili/pull/81).
+Implementation commit: `c73555a3dd4a21fd460bb799145fee6e07dc7e17`.
+Later documentation commits retain the same tested-source fingerprint.
 
 ## Behavior and boundaries
 

@@ -13,7 +13,7 @@
 - Strict typecheck, lint/boundaries/tokens, Knip and production web build passed.
   Initial lint found the new typed client absent from the explicit browser
   admission list; adding that exact client retained transitive boundary checking.
-- Local delivery gates passed; hosted CI, PR/merge and human acceptance remain
+- Local delivery gates passed; hosted CI, merge and human acceptance remain
   pending. Test times overlap implementation; they are not additive coding-time
   measurements. Active implementation/rework durations remain unknown.
 - Evidence/manual review: [customer registration](Customer_Registration_Implementation_Evidence.md).
@@ -57,6 +57,13 @@
 - Candidate improvement: review all exact tenant-table inventory fixtures when
   introducing a tenant table, and include required runtime inputs in clean-copy
   reviews. Preserve full verification and owner acceptance requirements.
+- [Draft PR #81](https://github.com/nishanthturnstile/aarili/pull/81) opened
+  2026-10-17T07:22:03Z (12:52:03+05:30), targeting development. Tested
+  implementation commit: `c73555a3dd4a21fd460bb799145fee6e07dc7e17`.
+  Fast verification and Dependency audit were queued at 07:22:06Z in
+  [initial CI run](https://github.com/nishanthturnstile/aarili/actions/runs/39013368434).
+  Final hosted results and owner review/merge are pending; subsequent commits
+  only record delivery metadata. CI queue/execution time is not yet known.
 
 Owner-approved process improvement, 16 October 2026. Follow the
 [development workflow](Development_Workflow.md). Record the next five
