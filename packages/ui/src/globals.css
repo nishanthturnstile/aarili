@@ -1366,3 +1366,52 @@
     grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
   }
 }
+
+.directory-list {
+  list-style: none;
+  padding: 0;
+}
+.directory-list > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-page);
+  padding-block: var(--space-page);
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.directory-task {
+  margin-block-start: calc(var(--space-page) * 2);
+  padding-block-start: var(--space-page);
+  border-top: 1px solid var(--border);
+}
+.directory-task :is(h3, h4, input) {
+  scroll-margin-block-start: var(--space-page);
+}
+.directory-editor fieldset {
+  display: grid;
+  gap: var(--space-page);
+  min-width: 0;
+}
+.directory-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-control);
+  min-height: var(--control-height);
+}
+.directory-check input {
+  inline-size: calc(var(--spacing) * 6);
+  block-size: calc(var(--spacing) * 6);
+  flex-shrink: 0;
+  accent-color: var(--primary);
+}
+.directory-check input:focus-visible {
+  outline: var(--focus-width) solid var(--ring);
+  outline-offset: var(--focus-offset);
+}
+@media (max-width: 600px) {
+  .directory-list > li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

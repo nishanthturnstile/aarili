@@ -11,6 +11,7 @@ import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
 import { createOwnerRoutes } from "./owner.js";
 import { createShopCalendarRoutes } from "./shop-calendar.js";
+import { createShopDirectoryRoutes } from "./shop-directory.js";
 import { createShopProfileRoutes } from "./shop-profile.js";
 import { createGuardianRoutes, createWearerRoutes } from "./wearers.js";
 
@@ -75,6 +76,7 @@ export function createApi(
     app.route("/", createCustomerRoutes(owner));
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
+    app.route("/", createShopDirectoryRoutes(owner));
     app.route("/", createWearerRoutes(owner));
     app.route("/", createGuardianRoutes(owner));
     app.route("/", createDraftRoutes(owner));

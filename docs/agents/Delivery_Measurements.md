@@ -1,5 +1,24 @@
 # Delivery measurements
 
+## Supplemental delivery started: receiving accounts and vendors (#86 / 1.1.1c)
+
+- #85 PR [#90](https://github.com/nishanthturnstile/aarili/pull/90) squash-merged
+  at 2026-10-17T14:47:56Z as `2e3118f`; issue #85 closed. Fast verification and
+  Dependency audit passed on `7224fc9` in run 39042034538. No promotion or deploy.
+- Updated the existing checkout's development branch and started
+  `codex/receiving-accounts-vendors` from `2e3118f`. Direct blockers #84/#13 are
+  closed and their merged commits are ancestors. No worktree created.
+- Owner approved the minimal receiving/vendor fields and labelled synthetic
+  fixtures. Actual first-edit timestamp was not separately captured; implementation
+  is observed underway by 2026-10-17T20:20:10+05:30. No active duration inferred.
+- First implemented contracts distinguish permissive drafts from publication,
+  method-specific identifiers, owner/family recipients, dual-role vendors and
+  masked overview DTOs. Four focused unit tests passed in 368ms, process exit 0.
+  This is initial development evidence, not final acceptance or publication.
+- Database/recent-auth transactional enforcement, API, bilingual owner workflows,
+  PostgreSQL/browser verification and review packet remain in progress. No #86
+  commit or PR is created at this checkpoint.
+
 ## Supplemental delivery: shop calendar (#85 / 1.1.1b)
 
 - At the publication follow-up, owner authorized commit, PR and conditional merge,

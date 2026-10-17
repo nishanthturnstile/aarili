@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createApi } from "@aarili/api";
 import { createCommandRoutes } from "@aarili/api/commands";
@@ -5,6 +6,7 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
 import { createShopProfileRoutes } from "@aarili/api/shop-profile";
 import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
@@ -106,10 +108,28 @@ api.route(
     },
   }),
 );
+api.route(
+  "/",
+  createShopDirectoryRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerShopDirectory: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
 });
+assert.equal(
+  Object.keys(document.paths).filter((p) => p.includes("/settings/directory/"))
+    .length,
+  4,
+  "Directory routes must be present in offline OpenAPI",
+);
 await mkdir("test-results", { recursive: true });
 await writeFile(
   "test-results/openapi.json",

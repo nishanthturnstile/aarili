@@ -33,6 +33,10 @@ import {
   shopCalendarDraftWorkflow,
 } from "@aarili/core/shop-calendar";
 import {
+  type ShopDirectoryContext,
+  shopDirectoryDraftWorkflow,
+} from "@aarili/core/shop-directory";
+import {
   type ShopProfileContext,
   shopBrandingPolicy,
 } from "@aarili/core/shop-profile";
@@ -65,6 +69,7 @@ import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
 import { shopCalendarRepository } from "@aarili/db/shop-calendar-repository";
+import { shopDirectoryRepository } from "@aarili/db/shop-directory-repository";
 import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
@@ -192,6 +197,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerShopDirectory: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ShopDirectoryContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerShopCalendar: <T>(
     headers: Headers,
     shopId: string,
@@ -1171,6 +1181,17 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
           repository: shopCalendarRepository(tx, shopId),
         }),
       );
+      workflows.set(
+        "shop.directory",
+        shopDirectoryDraftWorkflow({
+          shopId,
+          actorId: userId,
+          repository: shopDirectoryRepository(tx, shopId),
+          requireRecent: async () => {
+            await recentIdentity(headers, tx);
+          },
+        }),
+      );
       const policy = wearerPolicy();
       if (policy.enabled && policy.synthetic)
         workflows.set(
@@ -1221,6 +1242,22 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) =>
       run(guardianContext(tx, shopId, userId)),
+    );
+  }
+  async function withOwnerShopDirectory<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ShopDirectoryContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run({
+        shopId,
+        actorId,
+        repository: shopDirectoryRepository(tx, shopId),
+        requireRecent: async () => {
+          await recentIdentity(headers, tx);
+        },
+      }),
     );
   }
   async function withOwnerShopCalendar<T>(
@@ -1621,6 +1658,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerGuardian,
     withOwnerTransaction,
     withOwnerShopProfile,
+    withOwnerShopDirectory,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,

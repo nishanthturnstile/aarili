@@ -44,7 +44,10 @@ async function fixture(run) {
         ...f.owner,
         withOwnerDraft(headers, shopId, run) {
           return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
-            assert.deepEqual([...ctx.workflows.keys()], ["shop.calendar"]);
+            assert.deepEqual(
+              [...ctx.workflows.keys()],
+              ["shop.calendar", "shop.directory"],
+            );
             assert.ok(ctx.instrumentation);
             // Only test-only workflow construction obtains the transaction; the
             // actual auth factory, repository and private writer remain intact.
@@ -148,6 +151,7 @@ function command(
     failure,
     boss,
     wrongResult,
+    registry,
   } = {},
 ) {
   return withShop(pool.db, who.user, who.shop, (tx) =>
@@ -156,11 +160,13 @@ function command(
         shopId: who.shop,
         actor: { type: "user", id: who.user },
         repository: decorate(draftRepository(tx, who.shop)),
-        workflows: syntheticDraftRegistry(tx, who.shop, {
-          failure,
-          boss,
-          wrongResult,
-        }),
+        workflows:
+          registry ??
+          syntheticDraftRegistry(tx, who.shop, {
+            failure,
+            boss,
+            wrongResult,
+          }),
         ...(instrumentation ? { instrumentation } : {}),
       },
       draftId,
@@ -907,3 +913,31 @@ test("0.4.2a E8 real private usage factory composes through production API with 
     });
   });
 }, 120000);
+
+test("SS-03 optional publication authorization preserves replay for earlier workflows no longer enabled", {
+  timeout: 180000,
+}, async () => {
+  await fixture(async (f) => {
+    const draftId = await id(f);
+    await put(f, draftId, complete);
+    await state(f, draftId);
+    const key = randomUUID();
+    const original = await command(
+      f,
+      draftId,
+      "promote",
+      {},
+      { key, version: 1 },
+    );
+    const before = await counts(f);
+    const replay = await command(
+      f,
+      draftId,
+      "promote",
+      {},
+      { key, version: 1, registry: new Map() },
+    );
+    assert.deepEqual(replay, original);
+    assert.deepEqual(await counts(f), before);
+  });
+});

@@ -12,6 +12,7 @@ import {
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
+import { ShopDirectoryScreen } from "./shop-directory-screen";
 import { ShopProfileScreen } from "./shop-profile-screen";
 export function OwnerWorkspace({
   mode,
@@ -41,6 +42,11 @@ export function OwnerWorkspace({
   onShopNameChanged: (name: string) => void;
 }) {
   const t = useTranslations();
+  const [directory, setDirectory] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URL(window.location.href).searchParams.get("section") === "directory",
+  );
   const [calendar, setCalendar] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -98,26 +104,60 @@ export function OwnerWorkspace({
             <nav className="calendar-actions" aria-label={t("settings.title")}>
               <Button
                 variant="outline"
-                aria-pressed={!calendar}
+                aria-pressed={!calendar && !directory}
                 onClick={() => {
-                  if (guard.safe() || window.confirm(t("calendar.discard")))
+                  if (guard.safe() || window.confirm(t("calendar.discard"))) {
+                    setDirectory(false);
                     setCalendar(false);
+                    const url = new URL(window.location.href);
+                    url.search = "";
+                    window.history.replaceState(null, "", url.pathname);
+                  }
                 }}
               >
                 {t("settings.profile")}
               </Button>
               <Button
                 variant="outline"
-                aria-pressed={calendar}
+                aria-pressed={calendar && !directory}
                 onClick={() => {
-                  if (guard.safe() || window.confirm(t("calendar.discard")))
+                  if (guard.safe() || window.confirm(t("calendar.discard"))) {
+                    setDirectory(false);
                     setCalendar(true);
+                    const url = new URL(window.location.href);
+                    url.search = "";
+                    window.history.replaceState(null, "", url.pathname);
+                  }
                 }}
               >
                 {t("calendar.title")}
               </Button>
+              <Button
+                variant="outline"
+                aria-pressed={directory}
+                onClick={() => {
+                  if (guard.safe() || window.confirm(t("calendar.discard"))) {
+                    setDirectory(true);
+                    const u = new URL(window.location.href);
+                    u.search = "?section=directory";
+                    window.history.replaceState(
+                      null,
+                      "",
+                      `${u.pathname}${u.search}`,
+                    );
+                  }
+                }}
+              >
+                {t("directory.title")}
+              </Button>
             </nav>
-            {calendar ? (
+            {directory ? (
+              <ShopDirectoryScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : calendar ? (
               <ShopCalendarScreen
                 shopId={entry.shop.shopId}
                 queries={queries}
