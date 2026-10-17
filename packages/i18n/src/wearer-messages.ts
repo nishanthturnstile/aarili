@@ -32,7 +32,9 @@ export const wearerMessages = {
     minor: "Under 18",
     unknown: "Not recorded",
     unresolved:
-      "Authority unresolved. The guardian flow is not available yet; no adult permission can be recorded.",
+      "Adult permission cannot be recorded for a minor or unknown age. Review the separate guardian authority and child purpose evidence below.",
+    adultHistoryHelp:
+      "Earlier wearer purpose records remain here as history. They do not establish guardian authority or make a child purpose eligible.",
     relationship: "Relationship to the contact",
     family: "Family member",
     other: "Other authorised person",
@@ -166,7 +168,9 @@ export const wearerMessages = {
     minor: "18 வயதுக்குக் கீழ்",
     unknown: "பதிவில்லை",
     unresolved:
-      "அதிகாரம் உறுதியாகவில்லை. பாதுகாவலர் படிவம் இன்னும் கிடைக்கவில்லை; பெரியவருக்கான அனுமதியைப் பதிவு செய்ய முடியாது.",
+      "சிறார் அல்லது தெரியாத வயதிற்கு பெரியவருக்கான அனுமதியைப் பதிவு செய்ய முடியாது. கீழே தனியான பாதுகாவலர் அதிகாரம் மற்றும் சிறாருக்கான நோக்கச் சான்றுகளைப் பரிசீலிக்கவும்.",
+    adultHistoryHelp:
+      "முந்தைய நோக்கப் பதிவுகள் வரலாறாக இங்கே இருக்கும். அவை பாதுகாவலர் அதிகாரத்தை உறுதிப்படுத்தவோ சிறாருக்கான நோக்கத்தைத் தகுதியுள்ளதாக்கவோ செய்யாது.",
     relationship: "தொடர்பாளருடனான உறவு",
     family: "குடும்ப உறுப்பினர்",
     other: "மற்ற அங்கீகரிக்கப்பட்ட நபர்",

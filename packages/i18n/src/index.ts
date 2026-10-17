@@ -1,5 +1,6 @@
 export { customerMessages } from "./customer-messages.js";
 export { draftMessages } from "./draft-messages.js";
+export { guardianMessages } from "./guardian-messages.js";
 export { ownerMessages } from "./owner-messages.js";
 export { pwaMessages } from "./pwa-messages.js";
 export { wearerMessages } from "./wearer-messages.js";

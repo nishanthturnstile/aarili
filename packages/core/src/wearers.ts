@@ -28,6 +28,16 @@ import type { DraftWorkflow } from "./drafts.js";
 import { DraftFailure } from "./drafts.js";
 import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
+
+export {
+  type GuardianContext,
+  GuardianFailure,
+  guardianDraftWorkflow,
+  mutateGuardian,
+  readGuardianPolicy,
+  readGuardians,
+  searchGuardianPeople,
+} from "./guardians.js";
 export type WearerContext = {
   shopId: string;
   actor: Actor;

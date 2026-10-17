@@ -1,5 +1,10 @@
 import type { CustomerNotice } from "@aarili/contracts/customers";
 import type {
+  GuardianClaim,
+  GuardianMutation,
+  GuardianProfile,
+  GuardianPurposeEvent,
+  GuardianVerification,
   WearerCreate,
   WearerMutation,
   WearerProfile,
@@ -78,5 +83,52 @@ export interface WearerRepository extends RequestRepository<WearerMutation> {
     expected: number,
   ): Promise<boolean>;
   audit(w: WearerWrite, action: string, version: number): Promise<void>;
+  origin(id: string, draftId: string): Promise<boolean>;
+}
+export type GuardianWrite = {
+  wearerId: string;
+  authorityId: string;
+  actorId: string;
+  eventId: string;
+  key: string;
+  requestId: string;
+  originDraftId: string | null;
+};
+export interface GuardianRepository
+  extends RequestRepository<GuardianMutation> {
+  ensureNotice(notice: CustomerNotice): Promise<void>;
+  ids(): Promise<{ authorityId: string; eventId: string; personId: string }>;
+  read(
+    wearerId: string,
+    relationshipAllowed: boolean,
+  ): Promise<GuardianProfile>;
+  person(
+    id: string,
+  ): Promise<{ personId: string; displayName: string } | undefined>;
+  search(
+    input: WearerSearch,
+    keys: { nameTaNorm: string; nameLatinNorm: string; nameSkel: string },
+  ): Promise<{
+    people: { personId: string; displayName: string }[];
+    next: string | null;
+  }>;
+  claim(
+    w: GuardianWrite,
+    input: GuardianClaim,
+    personId: string,
+    expected: number,
+    keys: { nameTaNorm: string; nameLatinNorm: string; nameSkel: string },
+  ): Promise<void>;
+  verify(
+    w: GuardianWrite,
+    input: GuardianVerification,
+    expected: number,
+  ): Promise<void>;
+  purpose(
+    w: GuardianWrite,
+    input: GuardianPurposeEvent,
+    expected: number,
+  ): Promise<void>;
+  audit(w: GuardianWrite, action: string, version: number): Promise<void>;
   origin(id: string, draftId: string): Promise<boolean>;
 }

@@ -29,8 +29,16 @@ import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import { createUsageWriter } from "@aarili/core/usage";
-import { syntheticWearerPolicy } from "@aarili/core/wearer-policy";
-import { type WearerContext, wearerDraftWorkflow } from "@aarili/core/wearers";
+import {
+  syntheticGuardianPolicy,
+  syntheticWearerPolicy,
+} from "@aarili/core/wearer-policy";
+import {
+  type GuardianContext,
+  guardianDraftWorkflow,
+  type WearerContext,
+  wearerDraftWorkflow,
+} from "@aarili/core/wearers";
 import {
   createDatabase,
   type Database,
@@ -50,7 +58,10 @@ import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
-import { wearerRepository } from "@aarili/db/wearer-repository";
+import {
+  guardianRepository,
+  wearerRepository,
+} from "@aarili/db/wearer-repository";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -197,6 +208,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: WearerContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerGuardian: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: GuardianContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   withOwnerCustomer: <T>(
     headers: Headers,
@@ -1130,6 +1146,11 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       const policy = wearerPolicy();
       if (policy.enabled && policy.synthetic)
         workflows.set(
+          "wearer.guardian",
+          guardianDraftWorkflow(guardianContext(tx, shopId, userId)),
+        );
+      if (policy.enabled && policy.synthetic)
+        workflows.set(
           "customer.wearer",
           wearerDraftWorkflow({
             shopId,
@@ -1148,6 +1169,31 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
           : {}),
       });
     });
+  }
+  function guardianContext(
+    tx: Transaction,
+    shopId: string,
+    userId: string,
+  ): GuardianContext {
+    const policy = wearerPolicy().enabled
+      ? syntheticGuardianPolicy
+      : blockedCustomerPolicy;
+    return {
+      shopId,
+      actor: { type: "user", id: userId },
+      repository: guardianRepository(tx, shopId, policy.notice?.id),
+      wearers: wearerRepository(tx, shopId, wearerPolicy().notice?.id),
+      policy,
+    };
+  }
+  async function withOwnerGuardian<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: GuardianContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run(guardianContext(tx, shopId, userId)),
+    );
   }
   async function withOwnerMedia<T>(
     headers: Headers,
@@ -1520,6 +1566,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerDraft,
     withOwnerCustomer,
     withOwnerWearer,
+    withOwnerGuardian,
     withOwnerTransaction,
     withOwnerMedia,
     withOwnerDocument,

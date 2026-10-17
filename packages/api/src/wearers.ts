@@ -24,6 +24,8 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 
+export { createGuardianRoutes } from "./guardians.js";
+
 const error = {
   description: "Wearer request rejected",
   content: { "application/json": { schema: wearerErrorSchema } },
@@ -82,6 +84,7 @@ export function createWearerRoutes(
       ),
   });
   app.use("/shops/*", async (c, next) => {
+    if (c.req.path.includes("/guardians")) return next();
     if (
       !/\/shops\/[^/]+\/(?:wearers|customers\/[^/]+\/wearers)(?:\/|$)/.test(
         c.req.path,

@@ -5,10 +5,22 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
-import { createWearerRoutes } from "@aarili/api/wearers";
+import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createGuardianRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerGuardian: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createWearerRoutes({

@@ -9,6 +9,8 @@ import {
 import { sql, type Transaction } from "./index.js";
 import type { WearerRepository, WearerWrite } from "./repositories/wearers.js";
 import { requestRepository } from "./request-repository.js";
+
+export { guardianRepository } from "./guardian-repository.js";
 export function wearerRepository(
   tx: Transaction,
   shopId: string,
