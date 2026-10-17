@@ -176,6 +176,19 @@ export async function withOwnerWeb(
           runtime,
           probeRecent,
           stopDatabase: stop,
+          expireAuthentication: async () => {
+            const admin = new pg.Client({
+              connectionString: adminConnectionString,
+            });
+            try {
+              await admin.connect();
+              await admin.query(
+                "update auth_session set created_at=now()-interval '10 minutes'",
+              );
+            } finally {
+              await admin.end();
+            }
+          },
           revokeOwnerMembership: async () => {
             // Disposable-fixture fault injection only. This credential never
             // enters the web process and proves no runtime bypass capability.

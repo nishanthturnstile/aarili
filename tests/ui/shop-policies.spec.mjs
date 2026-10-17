@@ -138,7 +138,7 @@ test("SS-04/07/10 synthetic policies: nullable terms, IME, durable recovery, los
       .click();
     await expect(
       page.getByText(
-        "Receiving-account readiness unresolved until issue #86 is integrated",
+        "Choose enabled receiving methods in Receiving accounts and vendors",
         { exact: true },
       ),
     ).toBeVisible();

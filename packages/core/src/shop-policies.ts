@@ -14,6 +14,9 @@ export type ShopPoliciesContext = {
   shopId: string;
   actorId: string;
   repository: ShopPoliciesRepository;
+  receivingReadiness?: () => Promise<
+    "missingMethods" | "missingReceivingAccount" | "configured"
+  >;
 };
 function fail(
   status: 404 | 409 | 412 | 422,
@@ -127,6 +130,11 @@ const prerequisites: Partial<
 export function policyReadiness(
   revision: ShopPoliciesRevision | null,
   pendingKinds: readonly PolicyKind[] = [],
+  receiving:
+    | "missingMethods"
+    | "missingReceivingAccount"
+    | "configured"
+    | "notIntegrated" = "notIntegrated",
 ): PolicyReadiness {
   return {
     actions: policyActions.map((action) => {
@@ -165,8 +173,15 @@ export function policyReadiness(
       }
       if (prerequisites[action]?.length)
         reasons.push({ code: "productionAuthorityPending" });
-      if (action === "paymentRecording")
-        reasons.push({ code: "receivingAccountsNotIntegrated" });
+      if (action === "paymentRecording" && receiving !== "configured")
+        reasons.push({
+          code:
+            receiving === "notIntegrated"
+              ? "receivingAccountsNotIntegrated"
+              : receiving === "missingMethods"
+                ? "receivingMethodsMissing"
+                : "receivingAccountMissing",
+        });
       if (action === "billIssue")
         reasons.push({ code: "billFormatNotImplemented" });
       return { action, state: "not-yet-implemented", reasons };
@@ -177,5 +192,6 @@ export async function readShopPoliciesReadiness(ctx: ShopPoliciesContext) {
   return policyReadiness(
     (await ctx.repository.current()) ?? null,
     await ctx.repository.pendingKinds(),
+    ctx.receivingReadiness ? await ctx.receivingReadiness() : "notIntegrated",
   );
 }

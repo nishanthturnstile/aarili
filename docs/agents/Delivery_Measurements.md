@@ -1,5 +1,48 @@
 # Delivery measurements
 
+## Parallel #86/#87 publication and integration, 17 October 2026
+
+- #87: locally review-ready 21:24:17 IST; draft PR #91 published 21:26:12 IST,
+  head `ba4de47`. Required Fast verification and Dependency audit passed in
+  [run 39047226694](https://github.com/nishanthturnstile/aarili/actions/runs/39047226694).
+  Its issue-local evidence retains timings and active-time unknowns.
+- #86: locally review-ready 22:10:32 IST; commit `ecea8b1`, draft PR #92
+  published 22:11:21 IST. Both required jobs began 22:11:26 (five-second initial
+  queue); Fast verification finished 22:12:58, audit 22:11:42 in
+  [run 39050502262](https://github.com/nishanthturnstile/aarili/actions/runs/39050502262).
+- Owner then explicitly authorized merging both PRs and conflict resolution.
+  #92 squash-merged at 22:18:36 IST as `fa744dd`; elapsed PR-to-merge 7m15s,
+  not active coding time. The same root checkout's development branch was updated.
+- #91 reconciles the parallel shared files against that merged baseline in its
+  approved worktree. Fresh combined fast gate passed 197 tests; selected
+  PostgreSQL regression passed 14 cases in 105.31s; three-size bilingual
+  navigation browser checks passed in 1.4m. Initial encoding and test-locale
+  assumptions were corrected with original failures retained. Remaining
+  integration results, CI and merge metadata belong to the
+  [integration ledger](Shop_Settings_Integration_Evidence.md).
+- No new worktree, production promotion, deployment or live-data activation is
+  authorized by this integration. Implementation-active and review-active time
+  remain unknown; CI elapsed is not added to active coding time.
+
+## Supplemental delivery started: receiving accounts and vendors (#86 / 1.1.1c)
+
+- #85 PR [#90](https://github.com/nishanthturnstile/aarili/pull/90) squash-merged
+  at 2026-10-17T14:47:56Z as `2e3118f`; issue #85 closed. Fast verification and
+  Dependency audit passed on `7224fc9` in run 39042034538. No promotion or deploy.
+- Updated the existing checkout's development branch and started
+  `codex/receiving-accounts-vendors` from `2e3118f`. Direct blockers #84/#13 are
+  closed and their merged commits are ancestors. No worktree created.
+- Owner approved the minimal receiving/vendor fields and labelled synthetic
+  fixtures. Actual first-edit timestamp was not separately captured; implementation
+  is observed underway by 2026-10-17T20:20:10+05:30. No active duration inferred.
+- First implemented contracts distinguish permissive drafts from publication,
+  method-specific identifiers, owner/family recipients, dual-role vendors and
+  masked overview DTOs. Four focused unit tests passed in 368ms, process exit 0.
+  This is initial development evidence, not final acceptance or publication.
+- Database/recent-auth transactional enforcement, API, bilingual owner workflows,
+  PostgreSQL/browser verification and review packet remain in progress. No #86
+  commit or PR is created at this checkpoint.
+
 ## Supplemental delivery: shop calendar (#85 / 1.1.1b)
 
 - At the publication follow-up, owner authorized commit, PR and conditional merge,

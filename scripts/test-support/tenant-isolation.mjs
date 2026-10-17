@@ -12,6 +12,9 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "shopDirectoryRepository.current/read/list/history/configuration/append/advance/origin",
+  "shops/:shopId/settings/directory/list/entries/history/revisions",
+  "shop.directory draft promotion",
   "shopCalendarRepository.current/read/history/append/advance/origin",
   "shopPoliciesRepository.current/read/history/append/advance/origin/pendingKinds",
   "shops/:shopId/settings/calendar/history/revisions",
@@ -82,6 +85,7 @@ export async function withTenantFixture(
   run,
   {
     legacy = false,
+    migrationThrough,
     draftInstrumentation,
     mediaAdapters,
     documentAdapters,
@@ -96,7 +100,11 @@ export async function withTenantFixture(
     }) => {
       await migrateDatabase(
         migrationConnectionString,
-        legacy ? { through: "0002_auth_connection_history.sql" } : {},
+        legacy
+          ? { through: "0002_auth_connection_history.sql" }
+          : migrationThrough
+            ? { through: migrationThrough }
+            : {},
       );
       const runtime = createDatabase(connectionString, 1);
       const parallel = createDatabase(connectionString, 2);

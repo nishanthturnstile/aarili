@@ -9,6 +9,7 @@ import {
   type Locale,
   ownerMessages,
   shopCalendarMessages,
+  shopDirectoryMessages,
   shopPoliciesMessages,
   shopSettingsMessages,
   wearerMessages,
@@ -84,6 +85,7 @@ export function OwnerFlow({
           settings: shopSettingsMessages[locale],
           calendar: shopCalendarMessages[locale],
           policies: shopPoliciesMessages[locale],
+          directory: shopDirectoryMessages[locale],
         }}
         timeZone="Asia/Kolkata"
       >

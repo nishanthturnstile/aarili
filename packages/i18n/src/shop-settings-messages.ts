@@ -88,7 +88,7 @@ export const shopSettingsMessages = {
     logoNotReady:
       "The selected logo is unavailable or has not passed validation. Choose another logo or remove it.",
     later:
-      "Working calendar is available in Settings. Commercial policies are available as synthetic review fixtures. Receiving accounts and commitment rules are not available yet.",
+      "Working calendar is available in Settings. Commercial policies are available as synthetic review fixtures. Receiving accounts and vendors are available. Commitment rules are not available yet.",
   },
   ta: {
     loading: "கடை விவரம் பெறப்படுகிறது…",
@@ -178,6 +178,6 @@ export const shopSettingsMessages = {
     logoNotReady:
       "தேர்ந்தெடுத்த சின்னம் கிடைக்கவில்லை அல்லது சரிபார்க்கப்படவில்லை. வேறு படத்தைத் தேர்ந்தெடுக்கவும் அல்லது அதை நீக்கவும்.",
     later:
-      "வேலை நாட்காட்டியும் செயற்கை வணிகக் கொள்கை மதிப்பாய்வும் அமைப்புகளில் உள்ளன. பணம் பெறும் கணக்குகளும் ஒப்புதல் விதிகளும் இன்னும் கிடைக்கவில்லை.",
+      "வேலை நாட்காட்டி, பணம் பெறும் கணக்குகள், விற்பனையாளர்கள் மற்றும் செயற்கை வணிகக் கொள்கை மதிப்பாய்வு அமைப்புகளில் உள்ளன. ஒப்புதல் விதிகள் இன்னும் கிடைக்கவில்லை.",
   },
 };

@@ -1,4 +1,4 @@
-import { DraftRequestError } from "@aarili/api/client";
+import { DraftRequestError, reauthenticateOwner } from "@aarili/api/client";
 import type { DraftRecord, DraftSave } from "@aarili/contracts/drafts";
 import { afterEach, expect, test, vi } from "vitest";
 import { createDraftRecovery } from "../apps/web/src/app/draft-recovery.js";
@@ -46,7 +46,10 @@ function fixture() {
   });
   return { controller, save, promote, committed };
 }
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 test("0.4.2b F6 caller navigation seam confirms dirty work and permits acknowledged work", async () => {
   const { controller } = fixture();
   const confirm = vi.fn(() => false);
@@ -369,4 +372,48 @@ test("0.4.2b F6 separate controllers for the same draft have distinct form lifet
   expect(first.controller.instance).not.toBe(second.controller.instance);
   first.controller.dispose();
   second.controller.dispose();
+});
+test("SS-03 recent-auth pause retains original promotion key after response loss and clears on invalidation", async () => {
+  const { controller, promote } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  promote.mockRejectedValueOnce(new TypeError("lost response"));
+  await controller.promote();
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      403,
+      { error: { code: "AUTHENTICATION_STALE", message: "Confirm identity" } },
+      null,
+    ),
+  );
+  await controller.retry();
+  expect(controller.snapshot().status).toBe("checking");
+  expect(controller.snapshot().pendingPromotion).toBe(true);
+  expect(controller.snapshot().work.outcomeUnknown).toBe(true);
+  controller.edit({ value: "blocked while paused" });
+  expect(controller.snapshot().values).toEqual({ value: "a" });
+  vi.stubGlobal("fetch", async () =>
+    Response.json(
+      { error: { code: "INVALID_CREDENTIALS", message: "Denied" } },
+      { status: 401 },
+    ),
+  );
+  await expect(
+    reauthenticateOwner("synthetic-password", true),
+  ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
+  expect(controller.snapshot().pendingPromotion).toBe(true);
+  expect(controller.snapshot().values).toEqual({ value: "a" });
+  expect(promote).toHaveBeenCalledTimes(2);
+  vi.stubGlobal("fetch", async () =>
+    Response.json({ state: "reauthenticated" }),
+  );
+  await reauthenticateOwner("synthetic-password", true);
+  await controller.retry();
+  expect(promote.mock.calls[0]).toEqual(promote.mock.calls[1]);
+  expect(promote.mock.calls[1]).toEqual(promote.mock.calls[2]);
+  expect(controller.snapshot().status).toBe("promoted");
+  controller.invalidate();
+  expect(controller.snapshot().values).toEqual({});
+  controller.dispose();
+  vi.unstubAllGlobals();
 });

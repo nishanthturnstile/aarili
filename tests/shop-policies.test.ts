@@ -242,3 +242,22 @@ describe("SET-05/08/09 SS-04 AC-44 limited configuration and action readiness", 
     ).toContainEqual({ code: "policyDraft", policy: "advance" });
   });
 });
+
+// SS-03/04 combined configuration facts never activate a later payment command.
+it("SS-03/04 integrated receiving reasons stay independent of action availability", () => {
+  for (const [receiving, reason] of [
+    ["missingMethods", "receivingMethodsMissing"],
+    ["missingReceivingAccount", "receivingAccountMissing"],
+    ["configured", null],
+  ] as const) {
+    const p = policyReadiness(null, [], receiving).actions.find(
+      (a) => a.action === "paymentRecording",
+    );
+    expect(p?.state).toBe("not-yet-implemented");
+    expect(p?.reasons).toContainEqual({ code: "actionNotImplemented" });
+    expect(p?.reasons).not.toContainEqual({
+      code: "receivingAccountsNotIntegrated",
+    });
+    if (reason) expect(p?.reasons).toContainEqual({ code: reason });
+  }
+});

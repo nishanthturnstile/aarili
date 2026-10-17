@@ -23,6 +23,14 @@ Migration **0023_shop_policies.sql**, namespace **shop-policies**, workflow
 Receiving-account readiness returns `receivingAccountsNotIntegrated` until the
 parent integrates and reconciles #86. No circular prerequisite is added.
 
+Post-publication integration: PR #92/#86 merged as `fa744dd`. PR #91 now combines
+the receiving adapter in the same verified tenant transaction and preserves both
+Settings destinations. Missing methods/accounts replace the earlier integration
+placeholder; configured accounts do not activate payment recording. See the
+[combined verification and recovery record](Shop_Settings_Integration_Evidence.md)
+for current integration evidence; the original independent-branch ledger below
+is retained as historical evidence.
+
 Production authority is deliberately unavailable in this delivery. The server
 accepts incomplete `owner-proposal` drafts but never publishes them. Explicitly
 labelled `synthetic-fixture` review revisions have `authorityScope: synthetic-only`;

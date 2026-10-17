@@ -114,7 +114,7 @@ test("SET-05/08 SS-04/07 AC-44 draft resume, fixture-only authority, replay, CAS
       assert(
         initial.actions
           .find((a) => a.action === "paymentRecording")
-          .reasons.some((r) => r.code === "receivingAccountsNotIntegrated"),
+          .reasons.some((r) => r.code === "receivingMethodsMissing"),
       );
       await ok(
         await request(f, "customers", {

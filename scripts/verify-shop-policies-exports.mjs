@@ -1,4 +1,4 @@
-// Scoped clean install gate: #87 changes exports, not dependencies/toolchains.
+// Scoped clean install gate: #86/#87 export integration, unchanged dependencies.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
@@ -74,6 +74,13 @@ try {
     "@aarili/db/repositories/shop-policies",
     "@aarili/db/shop-policies-schema",
     "@aarili/api/shop-policies-client",
+    "@aarili/contracts/shop-directory",
+    "@aarili/core/shop-directory",
+    "@aarili/db/shop-directory-repository",
+    "@aarili/db/repositories/shop-directory",
+    "@aarili/db/shop-directory-schema",
+    "@aarili/api/shop-directory",
+    "@aarili/api/shop-directory-client",
     "@aarili/auth",
     "@aarili/i18n",
   ];

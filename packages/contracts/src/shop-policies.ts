@@ -219,6 +219,8 @@ export const policyReadinessSchema = z.strictObject({
             "syntheticOnly",
             "productionAuthorityPending",
             "receivingAccountsNotIntegrated",
+            "receivingMethodsMissing",
+            "receivingAccountMissing",
             "billFormatNotImplemented",
             "actionNotImplemented",
             "retailIneligible",

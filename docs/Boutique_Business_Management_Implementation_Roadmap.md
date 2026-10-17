@@ -367,8 +367,12 @@ track executable acceptance and remaining human/merge gates. Selected 1.1.1b/#85
 adds independent customer/production calendars, durable drafts and immutable
 history after #55/#56/#84 merged; its
 [implementation evidence and owner review](agents/Shop_Calendar_Implementation_Evidence.md)
-track verification and outstanding gates. #86–#88 retain
-their merged-prerequisite gates. Complete 1.1.1, real category/order integration
+track verification and outstanding gates. Selected 1.1.1c/#86 adds receiving
+accounts/vendors ([evidence](agents/Shop_Directory_Implementation_Evidence.md));
+1.1.1d/#87 adds policy review and action-specific readiness
+([evidence](agents/Shop_Policies_Implementation_Evidence.md)). Their parallel
+integration is recorded in [integration evidence](agents/Shop_Settings_Integration_Evidence.md).
+#88 retains its merged-prerequisite gates. Complete 1.1.1, real category/order integration
 and live readiness are not declared by ticket A.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.

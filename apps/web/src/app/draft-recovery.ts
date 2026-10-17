@@ -183,8 +183,8 @@ export function createDraftRecovery(options: {
       }
       if (
         error instanceof DraftRequestError &&
-        error.status === 429 &&
-        state.work.outcomeUnknown
+        (error.body.error.code === "AUTHENTICATION_STALE" ||
+          (error.status === 429 && state.work.outcomeUnknown))
       ) {
         // Admission rejected this retry before looking up the original key. It
         // cannot establish whether that original save/promotion committed.

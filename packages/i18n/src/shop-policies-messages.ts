@@ -95,6 +95,10 @@ export const shopPoliciesMessages = {
     syntheticOnly: "Synthetic fixture does not grant production authority",
     productionAuthorityPending:
       "Owner-approved production terms and authority remain an activation gate",
+    receivingMethodsMissing:
+      "Choose enabled receiving methods in Receiving accounts and vendors",
+    receivingAccountMissing:
+      "Add an active receiving account for an enabled method",
     receivingAccountsNotIntegrated:
       "Receiving-account readiness unresolved until issue #86 is integrated",
     billFormatNotImplemented: "Bill format and issuance are not implemented",
@@ -198,6 +202,10 @@ export const shopPoliciesMessages = {
     syntheticOnly: "செயற்கை மாதிரி நடைமுறை அதிகாரம் அளிக்காது",
     productionAuthorityPending:
       "நடைமுறை விதிகளுக்கும் அதிகாரத்திற்கும் உரிமையாளர் ஒப்புதல் நிலுவை",
+    receivingMethodsMissing:
+      "பெறுதல் கணக்குகள் மற்றும் விற்பனையாளர்கள் பகுதியில் பணம் பெறும் முறைகளைத் தேர்ந்தெடுக்கவும்",
+    receivingAccountMissing:
+      "இயக்கப்பட்ட முறைக்குச் செயலிலுள்ள பெறுதல் கணக்கைச் சேர்க்கவும்",
     receivingAccountsNotIntegrated:
       "#86 இணைக்கப்படும் வரை பெறும் கணக்கின் தயார்நிலை தீர்மானிக்கப்படவில்லை",
     billFormatNotImplemented: "பில் வடிவமும் வெளியீடும் இன்னும் செயல்படுத்தப்படவில்லை",
