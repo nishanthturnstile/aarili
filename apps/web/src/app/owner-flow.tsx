@@ -5,6 +5,7 @@ import {
 } from "@aarili/api/client";
 import {
   customerMessages,
+  guardianMessages,
   type Locale,
   ownerMessages,
   wearerMessages,
@@ -75,6 +76,7 @@ export function OwnerFlow({
           ...ownerMessages[locale],
           customers: customerMessages[locale],
           wearers: wearerMessages[locale],
+          guardians: guardianMessages[locale],
         }}
         timeZone="Asia/Kolkata"
       >

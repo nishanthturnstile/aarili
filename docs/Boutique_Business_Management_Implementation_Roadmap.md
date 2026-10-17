@@ -402,8 +402,17 @@ prerequisite gates; this does not close 1.1.3 or any live-data gate.
 integrated `ac98740` after #55/#56/#78 merged. Adult wearer roles, interaction
 authority, independent preferences and current-state draft promotion are scoped
 in the [implementation evidence](agents/Adult_Wearer_Implementation_Evidence.md).
-Local component verification is recorded; owner review/merge and human acceptance
-remain pending. Minor/guardian completion is #80 and cannot start before #79 merges.
+Local component verification is recorded. The owner merged PR #82 as `5d00a68`
+on 17 October 2026; human/policy acceptance remains separate.
+
+**1.1.3c implementation (17 October 2026):** selected approved #80 starts from
+integrated `5d00a68` after #79 merged. Separate minor/guardian identity, pending
+claim versus authority review, scoped purpose evidence and recoverable drafts are
+recorded in the [implementation evidence and A–C mapping](agents/Minor_Guardian_Implementation_Evidence.md).
+Local verification passed; required hosted CI and owner review/merge remain pending.
+Actual order/measurement/media
+write integration, AC-39/52, final policy, Phase 0.5 and pilot/live-data gates remain
+unchanged; registration evidence alone does not close those gates.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-01, CUS-02, CUS-04, CUS-07, TRU-01, TRU-03, TRU-04, TRU-05, TRU-07, TRU-13. Scenarios: AC-02, AC-39, AC-52, AC-53.

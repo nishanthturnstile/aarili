@@ -39,6 +39,7 @@ import {
 import { useForm } from "react-hook-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
+import { GuardianWorkspace } from "./guardian-workspace";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 
@@ -187,7 +188,16 @@ export function WearerWorkspace({
         return;
       }
       try {
-        await openRef.current(await scope.read(id));
+        const record = await scope.read(id);
+        if (
+          record.workflow === "wearer.guardian" &&
+          record.payload.customerId === customer.id &&
+          typeof record.payload.wearerId === "string"
+        ) {
+          setSelected(record.payload.wearerId);
+          return;
+        }
+        await openRef.current(record);
       } catch {
         if (current()) setFailure(true);
       }
@@ -197,7 +207,7 @@ export function WearerWorkspace({
       stop();
       scope.dispose();
     };
-  }, [queries, scope, refresh, current]);
+  }, [queries, scope, refresh, current, customer.id]);
   function mayLeave() {
     return guard.safe() || window.confirm(t("discard"));
   }
@@ -308,7 +318,7 @@ export function WearerWorkspace({
           </li>
         ))}
       </ul>
-      {active && policy && (
+      {active && policy && !controller && (
         <WearerDetails
           key={`${active.id}:${active.version}`}
           wearer={active}
@@ -1190,12 +1200,22 @@ function WearerDetails({
           updated={updated}
         />
       )}
-      {!editing && (
+      {!editing && (wearer.age === "adult" || wearer.purposes.length > 0) && (
         <PurposeChoices
           key={wearer.id}
           wearer={wearer}
           policy={policy}
           customerId={customer.id}
+          shopId={shopId}
+          queries={queries}
+          guard={guard}
+          updated={updated}
+        />
+      )}
+      {!editing && (
+        <GuardianWorkspace
+          customer={customer}
+          wearer={wearer}
           shopId={shopId}
           queries={queries}
           guard={guard}
@@ -1417,7 +1437,7 @@ function PurposeChoices({
       <h4 id="wearer-purpose-heading">
         {t("permissionTitle")}: {wearer.displayName}
       </h4>
-      <p>{t("permissionHelp")}</p>
+      <p>{t(wearer.age === "adult" ? "permissionHelp" : "adultHistoryHelp")}</p>
       <p>{t("purposeBoundary")}</p>
       <dl>
         {Object.entries(purposeLabels).map(([purpose, label]) => (

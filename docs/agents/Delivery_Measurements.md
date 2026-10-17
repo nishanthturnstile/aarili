@@ -1,5 +1,69 @@
 # Delivery measurements
 
+## Delivery 4: minor registration and guardian evidence (#80 / 1.1.3c)
+
+- Start observed 2026-10-17T14:17:02.9563564+05:30. Clean checkout updated
+  development to `5d00a68`, #79/PR #82 merged 08:45:15Z. Selected approved #80
+  has its native blocker closed. Branch `codex/minor-guardian-registration`.
+- Backend, UI and browser preparation use disjoint files in the same checkout;
+  no worktree or concurrent Git mutations. Active coding/rework durations are
+  unknown; verification overlaps implementation and is not additive coding time.
+- Initial package builds passed after typed repository mapping correction. The
+  first web typecheck found an incorrect recovery method name and an unbuilt
+  i18n export; corrected, affected web types passed by 14:27+05:30.
+- Review identified historical-notice withdrawal binding and UUID textual lock
+  normalization. Affected fixes/checks and final evidence remain in progress.
+- Hosted CI and human review/merge are pending; local checks and seeded host
+  observations follow. [Evidence and A–C mapping](Minor_Guardian_Implementation_Evidence.md).
+- Fast gate passed 14:30:53.3527700 to 14:32:43.7170184+05:30, including 172
+  unit tests across 43 files, lint/boundaries/tokens, Knip, strict types, negative
+  types, OpenAPI and all production builds.
+- Focused guardian/catalog PostgreSQL selection passed 9/9 (85.37s from
+  14:30:15+05:30). Test-only refinements then exercised actual two-connection
+  same-key case-variant replay (1/1, 9.22s from 14:32:15) and age/grant races
+  (1/1, 12.58s from 14:32:50). The full PostgreSQL run started
+  14:32:48.2038834+05:30; the last test-only strengthening has its own fresh result.
+- Six-run guardian browser matrix started 14:32:48.2312869+05:30. Both phone
+  scenarios passed; remaining results are pending.
+- Seeded synthetic review host started 14:33:35.2843681+05:30 and was observed
+  ready 14:33:54.2817602+05:30 at
+  http://127.0.0.1:50872/customers/01a1491a-5411-74cb-b21b-e8df0277ffc4.
+  Start to observed first usable behavior: 16m 51s elapsed, not coding time.
+  Private synthetic sign-in succeeded in the dedicated review tab at 14:34+05:30;
+  passwords remain outside chat/Git. Review does not require repeating setup.
+- Production readiness/outage, worker shutdown and artifact scan started
+  14:36:54.1804386+05:30; results pending.
+- That production smoke/artifact stage passed through 14:37:10.2011932+05:30;
+  29 browser artifacts were scanned. Final rebuild artifact scan passed again.
+- Guardian browser matrix passed 6/6 (10.5m) through
+  14:43:28.1143880+05:30. Bounded visual review inspected phone Tamil dark and
+  desktop English light; actual device/language acceptance remains pending.
+- Prepared review exposed a saved-draft resume URL omission; the form reopened
+  without restoring its reload address. The isolated UI correction restores the
+  opaque ID, with a new three-size reload regression. Adult-only purpose copy is
+  now omitted on new minor profiles; any historical records remain qualified.
+- Final affected lint/Knip/i18n/web types/build passed 14:43:45.0235878 to
+  14:44:13.3604985+05:30. The 12-run resume + existing wearer/owner-entry matrix
+  started 14:44:39.9768302+05:30; phone resume and entry passed, final result pending.
+- Final host started 14:44:40.0014356+05:30 and was observed ready
+  14:45:04.3689316+05:30:
+  http://127.0.0.1:54687/customers/01a14924-ae95-761c-bdfa-61ba5dd2abea.
+  It now uses the same existing parent identity in the saved claim draft. Private
+  review sign-in and explicit resume succeeded, including the named parent and
+  opaque reload address; no real data or affirmative consent was created.
+- Full `pnpm test:integration` passed 110/110 across 24 files (934.42s), ending
+  14:48:24.1778369+05:30. The final 474 source inputs were independently rechecked
+  unchanged at 14:49:29+05:30; the initial/final snapshot delta is explicitly
+  identified in the evidence packet. Remaining tablet/desktop regressions and
+  publication are pending.
+- Final resume + preserved wearer/onboarding matrix passed 12/12 (12.1m), ending
+  14:56:59.4226085+05:30. Together with the first guardian matrix, 18 browser
+  executions passed across phone/tablet/desktop. No unresolved local failure.
+- Local review-ready/source confirmation observed 14:57:42.4243000+05:30:
+  all 474 final hashes match; documentation-only publication metadata follows.
+  Start to this point is 40m 39s elapsed, not active coding time. Required hosted
+  CI, owner review/merge and human/policy acceptance remain pending.
+
 ## Delivery 3: adult wearer registration (#79 / 1.1.3b)
 
 - Start observed 2026-10-17T13:03:13.7925010+05:30 after updating development
@@ -76,6 +140,11 @@
   observed 13:54:36.9762870+05:30, implementation `39be40e` against development.
   Fast verification and Dependency audit are running; no owner review or merge
   authorization exists for #79. Only documentation metadata follows this source.
+- Subsequent hosted checks on documentation head `cc9f82e` passed: Fast
+  verification 13:55:39 to 13:56:50+05:30 (71s), Dependency audit through
+  13:55:58+05:30. Owner merged PR #82 at 14:15:15+05:30 as `5d00a68`.
+  The next issue began from updated development; human/policy acceptance remains
+  separate from the owner's integration decision.
 - [Acceptance and manual review packet](Adult_Wearer_Implementation_Evidence.md).
 
 ## Delivery 2: customer registration (#78 / 1.1.3a)
