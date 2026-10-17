@@ -1,10 +1,12 @@
 import {
   apiErrorSchema,
+  createOwnerShopSchema,
   googleConnectionSchema,
   googleRedirectSchema,
   healthResponseSchema,
   healthUnavailableSchema,
   ownerActionSchema,
+  ownerEntrySchema,
   ownerShopSchema,
   reauthenticationSchema,
   recoveryRequestSchema,
@@ -70,6 +72,7 @@ export async function disconnectOwnerGoogle() {
     ),
   );
   clearOwnerState();
+  publishSessionChange();
   return result;
 }
 export async function startOwnerGoogle(link: boolean) {
@@ -103,6 +106,30 @@ export function isOwnerGeneration(generation: number) {
 }
 const pendingOwnerRequests = new Set<AbortController>();
 const invalidationListeners = new Set<() => void>();
+let sessionChannel: BroadcastChannel | undefined;
+export function connectOwnerSessionChanges(onRemoteChange: () => void) {
+  if (typeof window === "undefined" || typeof BroadcastChannel === "undefined")
+    return () => {};
+  let channel: BroadcastChannel;
+  try {
+    channel = new BroadcastChannel("aarili-owner-entry");
+  } catch {
+    return () => {};
+  }
+  sessionChannel = channel;
+  channel.onmessage = (event: MessageEvent<unknown>) => {
+    if (event.data === "changed") onRemoteChange();
+  };
+  return () => {
+    if (sessionChannel === channel) sessionChannel = undefined;
+    channel.close();
+  };
+}
+function publishSessionChange() {
+  // No identity, shop details or credentials cross the channel. Re-read the
+  // authoritative server state. The sending channel never receives itself.
+  sessionChannel?.postMessage("changed");
+}
 export function clearOwnerState() {
   ownerGeneration++;
   for (const request of pendingOwnerRequests) request.abort();
@@ -189,6 +216,23 @@ export async function verifyOwner(code: string) {
     ),
   );
 }
+export async function readOwnerEntry(signal?: AbortSignal) {
+  return ownerEntrySchema.parse(
+    await authenticatedResult((requestSignal) =>
+      createOwnerClient().owner.entry.$get(
+        {},
+        {
+          init: {
+            cache: "no-store",
+            signal: signal
+              ? AbortSignal.any([signal, requestSignal])
+              : requestSignal,
+          },
+        },
+      ),
+    ),
+  );
+}
 export async function readOwnerShop(signal?: AbortSignal) {
   return ownerShopSchema.parse(
     await authenticatedResult((requestSignal) =>
@@ -206,10 +250,18 @@ export async function readOwnerShop(signal?: AbortSignal) {
     ),
   );
 }
-export async function completeOwnerShop() {
+export async function completeOwnerShop(
+  input: { shopName: string },
+  key: string,
+) {
+  const parsed = createOwnerShopSchema.safeParse(input);
+  if (!parsed.success) throw new OwnerRequestError("VALIDATION_FAILED");
   return ownerActionSchema.parse(
     await authenticatedResult((signal) =>
-      createOwnerClient().owner.complete.$post({}, { init: { signal } }),
+      createOwnerClient().owner.complete.$post(
+        { json: parsed.data },
+        { headers: { "Idempotency-Key": key }, init: { signal } },
+      ),
     ),
   );
 }
@@ -231,13 +283,15 @@ export async function resetOwnerPassword(
   if (!parsed.success) throw new OwnerRequestError("VALIDATION_FAILED");
   clearOwnerState();
   try {
-    return ownerActionSchema.parse(
+    const result = ownerActionSchema.parse(
       await ownerResult(
         await createOwnerClient().owner.recovery.reset.$post({
           json: parsed.data,
         }),
       ),
     );
+    publishSessionChange();
+    return result;
   } finally {
     clearOwnerState();
   }
@@ -249,6 +303,7 @@ export async function reauthenticateOwner(password: string) {
     await createOwnerClient().owner.reauthenticate.$post({ json: parsed.data }),
   );
   clearOwnerState();
+  publishSessionChange();
   return ownerActionSchema.parse(result);
 }
 export async function ownerSession(
@@ -264,6 +319,7 @@ export async function ownerSession(
         body: JSON.stringify(input ?? {}),
       }),
     );
+    publishSessionChange();
   } finally {
     // Also discard reads started while the auth transition was in flight.
     clearOwnerState();

@@ -31,9 +31,291 @@ const policy = {
 const origin = "http://127.0.0.1:3103";
 const token = randomBytes(32).toString("hex");
 const secret = randomBytes(32).toString("hex");
+
+test("ACCESS-01/04/05 new nameless registration, atomic shop creation, replay, conflict and concurrent tabs", {
+  timeout: 120000,
+}, async () => {
+  await fixture(async ({ make, capture, connectionString, runtime }) => {
+    const owner = make();
+    const api = createApi(async () => true, owner);
+    const { shopName: _, ...account } = input;
+    const admissionKey = randomUUID();
+    await owner.admit(account, token, admissionKey);
+    await owner.admit(account, token, admissionKey);
+    assert.equal(
+      (await runtime.query("select shop_name from owner_bootstrap")).rows[0]
+        .shop_name,
+      null,
+    );
+    assert.equal(
+      (
+        await request(
+          api,
+          "/owner/complete",
+          { shopName: "Shop" },
+          { "Idempotency-Key": randomUUID() },
+        )
+      ).status,
+      401,
+    );
+    await owner.verify(capture.at(-1).code);
+    const headers = cookie(await signIn(owner));
+    assert.deepEqual((await owner.ownerShop(headers)).data, {
+      state: "pending-shop",
+    });
+    assert.equal(
+      (await request(api, "/owner/complete", {}, Object.fromEntries(headers)))
+        .status,
+      422,
+    );
+    assert.equal(
+      (
+        await request(
+          api,
+          "/owner/complete",
+          { shopName: "Shop" },
+          Object.fromEntries(headers),
+        )
+      ).status,
+      422,
+    );
+    const key = randomUUID();
+    const named = { shopName: "  ஆரிலி Aarili  " };
+    const attempts = await Promise.all(
+      Array.from({ length: 4 }, () => owner.complete(headers, named, key)),
+    );
+    const shopId = attempts[0].data.shopId;
+    assert.equal(new Set(attempts.map((result) => result.data.shopId)).size, 1);
+    assert.deepEqual((await owner.ownerShop(headers)).data, {
+      state: "complete",
+      shopId,
+      name: "ஆரிலி Aarili",
+    });
+    assert.equal(
+      (await request(api, "/owner/complete", {}, Object.fromEntries(headers)))
+        .status,
+      422,
+    );
+    await assert.rejects(
+      runtime.query("select complete_owner_bootstrap($1::uuid)", [
+        (await runtime.query("select user_id from owner_bootstrap")).rows[0]
+          .user_id,
+      ]),
+      { code: "22023" },
+    );
+    await assert.rejects(
+      owner.complete(headers, { shopName: "Changed" }, key),
+      { code: "REQUEST_CONFLICT" },
+    );
+    await assert.rejects(
+      owner.complete(headers, { shopName: "Changed" }, randomUUID()),
+      { code: "REQUEST_CONFLICT" },
+    );
+    assert.equal(
+      (
+        await owner.complete(
+          headers,
+          { shopName: "ஆரிலி Aarili" },
+          randomUUID(),
+        )
+      ).data.shopId,
+      shopId,
+    );
+    const { db, pool } = createDatabase(connectionString);
+    try {
+      const userId = (
+        await runtime.query("select user_id from owner_bootstrap")
+      ).rows[0].user_id;
+      await withShop(db, userId, shopId, async (tx) => {
+        assert.equal(
+          (await tx.execute(sql`select count(*)::int as n from shop`)).rows[0]
+            .n,
+          1,
+        );
+        assert.equal(
+          (
+            await tx.execute(
+              sql`select count(*)::int as n from shop_membership`,
+            )
+          ).rows[0].n,
+          1,
+        );
+        assert.equal(
+          (
+            await tx.execute(
+              sql`select count(*)::int as n from audit_event where action='owner.shop.create'`,
+            )
+          ).rows[0].n,
+          1,
+        );
+        assert.equal(
+          (
+            await tx.execute(
+              sql`select count(*)::int as n from idempotency_key where action='owner.shop.create'`,
+            )
+          ).rows[0].n,
+          2,
+        );
+      });
+    } finally {
+      await pool.end();
+    }
+  });
+});
+
+test("ACCESS-05 creation checkpoint failure rolls back shop, membership, completion, audit and replay together", {
+  timeout: 120000,
+}, async () => {
+  await fixture(async ({ make, capture, runtime }) => {
+    const { shopName: _, ...account } = input;
+    const owner = make({
+      checkpoint: async (step) => {
+        if (step === "shop") throw new Error("injected rollback");
+      },
+    });
+    await owner.admit(account, token, randomUUID());
+    await owner.verify(capture.at(-1).code);
+    const headers = cookie(await signIn(owner));
+    const key = randomUUID();
+    await assert.rejects(
+      owner.complete(headers, { shopName: "Rollback shop" }, key),
+      /injected rollback/,
+    );
+    const pending = (
+      await runtime.query("select shop_id,completed_at from owner_bootstrap")
+    ).rows[0];
+    assert.deepEqual(pending, { shop_id: null, completed_at: null });
+    const good = make();
+    const completed = await good.complete(
+      headers,
+      { shopName: "Rollback shop" },
+      key,
+    );
+    assert.equal(
+      (await good.ownerShop(headers)).data.shopId,
+      completed.data.shopId,
+    );
+  });
+});
+
+test("ACCESS-06 expand migration preserves legacy pending/completed admission provenance and old completion", {
+  timeout: 120000,
+}, async () => {
+  for (const completed of [false, true])
+    await withPostgres(
+      async ({ connectionString, migrationConnectionString }) => {
+        await migrateDatabase(migrationConnectionString, {
+          through: "0015_document_sharing.sql",
+        });
+        const capture = [];
+        const owner = createOwnerAuth({
+          connectionString,
+          origin,
+          secret,
+          setupToken: token,
+          policy,
+          capture: async (message) => capture.push(message),
+        });
+        const runtime = new pg.Pool({ connectionString });
+        try {
+          await owner.admit(input, token, randomUUID());
+          await owner.verify(capture.at(-1).code);
+          const headers = cookie(await signIn(owner));
+          if (completed) await owner.complete(headers);
+          const before = (await runtime.query("select * from owner_bootstrap"))
+            .rows[0];
+          await migrateDatabase(migrationConnectionString);
+          assert.deepEqual(
+            (await runtime.query("select * from owner_bootstrap")).rows[0],
+            before,
+          );
+          if (!completed)
+            assert.equal(
+              (await owner.ownerShop(headers)).data.suggestedName,
+              input.shopName,
+            );
+          const result = await owner.complete(headers);
+          assert.equal(
+            (await owner.ownerShop(headers)).data.name,
+            input.shopName,
+          );
+          assert.equal(
+            (await owner.complete(headers)).data.shopId,
+            result.data.shopId,
+          );
+        } finally {
+          await owner.close();
+          await runtime.end();
+        }
+      },
+    );
+});
+test("ENTRY-02/04/07/08/11 entry context is own-owner only, preserves legacy completion and distinguishes membership denial/outage", {
+  timeout: 120000,
+}, async () => {
+  await fixture(async ({ make, capture, adminConnectionString, stop }) => {
+    const owner = make();
+    const api = createApi(async () => true, owner);
+    assert.equal(
+      (await request(api, "/owner/entry", undefined, {}, "GET")).status,
+      401,
+    );
+    const headers = await provision(owner, capture);
+    const read = () =>
+      request(
+        api,
+        "/owner/entry",
+        undefined,
+        Object.fromEntries(headers),
+        "GET",
+      );
+    const pending = await read();
+    assert.equal(pending.status, 200);
+    assert.equal(pending.headers.get("cache-control"), "no-store");
+    assert.deepEqual(await pending.json(), {
+      state: "needs-onboarding",
+      owner: { name: input.name, email: input.email },
+      suggestedName: input.shopName,
+    });
+    const { shopId } = (await owner.complete(headers)).data;
+    const ready = await read();
+    assert.deepEqual(await ready.json(), {
+      state: "ready",
+      owner: { name: input.name, email: input.email },
+      shop: { shopId, name: input.shopName },
+    });
+    const admin = new pg.Client({ connectionString: adminConnectionString });
+    await admin.connect();
+    try {
+      await admin.query("delete from shop_membership where shop_id=$1", [
+        shopId,
+      ]);
+    } finally {
+      await admin.end();
+    }
+    const denied = await read();
+    assert.equal(denied.status, 403);
+    assert.deepEqual(await denied.json(), {
+      error: { code: "SHOP_ACCESS_DENIED", message: "Request denied" },
+    });
+    const spec = api.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "Entry contract", version: "1" },
+    });
+    assert.ok(spec.paths["/api/owner/entry"].get.responses[200]);
+    await stop();
+    assert.equal((await read()).status, 503);
+  });
+});
+
 async function fixture(run) {
   await withPostgres(
-    async ({ connectionString, migrationConnectionString }) => {
+    async ({
+      connectionString,
+      migrationConnectionString,
+      adminConnectionString,
+      stop,
+    }) => {
       await Promise.all([
         migrateDatabase(migrationConnectionString),
         migrateDatabase(migrationConnectionString),
@@ -60,7 +342,15 @@ async function fixture(run) {
         return owner;
       }
       try {
-        await run({ make, capture, runtime, migration, connectionString });
+        await run({
+          make,
+          capture,
+          runtime,
+          migration,
+          connectionString,
+          adminConnectionString,
+          stop,
+        });
       } finally {
         await Promise.all(owners.map((owner) => owner.close()));
         await runtime.end();

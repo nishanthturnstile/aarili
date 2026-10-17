@@ -47,12 +47,15 @@ export const shopRecordSchema = z.strictObject({
   shopId: z.uuid(),
   name: z.string(),
 });
+export type { OwnerEntry } from "./owner.js";
 export {
+  createOwnerShopSchema,
   googleConnectionSchema,
   googleDisconnectSchema,
   googleEntrySchema,
   googleRedirectSchema,
   ownerActionSchema,
+  ownerEntrySchema,
   ownerShopSchema,
   reauthenticationSchema,
   recoveryRequestSchema,

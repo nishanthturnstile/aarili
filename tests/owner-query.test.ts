@@ -167,3 +167,36 @@ test("0.4.1a A4/A5 membership denial clears cache but an unrelated permission de
     disconnect();
   }
 });
+
+test("ENTRY-09 entry profiles remain uncached and a delayed old identity cannot populate the workspace", async () => {
+  const late = deferred<Response>();
+  vi.stubGlobal("fetch", () => late.promise);
+  const scope = createOwnerQueries();
+  const disconnect = scope.connect();
+  try {
+    const pending = scope.entry();
+    const rejected = expect(pending).rejects.toMatchObject({
+      code: "UNAUTHENTICATED",
+    });
+    clearOwnerState();
+    late.resolve(
+      Response.json({
+        state: "ready",
+        owner: { name: "Previous owner", email: "previous@example.test" },
+        shop: { shopId: firstShop, name: "Previous shop" },
+      }),
+    );
+    await rejected;
+    expect(scope.client.getQueryCache().getAll()).toHaveLength(0);
+    vi.stubGlobal("fetch", async () =>
+      Response.json({
+        state: "needs-onboarding",
+        owner: { name: "Current owner", email: "current@example.test" },
+      }),
+    );
+    expect((await scope.entry()).state).toBe("needs-onboarding");
+    expect(scope.client.getQueryCache().getAll()).toHaveLength(0);
+  } finally {
+    disconnect();
+  }
+});

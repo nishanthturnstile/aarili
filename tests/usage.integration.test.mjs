@@ -110,13 +110,19 @@ test("0.4.1d D1/D2/D3 TRU-01/03 bounded usage readouts, audit action dedupe, con
       3,
     );
     assert.equal(
-      (await f.admin.query("select count(*)::int n from audit_event")).rows[0]
-        .n,
+      (
+        await f.admin.query(
+          "select count(*)::int n from audit_event where action like 'synthetic.%'",
+        )
+      ).rows[0].n,
       3,
     );
     assert.equal(
-      (await f.admin.query("select count(*)::int n from idempotency_key"))
-        .rows[0].n,
+      (
+        await f.admin.query(
+          "select count(*)::int n from idempotency_key where action like 'synthetic.%'",
+        )
+      ).rows[0].n,
       3,
     );
     await assert.rejects(

@@ -2,8 +2,10 @@ import type { OwnerAuth } from "@aarili/auth";
 import { OwnerAccessError } from "@aarili/auth";
 import {
   apiErrorSchema,
+  createOwnerShopSchema,
   googleConnectionSchema,
   ownerActionSchema,
+  ownerEntrySchema,
   ownerShopSchema,
   reauthenticationSchema,
   recoveryRequestSchema,
@@ -16,6 +18,7 @@ import {
 } from "@aarili/contracts";
 import { readShop } from "@aarili/core";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { HTTPException } from "hono/http-exception";
 
 const errorResponse = {
   description: "Request denied; no private configuration returned.",
@@ -125,9 +128,42 @@ export function createOwnerRoutes(owner: OwnerAuth) {
         );
       }
     }
+    // Old completion callers send an empty POST with a JSON content type.
+    // Normalize only a truly empty body; malformed JSON still fails validation.
+    if (
+      c.req.path === "/api/owner/complete" &&
+      c.req.method === "POST" &&
+      c.req.header("Content-Type")?.startsWith("application/json") &&
+      !(await c.req.raw.clone().text())
+    ) {
+      c.req.raw = new Request(c.req.raw, { body: "{}" });
+    }
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/owner/entry",
+        responses: {
+          200: {
+            description:
+              "Verified owner entry state and minimal own-account summary.",
+            content: { "application/json": { schema: ownerEntrySchema } },
+          },
+          401: errorResponse,
+          403: errorResponse,
+          503: errorResponse,
+        },
+      }),
+      async (c) => {
+        const result = await owner.ownerEntry(c.req.raw.headers);
+        return sessionResponse(
+          c.json(ownerEntrySchema.parse(result.data), 200),
+          result.headers,
+        );
+      },
+    )
     .openapi(
       createRoute({
         method: "get",
@@ -253,10 +289,36 @@ export function createOwnerRoutes(owner: OwnerAuth) {
       createRoute({
         method: "post",
         path: "/owner/complete",
+        request: {
+          body: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: z.union([createOwnerShopSchema, z.strictObject({})]),
+              },
+            },
+          },
+        },
         responses: actionResponses,
       }),
       async (c) => {
-        const result = await owner.complete(c.req.raw.headers);
+        const body = c.req.valid("json");
+        const input =
+          body && typeof body.shopName === "string"
+            ? { shopName: body.shopName }
+            : undefined;
+        const key = c.req.header("Idempotency-Key");
+        if ((input && !key) || (key && !z.uuid().safeParse(key).success))
+          return c.json(
+            {
+              error: {
+                code: "VALIDATION_FAILED" as const,
+                message: "Request key required",
+              },
+            },
+            422,
+          );
+        const result = await owner.complete(c.req.raw.headers, input, key);
         return sessionResponse(
           c.json({ state: "complete" as const, ...result.data }, 200),
           result.headers,
@@ -381,16 +443,31 @@ export function createOwnerRoutes(owner: OwnerAuth) {
     });
   });
   routes.onError((error, c) => {
+    if (
+      error instanceof HTTPException &&
+      (error.status === 400 || error.status === 415)
+    )
+      return c.json(
+        {
+          error: {
+            code: "VALIDATION_FAILED",
+            message: "Check the request body",
+          },
+        },
+        422,
+      );
     if (error instanceof OwnerAccessError) {
       const status =
         error.code === "MAIL_UNAVAILABLE"
           ? 503
-          : error.code === "UNAUTHENTICATED" ||
-              error.code === "INVALID_CREDENTIALS"
-            ? 401
-            : error.code === "REQUEST_CONFLICT"
-              ? 409
-              : 403;
+          : error.code === "VALIDATION_FAILED"
+            ? 422
+            : error.code === "UNAUTHENTICATED" ||
+                error.code === "INVALID_CREDENTIALS"
+              ? 401
+              : error.code === "REQUEST_CONFLICT"
+                ? 409
+                : 403;
       return c.json(
         {
           error: {

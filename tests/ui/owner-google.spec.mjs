@@ -10,7 +10,7 @@ import {
   prepareOwnerScreen,
 } from "./owner-presentation.mjs";
 
-test.use({ trace: "off", screenshot: "off" });
+test.use({ trace: "off", screenshot: "off", actionTimeout: 10000 });
 const password = "synthetic-ui-google-password-14";
 const words = {
   en: {
@@ -18,7 +18,7 @@ const words = {
     googleSignIn: "Sign in with Google",
     email: "Email",
     password: "Password",
-    open: "Create my shop",
+    open: "Create shop and continue",
     connections: "Sign-in connections",
     link: "Link Google account",
     connected: "Google is connected.",
@@ -35,7 +35,7 @@ const words = {
     googleSignIn: "Google மூலம் உள்நுழை",
     email: "மின்னஞ்சல்",
     password: "கடவுச்சொல்",
-    open: "என் கடையை உருவாக்கு",
+    open: "கடையை உருவாக்கித் தொடரவும்",
     connections: "உள்நுழைவு இணைப்புகள்",
     link: "Google கணக்கை இணை",
     connected: "Google இணைக்கப்பட்டுள்ளது.",
@@ -170,7 +170,7 @@ for (const locale of ["ta", "en"])
               fullPage: true,
             });
           }
-          async function passwordSignIn() {
+          async function passwordSignIn(pending = false) {
             await language();
             await page
               .getByLabel(w.email, { exact: true })
@@ -179,7 +179,9 @@ for (const locale of ["ta", "en"])
             await page
               .getByRole("button", { name: w.signIn, exact: true })
               .click();
-            await page.waitForURL(`${origin}/owner`);
+            await page.waitForURL(
+              `${origin}/${pending ? "onboarding" : "dashboard"}`,
+            );
             await language();
           }
           await page.goto(`${origin}/sign-in`);
@@ -191,13 +193,15 @@ for (const locale of ["ta", "en"])
           await googleButton.focus();
           await googleReturn("/sign-in", () => page.keyboard.press("Enter"));
           await expect(
-            page.locator('p[role="alert"][tabindex="-1"]'),
+            page.locator('[role="alert"][tabindex="-1"]'),
           ).toBeFocused();
           expect(new URL(page.url()).search).toBe("");
           await language();
           await capture("sign-in-denied");
-          await passwordSignIn();
+          await passwordSignIn(true);
           await page.getByRole("button", { name: w.open, exact: true }).click();
+          await page.waitForURL(`${origin}/dashboard`);
+          await language();
           await page
             .getByRole("link", { name: w.connections, exact: true })
             .click();
@@ -212,7 +216,7 @@ for (const locale of ["ta", "en"])
           );
           await page.getByRole("button", { name: w.link, exact: true }).click();
           await expect(
-            page.locator('p[role="alert"][tabindex="-1"]'),
+            page.locator('[role="alert"][tabindex="-1"]'),
           ).toBeFocused();
           await capture("stale");
           await page
@@ -225,7 +229,7 @@ for (const locale of ["ta", "en"])
           await page
             .getByRole("button", { name: w.confirmPassword, exact: true })
             .click();
-          await page.waitForURL(`${origin}/owner`);
+          await page.waitForURL(`${origin}/dashboard`);
           await language();
           await page
             .getByRole("link", { name: w.connections, exact: true })
@@ -237,7 +241,7 @@ for (const locale of ["ta", "en"])
             page.getByRole("button", { name: w.link, exact: true }).click(),
           );
           await expect(
-            page.locator('p[role="alert"][tabindex="-1"]'),
+            page.locator('[role="alert"][tabindex="-1"]'),
           ).toBeFocused();
           await language();
           await capture("link-denied");
@@ -254,21 +258,27 @@ for (const locale of ["ta", "en"])
             page.keyboard.press("Enter"),
           );
           await expect(
-            page.locator('p[role="status"][tabindex="-1"]'),
+            page.locator('[role="status"][tabindex="-1"]'),
           ).toBeFocused();
           await language();
           await expect(
             page.getByText(w.connected, { exact: true }),
           ).toBeVisible();
           await capture("linked");
-          await page.goto(`${origin}/sign-in`);
+          await page
+            .getByRole("button", {
+              name: locale === "en" ? "Sign out" : "வெளியேறு",
+              exact: true,
+            })
+            .click();
+          await page.waitForURL(`${origin}/sign-in`);
           await language();
-          await googleReturn("/owner", () =>
+          await googleReturn("/dashboard", () =>
             page
               .getByRole("button", { name: w.googleSignIn, exact: true })
               .click(),
           );
-          await page.waitForURL(`${origin}/owner`);
+          await page.waitForURL(`${origin}/dashboard`);
           await language();
           await expect(
             page.getByRole("heading", { name: "சோதனைக் கடை" }),
@@ -373,11 +383,11 @@ for (const locale of ["ta", "en"])
             .getByRole("button", { name: w.confirm, exact: true })
             .click();
           await expect(
-            page.locator('p[role="status"][tabindex="-1"]'),
+            page.locator('[role="status"][tabindex="-1"]'),
           ).toBeFocused();
           await language();
           await expect(
-            page.locator('p[role="status"][tabindex="-1"]'),
+            page.locator('[role="status"][tabindex="-1"]'),
           ).toHaveText(w.disconnected);
           await capture("disconnected");
           expect(
@@ -390,7 +400,7 @@ for (const locale of ["ta", "en"])
               .click(),
           );
           await expect(
-            page.locator('p[role="alert"][tabindex="-1"]'),
+            page.locator('[role="alert"][tabindex="-1"]'),
           ).toBeFocused();
           await passwordSignIn();
           await expect(

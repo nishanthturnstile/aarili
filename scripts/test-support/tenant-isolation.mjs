@@ -123,7 +123,20 @@ export async function withTenantFixture(
         );
         assert.equal(aSign.status, 200);
         const cookieA = cookies(aSign);
-        const complete = await owner.complete(new Headers({ Cookie: cookieA }));
+        // Legacy migration fixtures intentionally stop before command/audit
+        // tables exist. Reproduce their original verified bootstrap SQL; current
+        // installations exercise the production atomic completion path below.
+        const complete = legacy
+          ? {
+              data: {
+                shopId: (
+                  await runtime.db.execute(
+                    sql`select complete_owner_bootstrap((select user_id from owner_bootstrap)) as shop_id`,
+                  )
+                ).rows[0].shop_id,
+              },
+            }
+          : await owner.complete(new Headers({ Cookie: cookieA }));
         const a = {
           user: (await admin.query("select user_id from owner_bootstrap"))
             .rows[0].user_id,

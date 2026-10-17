@@ -8,8 +8,12 @@ export const setupCommandSchema = z
       .max(254)
       .transform((value) => value.toLowerCase()),
     password: z.string().min(15).max(128),
-    shopName: z.string().trim().min(1).max(120),
+    // Compatibility for pre-onboarding clients; new registration defers naming.
+    shopName: z.string().trim().min(1).max(120).optional(),
   })
+  .strict();
+export const createOwnerShopSchema = z
+  .object({ shopName: z.string().trim().min(1).max(120) })
   .strict();
 export const resendCommandSchema = z
   .object({
@@ -75,10 +79,31 @@ export const ownerActionSchema = z.object({
   shopId: z.uuid().optional(),
 });
 export const ownerShopSchema = z.discriminatedUnion("state", [
-  z.object({ state: z.literal("pending-shop") }),
+  z.object({
+    state: z.literal("pending-shop"),
+    suggestedName: z.string().optional(),
+  }),
   z.object({
     state: z.literal("complete"),
     shopId: z.uuid(),
     name: z.string(),
   }),
 ]);
+
+const ownerSummarySchema = z.strictObject({
+  name: z.string().min(1).max(120),
+  email: z.email().max(254),
+});
+export const ownerEntrySchema = z.discriminatedUnion("state", [
+  z.strictObject({
+    state: z.literal("needs-onboarding"),
+    owner: ownerSummarySchema,
+    suggestedName: z.string().optional(),
+  }),
+  z.strictObject({
+    state: z.literal("ready"),
+    owner: ownerSummarySchema,
+    shop: z.strictObject({ shopId: z.uuid(), name: z.string() }),
+  }),
+]);
+export type OwnerEntry = z.infer<typeof ownerEntrySchema>;
