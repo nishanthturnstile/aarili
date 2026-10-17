@@ -75,6 +75,10 @@
     "./shop-directory": {
       "types": "./dist/shop-directory.d.ts",
       "import": "./dist/shop-directory.js"
+    },
+    "./shop-policies-client": {
+      "types": "./dist/shop-policies-client.d.ts",
+      "import": "./dist/shop-policies-client.js"
     }
   },
   "scripts": {

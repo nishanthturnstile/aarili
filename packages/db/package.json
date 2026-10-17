@@ -191,6 +191,18 @@
     "./shop-directory-schema": {
       "types": "./dist/shop-directory-schema.d.ts",
       "import": "./dist/shop-directory-schema.js"
+    },
+    "./shop-policies-repository": {
+      "types": "./dist/shop-policies-repository.d.ts",
+      "import": "./dist/shop-policies-repository.js"
+    },
+    "./repositories/shop-policies": {
+      "types": "./dist/repositories/shop-policies.d.ts",
+      "import": "./dist/repositories/shop-policies.js"
+    },
+    "./shop-policies-schema": {
+      "types": "./dist/shop-policies-schema.d.ts",
+      "import": "./dist/shop-policies-schema.js"
     }
   },
   "scripts": {

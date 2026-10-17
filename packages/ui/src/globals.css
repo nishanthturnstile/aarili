@@ -1367,6 +1367,14 @@
   }
 }
 
+.policy-textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+.policy-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .directory-list {
   list-style: none;
   padding: 0;

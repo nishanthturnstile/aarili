@@ -13,6 +13,7 @@ import {
 import type { createOwnerQueries } from "./owner-query";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
+import { ShopPoliciesScreen } from "./shop-policies-screen";
 import { ShopProfileScreen } from "./shop-profile-screen";
 export function OwnerWorkspace({
   mode,
@@ -42,16 +43,31 @@ export function OwnerWorkspace({
   onShopNameChanged: (name: string) => void;
 }) {
   const t = useTranslations();
-  const [directory, setDirectory] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URL(window.location.href).searchParams.get("section") === "directory",
-  );
-  const [calendar, setCalendar] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URL(window.location.href).searchParams.has("draft"),
-  );
+  const [section, setSection] = useState<
+    "profile" | "calendar" | "policies" | "directory"
+  >(() => {
+    if (typeof window === "undefined") return "profile";
+    const params = new URL(window.location.href).searchParams;
+    const selected = params.get("section");
+    if (
+      selected === "directory" ||
+      selected === "policies" ||
+      selected === "calendar" ||
+      selected === "profile"
+    )
+      return selected;
+    return params.has("draft") ? "calendar" : "profile";
+  });
+  function selectSection(
+    next: "profile" | "calendar" | "policies" | "directory",
+  ) {
+    if (!guard.safe() && !window.confirm(t("calendar.discard"))) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("draft");
+    url.searchParams.set("section", next);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+    setSection(next);
+  }
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (document.activeElement === document.body) heading.current?.focus();
@@ -102,62 +118,40 @@ export function OwnerWorkspace({
         {mode === "settings" ? (
           <>
             <nav className="calendar-actions" aria-label={t("settings.title")}>
-              <Button
-                variant="outline"
-                aria-pressed={!calendar && !directory}
-                onClick={() => {
-                  if (guard.safe() || window.confirm(t("calendar.discard"))) {
-                    setDirectory(false);
-                    setCalendar(false);
-                    const url = new URL(window.location.href);
-                    url.search = "";
-                    window.history.replaceState(null, "", url.pathname);
-                  }
-                }}
-              >
-                {t("settings.profile")}
-              </Button>
-              <Button
-                variant="outline"
-                aria-pressed={calendar && !directory}
-                onClick={() => {
-                  if (guard.safe() || window.confirm(t("calendar.discard"))) {
-                    setDirectory(false);
-                    setCalendar(true);
-                    const url = new URL(window.location.href);
-                    url.search = "";
-                    window.history.replaceState(null, "", url.pathname);
-                  }
-                }}
-              >
-                {t("calendar.title")}
-              </Button>
-              <Button
-                variant="outline"
-                aria-pressed={directory}
-                onClick={() => {
-                  if (guard.safe() || window.confirm(t("calendar.discard"))) {
-                    setDirectory(true);
-                    const u = new URL(window.location.href);
-                    u.search = "?section=directory";
-                    window.history.replaceState(
-                      null,
-                      "",
-                      `${u.pathname}${u.search}`,
-                    );
-                  }
-                }}
-              >
-                {t("directory.title")}
-              </Button>
+              {(["profile", "calendar", "directory", "policies"] as const).map(
+                (item) => (
+                  <Button
+                    key={item}
+                    variant="outline"
+                    aria-pressed={section === item}
+                    onClick={() => selectSection(item)}
+                  >
+                    {t(
+                      item === "profile"
+                        ? "settings.profile"
+                        : item === "calendar"
+                          ? "calendar.title"
+                          : item === "directory"
+                            ? "directory.title"
+                            : "policies.title",
+                    )}
+                  </Button>
+                ),
+              )}
             </nav>
-            {directory ? (
+            {section === "directory" ? (
               <ShopDirectoryScreen
                 shopId={entry.shop.shopId}
                 queries={queries}
                 guard={guard}
               />
-            ) : calendar ? (
+            ) : section === "policies" ? (
+              <ShopPoliciesScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "calendar" ? (
               <ShopCalendarScreen
                 shopId={entry.shop.shopId}
                 queries={queries}

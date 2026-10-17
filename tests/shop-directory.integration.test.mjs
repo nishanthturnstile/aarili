@@ -103,6 +103,22 @@ const current = async (f, entryId) =>
     .revision;
 const list = (f) =>
   request(f, "settings/directory/list", { method: "POST", body: {} }).then(ok);
+async function policyReceiving(f, reason) {
+  const ready = await ok(await request(f, "settings/policies/readiness"));
+  const payment = ready.actions.find((a) => a.action === "paymentRecording");
+  assert.equal(payment.state, "not-yet-implemented");
+  assert(payment.reasons.some((r) => r.code === "actionNotImplemented"));
+  assert(
+    !payment.reasons.some((r) => r.code === "receivingAccountsNotIntegrated"),
+  );
+  if (reason) assert(payment.reasons.some((r) => r.code === reason));
+  else
+    assert(
+      !payment.reasons.some((r) =>
+        ["receivingMethodsMissing", "receivingAccountMissing"].includes(r.code),
+      ),
+    );
+}
 const totals = async (f) =>
   (
     await f.admin.query(
@@ -137,6 +153,7 @@ test("SET-07/08/09 SS-03/07/09/11 directory identity, recent-auth, exact replay,
       ),
     );
     assert.equal((await list(f)).readiness, "missingMethods");
+    await policyReceiving(f, "receivingMethodsMissing");
     const d = await saved(f);
     const key = randomUUID();
     await f.admin.query(
@@ -165,6 +182,7 @@ test("SET-07/08/09 SS-03/07/09/11 directory identity, recent-auth, exact replay,
     );
     await ok(await promote(f, methods));
     assert.equal((await list(f)).readiness, "configured");
+    await policyReceiving(f, null);
     const duplicateMethods = await saved(
       f,
       value({ kind: "methods", enabled: ["cash"] }),
@@ -223,6 +241,7 @@ test("SET-07/08/09 SS-03/07/09/11 directory identity, recent-auth, exact replay,
       );
     });
     assert.equal((await list(f)).readiness, "missingReceivingAccount");
+    await policyReceiving(f, "receivingAccountMissing");
     const off = await current(f, old.entryId);
     const on = await saved(
       f,

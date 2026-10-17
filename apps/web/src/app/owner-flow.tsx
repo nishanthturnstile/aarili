@@ -10,6 +10,7 @@ import {
   ownerMessages,
   shopCalendarMessages,
   shopDirectoryMessages,
+  shopPoliciesMessages,
   shopSettingsMessages,
   wearerMessages,
 } from "@aarili/i18n";
@@ -83,6 +84,7 @@ export function OwnerFlow({
           guardians: guardianMessages[locale],
           settings: shopSettingsMessages[locale],
           calendar: shopCalendarMessages[locale],
+          policies: shopPoliciesMessages[locale],
           directory: shopDirectoryMessages[locale],
         }}
         timeZone="Asia/Kolkata"

@@ -25,6 +25,19 @@ function fail(
     error: { code, message: "Directory request rejected" },
   });
 }
+export function receivingConfigurationReadiness(
+  config: Awaited<ReturnType<ShopDirectoryRepository["configuration"]>>,
+) {
+  return !config.enabled.length
+    ? ("missingMethods" as const)
+    : config.enabled.some(
+          (m) =>
+            m === "cash" ||
+            config.accounts.some((a) => a.active && a.method === m),
+        )
+      ? ("configured" as const)
+      : ("missingReceivingAccount" as const);
+}
 export async function readShopDirectory(
   ctx: ShopDirectoryContext,
   input: unknown,
@@ -36,15 +49,7 @@ export async function readShopDirectory(
   return {
     entries: rows.slice(0, 25).map(summarizeDirectory),
     next: rows.length > 25 ? (rows[24]?.entryId ?? null) : null,
-    readiness: !config.enabled.length
-      ? ("missingMethods" as const)
-      : config.enabled.some(
-            (m) =>
-              m === "cash" ||
-              config.accounts.some((a) => a.active && a.method === m),
-          )
-        ? ("configured" as const)
-        : ("missingReceivingAccount" as const),
+    readiness: receivingConfigurationReadiness(config),
     paymentRecording: "notImplemented" as const,
   };
 }
