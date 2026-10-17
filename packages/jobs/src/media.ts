@@ -1,5 +1,6 @@
 import { authorizeJobPrincipal } from "@aarili/auth/job-principal";
 import { type MediaContext, MediaFailure } from "@aarili/core/media";
+import { shopBrandingPolicy } from "@aarili/core/shop-profile";
 import { createUsageWriter } from "@aarili/core/usage";
 import { type Database, sql, type Transaction, withShop } from "@aarili/db";
 import { mediaRepository } from "@aarili/db/media-repository";
@@ -66,11 +67,13 @@ export function mediaProcessingHost(
         if (!(await authorizeJobPrincipal(tx, userId, shopId)))
           throw new MediaFailure(403, "MEDIA_ACCESS_DENIED");
         const writer = createUsageWriter(usageRepository(tx, shopId));
+        const resolved = adapters(tx);
         return run({
           shopId,
           actor: { type: "user", id: userId },
           repository: mediaRepository(tx, shopId),
-          ...adapters(tx),
+          ...resolved,
+          policy: shopBrandingPolicy(shopId, resolved.policy),
           instrumentation: {
             stored: async (actionId, assetId, bytes) =>
               writer.record({

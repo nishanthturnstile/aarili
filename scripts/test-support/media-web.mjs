@@ -8,7 +8,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { startJobRuntime } from "@aarili/jobs/runtime";
 import { PutBucketCorsCommand, S3Client } from "@aws-sdk/client-s3";
 import { withMediaProcessing } from "./media-processing.mjs";
-export async function withMediaWeb(run) {
+export async function withMediaWeb(run, { surface = "media" } = {}) {
   const reservation = createServer();
   await new Promise((r) => reservation.listen(0, "127.0.0.1", r));
   const port = reservation.address().port;
@@ -151,8 +151,17 @@ export async function withMediaWeb(run) {
     );
     await writeFile(
       join(directory, "app/page.tsx"),
-      `import Host from "../../../apps/web/test-support/media-host-app";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} subjectId=${JSON.stringify(f.subjectId)}/>}`,
+      surface === "shop-profile"
+        ? 'import {OwnerFlow} from "../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}'
+        : `import Host from "../../../apps/web/test-support/media-host-app";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} subjectId=${JSON.stringify(f.subjectId)}/>}`,
     );
+    if (surface === "shop-profile") {
+      await mkdir(join(directory, "app/settings"), { recursive: true });
+      await writeFile(
+        join(directory, "app/settings/page.tsx"),
+        'import {OwnerFlow} from "../../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}',
+      );
+    }
     await writeFile(
       join(directory, "app/api/[...path]/route.ts"),
       `async function proxy(request:Request){const url=new URL(request.url);const response=await fetch(${JSON.stringify(apiOrigin)}+url.pathname+url.search,{method:request.method,headers:request.headers,...(request.method==='GET'?{}:{body:await request.arrayBuffer()}),cache:'no-store'});return new Response(response.body,{status:response.status,headers:response.headers});}export {proxy as GET,proxy as POST,proxy as PUT};`,

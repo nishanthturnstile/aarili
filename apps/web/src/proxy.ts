@@ -62,6 +62,7 @@ export const config = {
     "/onboarding",
     "/dashboard",
     "/connections",
+    "/settings",
     "/customers/:path*",
   ],
 };

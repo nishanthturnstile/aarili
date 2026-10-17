@@ -93,8 +93,9 @@ for (const locale of ["en", "ta"])
         await mkdir(captures, { recursive: true });
         for (const dark of [false, true]) {
           await presentation(dark);
-          await expect(nav.locator("a")).toHaveCount(3);
+          await expect(nav.locator("a")).toHaveCount(4);
           await expect(nav.locator('a[href="/customers"]')).toBeVisible();
+          await expect(nav.locator('a[href="/settings"]')).toBeVisible();
           await expect(nav.locator('a[aria-current="page"]')).toHaveAttribute(
             "href",
             "/dashboard",

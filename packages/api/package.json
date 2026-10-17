@@ -55,6 +55,14 @@
     "./wearer-client": {
       "types": "./dist/wearer-client.d.ts",
       "import": "./dist/wearer-client.js"
+    },
+    "./shop-profile": {
+      "types": "./dist/shop-profile.d.ts",
+      "import": "./dist/shop-profile.js"
+    },
+    "./shop-profile-client": {
+      "types": "./dist/shop-profile-client.d.ts",
+      "import": "./dist/shop-profile-client.js"
     }
   },
   "scripts": {

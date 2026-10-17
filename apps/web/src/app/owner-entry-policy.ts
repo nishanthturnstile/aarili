@@ -7,6 +7,7 @@ export type OwnerEntryPath =
   | "/onboarding"
   | "/dashboard"
   | "/connections"
+  | "/settings"
   | "/customers"
   | `/customers/${string}`;
 
@@ -19,6 +20,7 @@ export function ownerDestination(state: OwnerEntryState, path: OwnerEntryPath) {
     return path === "/onboarding" ? undefined : "/onboarding";
   return path === "/dashboard" ||
     path === "/connections" ||
+    path === "/settings" ||
     path === "/customers" ||
     path.startsWith("/customers/")
     ? undefined

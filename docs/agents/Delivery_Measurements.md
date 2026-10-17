@@ -1,5 +1,86 @@
 # Delivery measurements
 
+## Delivery 5: existing shop profile and history (#84 / 1.1.1a)
+
+- Implementation branch start observed 2026-10-17T15:46:59.4580104+05:30,
+  `codex/shop-profile-history` from integrated `origin/development` `1cf5724`.
+  Local development was subsequently fast-forwarded to the same revision.
+  Dirty roadmap/planning files were carried with Git's merge checkout; no
+  reset, stash, unrelated commit or worktree. The previous branch is preserved.
+- Owner approved the concrete A–E packet and proceeding; issues #84–#88 were
+  published and native blocker edges read back. #84 blockers #16/#51/#53/#57/#58
+  all closed through freshly verified merged PRs #21/#61/#64/#67/#69. Onboarding
+  #77 and minor registration #83 also merged. Baseline #83 Fast verification
+  and Dependency audit passed (run 39021313403); full promotion-only checks skipped.
+- Implementation and final local verification are complete for review. Hosted
+  CI/publication, owner acceptance and merge were pending at the local-ready
+  checkpoint below. Active durations remain unknown; no future timing is reconstructed.
+- First production review host observed by collaborative browser at
+  2026-10-17T16:15:24+05:30, `http://127.0.0.1:59636/settings` (redirected to the
+  normal private sign-in page before synthetic authentication). Disposable
+  access is kept in the ignored private host file. This is first-try availability,
+  not finished-product acceptance or the final refreshed host.
+- Development verification: initial focused profile PostgreSQL 3/3 and contract/
+  policy unit 2/2 passed. `pnpm verify:fast` passed with 174 unit tests, OpenAPI,
+  production build, lint, Knip and types before the finish corrections. Broader
+  customer/guardian/profile/isolation selection had 12 passes and three outdated
+  table/registry inventory failures; corrected tenant-isolation rerun passed 6/6.
+- First private-logo browser run failed on all three sizes: StrictMode disposed
+  the state-owned controller. Effect-owned scopes corrected it; fresh configured
+  logo upload/process/attach/remove/history passed 3/3 in 2.1 minutes.
+- The first clean-native attempt stopped on formatting in the new browser test.
+  The next clean copy passed fast checks and Linux PDF checks, then exposed an
+  additional outdated bootstrap table inventory. The corrected full clean run
+  started at 2026-10-17T16:28:48.9016951+05:30; its result remains pending.
+- Finish corrections cover concise phone navigation, unavailable-feature copy
+  and meaningful current-owner attribution with secondary stable reference.
+  A case-sensitive accessible-name containment check initially appended redundant
+  short labels and broke exact profile navigation assertions; corrected to
+  compare case-insensitively. Final production recaptures/review remain pending.
+- Broad browser regression command finished at observed 2026-10-17T16:44:08+05:30:
+  15 customer/adult/guardian cases passed across all three sizes; three profile
+  cases failed at the already-corrected exact navigation-name assertion. Total
+  Playwright wall time 28.5 minutes. The complete command failed and is retained.
+- The full clean-copy PostgreSQL run reported 112/113 passes, 1422.07 seconds;
+  the sole failure was the stale bootstrap table inventory, now corrected. The
+  intermediate corrected run failed one existing five-second job property timeout
+  (173/174 unit passes); its isolated unmodified rerun passed 2/2 in 2.13 seconds.
+  Intermediate run: 16:28:48.9016951 → 16:31:29.3324689+05:30, exit 1.
+- Final source clean run started 2026-10-17T16:45:05.4417245+05:30. Browser work
+  was paused for its unit stage; all 174 unit tests passed. All 470 source/config
+  inputs matched the final clean copy. Full final result remains pending.
+- Corrected production build passed. Fresh profile browser command:
+  2026-10-17T16:47:14.3405255 → 16:48:40.4920139+05:30, exit 0, 3/3; Playwright
+  reported 1.3 minutes. Six captures received the scoped finish-review verdict
+  “ship the reviewed corrections”; all three original findings resolved.
+- Refreshed production review host: http://127.0.0.1:63238/settings, observed
+  ready by 2026-10-17T16:47:39+05:30. Prior host was stopped and removed before
+  rebuilding. Synthetic sign-in and host data remain private/disposable.
+- Final clean-native gate: 2026-10-17T16:45:05.4417245 →
+  17:07:09.3069322+05:30, exit 0 (22 minutes 4 seconds). All 174 unit and 113
+  integration tests passed; integration reported 1124.61 seconds. Frozen install,
+  Linux PDF sandbox/50 strings/five page goldens, strict types, lint, Knip,
+  negative checks, OpenAPI, production build/smoke and 29 artifact scans passed.
+- Final owner-entry/bilingual phone-shell checks:
+  2026-10-17T16:48:58.4088243 → 16:50:08.1793013+05:30, exit 0, 3/3;
+  Playwright reported 1.0 minute. Browser and clean source inputs stayed unchanged.
+- Efficiency observation: checking every static tenant-table inventory before
+  the first full run would have avoided its inventory-only failure. Separating
+  the final unit stage from browser work avoided repeating the observed
+  five-second property timeout. This is an observed process opportunity, not a
+  promised benchmark improvement. Merge/review waits remain pending; compare
+  the five deliveries only after this fifth entry is actually merged.
+- Local review packet ready at 2026-10-17T17:07:50.9385660+05:30; review host
+  remained available. Initial-to-ready elapsed is 1 hour 20 minutes 51 seconds,
+  not active coding time. Physical-device/fluent-Tamil/assistive-technology,
+  owner review, hosted CI, merge and deployment remain pending at this checkpoint.
+- Published commit `fe47344` on `codex/shop-profile-history` and opened
+  [draft PR #89](https://github.com/nishanthturnstile/aarili/pull/89) to development;
+  T3 registration was confirmed immediately after creation. At observed
+  2026-10-17T17:08:50.6839533+05:30, Fast verification and Dependency audit were
+  running; full/pilot browser jobs were skipped under the feature-PR workflow.
+  CI execution/queue durations remain pending, not inferred as coding time.
+
 ## Delivery 4: minor registration and guardian evidence (#80 / 1.1.3c)
 
 - Start observed 2026-10-17T14:17:02.9563564+05:30. Clean checkout updated

@@ -51,6 +51,10 @@
     "./wearers": {
       "types": "./dist/wearers.d.ts",
       "import": "./dist/wearers.js"
+    },
+    "./shop-profile": {
+      "types": "./dist/shop-profile.d.ts",
+      "import": "./dist/shop-profile.js"
     }
   },
   "scripts": {
