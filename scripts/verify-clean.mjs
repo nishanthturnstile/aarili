@@ -29,6 +29,8 @@ const roots = [
   "scripts",
   "tests",
   "patches",
+  // Full verification now includes the sandboxed PDF runtime and seccomp input.
+  "infra/pdf",
   "infra/provision-maintenance-roles.sql",
   ...readdirSync(".").filter(
     (name) =>

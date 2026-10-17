@@ -1,12 +1,25 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { createApi } from "@aarili/api";
 import { createCommandRoutes } from "@aarili/api/commands";
+import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createCustomerRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerCustomer: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createCommandRoutes({

@@ -43,6 +43,10 @@
     "./documents": {
       "types": "./dist/documents.d.ts",
       "import": "./dist/documents.js"
+    },
+    "./customers": {
+      "types": "./dist/customers.d.ts",
+      "import": "./dist/customers.js"
     }
   },
   "scripts": {

@@ -39,6 +39,14 @@
     "./documents": {
       "types": "./dist/documents.d.ts",
       "import": "./dist/documents.js"
+    },
+    "./customer-client": {
+      "types": "./dist/customer-client.d.ts",
+      "import": "./dist/customer-client.js"
+    },
+    "./customers": {
+      "types": "./dist/customers.d.ts",
+      "import": "./dist/customers.js"
     }
   },
   "scripts": {

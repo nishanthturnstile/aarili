@@ -723,6 +723,10 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
       );
       assert.deepEqual(tables.rows.map((row) => row.relname).sort(), [
         "audit_event",
+        "consent_record",
+        "customer",
+        "customer_person",
+        "customer_search_key",
         "document_artifact",
         "document_attempt",
         "document_cleanup",
@@ -743,6 +747,7 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
         "media_cleanup_intent",
         "media_derivative",
         "media_reference",
+        "privacy_notice_version",
         "product_event",
         "shop",
         "shop_membership",

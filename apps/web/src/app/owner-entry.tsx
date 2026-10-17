@@ -13,15 +13,23 @@ import { OwnerOnboarding } from "./owner-onboarding";
 import type { createOwnerQueries } from "./owner-query";
 import { OwnerWorkspace } from "./owner-workspace";
 
-export type EntryMode = "onboarding" | "dashboard" | "connections";
+export type EntryMode =
+  | "onboarding"
+  | "dashboard"
+  | "connections"
+  | "customers"
+  | "customer-new"
+  | "customer-profile";
 export function OwnerEntryScreen({
   mode,
   queries,
   guard,
+  customerId,
 }: {
   mode: EntryMode;
   queries: ReturnType<typeof createOwnerQueries>;
   guard: OwnerGuard;
+  customerId?: string | undefined;
 }) {
   const t = useTranslations();
   const request = useOwnerRequest(guard);
@@ -57,7 +65,12 @@ export function OwnerEntryScreen({
       try {
         const current = await queries.entry();
         if (!active) return;
-        const destination = ownerDestination(current.state, `/${mode}`);
+        const destination = ownerDestination(
+          current.state,
+          mode.startsWith("customer")
+            ? "/customers"
+            : (`/${mode}` as "/onboarding" | "/dashboard" | "/connections"),
+        );
         if (destination) {
           window.location.replace(destination);
           return;
@@ -154,12 +167,14 @@ export function OwnerEntryScreen({
     );
   return (
     <OwnerWorkspace
-      mode={mode === "connections" ? mode : "dashboard"}
+      mode={mode === "onboarding" ? "dashboard" : mode}
       entry={entry}
       queries={queries}
       request={request}
       leave={leave}
       signOut={signOut}
+      guard={guard}
+      customerId={customerId}
     />
   );
 }

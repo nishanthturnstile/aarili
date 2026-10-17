@@ -1,3 +1,4 @@
+export { customerMessages } from "./customer-messages.js";
 export { draftMessages } from "./draft-messages.js";
 export { ownerMessages } from "./owner-messages.js";
 export { pwaMessages } from "./pwa-messages.js";

@@ -139,6 +139,14 @@
     "./repositories/documents": {
       "types": "./dist/repositories/documents.d.ts",
       "import": "./dist/repositories/documents.js"
+    },
+    "./customer-repository": {
+      "types": "./dist/customer-repository.d.ts",
+      "import": "./dist/customer-repository.js"
+    },
+    "./repositories/customers": {
+      "types": "./dist/repositories/customers.d.ts",
+      "import": "./dist/repositories/customers.js"
     }
   },
   "scripts": {

@@ -38,6 +38,8 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "customerRepository.read/search/insert/correct/audit",
+      "shops/:shopId/customers",
       "documentRepository.issue/claim/plan/accept/retry/cleanup",
       "shops/:shopId/documents",
       "mediaRepository.read/insert/start/claim/accept/expire",
@@ -454,6 +456,10 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
   await withTenantFixture(async ({ runtime, migration, admin }) => {
     assert.deepEqual(await assertIsolationCatalog(runtime.db), [
       "public.audit_event",
+      "public.consent_record",
+      "public.customer",
+      "public.customer_person",
+      "public.customer_search_key",
       "public.document_artifact",
       "public.document_attempt",
       "public.document_cleanup",
@@ -476,6 +482,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.media_cleanup_intent",
       "public.media_derivative",
       "public.media_reference",
+      "public.privacy_notice_version",
       "public.product_event",
       "public.shop",
       "public.shop_membership",
@@ -624,6 +631,10 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       );
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
+        "public.consent_record",
+        "public.customer",
+        "public.customer_person",
+        "public.customer_search_key",
         "public.document_artifact",
         "public.document_attempt",
         "public.document_cleanup",
@@ -644,6 +655,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.media_cleanup_intent",
         "public.media_derivative",
         "public.media_reference",
+        "public.privacy_notice_version",
         "public.product_event",
         "public.shop",
         "public.shop_membership",
