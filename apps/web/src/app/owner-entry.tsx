@@ -17,6 +17,7 @@ export type EntryMode =
   | "onboarding"
   | "dashboard"
   | "connections"
+  | "settings"
   | "customers"
   | "customer-new"
   | "customer-profile";
@@ -69,7 +70,11 @@ export function OwnerEntryScreen({
           current.state,
           mode.startsWith("customer")
             ? "/customers"
-            : (`/${mode}` as "/onboarding" | "/dashboard" | "/connections"),
+            : (`/${mode}` as
+                | "/onboarding"
+                | "/dashboard"
+                | "/connections"
+                | "/settings"),
         );
         if (destination) {
           window.location.replace(destination);
@@ -175,6 +180,13 @@ export function OwnerEntryScreen({
       signOut={signOut}
       guard={guard}
       customerId={customerId}
+      onShopNameChanged={(name) =>
+        setEntry((current) =>
+          current?.state === "ready"
+            ? { ...current, shop: { ...current.shop, name } }
+            : current,
+        )
+      }
     />
   );
 }

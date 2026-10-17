@@ -155,6 +155,18 @@
     "./repositories/wearers": {
       "types": "./dist/repositories/wearers.d.ts",
       "import": "./dist/repositories/wearers.js"
+    },
+    "./shop-profile-repository": {
+      "types": "./dist/shop-profile-repository.d.ts",
+      "import": "./dist/shop-profile-repository.js"
+    },
+    "./repositories/shop-profile": {
+      "types": "./dist/repositories/shop-profile.d.ts",
+      "import": "./dist/repositories/shop-profile.js"
+    },
+    "./shop-profile-schema": {
+      "types": "./dist/shop-profile-schema.d.ts",
+      "import": "./dist/shop-profile-schema.js"
     }
   },
   "scripts": {

@@ -755,6 +755,8 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
         "product_event",
         "shop",
         "shop_membership",
+        "shop_profile",
+        "shop_profile_revision",
         "vocabulary",
         "vocabulary_revision",
         "vocabulary_search_key",

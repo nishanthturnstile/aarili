@@ -22,6 +22,7 @@ export const mediaPurposeSchema = z.enum([
   "manual-pattern",
   "order-document",
   "voice-note",
+  "shop-branding",
 ]);
 export const mediaAdmissionSchema = z.strictObject({
   subjectId: z.uuid().transform((value) => value.toLowerCase()),

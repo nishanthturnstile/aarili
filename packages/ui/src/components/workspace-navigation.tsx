@@ -5,6 +5,7 @@ import {
   Link2,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   Users,
 } from "lucide-react";
 import { useState } from "react";
@@ -15,13 +16,17 @@ export function WorkspaceNavigation({
   shopName,
   labels,
 }: {
-  current: "owner" | "connections" | "customers";
+  current: "owner" | "connections" | "customers" | "settings";
   shopName: string;
   labels: {
     navigation: string;
     workspace: string;
+    homeShort?: string;
+    connectionsShort?: string;
+    settingsShort?: string;
     connections: string;
     customers?: string;
+    settings?: string;
     currentShop: string;
     expandNavigation: string;
     collapseNavigation: string;
@@ -60,6 +65,7 @@ export function WorkspaceNavigation({
           {
             href: "/dashboard",
             label: labels.workspace,
+            short: labels.homeShort,
             Icon: House,
             id: "owner",
           },
@@ -72,20 +78,45 @@ export function WorkspaceNavigation({
           {
             href: "/connections",
             label: labels.connections,
+            short: labels.connectionsShort,
             Icon: Link2,
             id: "connections",
           },
+          {
+            href: "/settings",
+            label: labels.settings,
+            short: labels.settingsShort,
+            Icon: Settings,
+            id: "settings",
+          },
         ]
           .filter(({ label }) => !!label)
-          .map(({ href, label, Icon, id }) => (
+          .map(({ href, label, short, Icon, id }) => (
             <li key={id}>
               <a
                 href={href}
                 aria-current={current === id ? "page" : undefined}
-                aria-label={label}
+                aria-label={
+                  short &&
+                  !label
+                    ?.toLocaleLowerCase()
+                    .includes(short.toLocaleLowerCase())
+                    ? `${label} (${short})`
+                    : label
+                }
               >
                 <Icon aria-hidden="true" />
-                <span className="workspace-destination-label">{label}</span>
+                <span
+                  className="workspace-destination-label"
+                  data-has-short={!!short}
+                >
+                  {label}
+                </span>
+                {short && (
+                  <span className="workspace-short-label" aria-hidden="true">
+                    {short}
+                  </span>
+                )}
               </a>
             </li>
           ))}

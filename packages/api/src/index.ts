@@ -10,6 +10,7 @@ import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
 import { createOwnerRoutes } from "./owner.js";
+import { createShopProfileRoutes } from "./shop-profile.js";
 import { createGuardianRoutes, createWearerRoutes } from "./wearers.js";
 
 const healthRoute = createRoute({
@@ -71,6 +72,7 @@ export function createApi(
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));
+    app.route("/", createShopProfileRoutes(owner));
     app.route("/", createWearerRoutes(owner));
     app.route("/", createGuardianRoutes(owner));
     app.route("/", createDraftRoutes(owner));

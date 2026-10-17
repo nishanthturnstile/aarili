@@ -56,6 +56,9 @@ const englishMessages = {
 
   navigation: "Shop navigation",
   workspace: "Dashboard",
+  homeShort: "Home",
+  connectionsShort: "Sign-in",
+  settingsShort: "Settings",
   currentShop: "Current shop",
   expandNavigation: "Expand navigation",
   collapseNavigation: "Collapse navigation",
@@ -218,6 +221,9 @@ const tamilMessages: Record<keyof typeof englishMessages, string> = {
 
   navigation: "கடை வழிசெலுத்தல்",
   workspace: "முகப்பு",
+  homeShort: "முகப்பு",
+  connectionsShort: "இணைப்பு",
+  settingsShort: "அமைப்புகள்",
   currentShop: "தற்போதைய கடை",
   expandNavigation: "வழிசெலுத்தலை விரி",
   collapseNavigation: "வழிசெலுத்தலைச் சுருக்கு",

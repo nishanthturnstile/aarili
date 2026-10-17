@@ -11,6 +11,7 @@ import {
   type OwnerRequest,
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { ShopProfileScreen } from "./shop-profile-screen";
 export function OwnerWorkspace({
   mode,
   entry,
@@ -20,10 +21,12 @@ export function OwnerWorkspace({
   signOut,
   guard,
   customerId,
+  onShopNameChanged,
 }: {
   mode:
     | "dashboard"
     | "connections"
+    | "settings"
     | "customers"
     | "customer-new"
     | "customer-profile";
@@ -34,6 +37,7 @@ export function OwnerWorkspace({
   signOut: () => Promise<void>;
   guard: OwnerGuard;
   customerId?: string | undefined;
+  onShopNameChanged: (name: string) => void;
 }) {
   const t = useTranslations();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -48,14 +52,20 @@ export function OwnerWorkspace({
             ? "owner"
             : mode === "connections"
               ? "connections"
-              : "customers"
+              : mode === "settings"
+                ? "settings"
+                : "customers"
         }
         shopName={entry.shop.name}
         labels={{
           navigation: t("navigation"),
           workspace: t("workspace"),
+          homeShort: t("homeShort"),
+          connectionsShort: t("connectionsShort"),
+          settingsShort: t("settingsShort"),
           connections: t("connections"),
           customers: t("customers.title"),
+          settings: t("settings.title"),
           currentShop: t("currentShop"),
           expandNavigation: t("expandNavigation"),
           collapseNavigation: t("collapseNavigation"),
@@ -65,19 +75,28 @@ export function OwnerWorkspace({
         <h1 id="owner-content" ref={heading} tabIndex={-1}>
           {mode === "connections"
             ? t("connections")
-            : mode === "dashboard"
-              ? entry.shop.name
-              : t(
-                  mode === "customer-new"
-                    ? "customers.newTitle"
-                    : mode === "customer-profile"
-                      ? "customers.profileTitle"
-                      : "customers.title",
-                )}
+            : mode === "settings"
+              ? t("settings.title")
+              : mode === "dashboard"
+                ? entry.shop.name
+                : t(
+                    mode === "customer-new"
+                      ? "customers.newTitle"
+                      : mode === "customer-profile"
+                        ? "customers.profileTitle"
+                        : "customers.title",
+                  )}
         </h1>
-        {mode === "customers" ||
-        mode === "customer-new" ||
-        mode === "customer-profile" ? (
+        {mode === "settings" ? (
+          <ShopProfileScreen
+            shopId={entry.shop.shopId}
+            queries={queries}
+            guard={guard}
+            onSaved={onShopNameChanged}
+          />
+        ) : mode === "customers" ||
+          mode === "customer-new" ||
+          mode === "customer-profile" ? (
           <CustomerScreen
             key={`${entry.shop.shopId}:${mode}:${customerId ?? ""}`}
             shopId={entry.shop.shopId}

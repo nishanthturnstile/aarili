@@ -8,6 +8,7 @@ import {
   guardianMessages,
   type Locale,
   ownerMessages,
+  shopSettingsMessages,
   wearerMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
@@ -26,6 +27,7 @@ type Mode =
   | AccessMode
   | "owner"
   | "connections"
+  | "settings"
   | "dashboard"
   | "customers"
   | "customer-new"
@@ -77,6 +79,7 @@ export function OwnerFlow({
           customers: customerMessages[locale],
           wearers: wearerMessages[locale],
           guardians: guardianMessages[locale],
+          settings: shopSettingsMessages[locale],
         }}
         timeZone="Asia/Kolkata"
       >
@@ -116,6 +119,7 @@ export function OwnerFlow({
             <OwnerEntryError denied={mode === "entry-denied"} guard={guard} />
           ) : mode === "owner" ||
             mode === "connections" ||
+            mode === "settings" ||
             mode === "onboarding" ||
             mode === "customers" ||
             mode === "customer-new" ||

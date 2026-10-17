@@ -338,6 +338,35 @@ Dashboard entry here does not implement the operational dashboard in 1.9.2.
 
 ##### Vertical Slice 1.1.1 — Configure the Shop and Commitment Policies
 
+**REA delivery brief (17 October 2026):** the
+[Shop Settings research and implementation prompt](agents/Shop_Settings_REA_Prompt.md)
+uses the existing Nool research access where available and TailorMan's public
+Settings demo as a bounded secondary reference. It retains the complete 1.1.1
+scope, owner-supplied policy inputs, concrete ticket review/publication gates and
+the service-catalogue boundary with 1.1.2. No implementation, dependency change or
+live activation is recorded by this brief.
+
+**Research/planning packet (17 October 2026):**
+[evidence and bounded unknowns](agents/Shop_Settings_REA_Evidence.md),
+[independent design/acceptance matrix](agents/Shop_Settings_Design.md) and
+[five proposed vertical tickets](agents/Shop_Settings_Ticket_Packet.md) are
+prepared for owner review. Nool Settings/profile and TailorMan demo were captured;
+follow-up scenario stalls leave persistence, policy and commitment behaviour
+unverified. The proposal keeps category ownership/binding in 1.1.2 and defines
+the evaluator contract/unbound drafts in 1.1.1, preserving the dependency order.
+No ticket publication, implementation acceptance or production policy approval
+is recorded. AC-44/AC-60 configuration checks are partial scenario contributions;
+AC-61 payment duplication and AC-62 reconciliation retain later workflow gates.
+
+**Approved ticket delivery (17 October 2026):** the owner approved publication
+and proceeding with the packet. Issues #84–#88 carry native blocker links.
+Selected 1.1.1a/#84 adds existing-shop profile editing and immutable revision
+history after its merged direct prerequisites; its
+[implementation evidence and owner review](agents/Shop_Profile_Implementation_Evidence.md)
+track executable acceptance and remaining human/merge gates. #85–#88 retain
+their merged-prerequisite gates. Complete 1.1.1, real category/order integration
+and live readiness are not declared by ticket A.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** SET-01, SET-02, SET-05, SET-06, SET-07, SET-08, SET-09, SET-11. Scenarios: AC-44, AC-60, AC-61, AC-62.
 - **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.

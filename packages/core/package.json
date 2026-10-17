@@ -75,6 +75,10 @@
     "./wearer-policy": {
       "types": "./dist/wearer-policy.d.ts",
       "import": "./dist/wearer-policy.js"
+    },
+    "./shop-profile": {
+      "types": "./dist/shop-profile.d.ts",
+      "import": "./dist/shop-profile.js"
     }
   },
   "scripts": {

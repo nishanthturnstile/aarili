@@ -28,6 +28,10 @@ import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
+import {
+  type ShopProfileContext,
+  shopBrandingPolicy,
+} from "@aarili/core/shop-profile";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
   syntheticGuardianPolicy,
@@ -56,6 +60,7 @@ import { draftRepository } from "@aarili/db/draft-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
+import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
 import {
@@ -182,6 +187,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerShopProfile: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ShopProfileContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerDocument: <T>(
     headers: Headers,
     shopId: string,
@@ -1195,6 +1205,20 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       run(guardianContext(tx, shopId, userId)),
     );
   }
+  async function withOwnerShopProfile<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ShopProfileContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run({
+        shopId,
+        actorId,
+        repository: shopProfileRepository(tx, shopId),
+        brandingAvailable: !!configuration.mediaAdapters,
+      }),
+    );
+  }
   async function withOwnerMedia<T>(
     headers: Headers,
     shopId: string,
@@ -1222,6 +1246,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         actor: { type: "user", id: userId },
         repository: mediaRepository(tx, shopId),
         ...adapters,
+        policy: shopBrandingPolicy(shopId, adapters.policy),
         instrumentation: {
           stored: async (actionId, assetId, bytes) => {
             await writer.record({
@@ -1568,6 +1593,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerWearer,
     withOwnerGuardian,
     withOwnerTransaction,
+    withOwnerShopProfile,
     withOwnerMedia,
     withOwnerDocument,
     commandLimit: () => guard(commandLimit),
