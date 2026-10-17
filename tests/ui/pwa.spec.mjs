@@ -205,11 +205,9 @@ test("0.4.1b B1/B3/B6 installed start remains authorised and live owner forms su
       ).toContain("no-store");
       await page.goto(`${origin}${manifest.start_url}`);
       await expect(page.locator(".workspace-navigation")).toHaveCount(0);
-      await expect(
-        page.locator('.owner-footer a[href="/sign-in"]'),
-      ).toBeVisible();
+      await expect(page.locator('form button[type="submit"]')).toBeVisible();
       await page.goto(`${origin}/setup`);
-      await page.locator("#shopName").fill("ஆரிலி தையல்");
+      await page.locator("#name").fill("சோதனை உரிமையாளர்");
       for (const lang of ["en", "ta"]) {
         if (lang === "ta")
           await page.getByRole("button", { name: "தமிழ்", exact: true }).click();
@@ -235,7 +233,7 @@ test("0.4.1b B1/B3/B6 installed start remains authorised and live owner forms su
           await expect(page.locator(".pwa-notice")).toContainText(
             lang === "en" ? "Reconnect to continue" : "தொடர இணையத்தை",
           );
-          await expect(page.locator("#shopName")).toHaveValue("ஆரிலி தையல்");
+          await expect(page.locator("#name")).toHaveValue("சோதனை உரிமையாளர்");
           expect((await new AxeBuilder({ page }).analyze()).violations).toEqual(
             [],
           );
@@ -266,7 +264,7 @@ test("0.4.1b B1/B3/B6 installed start remains authorised and live owner forms su
           await page.evaluate(() => navigator.serviceWorker.ready);
           await expect(page.locator(".pwa-notice")).toBeEmpty();
           await page.reload();
-          await page.locator("#shopName").fill("ஆரிலி தையல்");
+          await page.locator("#name").fill("சோதனை உரிமையாளர்");
           config.revision = 2;
           await page.evaluate(async () =>
             (await navigator.serviceWorker.getRegistration()).update(),
@@ -275,7 +273,7 @@ test("0.4.1b B1/B3/B6 installed start remains authorised and live owner forms su
             Boolean((await navigator.serviceWorker.getRegistration()).waiting),
           );
           await expect(page.locator(".pwa-notice")).toBeEmpty();
-          await expect(page.locator("#shopName")).toHaveValue("ஆரிலி தையல்");
+          await expect(page.locator("#name")).toHaveValue("சோதனை உரிமையாளர்");
           await page.locator("form").evaluate((form) => form.reset());
           await expect(page.locator(".pwa-notice")).toContainText(
             "An update is ready",

@@ -85,8 +85,11 @@ test("0.4.1d D5/D7 real worker handler rollback and retry survive a throwing rep
         "idempotency_key",
       ])
         assert.equal(
-          (await f.admin.query(`select count(*)::int n from ${table}`)).rows[0]
-            .n,
+          (
+            await f.admin.query(
+              `select count(*)::int n from ${table}${table === "synthetic_record" ? "" : " where action like 'synthetic.%'"}`,
+            )
+          ).rows[0].n,
           1,
         );
     } finally {

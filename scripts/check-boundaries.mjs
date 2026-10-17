@@ -170,6 +170,7 @@ export function checkBoundaries(sources) {
         !file.startsWith("apps/web/src/app/api/") &&
         !file.startsWith("apps/web/src/server/") &&
         file !== "apps/web/src/instrumentation.ts" &&
+        file !== "apps/web/src/proxy.ts" &&
         // App Router server entry points can import client components; the
         // browser graph starts at their explicit client boundary instead.
         (!/\/(page|layout)\.tsx$/.test(file) ||

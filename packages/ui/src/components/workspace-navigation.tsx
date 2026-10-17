@@ -50,7 +50,12 @@ export function WorkspaceNavigation({
       </p>
       <ul id="workspace-destinations">
         {[
-          { href: "/owner", label: labels.workspace, Icon: House, id: "owner" },
+          {
+            href: "/dashboard",
+            label: labels.workspace,
+            Icon: House,
+            id: "owner",
+          },
           {
             href: "/connections",
             label: labels.connections,

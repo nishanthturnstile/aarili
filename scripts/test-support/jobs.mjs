@@ -124,7 +124,7 @@ export async function jobCounts(f) {
     (select count(*)::int from synthetic_record) as records,
     (select count(*)::int from audit_event where action like 'synthetic.%' and action<>'synthetic.job.consume') as command_audit,
     (select count(*)::int from audit_event where action='synthetic.job.consume') as handler_audit,
-    (select count(*)::int from idempotency_key) as keys,
+    (select count(*)::int from idempotency_key where action like 'synthetic.%') as keys,
     (select count(*)::int from synthetic_job_request) as requests,
     (select count(*)::int from pgboss.job) as jobs,
     (select count(*)::int from synthetic_job_effect) as effects`)

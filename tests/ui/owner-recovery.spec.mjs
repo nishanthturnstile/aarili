@@ -164,6 +164,11 @@ for (const locale of ["ta", "en"])
           .getByRole("button", { name: w.request, exact: true })
           .click();
         await expect(page.locator("main").getByRole("status")).toBeFocused();
+        await expect(page.locator("form")).toHaveCount(0);
+        await expect(
+          page.getByRole("link", { name: w.have, exact: true }),
+        ).toHaveCount(1);
+        await capture("recovery-requested");
         await page.getByRole("link", { name: w.have, exact: true }).click();
         await language();
         await axe();
@@ -188,7 +193,7 @@ for (const locale of ["ta", "en"])
         await page.getByLabel(w.newPassword, { exact: true }).fill(replacement);
         await page.getByRole("button", { name: w.reset, exact: true }).click();
         await expect(page.locator("main").getByRole("status")).toBeFocused();
-        await expect(page.getByLabel(w.code, { exact: true })).toBeEmpty();
+        await expect(page.getByLabel(w.code, { exact: true })).toHaveCount(0);
         await axe();
         await capture("reset-complete");
         await login(original);
@@ -199,9 +204,9 @@ for (const locale of ["ta", "en"])
         );
         await page.getByLabel(w.password, { exact: true }).fill(replacement);
         await page.getByRole("button", { name: w.signIn, exact: true }).click();
-        await expect(page).toHaveURL(`${origin}/owner`);
+        await expect(page).toHaveURL(`${origin}/dashboard`);
         await language();
-        await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(
           "சோதனைக் கடை",
         );
         await runtime.query(
@@ -239,7 +244,7 @@ for (const locale of ["ta", "en"])
         await page
           .getByRole("button", { name: w.confirmPassword, exact: true })
           .click();
-        await expect(page).toHaveURL(`${origin}/owner`);
+        await expect(page).toHaveURL(`${origin}/dashboard`);
         await language();
         const recent = await probe();
         expect(recent.status).toBe(200);
@@ -250,14 +255,13 @@ for (const locale of ["ta", "en"])
         expect((await probe()).status).toBe(401);
         await page.goto(`${origin}/owner`);
         await language();
-        await expect(page.locator("main").getByRole("alert")).toHaveText(
-          w.expired,
-        );
+        await expect(page).toHaveURL(`${origin}/sign-in`);
+        await expect(page.locator("#password")).toBeVisible();
         await expect(page.getByRole("heading", { level: 2 })).toHaveCount(0);
         await axe();
         await capture("session-expired");
         await login(replacement);
-        await expect(page).toHaveURL(`${origin}/owner`);
+        await expect(page).toHaveURL(`${origin}/dashboard`);
         await language();
         await page
           .getByRole("button", { name: w.signOut, exact: true })
@@ -265,9 +269,8 @@ for (const locale of ["ta", "en"])
         await expect(page).toHaveURL(`${origin}/sign-in`);
         await page.goto(`${origin}/owner`);
         await language();
-        await expect(page.locator("main").getByRole("alert")).toHaveText(
-          w.expired,
-        );
+        await expect(page).toHaveURL(`${origin}/sign-in`);
+        await expect(page.locator("#password")).toBeVisible();
         expect(
           await page.evaluate(async () => ({
             local: localStorage.length,

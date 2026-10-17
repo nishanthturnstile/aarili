@@ -3,6 +3,7 @@ import {
   OwnerRequestError,
   onOwnerInvalidation,
   readGoogleConnection,
+  readOwnerEntry,
   readOwnerShop,
 } from "@aarili/api/client";
 import { QueryClient } from "@tanstack/react-query";
@@ -72,6 +73,40 @@ export function createOwnerQueries() {
       };
     },
     shop,
+    async entry() {
+      const expected = epoch;
+      const request = new AbortController();
+      requests.add(request);
+      try {
+        const result = await readOwnerEntry(request.signal);
+        guard(expected);
+        const next = result.state === "ready" ? result.shop.shopId : undefined;
+        if (shopId && next !== shopId) clearOwnerState();
+        shopId = next;
+        if (result.state === "ready")
+          client.setQueryData(key("shop"), {
+            state: "complete",
+            ...result.shop,
+          });
+        return result;
+      } finally {
+        requests.delete(request);
+      }
+    },
+    async connection() {
+      const expected = epoch;
+      const result = await client.fetchQuery({
+        queryKey: key("connection"),
+        queryFn: async ({ signal }) => {
+          guard(expected);
+          const result = await readGoogleConnection(signal);
+          guard(expected);
+          return result;
+        },
+      });
+      guard(expected);
+      return result;
+    },
     async workspace() {
       const current = await shop();
       if (current.state !== "complete")

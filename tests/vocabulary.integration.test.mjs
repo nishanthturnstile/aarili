@@ -21,7 +21,7 @@ const databaseCode = (expected) => (error) =>
 const counts = async (f) =>
   (
     await f.admin.query(
-      `select (select count(*)::int from vocabulary) as heads,(select count(*)::int from vocabulary_revision) as revisions,(select count(*)::int from vocabulary_search_key) as keys,(select count(*)::int from audit_event) as audits,(select count(*)::int from idempotency_key) as commands`,
+      `select (select count(*)::int from vocabulary) as heads,(select count(*)::int from vocabulary_revision) as revisions,(select count(*)::int from vocabulary_search_key) as keys,(select count(*)::int from audit_event where action like 'vocabulary.%') as audits,(select count(*)::int from idempotency_key where action like 'vocabulary.%') as commands`,
     )
   ).rows[0];
 test("0.4.1c C3 C5 USE-02 DAY-04 AC-02 current vocabulary aliases and immutable historical labels with distinct identities", async () => {

@@ -3,7 +3,7 @@
 Owner-approved process improvement, 16 October 2026. Follow the
 [development workflow](Development_Workflow.md). Record the next five
 implementation PRs opened after the workflow improvement merges, one entry per
-PR. No deliveries have been recorded yet. This log does not change release scope
+PR. An implementation entry follows below. This log does not change release scope
 or acceptance gates.
 
 Use ISO 8601 timestamps with an explicit offset (for example, `+05:30`) or UTC.
@@ -43,3 +43,104 @@ After five completed deliveries, record the median elapsed measures and observed
 activity durations (with known sample counts), the largest waits and repeated
 failure causes. Overlapping activity durations are not additive. Recommend any
 further process change separately; retain the required verification and review.
+
+## Delivery 1: owner access and shop onboarding (ACCESS-01–12)
+
+- Issue / PR / tested revision: no issue or PR requested; codex/owner-access-onboarding
+  from 7096a8c, implementation working tree. Existing AGENTS.md edit excluded.
+- Implementation started: exact initial timestamp unknown; first recorded observation
+  2026-10-16T23:05:35+05:30, after branch creation and initial inspection.
+- Review ready: 2026-10-17T00:45:37+05:30. Merged: pending owner review/authorization.
+- First usable owner review: 2026-10-16T23:57:16+05:30, synthetic
+  http://127.0.0.1:58941/setup; private access file supplied locally.
+- Final-build preview offered 2026-10-17T00:38:41+05:30 at
+  http://127.0.0.1:50615/setup. The first disposable host was stopped and cleaned up.
+- Active implementation/rework durations: unknown; do not infer active time from
+  Git timestamps. Local verification observations are recorded below; CI is not
+  applicable and human review waiting remains pending. Spans overlap.
+- Rework: empty-JSON compatibility, feedback/dialog selectors, Tamil progress,
+  completion focus, and scoped audit/key/expiry fixture assertions. One media
+  assertion now identifies immutable intents by ID rather than timestamp order.
+- Human acceptance: pending; no CI/publication/merge/deployment performed.
+
+- Final repository verification: pnpm verify exit 0, observed complete at
+  2026-10-17T00:37:07+05:30 (152 unit/property, 98 integration, Linux Tamil PDF
+  goldens, build, production smoke and 29 artifact scans). Final integration
+  duration: 404.19 seconds. Earlier attempts and reruns remain documented.
+- Broad browser sweep: 96 passed / 6 failed in 32.2 minutes. Five failures used
+  old shell/PWA selectors; the remaining draft pagination case observed a database
+  clock regression. Its unchanged diagnosed rerun passed in 1.4 minutes. Final
+  owner/shell/PWA browser checks passed: 27 tests in 7.1 minutes, observed complete
+  2026-10-17T00:44:58+05:30. The original full command remains recorded as failed;
+  unaffected successful cases were reused under the staged verification workflow.
+- Supplemental shop review: 40 English/Tamil and light/dark width states and
+  eight axe scans passed. First observation to first usable preview: 51 minutes
+  41 seconds, including implementation, verification and rework; active time and
+  actual initial implementation start remain unknown.
+- Largest measured window: the 32.2-minute broad browser sweep. Candidate
+  improvement: run one shell/PWA representative early when access/navigation
+  changes, retaining the required security, migration and final matrix coverage.
+- CI queue/execution: not applicable (no publication). Review waiting and merge
+  remain pending. First observation to review-ready: 100 minutes 2 seconds,
+  including implementation, verification and rework; this is not active coding
+  time or the unknown actual implementation-start interval.
+
+### Owner-requested entry-flow revision, 17 October 2026
+
+- The owner rejected the first presentation and requested authentication,
+  dedicated onboarding and dashboard as distinct surfaces. This is rework of
+  Delivery 1, not an additional published delivery. No issue/PR was created.
+- Invite-only registration was explicitly retained. The owner approved the
+  clickable revised visual direction with “Keep this direction”; finished-product
+  review remains separate. Exact reply timestamp and active rework duration are
+  unknown.
+- Observed verification at 2026-10-17T07:54:24+05:30: 20 focused entry-policy,
+  query-invalidation and boundary tests passed in 0.958 seconds. Production build
+  included the new routes and Node Proxy. Focused browser work initially exposed
+  a relative-URL test-helper assumption; this was corrected without changing the
+  authorization policy. Fresh final gates and review-ready timestamp are pending.
+- Revision scope, compatibility, acceptance matrix and human review instructions:
+  [Owner Entry Onboarding Evidence](Owner_Entry_Onboarding_Evidence.md).
+- Revision repository gate observed complete at 2026-10-17T08:21:22+05:30:
+  `pnpm verify` exit 0; 156 unit and 99 integration tests, Linux PDF goldens,
+  production build/smoke and 29 artifact scans. Integration duration reported
+  by Vitest: 861.33 seconds. The first full attempt stopped on an old translation
+  expectation; the corrected full rerun passed. Browser timing/result and
+  finished-product review-ready time remain pending.
+- Fresh synthetic production review host observed ready at
+  2026-10-17T08:22:17+05:30, `http://127.0.0.1:52202/sign-in`; this is the revised
+  implemented flow, separate from the approved clickable prototype. Full browser
+  verification started immediately after the repository gate; its timing is
+  retained in `.scratch/owner-entry-preview/ui-final-timing.json` on completion.
+- First revision full browser run: 2026-10-17T08:21:22.9605792+05:30 →
+  2026-10-17T08:43:17.9457160+05:30; 21 minutes 55 seconds including command
+  startup/build. Playwright reported 21.6 minutes, 99 passes and six Tamil
+  enlarged-text/spacing failures. All owner entry journeys passed, but the full
+  command failed. Preserve that result rather than treating completed case
+  numbers as passes.
+- Rework: password-control wrapping and bounded narrow-screen nested gutters
+  resolve the measured 325px document at a 320px viewport. Exact active rework
+  span is unknown. Final focused checks: 15 passes in 48.2 seconds; five fresh
+  normal/enlarged captures received a scoped visual ship verdict. Both full gates
+  are rerunning after the final CSS correction; final timing/result remains pending.
+
+- Final corrected-source repository gate: 2026-10-17T08:45:48.1291301+05:30 →
+  2026-10-17T08:59:11.5727551+05:30 (13 minutes 23 seconds), exit 0. All 156 unit
+  and 99 integration tests passed; integration reported 669.82 seconds and
+  production build 17.605 seconds. Both earlier runs remain recorded above.
+- Refreshed synthetic production host observed ready at
+  2026-10-17T09:00:08+05:30, http://127.0.0.1:49774/sign-in. The previous host was
+  stopped before rebuilding and its disposable data removed. Final browser gate
+  follows the repository pass; final result/review-ready timestamp remain pending.
+
+- Final browser gate: 2026-10-17T08:59:11.6257288+05:30 →
+  2026-10-17T09:21:30.2538896+05:30, exit 0; 105 passed, zero failures, retries
+  disabled. Command wall time 22 minutes 19 seconds; Playwright reported 22.0
+  minutes. Source fingerprint remained unchanged after both final gates.
+- Revision review packet ready: 2026-10-17T09:21:59.948323+05:30. Owner finished-flow/visual,
+  actual Android, fluent Tamil, assistive-technology and shop-lighting observations
+  remain pending. No CI, publication, merge or deployment was performed. Initial
+  active revision implementation duration and initial-to-ready elapsed are unknown.
+  Largest measured final gate: browser command (22 minutes 19 seconds). The early
+  enlarged-text failure suggests running the representative Tamil zoom check before
+  the full matrix while retaining the required final gates.

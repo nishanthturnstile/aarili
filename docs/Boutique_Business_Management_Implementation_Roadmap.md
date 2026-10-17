@@ -317,6 +317,19 @@ and activation gates open.
 
 ### Phase 1.1 — Configure Safe Owner Operation
 
+**Approved prerequisite refinement (16 October 2026):**
+[Owner access and initial shop onboarding](agents/Owner_Access_Onboarding.md),
+tracked by ACCESS-01–12 without GitHub issues, refines the existing foundation UI
+and defers naming until authenticated creation. Protected admission and the
+selected light/dark design remain. This does not complete or move 1.1.1–1.1.2,
+1.10.1/1.10.4 or 2.1.4, and cannot activate live use.
+
+The [17 October entry-flow revision](agents/Owner_Entry_Onboarding_Revision_Plan.md)
+supersedes its presentation: authentication only, then dedicated shop onboarding,
+then a server-authorized `/dashboard` entry. ENTRY-01–12 cover this revision;
+ACCESS-01–12 retain the compatible registration, creation and security guarantees.
+Dashboard entry here does not implement the operational dashboard in 1.9.2.
+
 **Objective:** Establish the business rules and identities needed for trustworthy intake.  
 **Functional scope:** Shop policies, supported services, Simple mode, customers, wearers and consent.  
 **Dependencies:** None; owner approval of initial policies and forms.
@@ -352,6 +365,16 @@ and activation gates open.
 #### Functionality — Customer, wearer and guardian registration
 
 ##### Vertical Slice 1.1.3 — Register Customers and Authorised Wearers
+
+**Next-feature research selection (17 October 2026):**
+[Customer and wearer REA plan](agents/Customer_Wearer_REA_Plan.md) selects this
+existing slice for the next concrete research and implementation-planning packet,
+using Nool Tech's web workflow as its primary reference. The
+[reusable prompt](agents/Customer_Wearer_REA_Prompt.md) preserves evidence limits,
+the selected-approved-ticket gate and synthetic-only operation. This does not
+complete 1.1.1/1.1.2, change 1.2.1's dependencies, approve ticket publication or
+activate live data. Existing privacy notice, retention and guardian-policy inputs
+remain prerequisites; competitor behaviour cannot supply their approval.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-01, CUS-02, CUS-04, CUS-07, TRU-01, TRU-03, TRU-04, TRU-05, TRU-07, TRU-13. Scenarios: AC-02, AC-39, AC-52, AC-53.

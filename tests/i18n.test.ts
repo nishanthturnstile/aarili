@@ -9,6 +9,6 @@ test("0.4.1a A2 USE-02 shared Tamil/English catalogues have matching nonempty ke
     expect(
       Object.values(messages).every((value) => value.trim().length > 0),
     ).toBe(true);
-  expect(ownerMessages.en.workspace).toBe("Your shop");
-  expect(ownerMessages.ta.workspace).toBe("உங்கள் கடை");
+  expect(ownerMessages.en.workspace).toBe("Dashboard");
+  expect(ownerMessages.ta.workspace).toBe("முகப்பு");
 });

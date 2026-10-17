@@ -168,8 +168,13 @@ test("0.4.3b H6/H7 committed orphan intents, partial crash retry, accepted/refer
         )
       ).rows;
       assert.equal(records.length, 2);
-      assert.deepEqual(records[0], old);
-      assert(records[1].completed_at);
+      // Identify the preserved intent by ID, independently of timestamp ordering
+      // across separate transactions and restore epochs.
+      assert.deepEqual(
+        records.find((record) => record.id === old.id),
+        old,
+      );
+      assert(records.find((record) => record.id !== old.id).completed_at);
       const referenced = await f.actualStorage.seal(
         acceptedPrefix,
         new Uint8Array([4]),

@@ -84,7 +84,7 @@ test("0.3.2a D2/D8 TRU-06 independent app_user consumer sees zero before commit;
         ).rows[0];
         const rows = (
           await tx.execute(
-            sql`select xmin::text as xid from synthetic_record union all select xmin::text from audit_event where action='synthetic.create' union all select xmin::text from idempotency_key union all select xmin::text from synthetic_job_request union all select xmin::text from pgboss.job`,
+            sql`select xmin::text as xid from synthetic_record union all select xmin::text from audit_event where action='synthetic.create' union all select xmin::text from idempotency_key where action='synthetic.create' union all select xmin::text from synthetic_job_request union all select xmin::text from pgboss.job`,
           )
         ).rows;
         assert.equal(rows.length, 5);

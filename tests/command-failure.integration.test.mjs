@@ -47,7 +47,14 @@ test("0.2.3 E5/E6 process/connection loss before commit and failed finalization 
       })),
     );
     for (const table of ["synthetic_record", "audit_event", "idempotency_key"])
-      assert.equal((await admin.query(`select * from ${table}`)).rowCount, 0);
+      assert.equal(
+        (
+          await admin.query(
+            `select * from ${table}${table === "synthetic_record" ? "" : " where action like 'synthetic.%'"}`,
+          )
+        ).rowCount,
+        0,
+      );
     const created = await run({ key }, input, null);
     const finalizeKey = randomUUID();
     await assert.rejects(
@@ -84,9 +91,20 @@ test("0.2.3 E5/E6 process/connection loss before commit and failed finalization 
       created.record.id,
     );
     assert.equal(final.record.finalized, true);
-    assert.equal((await admin.query("select * from audit_event")).rowCount, 2);
     assert.equal(
-      (await admin.query("select * from idempotency_key")).rowCount,
+      (
+        await admin.query(
+          "select * from audit_event where action like 'synthetic.%'",
+        )
+      ).rowCount,
+      2,
+    );
+    assert.equal(
+      (
+        await admin.query(
+          "select * from idempotency_key where action like 'synthetic.%'",
+        )
+      ).rowCount,
       2,
     );
   });

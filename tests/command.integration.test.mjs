@@ -73,7 +73,7 @@ async function create(f, identity = f.a, key = randomUUID()) {
 async function counts(f) {
   return (
     await f.admin.query(
-      "select (select count(*)::int from synthetic_record) as records,(select count(*)::int from audit_event) as audit,(select count(*)::int from idempotency_key) as keys",
+      "select (select count(*)::int from synthetic_record) as records,(select count(*)::int from audit_event where action like 'synthetic.%') as audit,(select count(*)::int from idempotency_key where action like 'synthetic.%') as keys",
     )
   ).rows[0];
 }
@@ -364,7 +364,7 @@ test("0.2.3 E4/E5/E7/E9 TRU-06 AC-55 persisted replay survives lost response/sta
     );
     const events = (
       await f.admin.query(
-        "select * from audit_event where shop_id=$1 order by occurred_at,id",
+        "select * from audit_event where shop_id=$1 and action like 'synthetic.%' order by occurred_at,id",
         [f.a.shop],
       )
     ).rows;
@@ -687,6 +687,12 @@ test("0.2.3 E7/E8/E9 TRU-06/TRU-12 finalized history, concurrent correction/fina
 
 test("0.2.3 E9/E10 TRU-01 AC-38 new tenant catalog, bidirectional isolation, 30-day cutoff, PostgreSQL rate boundary and production exposure", async () => {
   await fixture(async (f) => {
+    const initialKeys = (
+      await f.admin.query(
+        "select key from idempotency_key where shop_id=$1 order by created_at,key",
+        [f.a.shop],
+      )
+    ).rows.map((row) => row.key);
     const key = randomUUID();
     const a = await create(f, f.a, key),
       b = await create(f, f.b, key);
@@ -801,9 +807,10 @@ test("0.2.3 E9/E10 TRU-01 AC-38 new tenant catalog, bidirectional isolation, 30-
         await repo.expiredKeys(
           idempotencyCutoff(new Date(atExpiry.getTime() - 1)),
         ),
-        [],
+        initialKeys,
       );
       assert.deepEqual(await repo.expiredKeys(idempotencyCutoff(atExpiry)), [
+        ...initialKeys,
         key,
       ]);
     });

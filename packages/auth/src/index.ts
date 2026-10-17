@@ -8,8 +8,11 @@ import {
 import { mkdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import {
+  createOwnerShopSchema,
   googleDisconnectSchema,
   googleEntrySchema,
+  type OwnerEntry,
+  ownerEntrySchema,
   recoveryResetSchema,
   setupCommandSchema,
 } from "@aarili/contracts";
@@ -35,6 +38,7 @@ import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
+import { requestRepository } from "@aarili/db/request-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
 import { createAbuseLimiter } from "@aarili/platform/abuse-limiter";
@@ -130,6 +134,7 @@ type BootstrapRow = {
   shop_id: string | null;
   admission_key: string | null;
   request_hash: string | null;
+  shop_name: string | null;
 };
 const digest = (value: string) =>
   createHash("sha256").update(value).digest("hex");
@@ -137,6 +142,7 @@ export class OwnerAccessError extends Error {
   constructor(
     public readonly code:
       | "SETUP_CLOSED"
+      | "VALIDATION_FAILED"
       | "INVALID_CREDENTIALS"
       | "INVALID_VERIFICATION"
       | "MAIL_UNAVAILABLE"
@@ -189,21 +195,31 @@ export type OwnerAuth = {
   ) => Promise<SessionResult<T>>;
   auth: { handler: (request: Request) => Promise<Response> };
   admit: (
-    input: { name: string; email: string; password: string; shopName: string },
+    input: {
+      name: string;
+      email: string;
+      password: string;
+      shopName?: string | undefined;
+    },
     token: string,
     key: string,
   ) => Promise<void>;
   resend: (email: string, password: string, token: string) => Promise<void>;
   verify: (code: string) => Promise<void>;
-  complete: (headers: Headers) => Promise<SessionResult<{ shopId: string }>>;
+  complete: (
+    headers: Headers,
+    input?: { shopName: string },
+    key?: string,
+  ) => Promise<SessionResult<{ shopId: string }>>;
   ownerShop: (
     headers: Headers,
   ) => Promise<
     SessionResult<
-      | { state: "pending-shop" }
+      | { state: "pending-shop"; suggestedName?: string }
       | { state: "complete"; shopId: string; name: string }
     >
   >;
+  ownerEntry: (headers: Headers) => Promise<SessionResult<OwnerEntry>>;
   googleConnection: (
     headers: Headers,
   ) => Promise<SessionResult<{ enabled: boolean; linked: boolean }>>;
@@ -583,7 +599,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   }
   async function state(tx: Database | Transaction = db) {
     const result = await tx.execute(
-      sql`select user_id, completed_at, shop_id, admission_key, request_hash from owner_bootstrap where singleton`,
+      sql`select user_id, completed_at, shop_id, admission_key, request_hash, shop_name from owner_bootstrap where singleton`,
     );
     return result.rows[0] as BootstrapRow;
   }
@@ -591,6 +607,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     database: Database | Transaction,
     userId: string,
     shopId: string | null,
+    denied: "UNAUTHENTICATED" | "SHOP_ACCESS_DENIED" = "UNAUTHENTICATED",
   ) {
     if (!shopId) throw new OwnerAccessError("UNAUTHENTICATED");
     await database.execute(
@@ -599,7 +616,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     const own = await database.execute(
       sql`select 1 from shop_membership where user_id=${userId}::uuid and shop_id=${shopId}::uuid and role='owner'`,
     );
-    if (!own.rowCount) throw new OwnerAccessError("UNAUTHENTICATED");
+    if (!own.rowCount) throw new OwnerAccessError(denied);
   }
   async function recentIdentity(
     headers: Headers,
@@ -668,7 +685,12 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     }
   }
   async function admit(
-    input: { name: string; email: string; password: string; shopName: string },
+    input: {
+      name: string;
+      email: string;
+      password: string;
+      shopName?: string | undefined;
+    },
     token: string,
     key: string,
   ) {
@@ -711,7 +733,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       });
       await checkpoint("credential");
       await tx.execute(
-        sql`update owner_bootstrap set user_id=${owner.id}::uuid,shop_name=${input.shopName},admission_key=${key},request_hash=${requestHash},reserved_at=now() where singleton`,
+        sql`update owner_bootstrap set user_id=${owner.id}::uuid,shop_name=${input.shopName ?? null},admission_key=${key},request_hash=${requestHash},reserved_at=now() where singleton`,
       );
       await checkpoint("reservation");
       return owner.id;
@@ -902,23 +924,125 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     });
     return { data, headers: current.headers };
   }
-  async function complete(headers: Headers) {
-    const { userId, headers: responseHeaders } = await identity(headers);
+  async function complete(
+    headers: Headers,
+    input?: { shopName: string },
+    key?: string,
+  ) {
+    const current = await identity(headers);
     const data = await db.transaction(async (tx) => {
-      const result = await tx.execute(
-        sql`select complete_owner_bootstrap(${userId}::uuid) as shop_id`,
+      await requireRuntimeRole(tx);
+      await tx.execute(
+        sql`select 1 from owner_bootstrap where singleton for update`,
       );
+      // Resolve again inside the locked transaction: a revoked session must not
+      // gain a shop while waiting on another request's bootstrap lock.
+      const { userId } = await identity(headers, library(tx), tx);
+      const pending = await state(tx);
+      if (input && !key) throw new OwnerAccessError("VALIDATION_FAILED");
+      const legacy = !input;
+      if (legacy && !pending.shop_name)
+        throw new OwnerAccessError("VALIDATION_FAILED");
+      let name = input?.shopName ?? pending.shop_name;
+      if (!name && !(legacy && pending.shop_id))
+        throw new OwnerAccessError("VALIDATION_FAILED");
+      if (name) name = createOwnerShopSchema.parse({ shopName: name }).shopName;
+      const result = await tx.execute(
+        legacy
+          ? sql`select complete_owner_bootstrap(${userId}::uuid) as shop_id`
+          : sql`select complete_owner_bootstrap(${userId}::uuid,${name}) as shop_id`,
+      );
+      const shopId = result.rows[0]?.shop_id as string;
+      await requireMembership(tx, userId, shopId);
+      await tx.execute(
+        sql`select set_config('app.shop_id',${shopId},true),set_config('app.actor_id',${userId},true)`,
+      );
+      const shop = await readShop(shopRepository(tx), shopId);
+      if (!shop) throw new OwnerAccessError("UNAUTHENTICATED");
+      if (name && name !== shop.name)
+        throw new OwnerAccessError("REQUEST_CONFLICT");
+      const response = { shopId };
+      // Historical completed installations get no invented creation event.
+      if (legacy && pending.shop_id) return response;
+      const requestKey = key ?? v7();
+      const repository = requestRepository<{ shopId: string }>(tx, shopId);
+      await repository.lockKey(requestKey);
+      const binding = {
+        actor: { type: "user" as const, id: userId },
+        action: "owner.shop.create",
+        hash: digest(JSON.stringify({ shopName: shop.name })),
+      };
+      const replay = await repository.replay(requestKey);
+      if (replay) {
+        if (
+          replay.actor.id !== userId ||
+          replay.actor.type !== "user" ||
+          replay.action !== binding.action ||
+          replay.hash !== binding.hash
+        )
+          throw new OwnerAccessError("REQUEST_CONFLICT");
+        return response;
+      }
+      await repository.persist(requestKey, binding, response);
+      if (!pending.shop_id) {
+        await tx.execute(sql`insert into audit_event(shop_id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,changes)
+          values(${shopId}::uuid,'user',${userId}::uuid,'owner.shop.create','shop',${shopId}::uuid,${v7()}::uuid,${requestKey}::uuid,${JSON.stringify({ name: shop.name })}::jsonb)`);
+      }
       await checkpoint("shop");
-      return { shopId: result.rows[0]?.shop_id as string };
+      return response;
     });
-    return { data, headers: responseHeaders };
+    return { data, headers: current.headers };
+  }
+  async function ownerEntry(headers: Headers) {
+    await ready();
+    return db.transaction(async (tx) => {
+      await requireRuntimeRole(tx);
+      // Resolve session and admission after the creation lock has settled.
+      await tx.execute(
+        sql`select 1 from owner_bootstrap where singleton for share`,
+      );
+      const current = await identity(headers, library(tx), tx);
+      const pending = await state(tx);
+      const profile = await tx.execute<{ name: string; email: string }>(
+        sql`select name,email from auth_user where id=${current.userId}::uuid and email_verified`,
+      );
+      const owner = profile.rows[0];
+      if (!owner) throw new OwnerAccessError("UNAUTHENTICATED");
+      if (!pending.shop_id)
+        return {
+          data: ownerEntrySchema.parse({
+            state: "needs-onboarding",
+            owner,
+            ...(pending.shop_name ? { suggestedName: pending.shop_name } : {}),
+          }),
+          headers: current.headers,
+        };
+      await requireMembership(
+        tx,
+        current.userId,
+        pending.shop_id,
+        "SHOP_ACCESS_DENIED",
+      );
+      await tx.execute(
+        sql`select set_config('app.shop_id',${pending.shop_id},true),set_config('app.actor_id',${current.userId},true)`,
+      );
+      const shop = await readShop(shopRepository(tx), pending.shop_id);
+      if (!shop) throw new OwnerAccessError("SHOP_ACCESS_DENIED");
+      return {
+        data: ownerEntrySchema.parse({ state: "ready", owner, shop }),
+        headers: current.headers,
+      };
+    });
   }
   async function ownerShop(headers: Headers) {
     const { userId, headers: responseHeaders } = await identity(headers);
     const pending = await state();
     if (!pending.shop_id)
       return {
-        data: { state: "pending-shop" as const },
+        data: {
+          state: "pending-shop" as const,
+          ...(pending.shop_name ? { suggestedName: pending.shop_name } : {}),
+        },
         headers: responseHeaders,
       };
     const shopId = pending.shop_id;
@@ -1323,6 +1447,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     verify,
     complete,
     ownerShop,
+    ownerEntry,
     withOwnerShop,
     withOwnerCommand,
     withOwnerDraft,
