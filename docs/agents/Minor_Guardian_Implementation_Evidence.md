@@ -5,6 +5,11 @@
 Adult wearer PR #82 merged at 2026-10-17T08:45:15Z; native blocker #79 is closed.
 The checkout was clean before switching. Existing onboarding, customer and adult
 wearer implementation remains integrated; no worktree was created.
+Implementation commit `9119554` is published in draft
+[PR #83](https://github.com/nishanthturnstile/aarili/pull/83) to `development`.
+Required Fast verification and Dependency audit were queued at publication;
+owner review/merge and human acceptance remain pending. Documentation-only
+publication metadata follows the source-fingerprinted implementation.
 
 Sources: [issue #80](https://github.com/nishanthturnstile/aarili/issues/80),
 [feature brief](Customer_Wearer_REA_Plan.md), [design](Customer_Wearer_Design.md),

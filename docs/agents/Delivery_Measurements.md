@@ -63,6 +63,10 @@
   all 474 final hashes match; documentation-only publication metadata follows.
   Start to this point is 40m 39s elapsed, not active coding time. Required hosted
   CI, owner review/merge and human/policy acceptance remain pending.
+- Draft [PR #83](https://github.com/nishanthturnstile/aarili/pull/83) published,
+  observed 14:58:33.3346325+05:30, implementation `9119554` against development.
+  Fast verification and Dependency audit were queued; documentation-only metadata
+  follows. No #80 owner review/merge authorization is assumed.
 
 ## Delivery 3: adult wearer registration (#79 / 1.1.3b)
 
