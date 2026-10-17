@@ -7,6 +7,11 @@ commercial policy and commitment preview remain #85–#88, blocked by the requir
 merged prerequisites. Owner review, merge, promotion and live activation remain
 separate gates.
 
+Delivered through [draft PR #89](https://github.com/nishanthturnstile/aarili/pull/89)
+to `development`, registered with T3. Final local gates below passed. Hosted
+Fast verification and Dependency audit were running at publication; required
+owner review/merge, promotion, physical-device and live activation gates remain.
+
 ## Sources and integration baseline
 
 Product SET-01/08/09, USE-01–04/09 and tenant/privacy requirements govern behaviour;

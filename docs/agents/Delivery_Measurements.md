@@ -74,6 +74,12 @@
   remained available. Initial-to-ready elapsed is 1 hour 20 minutes 51 seconds,
   not active coding time. Physical-device/fluent-Tamil/assistive-technology,
   owner review, hosted CI, merge and deployment remain pending at this checkpoint.
+- Published commit `fe47344` on `codex/shop-profile-history` and opened
+  [draft PR #89](https://github.com/nishanthturnstile/aarili/pull/89) to development;
+  T3 registration was confirmed immediately after creation. At observed
+  2026-10-17T17:08:50.6839533+05:30, Fast verification and Dependency audit were
+  running; full/pilot browser jobs were skipped under the feature-PR workflow.
+  CI execution/queue durations remain pending, not inferred as coding time.
 
 ## Delivery 4: minor registration and guardian evidence (#80 / 1.1.3c)
 
