@@ -76,7 +76,11 @@ export function createCustomerRoutes(
       ),
   });
   app.use("/shops/*", async (c, next) => {
-    if (!/\/shops\/[^/]+\/customers(?:\/|$)/.test(new URL(c.req.url).pathname))
+    if (
+      !/^\/api\/shops\/[^/]+\/customers(?:\/[^/]+)?$/.test(
+        new URL(c.req.url).pathname,
+      )
+    )
       return next();
     c.header("Cache-Control", "private, no-store");
     c.header("Referrer-Policy", "no-referrer");

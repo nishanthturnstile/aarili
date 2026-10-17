@@ -391,12 +391,19 @@ approved production policies and all Phase 0.5/live gates remain required.
 1.1.1/1.1.2 and 1.2.1 dependencies remain unchanged.
 
 **1.1.3a implementation (17 October 2026):** onboarding PR #77 merged into
-development as `2ea55ac`. Approved #78 is implemented on the focused customer
-branch; local clean verification and 12 browser journeys passed. Owner review
-and merge remain pending. The
+development as `2ea55ac`. Approved #78 merged through PR #81 as `ac98740`;
+local clean verification, 12 browser journeys and both required feature CI
+checks passed. The
 [implementation evidence](agents/Customer_Registration_Implementation_Evidence.md)
 tracks CW-01/02/06/07/08/10/11/12/13. B/C retain separate tickets and merged
 prerequisite gates; this does not close 1.1.3 or any live-data gate.
+
+**1.1.3b implementation (17 October 2026):** selected approved #79 starts from
+integrated `ac98740` after #55/#56/#78 merged. Adult wearer roles, interaction
+authority, independent preferences and current-state draft promotion are scoped
+in the [implementation evidence](agents/Adult_Wearer_Implementation_Evidence.md).
+Local component verification is recorded; owner review/merge and human acceptance
+remain pending. Minor/guardian completion is #80 and cannot start before #79 merges.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-01, CUS-02, CUS-04, CUS-07, TRU-01, TRU-03, TRU-04, TRU-05, TRU-07, TRU-13. Scenarios: AC-02, AC-39, AC-52, AC-53.

@@ -40,6 +40,7 @@ export interface DraftWorkflow {
     command: Record<string, unknown>,
     actionId: string,
     draftId: string,
+    request: { key: string; requestId: string },
   ): Promise<DraftResult>;
 }
 export type DraftRegistry = ReadonlyMap<string, DraftWorkflow>;
@@ -229,7 +230,10 @@ export async function mutateDraft(
       if (!complete.success) fail(422, "VALIDATION_FAILED");
       await adapter.revalidate(complete.data, id);
       result = draftResultSchema.parse(
-        await adapter.promote(complete.data, actionId, id),
+        await adapter.promote(complete.data, actionId, id, {
+          key,
+          requestId: headers.requestId,
+        }),
       );
       await adapter.verifyResult(result, id);
     }

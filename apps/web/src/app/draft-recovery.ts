@@ -181,7 +181,19 @@ export function createDraftRecovery(options: {
         invalidate();
         return;
       }
-      if (error instanceof DraftRequestError && error.status < 500) {
+      if (
+        error instanceof DraftRequestError &&
+        error.status === 429 &&
+        state.work.outcomeUnknown
+      ) {
+        // Admission rejected this retry before looking up the original key. It
+        // cannot establish whether that original save/promotion committed.
+        emit({
+          status: "checking",
+          error: error.body.error.code,
+          work: { ...state.work, inFlight: false, outcomeUnknown: true },
+        });
+      } else if (error instanceof DraftRequestError && error.status < 500) {
         pending = undefined;
         const dirty =
           !state.committed || !equal(state.values, state.committed.payload);

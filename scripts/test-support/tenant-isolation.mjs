@@ -12,6 +12,9 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "wearerRepository.read/list/search/insert/link/update/purpose/origin",
+  "shops/:shopId/customers/:customerId/wearers",
+  "customer.wearer draft promotion",
   "customerRepository.read/search/insert/correct/audit",
   "shops/:shopId/customers",
   "documentRepository.issue/claim/plan/accept/retry/cleanup",
@@ -70,6 +73,7 @@ export async function withTenantFixture(
     draftInstrumentation,
     mediaAdapters,
     documentAdapters,
+    customerPolicy,
   } = {},
 ) {
   return withPostgres(
@@ -99,6 +103,7 @@ export async function withTenantFixture(
         ...(draftInstrumentation ? { draftInstrumentation } : {}),
         ...(mediaAdapters ? { mediaAdapters } : {}),
         ...(documentAdapters ? { documentAdapters } : {}),
+        ...(customerPolicy ? { customerPolicy } : {}),
         capture: async (message) => {
           capture.push(message);
         },

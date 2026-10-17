@@ -67,6 +67,14 @@
     "./customer-policy": {
       "types": "./dist/customer-policy.d.ts",
       "import": "./dist/customer-policy.js"
+    },
+    "./wearers": {
+      "types": "./dist/wearers.d.ts",
+      "import": "./dist/wearers.js"
+    },
+    "./wearer-policy": {
+      "types": "./dist/wearer-policy.d.ts",
+      "import": "./dist/wearer-policy.js"
     }
   },
   "scripts": {

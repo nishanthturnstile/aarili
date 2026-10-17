@@ -727,6 +727,7 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
         "customer",
         "customer_person",
         "customer_search_key",
+        "customer_wearer_relationship",
         "document_artifact",
         "document_attempt",
         "document_cleanup",
@@ -754,6 +755,12 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
         "vocabulary",
         "vocabulary_revision",
         "vocabulary_search_key",
+        "wearer",
+        "wearer_age_event",
+        "wearer_preference_event",
+        "wearer_preferences",
+        "wearer_purpose_event",
+        "wearer_relationship_event",
       ]);
       for (const row of tables.rows) {
         assert.equal(row.relrowsecurity, true);

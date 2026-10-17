@@ -1,5 +1,79 @@
 # Delivery measurements
 
+## Delivery 3: adult wearer registration (#79 / 1.1.3b)
+
+- Start observed 2026-10-17T13:03:13.7925010+05:30 after updating development
+  to `ac98740` (customer PR #81 merged). Branch codex/adult-wearer-registration.
+  All native blockers #55/#56/#78 are closed with merged prerequisites.
+- Implementation, active verification and rework time overlap; active coding
+  duration remains unknown. Backend and browser work use assigned disjoint
+  files in the same checkout; no worktree or concurrent Git mutations.
+- Early web typecheck rejected undefined partial preference defaults; normalization
+  corrected it and the affected typecheck passed. Initial web production build
+  passed, before a shared draft recovery correction required affected revalidation.
+- Read-only review identified unknown-outcome → 429 losing the original draft
+  command. The fix and two regressions passed in the 16-test recovery file
+  (420ms, 13:13:41+05:30). Source/authority gaps found during review are resolved
+  before final checks rather than recorded as completed acceptance.
+- Hosted CI, PR/merge and human acceptance are pending; local component
+  verification and final seeded host are recorded below.
+- First usable synthetic review host: 13:17:54+05:30, then stopped for rebuilding.
+  The ephemeral access file remained outside Git/chat. Start to this first
+  usable behavior: 14m 40s elapsed; not active coding time.
+- Development fast gate: 13:19:41.0076871 to 13:21:37.5407171+05:30, passed,
+  including 165 unit tests across 42 files. Later source corrections require
+  final affected verification.
+- Browser development run: 13:17:06.0401700 to 13:19:35.8657178+05:30;
+  interrupted after the first phone case found 320px/200% text overflow. Scoped
+  grid minimum sizing fixed the observed defect. No claim that the matrix passed.
+- Final clean/native verification began 2026-10-17T13:24:29.5837643+05:30.
+  It is required because package exports changed. The 461 inputs are fingerprinted
+  in [Clean_Source.sha256](adult-wearer-registration/Clean_Source.sha256).
+- Final-build seeded review host observed ready at 13:26:15+05:30:
+  http://127.0.0.1:62222/customers/01a148dc-5abf-7a74-9506-8da8cf125e8c.
+  Final wearer browser confirmation started at 13:25:30.4168923+05:30;
+  results and human acceptance remain pending.
+- Wearer matrix passed 6/6, 13:25:30.4168923 to 13:36:55.4355850+05:30
+  (Playwright 11.2m). The later UI-only correction has its own focused check;
+  prior backend and unchanged browser-path results are retained.
+- After the clean source copy, a UI-only refresh guard and rejected-save feedback
+  correction required focused browser regressions and fresh lint/Knip/web
+  typecheck/build. Backend, database and PDF inputs did not change; their
+  clean-run evidence remains applicable. Both source snapshots are retained.
+- UI delta verification passed 13:37:30.2049705 to 13:37:58.4004850+05:30
+  (lint/Knip/web types/build). Refresh/known-rejection browser regression passed
+  3/3, 13:38:06.2078166 to 13:39:28.1438372+05:30 (1.2m). The preserved customer
+  and onboarding matrix started 13:39:38.7056877+05:30.
+- The clean run ended 13:48:16.8820621+05:30, exit 1. Frozen install, fast stages,
+  166 unit tests and Linux PDF goldens passed; PostgreSQL was 104/105 (1128.99s).
+  Existing E8 incorrectly assumed audit wall-clock sorting guarantees save then
+  promote order. A test-only correction requires exactly one of each event while
+  preserving exact audit binding, counts, replay and rollback checks. Its full
+  five-test draft file passed 33.18s from 13:49:53+05:30. Unchanged passing stages
+  are reused and missing build/smoke/artifact stages run separately; the original
+  clean command remains a recorded failure, not relabelled as passing.
+- Preserved customer/onboarding browser matrix passed 12/12 (6.8m), ending
+  13:46:37.0871415+05:30. An actual corrupted Tamil synthetic name in two test
+  literals was corrected; the affected three-size registration matrix started
+  13:46:40.6210523+05:30. Strict UTF-8 review found no other corruption in the
+  19 new wearer-related files. No runtime source change from this correction.
+- Corrected Tamil registration matrix passed 3/3 (4.2m), ending
+  13:50:57.6977368+05:30. Final production build/smoke/artifact stages started
+  13:51:06.5448923+05:30 after stopping the review host for rebuilding.
+- Production build (all 12 tasks), real PostgreSQL readiness/outage and worker
+  shutdown smoke, and 29-browser-artifact scan passed through
+  13:52:18.6212981+05:30. Final host after rebuilding:
+  http://127.0.0.1:55706/customers/01a148f4-b4b6-7c4e-8d2b-3d5877b0a599.
+  All 462 final source hashes matched after verification; only documentation
+  finalization follows. Staged evidence covers all 105 distinct integration cases;
+  it does not turn the original failed clean command into a passing command.
+- Local review-ready evidence observed 13:53:44.0814914+05:30, 50m 30s elapsed
+  from the owner-request start; this includes overlapping verification/rework,
+  not active coding time. Embedded preview navigation twice timed out; the direct
+  running URL and private local access file remain the review path. Actual-device,
+  language, accessibility and business-policy acceptance remain pending.
+- [Acceptance and manual review packet](Adult_Wearer_Implementation_Evidence.md).
+
 ## Delivery 2: customer registration (#78 / 1.1.3a)
 
 - Branch: codex/customer-registration from 2ea55ac, onboarding PR #77's squash
@@ -62,8 +136,12 @@
   implementation commit: `c73555a3dd4a21fd460bb799145fee6e07dc7e17`.
   Fast verification and Dependency audit were queued at 07:22:06Z in
   [initial CI run](https://github.com/nishanthturnstile/aarili/actions/runs/39013368434).
-  Final hosted results and owner review/merge are pending; subsequent commits
-  only record delivery metadata. CI queue/execution time is not yet known.
+  Final hosted results on `e62804e`: Fast verification and Dependency audit
+  passed in [run 39013390645](https://github.com/nishanthturnstile/aarili/actions/runs/39013390645).
+  Fast execution: 07:23:16 to 07:24:48Z (92s); audit: 07:23:16 to 07:23:34Z
+  (18s). Queue duration is unknown. PR #81 merged at 2026-10-17T07:32:07Z
+  as `ac98740`; PR-open to merge elapsed was 10m 4s. Physical-device, fluent
+  Tamil and final policy acceptance remain pending.
 
 Owner-approved process improvement, 16 October 2026. Follow the
 [development workflow](Development_Workflow.md). Record the next five
