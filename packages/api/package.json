@@ -107,6 +107,14 @@
     "./media-client": {
       "types": "./dist/media-client.d.ts",
       "import": "./dist/media-client.js"
+    },
+    "./service-templates": {
+      "types": "./dist/service-templates.d.ts",
+      "import": "./dist/service-templates.js"
+    },
+    "./service-templates-client": {
+      "types": "./dist/service-templates-client.d.ts",
+      "import": "./dist/service-templates-client.js"
     }
   },
   "scripts": {
