@@ -63,6 +63,8 @@ export async function evaluateCommitment(input: {
   load: CommitmentLoad | null;
   scenario: CommitmentScenario;
   previousFingerprint: string | null;
+  // Set only by the server after resolving a reviewed binding. Never from v1 DTOs.
+  boundAuthority?: { reviewed: boolean; sources: Record<string, string> };
 }): Promise<CommitmentPreview> {
   const { configuration: c, scenario: s, calendar, load } = input;
   const warnings: string[] = [],
@@ -81,7 +83,10 @@ export async function evaluateCommitment(input: {
   if (s.mode === "production" && category?.synthetic)
     unknown("syntheticCategoryDenied");
   if (commitmentErrors(c).length) unknown("invalidConfiguration");
-  if (c.authority !== "synthetic-fixture" || s.mode === "production")
+  if (
+    !input.boundAuthority?.reviewed &&
+    (c.authority !== "synthetic-fixture" || s.mode === "production")
+  )
     unknown("productionAuthorityPending");
   if (c.escalation === "unconfigured") unknown("escalationUnconfigured");
   const dayCount = (
@@ -203,6 +208,7 @@ export async function evaluateCommitment(input: {
     sources,
     load,
     candidate,
+    ...(input.boundAuthority ? { binding: input.boundAuthority.sources } : {}),
   });
   const errors: string[] = [];
   if (s.review) {

@@ -413,6 +413,13 @@ B (#98) is selected after #97/#57/#58 merged; its local implementation defines
 versioned garment/piece measurement forms, explicit precision/applicability and
 private method references. See [form evidence](agents/Measurement_Forms_Implementation_Evidence.md).
 C-E retain their own selected-issue/merged-prerequisite gates; E implements the existing resolver.
+E (#101) is selected after #97/#88 merged, in the specifically owner-approved
+parallel #99/#101 worktrees. Its additive bindings pin canonical category,
+availability and unchanged unbound rule revisions; the shared evaluator's v2
+configuration preview keeps demand/load unknown and activation unavailable.
+See [binding implementation evidence](agents/Commitment_Bindings_Implementation_Evidence.md)
+for issue-local verification and remaining acceptance gates. No #99/#100 domain
+implementation or real booking acceptance is included in E.
 Full 1.1.2 acceptance, production content/policy approval and live-data activation
 remain pending. Orders, measurements, production and atomic live capacity
 acceptance remain in their existing later slices.

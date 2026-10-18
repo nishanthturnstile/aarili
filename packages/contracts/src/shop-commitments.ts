@@ -194,6 +194,96 @@ export const commitmentPreviewSchema = z.strictObject({
   effects: z.literal("none"),
 });
 export type CommitmentPreview = z.infer<typeof commitmentPreviewSchema>;
+// Additive v2 configuration preview. The supported unbound v1 DTO stays unchanged.
+export const commitmentBindingDraftSchema = z.strictObject({
+  categoryId: z.uuid(),
+  categoryRevisionId: z.uuid(),
+  availabilityId: z.uuid(),
+  ruleRevisionId: z.uuid(),
+  baseVersion: z.number().int().min(0).max(2147483646),
+  baseRevisionId: z.uuid().nullable(),
+  review: z.enum(["pending", "reviewed"]),
+  reason: z.string().max(1000),
+});
+export type CommitmentBindingDraft = z.infer<
+  typeof commitmentBindingDraftSchema
+>;
+export const commitmentBindingCommandSchema =
+  commitmentBindingDraftSchema.superRefine((v, ctx) => {
+    if (
+      (v.baseVersion === 0) !== (v.baseRevisionId === null) ||
+      !v.reason.trim()
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["reason"],
+        message: "Review the sources and enter a reason",
+      });
+  });
+export const commitmentBindingRevisionSchema =
+  commitmentBindingDraftSchema.extend({
+    id: z.uuid(),
+    version: z.number().int().positive(),
+    previousId: z.uuid().nullable(),
+    actorId: z.uuid(),
+    effectiveAt: z.iso.datetime(),
+    originDraftId: z.uuid(),
+    schemaVersion: z.literal(1),
+    authority: z.enum([
+      "owner-reviewed",
+      "owner-proposal",
+      "synthetic-fixture",
+    ]),
+    digest: z.string().regex(/^[a-f0-9]{64}$/),
+  });
+export type CommitmentBindingRevision = z.infer<
+  typeof commitmentBindingRevisionSchema
+>;
+export const commitmentBindingStateSchema = z.strictObject({
+  version: z.number().int().min(0),
+  revision: commitmentBindingRevisionSchema.nullable(),
+  currentEligible: z.boolean(),
+  activation: z.literal("unavailable"),
+});
+export const commitmentBindingHistoryQuerySchema = z.strictObject({
+  categoryId: z.uuid(),
+  beforeVersion: z.number().int().positive().optional(),
+});
+export const commitmentBindingHistorySchema = z.strictObject({
+  revisions: z.array(commitmentBindingRevisionSchema).max(25),
+  next: z.number().int().positive().nullable(),
+});
+export const boundCommitmentPreviewInputSchema = z.strictObject({
+  contractVersion: z.literal(2),
+  bindingId: z.uuid(),
+  // Compatibility assertions, never source selection or browser authority.
+  categoryRevisionId: z.uuid().optional(),
+  ruleRevisionId: z.uuid().optional(),
+  calendarRevisionId: z.uuid().nullable(),
+  scenario: commitmentScenarioSchema,
+  previousFingerprint: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .nullable(),
+});
+export type BoundCommitmentPreviewInput = z.infer<
+  typeof boundCommitmentPreviewInputSchema
+>;
+export const boundCommitmentPreviewSchema = commitmentPreviewSchema.extend({
+  contractVersion: z.literal(2),
+  binding: z.literal("reviewed-binding-preview"),
+  authority: z.enum(["owner-reviewed", "pending"]),
+  sources: commitmentPreviewSchema.shape.sources.extend({
+    binding: z.string(),
+    categoryRevision: z.uuid(),
+    availability: z.uuid(),
+    ruleRevision: z.uuid(),
+    digest: z.string(),
+  }),
+});
+export type BoundCommitmentPreview = z.infer<
+  typeof boundCommitmentPreviewSchema
+>;
 export function initialCommitmentConfiguration(): CommitmentConfiguration {
   return {
     warningDays: 3,

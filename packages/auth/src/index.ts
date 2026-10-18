@@ -42,6 +42,7 @@ import {
   shopCalendarDraftWorkflow,
 } from "@aarili/core/shop-calendar";
 import {
+  commitmentBindingsDraftWorkflow,
   type ShopCommitmentsContext,
   shopCommitmentsDraftWorkflow,
 } from "@aarili/core/shop-commitments";
@@ -87,9 +88,15 @@ import { measurementFormsRepository } from "@aarili/db/measurement-forms-reposit
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
-import { serviceCatalogueRepository } from "@aarili/db/service-catalogue-repository";
+import {
+  approvedCategoryResolver,
+  serviceCatalogueRepository,
+} from "@aarili/db/service-catalogue-repository";
 import { shopCalendarRepository } from "@aarili/db/shop-calendar-repository";
-import { shopCommitmentsRepository } from "@aarili/db/shop-commitments-repository";
+import {
+  commitmentBindingsRepository,
+  shopCommitmentsRepository,
+} from "@aarili/db/shop-commitments-repository";
 import { shopDirectoryRepository } from "@aarili/db/shop-directory-repository";
 import { shopPoliciesRepository } from "@aarili/db/shop-policies-repository";
 import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
@@ -1256,6 +1263,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         "shop.commitments",
         shopCommitmentsDraftWorkflow(commitmentContext(tx, shopId, userId)),
       );
+      workflows.set(
+        "service.commitment-bindings",
+        commitmentBindingsDraftWorkflow(commitmentContext(tx, shopId, userId)),
+      );
       const policy = wearerPolicy();
       if (policy.enabled && policy.synthetic)
         workflows.set(
@@ -1386,7 +1397,9 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       actorId,
       repository: shopCommitmentsRepository(tx, shopId),
       calendar: shopCalendarRepository(tx, shopId),
-      categories: { resolve: async () => null },
+      categories: approvedCategoryResolver(tx, shopId),
+      catalogue: serviceCatalogueRepository(tx, shopId),
+      bindings: commitmentBindingsRepository(tx, shopId),
     };
   }
   async function withOwnerShopCommitments<T>(

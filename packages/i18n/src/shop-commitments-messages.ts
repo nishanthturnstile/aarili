@@ -1,6 +1,46 @@
 import { shopCalendarMessages } from "./shop-calendar-messages.js";
 export const shopCommitmentsMessages = {
   en: {
+    bindingBoundary:
+      "Configuration preview only. No order, charge, capacity reservation or automated effect is created. Activation is unavailable; production policy approval remains separate.",
+    bindingReasonHelp: "Enter a nonblank review reason before publication.",
+    bindingTitle: "Category commitment bindings",
+    bindingIntro:
+      "Review an exact category and existing commitment rule. Configuration preview only; live demand and load remain unknown.",
+    bindingSearch: "Find categories",
+    bindingAvailable: "Available",
+    bindingUnavailable: "Unavailable",
+    bindingMore: "Load more",
+    bindingCurrent: "Sources are current for configuration preview.",
+    bindingStale:
+      "Sources changed or no current binding. Refresh, select the current category, and create a new binding for explicit review. Saved draft values are retained.",
+    bindingReviewed: "Owner-reviewed binding",
+    bindingPending:
+      "Authority pending or synthetic; no production policy approval",
+    bindingNew: "Create a new binding draft",
+    bindingHistory: "Load binding history",
+    bindingHistorical: "Historical binding ? read only",
+    bindingDrafts: "Saved binding drafts",
+    bindingResume: "Resume binding draft",
+    bindingEditor: "Binding review draft",
+    bindingSources: "Exact sources for this binding",
+    categoryRevision: "Category definition revision",
+    availability: "Category availability revision",
+    ruleRevision: "Commitment rule revision",
+    digest: "Reviewed source digest",
+    bindingReason: "Review reason",
+    bindingReviewValues:
+      "I have reviewed these exact category and rule values and conventions",
+    bindingPendingHelp:
+      "Leaving review pending preserves unresolved authority. Synthetic sources always remain synthetic. Missing conventions stay unknown.",
+    bindingReview: "Review binding publication",
+    bindingPublish: "Publish configuration binding",
+    bindingReviewScope:
+      "This appends a binding to the exact displayed sources. It does not change the original unbound rule, create an order, reserve capacity, or activate policy enforcement.",
+    noBindingExtension: "No category extension",
+    bindingWindow: "Effective warning window (days)",
+    binding: "Binding source",
+
     availableLead: "Calculated available lead days",
     capacityWeekStart: "Capacity week starts (local date)",
     ...shopCalendarMessages.en,
@@ -30,7 +70,7 @@ export const shopCommitmentsMessages = {
     intro:
       "Review warning settings and unbound commitment rules. Preview facts and missing inputs before later booking is available.",
     boundary:
-      "No category is bound, no capacity is reserved, and no order or charge is created. Real category binding awaits the service catalogue. Production policy decisions remain unresolved.",
+      "Unbound preview only. This preview creates no category binding, capacity reservation, order or charge. Review exact category sources separately in Category commitment bindings; production policy approval remains separate.",
     edit: "Edit warning settings and unbound rule",
     fixture: "Use labelled synthetic rule values",
     fixtureHelp:
@@ -83,7 +123,7 @@ export const shopCommitmentsMessages = {
     currentCalendar: "Current calendar, if configured",
     mode: "Preview source",
     synthetic: "Labelled synthetic category/load",
-    productionMode: "Production readiness — catalogue unavailable",
+    productionMode: "Production readiness — unbound preview",
     fixtureKind: "Synthetic load fixture",
     "peak-cap-rush": "SYNTHETIC load: 10 garments in the delivery week",
     "missing-load": "Synthetic category, load unknown",
@@ -166,6 +206,46 @@ export const shopCommitmentsMessages = {
     "unbound-preview": "Unbound preview authority only",
   },
   ta: {
+    bindingBoundary:
+      "அமைப்பு முன்னோட்டம் மட்டுமே. ஆர்டர், கட்டணம், திறன் ஒதுக்கீடு அல்லது தானியங்கி விளைவு உருவாக்கப்படாது. செயல்படுத்துதல் கிடையாது; செயல்பாட்டுக் கொள்கை ஒப்புதல் தனித்த முடிவு.",
+    bindingReasonHelp: "வெளியிடுவதற்கு முன் மதிப்பாய்வுக் காரணத்தை உள்ளிடுங்கள்.",
+    bindingTitle: "வகை ஒப்பந்த விதி இணைப்புகள்",
+    bindingIntro:
+      "குறிப்பிட்ட வகையையும் ஏற்கனவே உள்ள விதியையும் மதிப்பாய்வு செய்யுங்கள். இது அமைப்பு முன்னோட்டம் மட்டுமே; உண்மையான தேவையும் பணிச்சுமையும் தெரியாது.",
+    bindingSearch: "வகைகளைத் தேடு",
+    bindingAvailable: "கிடைக்கிறது",
+    bindingUnavailable: "கிடைக்கவில்லை",
+    bindingMore: "மேலும் காட்டு",
+    bindingCurrent: "அமைப்பு முன்னோட்டத்திற்கான மூலங்கள் தற்போதையவை.",
+    bindingStale:
+      "மூலங்கள் மாறியுள்ளன அல்லது தற்போதைய இணைப்பு இல்லை. புதுப்பித்து, தற்போதைய வகையைத் தேர்ந்தெடுத்து புதிய இணைப்பை மதிப்பாய்வு செய்யுங்கள். சேமித்த வரைவுகள் பாதுகாக்கப்படும்.",
+    bindingReviewed: "உரிமையாளர் மதிப்பாய்வு செய்த இணைப்பு",
+    bindingPending:
+      "அதிகாரம் நிலுவை அல்லது சோதனைத் தரவு; செயல்பாட்டு கொள்கை ஒப்புதல் இல்லை",
+    bindingNew: "புதிய இணைப்பு வரைவு",
+    bindingHistory: "இணைப்பு வரலாற்றைக் காட்டு",
+    bindingHistorical: "முந்தைய இணைப்பு — படிக்க மட்டும்",
+    bindingDrafts: "சேமித்த இணைப்பு வரைவுகள்",
+    bindingResume: "இணைப்பு வரைவைத் தொடர்க",
+    bindingEditor: "இணைப்பு மதிப்பாய்வு வரைவு",
+    bindingSources: "இந்த இணைப்பின் குறிப்பிட்ட மூலங்கள்",
+    categoryRevision: "வகை வரையறை பதிப்பு",
+    availability: "வகை கிடைக்கும் நிலையின் பதிப்பு",
+    ruleRevision: "ஒப்பந்த விதி பதிப்பு",
+    digest: "மதிப்பாய்வு மூலச் சுருக்கம்",
+    bindingReason: "மதிப்பாய்வுக் காரணம்",
+    bindingReviewValues:
+      "இந்தக் குறிப்பிட்ட வகை, விதி மதிப்புகள் மற்றும் நடைமுறைகளை மதிப்பாய்வு செய்தேன்",
+    bindingPendingHelp:
+      "மதிப்பாய்வு நிலுவையில் இருந்தால் அதிகாரமும் நிலுவையே. சோதனை மூலங்கள் சோதனையாகவே இருக்கும். விடுபட்ட நடைமுறைகள் தெரியாதவையாகவே இருக்கும்.",
+    bindingReview: "இணைப்பு வெளியீட்டை மதிப்பாய்வு செய்",
+    bindingPublish: "அமைப்பு இணைப்பை வெளியிடு",
+    bindingReviewScope:
+      "காட்டப்பட்ட குறிப்பிட்ட மூலங்களுக்கு புதிய இணைப்பைச் சேர்க்கும். அசல் இணைக்காத விதியை மாற்றாது; ஆர்டர், திறன் ஒதுக்கீடு அல்லது கொள்கை அமலாக்கத்தைத் தொடங்காது.",
+    noBindingExtension: "வகை நீட்டிப்பு இல்லை",
+    bindingWindow: "செயலில் உள்ள எச்சரிக்கை நாட்கள்",
+    binding: "இணைப்பு மூலம்",
+
     availableLead: "கணக்கிட்ட கிடைக்கக்கூடிய தயாரிப்பு நாட்கள்",
     capacityWeekStart: "திறன் வாரம் தொடங்கும் உள்ளூர் தேதி",
     ...shopCalendarMessages.ta,
@@ -195,7 +275,7 @@ export const shopCommitmentsMessages = {
     intro:
       "எச்சரிக்கை அமைப்புகளையும் வகையுடன் இணைக்காத விதிகளையும் மதிப்பாய்வு செய்யவும். பின்னர் முன்பதிவு செய்யும்முன் அபாயங்களையும் தெரியாத தகவல்களையும் பார்க்கலாம்.",
     boundary:
-      "ஆடை வகை இணைக்கப்படவில்லை; திறன் ஒதுக்கீடு, ஆர்டர் அல்லது கட்டணம் உருவாகாது. உண்மையான வகை இணைப்பு சேவைப் பட்டியலில் பின்னர் வரும். நடைமுறை விதிகளுக்கு உரிமையாளர் முடிவுகள் தேவை.",
+      "இணைக்காத முன்னோட்டம் மட்டுமே. இது வகை இணைப்பு, திறன் ஒதுக்கீடு, ஆர்டர் அல்லது கட்டணத்தை உருவாக்காது. வகை ஒப்பந்த விதி இணைப்புகளில் குறிப்பிட்ட மூலங்களைத் தனியாக மதிப்பாய்வு செய்யுங்கள்; செயல்பாட்டுக் கொள்கை ஒப்புதல் தனித்த முடிவு.",
     edit: "எச்சரிக்கையையும் இணைக்காத விதியையும் திருத்தவும்",
     fixture: "செயற்கை விதி மதிப்புகளைப் பயன்படுத்தவும்",
     fixtureHelp:
@@ -249,7 +329,7 @@ export const shopCommitmentsMessages = {
     currentCalendar: "தற்போதைய நாட்காட்டி, இருந்தால்",
     mode: "முன்னோட்ட மூலம்",
     synthetic: "குறிக்கப்பட்ட செயற்கை வகை மற்றும் தேவை",
-    productionMode: "நடைமுறைத் தயார்நிலை — சேவைப் பட்டியல் இல்லை",
+    productionMode: "நடைமுறைத் தயார்நிலை — இணைக்காத முன்னோட்டம்",
     fixtureKind: "செயற்கைத் தேவை மாதிரி",
     "peak-cap-rush": "செயற்கைத் தேவை: விநியோக வாரத்தில் 10 ஆடைகள்",
     "missing-load": "செயற்கை வகை; தேவை தெரியாது",

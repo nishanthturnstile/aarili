@@ -1,6 +1,12 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  boundCommitmentPreviewInputSchema,
+  boundCommitmentPreviewSchema,
+  commitmentBindingHistoryQuerySchema,
+  commitmentBindingHistorySchema,
+  commitmentBindingRevisionSchema,
+  commitmentBindingStateSchema,
   commitmentPreviewInputSchema,
   commitmentPreviewSchema,
   shopCommitmentsHistoryQuerySchema,
@@ -11,7 +17,11 @@ import {
 import { DraftFailure } from "@aarili/core/drafts";
 import { versionTag } from "@aarili/core/request-version";
 import {
+  previewBoundShopCommitments,
   previewShopCommitments,
+  readCommitmentBinding,
+  readCommitmentBindingHistory,
+  readCommitmentBindingRevision,
   readShopCommitments,
   readShopCommitmentsHistory,
   readShopCommitmentsRevision,
@@ -122,6 +132,85 @@ export function createShopCommitmentsRoutes(
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/settings/commitments/bindings/{categoryId}",
+        request: { params: params.extend({ categoryId: z.uuid() }) },
+        responses: { 200: response(commitmentBindingStateSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerShopCommitments(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readCommitmentBinding(ctx, c.req.valid("param").categoryId),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", versionTag(r.data.version));
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/settings/commitments/binding-revisions/{id}",
+        request: { params: params.extend({ id: z.uuid() }) },
+        responses: {
+          200: response(commitmentBindingRevisionSchema),
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerShopCommitments(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readCommitmentBindingRevision(ctx, c.req.valid("param").id),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/settings/commitments/binding-history",
+        request: { params, body: body(commitmentBindingHistoryQuerySchema) },
+        responses: {
+          200: response(commitmentBindingHistorySchema),
+          ...failures,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerShopCommitments(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readCommitmentBindingHistory(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/settings/commitments/bound-preview",
+        request: { params, body: body(boundCommitmentPreviewInputSchema) },
+        responses: { 200: response(boundCommitmentPreviewSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerShopCommitments(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => previewBoundShopCommitments(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",

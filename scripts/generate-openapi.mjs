@@ -165,6 +165,10 @@ for (const [path, method] of [
   ["/history", "post"],
   ["/revisions/{id}", "get"],
   ["/preview", "post"],
+  ["/bindings/{categoryId}", "get"],
+  ["/binding-revisions/{id}", "get"],
+  ["/binding-history", "post"],
+  ["/bound-preview", "post"],
 ])
   assert(
     document.paths[`/api/shops/{shopId}/settings/commitments${path}`]?.[method],

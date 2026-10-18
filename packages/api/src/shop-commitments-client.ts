@@ -1,6 +1,11 @@
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  type BoundCommitmentPreviewInput,
+  boundCommitmentPreviewSchema,
   type CommitmentPreviewInput,
+  commitmentBindingHistorySchema,
+  commitmentBindingRevisionSchema,
+  commitmentBindingStateSchema,
   commitmentPreviewSchema,
   shopCommitmentsHistorySchema,
   shopCommitmentsRevisionSchema,
@@ -45,9 +50,74 @@ async function result(r: Response, generation: number) {
   const state = shopCommitmentsStateSchema.safeParse(data);
   if (state.success && r.headers.get("ETag") !== `"v${state.data.version}"`)
     throw new OwnerRequestError("INVALID_RESPONSE");
+  const binding = commitmentBindingStateSchema.safeParse(data);
+  if (binding.success && r.headers.get("ETag") !== `"v${binding.data.version}"`)
+    throw new OwnerRequestError("INVALID_RESPONSE");
   return data;
 }
 const init = (signal: AbortSignal) => ({ cache: "no-store" as const, signal });
+export async function readCommitmentBinding(
+  shopId: string,
+  categoryId: string,
+) {
+  return commitmentBindingStateSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].settings.commitments.bindings[
+          ":categoryId"
+        ].$get({ param: { shopId, categoryId } }, { init: init(s) }),
+      result,
+    ),
+  );
+}
+export async function readCommitmentBindingRevision(
+  shopId: string,
+  id: string,
+) {
+  return commitmentBindingRevisionSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].settings.commitments["binding-revisions"][
+          ":id"
+        ].$get({ param: { shopId, id } }, { init: init(s) }),
+      result,
+    ),
+  );
+}
+export async function readCommitmentBindingHistory(
+  shopId: string,
+  categoryId: string,
+  beforeVersion?: number,
+) {
+  return commitmentBindingHistorySchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].settings.commitments["binding-history"].$post(
+          {
+            param: { shopId },
+            json: { categoryId, ...(beforeVersion ? { beforeVersion } : {}) },
+          },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
+export async function previewBoundShopCommitments(
+  shopId: string,
+  input: BoundCommitmentPreviewInput,
+) {
+  return boundCommitmentPreviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].settings.commitments["bound-preview"].$post(
+          { param: { shopId }, json: input },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
 export async function readShopCommitments(shopId: string) {
   return shopCommitmentsStateSchema.parse(
     await authenticatedResult(

@@ -654,3 +654,52 @@ further process change separately; retain the required verification and review.
   216/216 unit/property tests, strict/negative types, lint/Knip/OpenAPI and build
   (12 tasks, 27.174s). Runtime source fingerprint unchanged; no heavy unchanged-input
   PostgreSQL/browser rerun. Publication follows this completed gate.
+
+## Issue #101 — category commitment bindings
+
+- Exact implementation start was not instrumented. The first captured in-session
+  wall clock, **2026-10-18T21:43:17.543+05:30**, occurred after initial contract
+  edits; earlier active duration is unknown. Approved isolated T3 worktree
+  `t3-c63ef8f9`, branch `codex/commitment-bindings-101`, base `f604acb`. Owner
+  approved parallel #99/#101; no extra worktree. Baseline #104 required checks
+  passed and the clean local base was verified.
+- First captured focused unit start **21:51:37 IST**, 13/13 passed (836ms).
+  Implementation/rework active time is unknown, not reconstructed from commits.
+  [Issue evidence](Commitment_Bindings_Implementation_Evidence.md) retains the
+  syntax, test-fixture, encoding, limiter and recovery corrections.
+- Successful source fast gate #3: lease **22:05:50.415–22:07:18.924 IST**,
+  219/51 plus strict/negative/OpenAPI/build. Later wording/source-loading changes
+  required affected verification: final application fast gate #5 held
+  **22:35:54.852–22:37:27.428 IST**, exit 0; 219/51 (13.20s), 12-task build
+  (12.428s). Final source-only lint/Knip completed by **22:47:54 IST**, exit 0.
+- Focused binding PostgreSQL **5/5**, 38.68s; incumbent/resolver regression
+  **14 passed / 20 excluded**, 111.28s, exit 0. Required phone/tablet/900px desktop
+  bilingual recovery/axe workflows passed; fresh incumbent unbound phone passed
+  33.8s. Final all-size review-host wording/source-outage/preview/axe/reflow passed
+  **22:45:39.680 IST**, six language/size states plus three outage/retry cases.
+- Shared resource queueing is separately observable in the lease logs. For
+  example final wording fast gate #4 waited **22:24:23.530–22:30:33.902 IST**
+  (370.372s) behind #99's gates. Queue wait and overlapping implementation work
+  are not added together as active coding time. All heavy gates used exclusive
+  leases and isolated disposable databases/builds/ports.
+- Frozen clean install/new export imports passed **22:43:13.481–22:44:14.573 IST**
+  (61.092s), fresh package build 15.049s, lockfile unchanged. Production synthetic
+  review host first observed ready **22:45:26.0248223 IST**, HTTP 200,
+  `http://127.0.0.1:53330/settings?section=commitments`; private access and exact
+  seeded URL are in this worktree's ignored review-host file.
+- Initial review packet was available by **22:48:24 IST**. A same-session saved
+  draft-list gap found during final review was corrected: acknowledged rows merge
+  by ID/version, promoted rows leave the active list and save/close/resume works
+  without reload. Final application fast gate #6 passed **22:53:37.824–22:55:07.199
+  IST** (89.375s), 219/51 (11.35s), build 12.503s. The updated full 1440×900
+  browser acceptance passed **22:55:53.504–22:58:28.250 IST**, including the new
+  same-session flow. Backend/contract/export inputs were unchanged and their
+  passing evidence was reused.
+- The first child host was cleanly stopped; final rebuilt host observed ready
+  **22:59:38.1223328 IST**, HTTP 200, `http://127.0.0.1:63057/settings?section=commitments`.
+  Final bilingual three-size source-outage/preview/axe/reflow check passed
+  **23:00:42.297 IST** (11.983s). Final local review packet/source fingerprint
+  confirmed by observed **23:01:34 IST**; local commit metadata follows closeout.
+  Hosted CI, publication/owner review/merge, actual Android,
+  fluent Tamil, assistive technology and production-content/live-data acceptance
+  remain pending. No push, PR, issue write, deployment or activation was made.
