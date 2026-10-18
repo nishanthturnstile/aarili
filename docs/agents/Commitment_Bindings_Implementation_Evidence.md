@@ -341,6 +341,58 @@ the assigned worktree and all other running review hosts.
 
 ## Parent integration notes
 
+### Parent review correction: exact category during concurrent preview
+
+Parent review after child commit `dad7bf2` found a second current-category lookup
+after the binding's exact category had already been validated. Under READ
+COMMITTED, a source edit committed during calendar lookup could supply a newer
+warning window while the response named the earlier definition/availability.
+The new real PostgreSQL regression commits a 7-to-15-day category edit through
+the ordinary durable publication API during that lookup. Before the fix it
+failed with **15 !== 7**; `.scratch/parent-preview-red.log` retains the failure.
+The initial post-edit run also failed because integration imports use compiled
+package exports; `.scratch/parent-preview-integration.log` retains that attempt.
+No production behavior or test was weakened to address the stale build.
+
+Bound preview now passes the already validated immutable category snapshot to
+the existing evaluator. Its values and fingerprint identify the same revision;
+a subsequent request rejects the now-stale binding with 409. The unbound resolver
+and DTOs, transaction policy, public exports and dependencies are unchanged.
+
+Fresh `pnpm verify:fast` exited **0**, lease **23:07:35.886–23:09:10.872 IST**,
+**219 tests / 51 files**, strict/negative types, lint, Knip, boundaries, 57 OpenAPI
+paths and production build (**12 tasks, 13.362s**).
+`.scratch/parent-preview-fast.log(.exit.json)` retains its output/status.
+After that package rebuild the complete focused PostgreSQL suite exited **0**,
+**6/6**, **44.79s**, ending **23:09:57.208 IST**;
+`.scratch/parent-preview-integration-green.log(.exit.json)` includes the new
+concurrent-edit regression plus the original five isolation/history/recovery
+cases. Earlier 14 selected incumbent/resolver regressions and clean-install
+evidence apply to their unchanged inputs; no public packaging or migration changed.
+
+The 26-file source manifest after correction is
+`.scratch/parent-reviewed-source.json`, SHA-256
+**`ee4623d08ad7e809c2b319536a6d028d2c8ce2f05d7fa00ad4e51712c904c32e`**.
+Only core preview and its integration regression changed from the child's tested
+application scope. The production host was rebuilt by the fresh fast gate, and
+the previous host/database was stopped through its own launcher. The replacement
+host was observed ready **23:11:05.830 IST**, HTTP 200, PID **18372**:
+[current seeded binding review](http://127.0.0.1:61548/settings?section=commitments&draft=d2f5d4d7-5599-730b-82fe-54d712ad745a).
+This supersedes the earlier 63057 review URL. The same private-file path and
+start/stop commands apply. Final `.scratch/check-review-copy.mjs` against this
+production host exited **0**, **23:11:10.793–23:11:22.732 IST**: six bilingual
+phone/tablet/desktop preview/axe/reflow states plus three source-outage/retry
+cases. `.scratch/parent-preview-browser.log(.exit.json)` retains the result.
+Original full recovery workflows remain applicable to unchanged browser inputs.
+
+A read-only `git merge-tree --write-tree 44fcb11 dad7bf2` simulation found three
+textual conflicts: auth composition, roadmap traceability and delivery records.
+Reconciliation must preserve both slices' additions and the leading auth
+declaration reference. Domain code/migrations remain independent; isolation,
+OpenAPI and tenant-fixture additions auto-merged. No actual branch integration,
+push, PR, merge or deployment occurred; combined verification follows actual
+authorized sequential integration.
+
 No #99/#100 domain dependency or unpublished change is required. Expected shared
 reconciliation points are additive auth imports/workflow/context composition,
 the new historical catalogue client helper (deduplicate if #99 adds the same

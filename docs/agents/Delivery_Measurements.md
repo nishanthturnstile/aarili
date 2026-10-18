@@ -703,3 +703,14 @@ further process change separately; retain the required verification and review.
   Hosted CI, publication/owner review/merge, actual Android,
   fluent Tamil, assistive technology and production-content/live-data acceptance
   remain pending. No push, PR, issue write, deployment or activation was made.
+- Parent review regression reproduced a concurrent mixed-category preview at
+  **23:06:13 IST** (15-day calculation with 7-day source references). The initial
+  retest still imported the old compiled package; both failures are retained.
+  After correcting the source and rebuilding, fresh fast verification passed
+  **23:07:35.886–23:09:10.872 IST**, 219/51 and all component gates. The full
+  focused PostgreSQL suite passed **6/6**, 44.79s, ending **23:09:57.208 IST**.
+  Exact validated category values now remain consistent with preview sources.
+  Replacement production host observed ready **23:11:05.830 IST**, port 61548;
+  final six bilingual size states and three outage/retry checks passed by
+  **23:11:22.732 IST**. Review/rework time is recorded separately from the
+  child's earlier delivery; owner/device/Tamil/AT and publication gates remain.

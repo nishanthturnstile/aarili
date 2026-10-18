@@ -10,6 +10,7 @@ import { mutateDraft } from "@aarili/core/drafts";
 import { serviceCatalogueDraftWorkflow } from "@aarili/core/service-catalogue";
 import {
   commitmentBindingsDraftWorkflow,
+  previewBoundShopCommitments,
   shopCommitmentsDraftWorkflow,
 } from "@aarili/core/shop-commitments";
 import { sql, withShop } from "@aarili/db";
@@ -165,6 +166,66 @@ const totals = async (f) =>
       "select (select count(*)::int from service_commitment_binding_revision) revisions,(select count(*)::int from service_commitment_binding) pointers,(select count(*)::int from audit_event) audits,(select count(*)::int from idempotency_key) keys,(select count(*)::int from durable_draft where lifecycle='promoted') promoted",
     )
   ).rows[0];
+
+test("ST-07/09 bound preview keeps its validated category when a source edit commits during calendar lookup", {
+  timeout: 120000,
+}, async () => {
+  await withTenantFixture(async (f) => {
+    const c = await category(f),
+      r = await rule(f),
+      b = await revision(
+        f,
+        await publish(f, value(c, r), "service.commitment-bindings"),
+      ),
+      changed = await save(
+        f,
+        {
+          ...categoryValue(),
+          entryId: c.entryId,
+          baseVersion: c.version,
+          baseRevisionId: c.id,
+          content: { ...c.definition.content, warningDays: 15 },
+        },
+        "service.catalogue",
+      );
+    const result = await withShop(
+      f.parallel.db,
+      f.a.user,
+      f.a.shop,
+      async (tx) => {
+        const calendar = shopCalendarRepository(tx, f.a.shop);
+        return previewBoundShopCommitments(
+          {
+            shopId: f.a.shop,
+            actorId: f.a.user,
+            repository: shopCommitmentsRepository(tx, f.a.shop),
+            catalogue: serviceCatalogueRepository(tx, f.a.shop),
+            bindings: commitmentBindingsRepository(tx, f.a.shop),
+            categories: approvedCategoryResolver(tx, f.a.shop),
+            calendar: {
+              ...calendar,
+              async current() {
+                await ok(await promote(f, changed));
+                return calendar.current();
+              },
+            },
+          },
+          {
+            contractVersion: 2,
+            bindingId: b.id,
+            calendarRevisionId: null,
+            scenario: { ...initialCommitmentScenario(), mode: "production" },
+            previousFingerprint: null,
+          },
+        );
+      },
+    );
+    assert.equal(result.sources.categoryRevision, c.definition.id);
+    assert.equal(result.sources.availability, c.id);
+    assert.equal(result.facts.warningWindow, 7);
+    assert.equal((await preview(f, b)).status, 409);
+  });
+});
 
 test("ST-07/08/09/10/12 exact bound sources, v1 bytes, replay/CAS/409/422, immutable retirement history and resolver", {
   timeout: 180000,

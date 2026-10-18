@@ -199,12 +199,23 @@ export async function previewBoundShopCommitments(
     r.authority === "owner-reviewed" &&
     category.definition.authority !== "synthetic-fixture" &&
     rule.configuration.authority !== "synthetic-fixture";
+  // Evaluate the exact category just validated against the binding. A second
+  // current-pointer lookup could observe a later edit under READ COMMITTED.
+  const categoryContent = category.definition.content;
+  if (categoryContent.kind !== "category") fail(409, "REQUEST_CONFLICT");
   const result = await evaluateCommitment({
     shopId: ctx.shopId,
     configuration: rule.configuration,
     configurationSource: `${rule.id}:v${rule.version}`,
     calendar: calendar ?? null,
-    category: await ctx.categories.resolve(r.categoryId),
+    category: {
+      shopId: ctx.shopId,
+      id: category.entryId,
+      version: `${category.definition.id}:${category.id}:v${category.version}`,
+      warningDays: categoryContent.warningDays,
+      eligible: true,
+      synthetic: category.definition.authority === "synthetic-fixture",
+    },
     load: null,
     scenario: {
       ...v.scenario,
