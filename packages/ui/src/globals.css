@@ -1423,3 +1423,28 @@
     flex-direction: column;
   }
 }
+
+.commitment-field {
+  display: grid;
+  gap: var(--space-control);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.commitment-field > select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.commitment-editor fieldset,
+.commitment-preview form {
+  display: grid;
+  gap: var(--space-page);
+  min-width: 0;
+}
+.commitment-editor {
+  scroll-margin-block-start: var(--space-page);
+}
+.commitment-editor legend {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}

@@ -50,6 +50,22 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
+test("SS-10 undo to acknowledged draft restores saved state without a redundant command", async () => {
+  const { controller, save, promote } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  controller.composition(true);
+  controller.edit({ value: "temporary" });
+  controller.edit({ value: "a" });
+  controller.composition(false);
+  expect(controller.snapshot().work.dirty).toBe(false);
+  expect(controller.snapshot().status).toBe("saved");
+  await controller.save();
+  expect(save).toHaveBeenCalledOnce();
+  await controller.promote();
+  expect(promote).toHaveBeenCalledOnce();
+  controller.dispose();
+});
 test("0.4.2b F6 caller navigation seam confirms dirty work and permits acknowledged work", async () => {
   const { controller } = fixture();
   const confirm = vi.fn(() => false);

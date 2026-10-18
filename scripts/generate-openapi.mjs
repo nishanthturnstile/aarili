@@ -6,6 +6,7 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
 import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
 import { createShopProfileRoutes } from "@aarili/api/shop-profile";
 import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
@@ -132,10 +133,32 @@ api.route(
     },
   }),
 );
+api.route(
+  "/",
+  createShopCommitmentsRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerShopCommitments: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
 });
+for (const [path, method] of [
+  ["", "get"],
+  ["/history", "post"],
+  ["/revisions/{id}", "get"],
+  ["/preview", "post"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/settings/commitments${path}`]?.[method],
+    `Missing commitment contract ${method} ${path}`,
+  );
 if (!document.paths["/api/shops/{shopId}/settings/policies/readiness"]?.get)
   throw Error("Commercial policy readiness contract is missing");
 assert.equal(

@@ -203,6 +203,18 @@
     "./shop-policies-schema": {
       "types": "./dist/shop-policies-schema.d.ts",
       "import": "./dist/shop-policies-schema.js"
+    },
+    "./shop-commitments-repository": {
+      "types": "./dist/shop-commitments-repository.d.ts",
+      "import": "./dist/shop-commitments-repository.js"
+    },
+    "./repositories/shop-commitments": {
+      "types": "./dist/repositories/shop-commitments.d.ts",
+      "import": "./dist/repositories/shop-commitments.js"
+    },
+    "./shop-commitments-schema": {
+      "types": "./dist/shop-commitments-schema.d.ts",
+      "import": "./dist/shop-commitments-schema.js"
     }
   },
   "scripts": {

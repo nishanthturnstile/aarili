@@ -79,6 +79,14 @@
     "./shop-policies-client": {
       "types": "./dist/shop-policies-client.d.ts",
       "import": "./dist/shop-policies-client.js"
+    },
+    "./shop-commitments": {
+      "types": "./dist/shop-commitments.d.ts",
+      "import": "./dist/shop-commitments.js"
+    },
+    "./shop-commitments-client": {
+      "types": "./dist/shop-commitments-client.d.ts",
+      "import": "./dist/shop-commitments-client.js"
     }
   },
   "scripts": {

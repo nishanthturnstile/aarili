@@ -291,7 +291,16 @@ export function createDraftRecovery(options: {
       const dirty = !state.committed || !equal(values, state.committed.payload);
       emit({
         values: copy(values),
-        status: state.status === "saved" && dirty ? "notSaved" : state.status,
+        status:
+          !dirty &&
+          state.committed &&
+          !pending &&
+          !state.work.inFlight &&
+          state.status === "notSaved"
+            ? savedStatus(state.committed)
+            : state.status === "saved" && dirty
+              ? "notSaved"
+              : state.status,
         work: { ...state.work, dirty },
       });
       schedule();

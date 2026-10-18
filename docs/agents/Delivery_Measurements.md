@@ -1,5 +1,34 @@
 # Delivery measurements
 
+## Commitment preview (#88 / 1.1.1e), 18 October 2026
+
+- Existing root checkout, `codex/commitment-preview` from integrated development
+  `6f3918e`; direct blockers #85/#87 merged. No new worktree.
+- Implementation observed underway by 11:43:35 IST. Actual first-edit timestamp
+  and active implementation duration are unknown; elapsed time is not coding time.
+- Initial PostgreSQL suite passed three cases in 53.39s; first production build
+  passed 12 tasks in 43.96s. First complete fast gate exited 0 with 206 unit
+  tests and a 13.498s final build. An initial translation typing failure and two
+  phone reflow failures remain in the issue-local ledger.
+- Browser checking then reproduced an existing shared draft undo-state bug.
+  A focused regression failed before correction and passed after correction;
+  all 27 focused draft/evaluator tests passed in 0.447s. The affected final gates
+  are rerunning. Review-ready, usable-host, publication, CI and merge times are
+  pending. See [the implementation ledger](Shop_Commitments_Implementation_Evidence.md).
+- Final fast verification exited 0 with 208 units and production build 12.97s.
+  Three-size bilingual browser/axe passed 3/3 (1.2m); two independent reviewer
+  copy/localisation findings were corrected in one batch, recaptured and scored
+  resolved. PostgreSQL evidence covers 12 distinct selected cases (nine initial
+  passes plus three corrected-fixture passes); first failures remain recorded.
+- Scoped frozen clean install/export verification ran 12:14:27.792–12:15:48.950
+  IST, 81.160s, exit 0. First usable synthetic review host was observed ready at
+  12:16:29 IST, http://127.0.0.1:54207/settings?section=commitments. Exact earlier
+  ready time and active coding duration remain unknown. Documentation/PR timing
+  follows when complete; owner review/CI/merge/deploy remain separate.
+- Local implementation/review packet complete by **12:17:20 IST**, including
+  fresh independent documenter conformance. This is review-ready time, not owner
+  acceptance or merge. Synthetic host HTTP 200 was checked at 12:16:58 IST.
+
 ## Parallel #86/#87 publication and integration, 17 October 2026
 
 - #87: locally review-ready 21:24:17 IST; draft PR #91 published 21:26:12 IST,

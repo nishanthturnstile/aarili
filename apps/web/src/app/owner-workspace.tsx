@@ -12,6 +12,7 @@ import {
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
+import { ShopCommitmentsScreen } from "./shop-commitments-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
 import { ShopPoliciesScreen } from "./shop-policies-screen";
 import { ShopProfileScreen } from "./shop-profile-screen";
@@ -44,12 +45,13 @@ export function OwnerWorkspace({
 }) {
   const t = useTranslations();
   const [section, setSection] = useState<
-    "profile" | "calendar" | "policies" | "directory"
+    "profile" | "calendar" | "policies" | "directory" | "commitments"
   >(() => {
     if (typeof window === "undefined") return "profile";
     const params = new URL(window.location.href).searchParams;
     const selected = params.get("section");
     if (
+      selected === "commitments" ||
       selected === "directory" ||
       selected === "policies" ||
       selected === "calendar" ||
@@ -59,7 +61,7 @@ export function OwnerWorkspace({
     return params.has("draft") ? "calendar" : "profile";
   });
   function selectSection(
-    next: "profile" | "calendar" | "policies" | "directory",
+    next: "profile" | "calendar" | "policies" | "directory" | "commitments",
   ) {
     if (!guard.safe() && !window.confirm(t("calendar.discard"))) return;
     const url = new URL(window.location.href);
@@ -118,28 +120,42 @@ export function OwnerWorkspace({
         {mode === "settings" ? (
           <>
             <nav className="calendar-actions" aria-label={t("settings.title")}>
-              {(["profile", "calendar", "directory", "policies"] as const).map(
-                (item) => (
-                  <Button
-                    key={item}
-                    variant="outline"
-                    aria-pressed={section === item}
-                    onClick={() => selectSection(item)}
-                  >
-                    {t(
-                      item === "profile"
-                        ? "settings.profile"
-                        : item === "calendar"
-                          ? "calendar.title"
-                          : item === "directory"
-                            ? "directory.title"
+              {(
+                [
+                  "profile",
+                  "calendar",
+                  "directory",
+                  "policies",
+                  "commitments",
+                ] as const
+              ).map((item) => (
+                <Button
+                  key={item}
+                  variant="outline"
+                  aria-pressed={section === item}
+                  onClick={() => selectSection(item)}
+                >
+                  {t(
+                    item === "profile"
+                      ? "settings.profile"
+                      : item === "calendar"
+                        ? "calendar.title"
+                        : item === "directory"
+                          ? "directory.title"
+                          : item === "commitments"
+                            ? "commitments.title"
                             : "policies.title",
-                    )}
-                  </Button>
-                ),
-              )}
+                  )}
+                </Button>
+              ))}
             </nav>
-            {section === "directory" ? (
+            {section === "commitments" ? (
+              <ShopCommitmentsScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "directory" ? (
               <ShopDirectoryScreen
                 shopId={entry.shop.shopId}
                 queries={queries}

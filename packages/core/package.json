@@ -91,6 +91,14 @@
     "./shop-policies": {
       "types": "./dist/shop-policies.d.ts",
       "import": "./dist/shop-policies.js"
+    },
+    "./shop-commitments": {
+      "types": "./dist/shop-commitments.d.ts",
+      "import": "./dist/shop-commitments.js"
+    },
+    "./commitment-evaluator": {
+      "types": "./dist/commitment-evaluator.d.ts",
+      "import": "./dist/commitment-evaluator.js"
     }
   },
   "scripts": {
