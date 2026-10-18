@@ -215,6 +215,22 @@ Human acceptance, feature CI, merge and deployment are pending. Full jobs/media/
 browser promotion suites remain the development→main gate; focused #97 checks
 and remaining human observations are recorded separately when complete.
 
+## Development integration closeout
+
+The owner squash-merged [PR #102](https://github.com/nishanthturnstile/aarili/pull/102)
+at **18:09:03 IST**, 18 October 2026, into `development` as
+`797c3d0095635d5378e6b267fbd21e5c0fd7b7b9`; #97 is closed. Both required
+[feature checks](https://github.com/nishanthturnstile/aarili/actions/runs/39126302479)
+passed: Fast verification and Dependency audit. The scaffold/browser promotion
+jobs were skipped under the existing feature-PR workflow. Earlier pending-CI/
+merge statements are historical snapshots, not the current integration state.
+
+The subsequent explicit request to merge all remaining changes authorizes the
+original research prompt and its roadmap link to be committed in a documentation
+follow-up. No application, schema or dependency changes are part of that follow-up.
+B–E still require selection and verification of all their direct merged blockers;
+merging A does not establish whole 1.1.2, production content or live-pilot acceptance.
+
 ## Owner review packet
 
 Start `pnpm exec node scripts/review-service-catalogue.mjs` after the production
