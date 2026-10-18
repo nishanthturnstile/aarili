@@ -227,6 +227,18 @@
     "./service-catalogue-schema": {
       "types": "./dist/service-catalogue-schema.d.ts",
       "import": "./dist/service-catalogue-schema.js"
+    },
+    "./measurement-forms-repository": {
+      "types": "./dist/measurement-forms-repository.d.ts",
+      "import": "./dist/measurement-forms-repository.js"
+    },
+    "./repositories/measurement-forms": {
+      "types": "./dist/repositories/measurement-forms.d.ts",
+      "import": "./dist/repositories/measurement-forms.js"
+    },
+    "./measurement-forms-schema": {
+      "types": "./dist/measurement-forms-schema.d.ts",
+      "import": "./dist/measurement-forms-schema.js"
     }
   },
   "scripts": {

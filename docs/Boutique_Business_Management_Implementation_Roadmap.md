@@ -409,7 +409,10 @@ SET-03/04/10 and the existing SET-08/11 category-binding seam. #97-#101 are
 published with native blockers. Selected A (#97), with all direct blockers
 merged, implements catalogue definitions, pieces/add-ons, availability/history
 and category warning authoring; see [implementation evidence](agents/Service_Catalogue_Implementation_Evidence.md).
-B-E remain gated on merged prerequisites; E implements the existing resolver.
+B (#98) is selected after #97/#57/#58 merged; its local implementation defines
+versioned garment/piece measurement forms, explicit precision/applicability and
+private method references. See [form evidence](agents/Measurement_Forms_Implementation_Evidence.md).
+C-E retain their own selected-issue/merged-prerequisite gates; E implements the existing resolver.
 Full 1.1.2 acceptance, production content/policy approval and live-data activation
 remain pending. Orders, measurements, production and atomic live capacity
 acceptance remain in their existing later slices.

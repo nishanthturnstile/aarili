@@ -623,3 +623,34 @@ further process change separately; retain the required verification and review.
   `http://127.0.0.1:49774/sign-in`. Hosted CI, owner review/merge and finished-product
   human observations remain pending. No customer implementation timer is started
   for publication of its research/ticket packet.
+
+## Issue #98 — measurement form definitions
+
+- Implementation session observed 2026-10-18T19:34:34+05:30 during pre-edit inventory; exact first-edit time was not instrumented. Work in the existing checkout, branch `codex/1.1.2b-measurement-forms`, base `29423f6`. Exact active duration remains unknown.
+- Baseline: PR #103 Fast verification and Dependency audit passed; all direct blockers #97/#57/#58 merged. Review-ready, first usable review, verification and publication timing pending.
+- Final local fast gate observed complete **20:01:39 IST**, exit 0: 216 unit/property
+  tests, lint/Knip/strict/negative checks/OpenAPI and production build (14.086s).
+  Final focused PostgreSQL started **20:02:00 IST**, 5/5, 40.82s, exit 0; includes
+  history/isolation/concurrency/rollback/private media and populated upgrade.
+- Corrected browser matrix finished by observed **20:06:06 IST**, 3/3, 4.0m,
+  exit 0. Original rate-limit/locator failures are retained in the
+  [form evidence](Measurement_Forms_Implementation_Evidence.md), as are helper
+  setup corrections. These are verification/rework observations, not active coding time.
+- Current synthetic review host first observed ready **20:05:04 IST**; HTTP 200
+  **20:05:39 IST**, http://127.0.0.1:59673/settings?section=measurementForms.
+  Exact first-ready time was not separately instrumented. Seeding uses real core
+  commands in a disposable synthetic shop; UI admission remains unchanged.
+- Clean frozen install/export check passed with unchanged lockfile. Actual active
+  implementation/verification/rework duration and CI queue/execution are unknown
+  or not applicable. Review-ready closeout follows the final supplementary check;
+  publication, owner review/merge, actual Android, fluent Tamil and AT are pending.
+- Local implementation and owner-review packet ready **2026-10-18T20:10:24.6268398+05:30** after the supplementary unavailable/read-only history check passed 6/6 (both languages, all three sizes; source availability restored). Active time remains unknown; publication and human review remain pending.
+- Owner requested check-in, PR publication, check repairs and merge on 18 October.
+  Publication preflight observed **21:14:52 IST**: development base and source
+  fingerprint unchanged. Prior PostgreSQL/browser/clean-install evidence is reused;
+  fresh fast verification is running. PR/hosted CI/merge times remain pending.
+  Human Tamil/device/AT and production-content acceptance remain separate.
+- Fresh publication fast gate observed complete **21:17:28 IST**, exit 0:
+  216/216 unit/property tests, strict/negative types, lint/Knip/OpenAPI and build
+  (12 tasks, 27.174s). Runtime source fingerprint unchanged; no heavy unchanged-input
+  PostgreSQL/browser rerun. Publication follows this completed gate.

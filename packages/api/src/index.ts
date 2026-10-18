@@ -16,6 +16,7 @@ import { createShopPoliciesRoutes } from "./shop-policies.js";
 
 export { createShopPoliciesRoutes };
 
+import { createMeasurementFormsRoutes } from "./measurement-forms.js";
 import { createServiceCatalogueRoutes } from "./service-catalogue.js";
 import { createShopDirectoryRoutes } from "./shop-directory.js";
 
@@ -87,6 +88,7 @@ export function createApi(
     app.route("/", createShopCommitmentsRoutes(owner));
     app.route("/", createShopDirectoryRoutes(owner));
     app.route("/", createServiceCatalogueRoutes(owner));
+    app.route("/", createMeasurementFormsRoutes(owner));
 
     app.route("/", createWearerRoutes(owner));
     app.route("/", createGuardianRoutes(owner));

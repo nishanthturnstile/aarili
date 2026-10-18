@@ -6,6 +6,7 @@ export { pwaMessages } from "./pwa-messages.js";
 export { wearerMessages } from "./wearer-messages.js";
 export type Locale = "en" | "ta";
 export { documentMessages } from "./document-messages.js";
+export { measurementFormsMessages } from "./measurement-forms-messages.js";
 export { mediaMessages } from "./media-messages.js";
 export { serviceCatalogueMessages } from "./service-catalogue-messages.js";
 export { sharingMessages } from "./sharing-messages.js";

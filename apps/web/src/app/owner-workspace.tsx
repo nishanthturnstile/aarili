@@ -4,6 +4,7 @@ import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation"
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
+import { MeasurementFormsScreen } from "./measurement-forms-screen";
 import { OwnerConnections } from "./owner-connections";
 import {
   OwnerFeedback,
@@ -51,6 +52,7 @@ export function OwnerWorkspace({
     | "policies"
     | "directory"
     | "commitments"
+    | "measurementForms"
     | "catalogue"
   >(() => {
     if (typeof window === "undefined") return "profile";
@@ -58,6 +60,7 @@ export function OwnerWorkspace({
     const selected = params.get("section");
     if (
       selected === "commitments" ||
+      selected === "measurementForms" ||
       selected === "catalogue" ||
       selected === "directory" ||
       selected === "policies" ||
@@ -74,6 +77,7 @@ export function OwnerWorkspace({
       | "policies"
       | "directory"
       | "commitments"
+      | "measurementForms"
       | "catalogue",
   ) {
     if (!guard.safe() && !window.confirm(t("calendar.discard"))) return;
@@ -141,6 +145,7 @@ export function OwnerWorkspace({
                   "policies",
                   "commitments",
                   "catalogue",
+                  "measurementForms",
                 ] as const
               ).map((item) => (
                 <Button
@@ -156,16 +161,24 @@ export function OwnerWorkspace({
                         ? "calendar.title"
                         : item === "directory"
                           ? "directory.title"
-                          : item === "catalogue"
-                            ? "catalogue.title"
-                            : item === "commitments"
-                              ? "commitments.title"
-                              : "policies.title",
+                          : item === "measurementForms"
+                            ? "measurementForms.title"
+                            : item === "catalogue"
+                              ? "catalogue.title"
+                              : item === "commitments"
+                                ? "commitments.title"
+                                : "policies.title",
                   )}
                 </Button>
               ))}
             </nav>
-            {section === "catalogue" ? (
+            {section === "measurementForms" ? (
+              <MeasurementFormsScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "catalogue" ? (
               <ServiceCatalogueScreen
                 shopId={entry.shop.shopId}
                 queries={queries}
