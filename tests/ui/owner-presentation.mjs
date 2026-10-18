@@ -43,7 +43,11 @@ export async function expectStaticPwaStorage(page) {
 }
 
 // Exercise real owner flows in English/light and Tamil/dark. No private values.
-export async function prepareOwnerScreen(page, locale) {
+export async function prepareOwnerScreen(
+  page,
+  locale,
+  desiredDark = locale === "ta",
+) {
   await expect(page.locator("main")).toHaveAttribute(
     "data-owner-ready",
     "true",
@@ -58,10 +62,16 @@ export async function prepareOwnerScreen(page, locale) {
   const dark = await page
     .locator("html")
     .evaluate((element) => element.classList.contains("dark"));
-  if (dark !== (locale === "ta"))
+  if (dark !== desiredDark)
     await page
       .getByRole("button", {
-        name: locale === "en" ? "Use light theme" : "இருண்ட தோற்றம்",
+        name: desiredDark
+          ? locale === "en"
+            ? "Use dark theme"
+            : "இருண்ட தோற்றம்"
+          : locale === "en"
+            ? "Use light theme"
+            : "வெளிர் தோற்றம்",
         exact: true,
       })
       .click();

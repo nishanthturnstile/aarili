@@ -1,12 +1,78 @@
+import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
-import { createApi } from "@aarili/api";
+import { createApi, createShopPoliciesRoutes } from "@aarili/api";
 import { createCommandRoutes } from "@aarili/api/commands";
+import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
+import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
+import { createShopProfileRoutes } from "@aarili/api/shop-profile";
+import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createShopPoliciesRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerShopPolicies: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createShopProfileRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerShopProfile: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createGuardianRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerGuardian: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createWearerRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerWearer: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createCustomerRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerCustomer: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createCommandRoutes({
@@ -55,10 +121,53 @@ api.route(
     },
   }),
 );
+api.route(
+  "/",
+  createShopDirectoryRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerShopDirectory: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createShopCommitmentsRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => {
+      throw Error("Offline schema only");
+    },
+    withOwnerShopCommitments: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
 });
+for (const [path, method] of [
+  ["", "get"],
+  ["/history", "post"],
+  ["/revisions/{id}", "get"],
+  ["/preview", "post"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/settings/commitments${path}`]?.[method],
+    `Missing commitment contract ${method} ${path}`,
+  );
+if (!document.paths["/api/shops/{shopId}/settings/policies/readiness"]?.get)
+  throw Error("Commercial policy readiness contract is missing");
+assert.equal(
+  Object.keys(document.paths).filter((p) => p.includes("/settings/directory/"))
+    .length,
+  4,
+  "Directory routes must be present in offline OpenAPI",
+);
+
 await mkdir("test-results", { recursive: true });
 await writeFile(
   "test-results/openapi.json",

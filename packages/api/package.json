@@ -39,6 +39,54 @@
     "./documents": {
       "types": "./dist/documents.d.ts",
       "import": "./dist/documents.js"
+    },
+    "./customer-client": {
+      "types": "./dist/customer-client.d.ts",
+      "import": "./dist/customer-client.js"
+    },
+    "./customers": {
+      "types": "./dist/customers.d.ts",
+      "import": "./dist/customers.js"
+    },
+    "./wearers": {
+      "types": "./dist/wearers.d.ts",
+      "import": "./dist/wearers.js"
+    },
+    "./wearer-client": {
+      "types": "./dist/wearer-client.d.ts",
+      "import": "./dist/wearer-client.js"
+    },
+    "./shop-profile": {
+      "types": "./dist/shop-profile.d.ts",
+      "import": "./dist/shop-profile.js"
+    },
+    "./shop-profile-client": {
+      "types": "./dist/shop-profile-client.d.ts",
+      "import": "./dist/shop-profile-client.js"
+    },
+    "./shop-calendar-client": {
+      "types": "./dist/shop-calendar-client.d.ts",
+      "import": "./dist/shop-calendar-client.js"
+    },
+    "./shop-directory-client": {
+      "types": "./dist/shop-directory-client.d.ts",
+      "import": "./dist/shop-directory-client.js"
+    },
+    "./shop-directory": {
+      "types": "./dist/shop-directory.d.ts",
+      "import": "./dist/shop-directory.js"
+    },
+    "./shop-policies-client": {
+      "types": "./dist/shop-policies-client.d.ts",
+      "import": "./dist/shop-policies-client.js"
+    },
+    "./shop-commitments": {
+      "types": "./dist/shop-commitments.d.ts",
+      "import": "./dist/shop-commitments.js"
+    },
+    "./shop-commitments-client": {
+      "types": "./dist/shop-commitments-client.d.ts",
+      "import": "./dist/shop-commitments-client.js"
     }
   },
   "scripts": {

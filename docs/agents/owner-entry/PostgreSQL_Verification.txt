@@ -1,0 +1,72 @@
+Final PostgreSQL verification — 17 October 2026
+Command: pnpm verify (integration stage: pnpm test:integration)
+Source SHA-256: 002ae42e60e7a6dc42ef03305b4d494e6c5acb2b270c81e2a108f98c855e13b1
+Migration 0016 SHA-256: 9cc9b1b21e69b5d1c26ba7f67a4731001500221f670c1c6892028f7ff35e9266
+Real disposable PostgreSQL; fileParallelism=false; default reporter aggregate output below.
+No mocked transactional/isolation evidence.
+
+Included integration files (21):
+tests/command-failure.integration.test.mjs
+tests/command.integration.test.mjs
+tests/database-health.integration.test.mjs
+tests/document-sharing.integration.test.mjs
+tests/documents.integration.test.mjs
+tests/drafts.integration.test.mjs
+tests/job-runtime.integration.test.mjs
+tests/jobs.integration.test.mjs
+tests/journal.integration.test.mjs
+tests/media-maintenance.integration.test.mjs
+tests/media-processing.integration.test.mjs
+tests/media.integration.test.mjs
+tests/money.integration.test.mjs
+tests/owner-bootstrap.integration.test.mjs
+tests/owner-google.integration.test.mjs
+tests/owner-recovery.integration.test.mjs
+tests/restore.integration.test.mjs
+tests/tenant-isolation.integration.test.mjs
+tests/usage-runtime.integration.test.mjs
+tests/usage.integration.test.mjs
+tests/vocabulary.integration.test.mjs
+
+Complete integration-stage output:
+$ pnpm build:packages && vitest run --config vitest.integration.config.ts
+$ turbo run build --filter=@aarili/contracts --filter=@aarili/platform --filter=@aarili/db --filter=@aarili/core --filter=@aarili/auth --filter=@aarili/api --filter=@aarili/money --filter=@aarili/jobs --filter=@aarili/i18n --filter=@aarili/documents
+
+   • turbo 2.11.7
+   • Packages in scope: @aarili/api, @aarili/auth, @aarili/contracts, @aarili/core, @aarili/db, @aarili/documents, @aarili/i18n, @aarili/jobs, @aarili/money, @aarili/platform
+   • Running build in 10 packages
+   • Remote caching disabled
+
+@aarili/money:build: cache hit, replaying logs cad57c88a49af00e
+@aarili/money:build: $ tsc -p tsconfig.json
+@aarili/contracts:build: cache hit, replaying logs 8c2684b3f4c83194
+@aarili/contracts:build: $ tsc -p tsconfig.json
+@aarili/platform:build: cache hit, replaying logs 0052986d710541a9
+@aarili/i18n:build: cache hit, replaying logs 9946fa06bf2cadba
+@aarili/platform:build: $ tsc -p tsconfig.json
+@aarili/i18n:build: $ tsc -p tsconfig.json
+@aarili/documents:build: cache hit, replaying logs 56d66244bc269a9f
+@aarili/documents:build: $ tsc -p tsconfig.json
+@aarili/db:build: cache hit, replaying logs cbdc672f5941e09d
+@aarili/db:build: $ tsc -p tsconfig.json
+@aarili/core:build: cache hit, replaying logs 8c621052d013af66
+@aarili/core:build: $ tsc -p tsconfig.json
+@aarili/auth:build: cache hit, replaying logs af2699c5bd8b6636
+@aarili/auth:build: $ tsc -p tsconfig.json
+@aarili/jobs:build: cache hit, replaying logs 7294b406f39336a9
+@aarili/jobs:build: $ tsc -p tsconfig.json
+@aarili/api:build: cache hit, replaying logs f9c5000a45f63e7e
+@aarili/api:build: $ tsc -p tsconfig.json
+
+ Tasks:    10 successful, 10 total
+Cached:    10 cached, 10 total
+  Time:    73ms >>> FULL TURBO
+
+
+ RUN  v5.0.4 C:/Users/Nishanth Murugan/projects/nishanth - projects win/aarili
+
+
+ Test Files  21 passed (21)
+      Tests  99 passed (99)
+   Start at  08:46:59
+   Duration  669.82s (tests 94%, import 6%)

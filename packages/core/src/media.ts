@@ -157,7 +157,9 @@ export async function admitMedia(
   const p = parsed.data;
   if (p.contentType.startsWith("image/") && p.size > 20 * 1024 * 1024)
     fail(422, "VALIDATION_FAILED");
-  const photo = ["wearer-photo", "private-fitting"].includes(p.purpose);
+  const photo = ["wearer-photo", "private-fitting", "shop-branding"].includes(
+    p.purpose,
+  );
   if (
     (photo && !p.contentType.startsWith("image/")) ||
     (p.purpose === "voice-note" && !p.contentType.startsWith("audio/")) ||

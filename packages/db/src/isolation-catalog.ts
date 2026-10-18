@@ -48,6 +48,23 @@ const normal = (value: string | null) =>
 
 export async function assertIsolationCatalog(db: Database) {
   await requireRuntimeRole(db);
+  // Profile publication may update only the canonical name, behind a matching
+  // revision trigger. Creation, membership and every other shop column stay denied.
+  const profile = await db.execute(
+    sql`select to_regclass('shop_profile') as relation`,
+  );
+  const profileInstalled = !!profile.rows[0]?.relation;
+  if (profileInstalled) {
+    const grant = (
+      await db.execute(sql`select
+      has_column_privilege('app_user','shop','name','UPDATE') as name,
+      has_table_privilege('app_user','shop','UPDATE') as whole,
+      exists(select 1 from pg_attribute where attrelid='shop'::regclass and attnum>0 and not attisdropped and attname<>'name' and has_column_privilege('app_user','shop',attname,'UPDATE')) as other,
+      exists(select 1 from pg_trigger where tgrelid='shop'::regclass and tgname='shop_profile_name_guard' and tgenabled='O') as guard`)
+    ).rows[0];
+    if (!grant?.name || grant.whole || grant.other || !grant.guard)
+      throw Error("Shop profile write authority drift");
+  }
   const controls = await db.execute(
     sql`select to_regclass('system_state') as relation`,
   );
@@ -248,6 +265,8 @@ export async function assertIsolationCatalog(db: Database) {
         "public.document_artifact",
         "public.document_share_event",
         "public.vocabulary_revision",
+        "public.shop_profile_revision",
+        "public.shop_directory_revision",
         "public.vocabulary_search_key",
         "public.journal_batch",
         "public.journal_entry",
@@ -264,7 +283,9 @@ export async function assertIsolationCatalog(db: Database) {
       fail("append-only journal grants");
     if (
       ["public.shop", "public.shop_membership"].includes(row.table) &&
-      (row.insert || row.update || row.delete)
+      (row.insert ||
+        (row.update && !(row.table === "public.shop" && profileInstalled)) ||
+        row.delete)
     )
       fail("bootstrap-only write grants");
     if (

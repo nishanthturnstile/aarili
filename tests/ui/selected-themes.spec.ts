@@ -36,13 +36,15 @@ test.describe("USE-02 English startup and explicit Tamil selection", () => {
     page,
   }) => {
     for (const [route, heading] of [
-      ["/setup", "Set up your owner account"],
+      ["/setup", "Create your account"],
       ["/sign-in", "Sign in to Aarili"],
       ["/recovery", "Recover your password"],
       ["/reset-password", "Set a new password"],
       ["/reauthenticate", "Confirm your password"],
-      ["/owner", "Your shop"],
-      ["/connections", "Sign-in connections"],
+      ["/owner", "Sign in to Aarili"],
+      ["/onboarding", "Sign in to Aarili"],
+      ["/dashboard", "Sign in to Aarili"],
+      ["/connections", "Sign in to Aarili"],
     ]) {
       const response = await page.goto(route ?? "/");
       expect(await response?.text()).toMatch(/<main[^>]*lang="en"/);
@@ -80,7 +82,7 @@ test.describe("USE-02 English startup and explicit Tamil selection", () => {
     await page.locator('a[href="/setup"]').click();
     await expect(page.locator("main")).toHaveAttribute("lang", "en");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Set up your owner account",
+      "Create your account",
     );
   });
 });

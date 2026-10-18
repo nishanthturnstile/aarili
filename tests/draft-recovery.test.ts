@@ -1,4 +1,4 @@
-import { DraftRequestError } from "@aarili/api/client";
+import { DraftRequestError, reauthenticateOwner } from "@aarili/api/client";
 import type { DraftRecord, DraftSave } from "@aarili/contracts/drafts";
 import { afterEach, expect, test, vi } from "vitest";
 import { createDraftRecovery } from "../apps/web/src/app/draft-recovery.js";
@@ -46,7 +46,26 @@ function fixture() {
   });
   return { controller, save, promote, committed };
 }
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
+test("SS-10 undo to acknowledged draft restores saved state without a redundant command", async () => {
+  const { controller, save, promote } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  controller.composition(true);
+  controller.edit({ value: "temporary" });
+  controller.edit({ value: "a" });
+  controller.composition(false);
+  expect(controller.snapshot().work.dirty).toBe(false);
+  expect(controller.snapshot().status).toBe("saved");
+  await controller.save();
+  expect(save).toHaveBeenCalledOnce();
+  await controller.promote();
+  expect(promote).toHaveBeenCalledOnce();
+  controller.dispose();
+});
 test("0.4.2b F6 caller navigation seam confirms dirty work and permits acknowledged work", async () => {
   const { controller } = fixture();
   const confirm = vi.fn(() => false);
@@ -192,6 +211,75 @@ test("0.4.2b F2/F3 lost response replays exact key/payload/version before queued
   expect(save.mock.calls[2]?.[3]).toBe('"v1"');
   controller.dispose();
 });
+test("CW-13 a throttled retry cannot discard an unknown save key, payload or precondition", async () => {
+  vi.useFakeTimers();
+  const { controller, save } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  save.mockRejectedValueOnce(new TypeError("lost after commit"));
+  save.mockRejectedValueOnce(
+    new DraftRequestError(
+      429,
+      { error: { code: "RATE_LIMITED", message: "Wait before trying again" } },
+      null,
+    ),
+  );
+  save.mockResolvedValueOnce({ draft: record({ value: "first" }, 2) });
+  controller.edit({ value: "first" });
+  await controller.save();
+  controller.edit({ value: "later" });
+  await controller.retry();
+  expect(controller.snapshot()).toMatchObject({
+    status: "checking",
+    error: "RATE_LIMITED",
+    work: { dirty: true, inFlight: false, outcomeUnknown: true },
+  });
+  expect(save.mock.calls[2]).toEqual(save.mock.calls[1]);
+  expect(save.mock.calls[2]?.[3]).toBe('"v1"');
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(save).toHaveBeenCalledTimes(3);
+  await controller.retry();
+  expect(save.mock.calls[3]).toEqual(save.mock.calls[1]);
+  expect(controller.snapshot().committed?.payload).toEqual({ value: "first" });
+  expect(controller.snapshot().values).toEqual({ value: "later" });
+  expect(controller.snapshot().work.outcomeUnknown).toBe(false);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(save.mock.calls[4]?.[1].payload).toEqual({ value: "later" });
+  expect(save.mock.calls[4]?.[2]).toBe("key-3");
+  expect(save.mock.calls[4]?.[3]).toBe('"v2"');
+  controller.dispose();
+});
+test("CW-13 an unknown promotion stays locked across admission throttling and replays the same promotion", async () => {
+  const { controller, promote } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  promote.mockRejectedValueOnce(new TypeError("lost promotion response"));
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      429,
+      { error: { code: "RATE_LIMITED", message: "Wait before trying again" } },
+      null,
+    ),
+  );
+  await controller.promote();
+  await controller.retry();
+  expect(controller.snapshot()).toMatchObject({
+    status: "checking",
+    pendingPromotion: true,
+    work: { dirty: false, inFlight: false, outcomeUnknown: true },
+  });
+  controller.edit({ value: "must not replace the pending promotion" });
+  expect(controller.snapshot().values).toEqual({ value: "a" });
+  expect(promote.mock.calls[1]).toEqual(promote.mock.calls[0]);
+  await controller.retry();
+  expect(promote.mock.calls[2]).toEqual(promote.mock.calls[0]);
+  expect(controller.snapshot()).toMatchObject({
+    status: "promoted",
+    pendingPromotion: false,
+    work: { dirty: false, inFlight: false, outcomeUnknown: false },
+  });
+  controller.dispose();
+});
 test("0.4.2b F2/F3 one save in flight and late acknowledgement cannot label new input Saved", async () => {
   const { controller, save } = fixture();
   let resolve!: (value: { draft: DraftRecord }) => void;
@@ -300,4 +388,48 @@ test("0.4.2b F6 separate controllers for the same draft have distinct form lifet
   expect(first.controller.instance).not.toBe(second.controller.instance);
   first.controller.dispose();
   second.controller.dispose();
+});
+test("SS-03 recent-auth pause retains original promotion key after response loss and clears on invalidation", async () => {
+  const { controller, promote } = fixture();
+  controller.edit({ value: "a" });
+  await controller.save();
+  promote.mockRejectedValueOnce(new TypeError("lost response"));
+  await controller.promote();
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      403,
+      { error: { code: "AUTHENTICATION_STALE", message: "Confirm identity" } },
+      null,
+    ),
+  );
+  await controller.retry();
+  expect(controller.snapshot().status).toBe("checking");
+  expect(controller.snapshot().pendingPromotion).toBe(true);
+  expect(controller.snapshot().work.outcomeUnknown).toBe(true);
+  controller.edit({ value: "blocked while paused" });
+  expect(controller.snapshot().values).toEqual({ value: "a" });
+  vi.stubGlobal("fetch", async () =>
+    Response.json(
+      { error: { code: "INVALID_CREDENTIALS", message: "Denied" } },
+      { status: 401 },
+    ),
+  );
+  await expect(
+    reauthenticateOwner("synthetic-password", true),
+  ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
+  expect(controller.snapshot().pendingPromotion).toBe(true);
+  expect(controller.snapshot().values).toEqual({ value: "a" });
+  expect(promote).toHaveBeenCalledTimes(2);
+  vi.stubGlobal("fetch", async () =>
+    Response.json({ state: "reauthenticated" }),
+  );
+  await reauthenticateOwner("synthetic-password", true);
+  await controller.retry();
+  expect(promote.mock.calls[0]).toEqual(promote.mock.calls[1]);
+  expect(promote.mock.calls[1]).toEqual(promote.mock.calls[2]);
+  expect(controller.snapshot().status).toBe("promoted");
+  controller.invalidate();
+  expect(controller.snapshot().values).toEqual({});
+  controller.dispose();
+  vi.unstubAllGlobals();
 });

@@ -231,3 +231,19 @@ test("0.1.1c only shared UI may consume the approved primitive dependencies", ()
     ),
   ).toEqual(expect.arrayContaining([expect.stringContaining("not approved")]));
 });
+
+test("ENTRY-03/11 Next proxy is a server entry, but a client cannot import its composition graph", () => {
+  const sources = new Map([
+    ["apps/web/src/proxy.ts", 'import "./server/api";'],
+    ["apps/web/src/server/api.ts", 'import "@aarili/auth";'],
+    ["packages/auth/src/index.ts", "export const auth = true;"],
+  ]);
+  expect(checkBoundaries(sources)).toEqual([]);
+  sources.set("apps/web/src/app/rogue.tsx", '"use client"; import "../proxy";');
+  expect(checkBoundaries(sources)).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining("server entry point"),
+      expect.stringContaining("server package"),
+    ]),
+  );
+});

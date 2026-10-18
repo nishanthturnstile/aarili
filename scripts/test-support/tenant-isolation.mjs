@@ -12,6 +12,29 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "shopDirectoryRepository.current/read/list/history/configuration/append/advance/origin",
+  "shops/:shopId/settings/directory/list/entries/history/revisions",
+  "shop.directory draft promotion",
+  "shopCommitmentsRepository.current/read/history/append/advance/origin",
+  "shops/:shopId/settings/commitments/history/revisions/preview",
+  "shop.commitments draft promotion",
+  "shopCalendarRepository.current/read/history/append/advance/origin",
+  "shopPoliciesRepository.current/read/history/append/advance/origin/pendingKinds",
+  "shops/:shopId/settings/calendar/history/revisions",
+  "shops/:shopId/settings/policies/history/revisions/readiness",
+  "shop.calendar draft promotion",
+  "shop.policies draft promotion",
+  "shopProfileRepository.current/read/history/append/advance/logoReady",
+  "shops/:shopId/settings/profile/history/revisions",
+  "guardianRepository.read/search/claim/verify/purpose/origin",
+  "shops/:shopId/customers/:customerId/wearers/:id/guardians",
+  "shops/:shopId/guardian-people/search",
+  "wearer.guardian draft promotion",
+  "wearerRepository.read/list/search/insert/link/update/purpose/origin",
+  "shops/:shopId/customers/:customerId/wearers",
+  "customer.wearer draft promotion",
+  "customerRepository.read/search/insert/correct/audit",
+  "shops/:shopId/customers",
   "documentRepository.issue/claim/plan/accept/retry/cleanup",
   "shops/:shopId/documents",
   "mediaRepository.read/insert/start/claim/accept/expire",
@@ -65,9 +88,11 @@ export async function withTenantFixture(
   run,
   {
     legacy = false,
+    migrationThrough,
     draftInstrumentation,
     mediaAdapters,
     documentAdapters,
+    customerPolicy,
   } = {},
 ) {
   return withPostgres(
@@ -78,7 +103,11 @@ export async function withTenantFixture(
     }) => {
       await migrateDatabase(
         migrationConnectionString,
-        legacy ? { through: "0002_auth_connection_history.sql" } : {},
+        legacy
+          ? { through: "0002_auth_connection_history.sql" }
+          : migrationThrough
+            ? { through: migrationThrough }
+            : {},
       );
       const runtime = createDatabase(connectionString, 1);
       const parallel = createDatabase(connectionString, 2);
@@ -97,6 +126,7 @@ export async function withTenantFixture(
         ...(draftInstrumentation ? { draftInstrumentation } : {}),
         ...(mediaAdapters ? { mediaAdapters } : {}),
         ...(documentAdapters ? { documentAdapters } : {}),
+        ...(customerPolicy ? { customerPolicy } : {}),
         capture: async (message) => {
           capture.push(message);
         },
@@ -123,7 +153,20 @@ export async function withTenantFixture(
         );
         assert.equal(aSign.status, 200);
         const cookieA = cookies(aSign);
-        const complete = await owner.complete(new Headers({ Cookie: cookieA }));
+        // Legacy migration fixtures intentionally stop before command/audit
+        // tables exist. Reproduce their original verified bootstrap SQL; current
+        // installations exercise the production atomic completion path below.
+        const complete = legacy
+          ? {
+              data: {
+                shopId: (
+                  await runtime.db.execute(
+                    sql`select complete_owner_bootstrap((select user_id from owner_bootstrap)) as shop_id`,
+                  )
+                ).rows[0].shop_id,
+              },
+            }
+          : await owner.complete(new Headers({ Cookie: cookieA }));
         const a = {
           user: (await admin.query("select user_id from owner_bootstrap"))
             .rows[0].user_id,

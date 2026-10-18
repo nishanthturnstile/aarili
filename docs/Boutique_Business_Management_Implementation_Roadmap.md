@@ -18,6 +18,11 @@ UI cleanup #47 merged through PR #49 at `b13f176`; fresh full verification and
 Runtime cleanup #48 separates normal API/browser/worker composition from explicit
 verification exemplars; its [acceptance evidence](agents/Issue_48_Runtime_Cleanup_Evidence.md)
 records review status and validation. No business slice or activation gate changes.
+Phase 0.4's ten slices (#51–#60) merged through PRs #61–#71; the
+[Phase 0.4 closeout acceptance](agents/Phase_0_4_Closeout_Acceptance.md) records
+integrated verification, the deferred physical Android/fluent-Tamil gates and the
+remaining activation limits. Owner direction of 16 October 2026 holds Phase 0.5
+until immediately before deployment; local development continues on synthetic data.
 Phase 0.4 and later retain concrete draft, review and publication approval.
 This roadmap alone authorises no new
 implementation or GitHub Issue generation; later release allocation remains provisional.
@@ -225,13 +230,14 @@ still requires its own hosted checks and owner merge authorization.
 The owner approved the phase direction and requested implementation on 15 October
 2026. The [implementation plan and ten published ticket bodies](agents/Phase_0_4_Implementation_Plan.md)
 preserve the parent slices below, synthetic-only verification boundary, physical
-Android/Tamil review and pending retention approval. The approved breakdown is published as #51–#60 with verified native blockers.
-The #51 implementation merged through [PR #61](https://github.com/nishanthturnstile/aarili/pull/61), with
-[criterion-by-criterion evidence](agents/Issue_51_Responsive_Shell_Evidence.md)
-on integrated main. The #52 online-only PWA has
-[criterion-by-criterion evidence](agents/Issue_52_PWA_Evidence.md) for draft review;
-later slices retain their direct prerequisite merge gates. Phase closeout still
-requires the remaining slices and physical Android/Tamil acceptance.
+Android/Tamil review and pending retention approval. The approved breakdown was
+published as #51–#60 with verified native blockers and all ten slices are merged
+through PRs #61–#71 on integrated main `4eab791`, with the promotion PR #74
+passing all three required checks. The
+[Phase 0.4 closeout acceptance](agents/Phase_0_4_Closeout_Acceptance.md) records the
+reconciled A–J coverage, hosted verification and remaining gates. Phase closeout
+still leaves the physical Android/fluent-Tamil acceptance and the later privacy
+and activation gates open.
 
 #### Functionality — Bilingual navigation, server drafts and observable use
 
@@ -311,6 +317,19 @@ requires the remaining slices and physical Android/Tamil acceptance.
 
 ### Phase 1.1 — Configure Safe Owner Operation
 
+**Approved prerequisite refinement (16 October 2026):**
+[Owner access and initial shop onboarding](agents/Owner_Access_Onboarding.md),
+tracked by ACCESS-01–12 without GitHub issues, refines the existing foundation UI
+and defers naming until authenticated creation. Protected admission and the
+selected light/dark design remain. This does not complete or move 1.1.1–1.1.2,
+1.10.1/1.10.4 or 2.1.4, and cannot activate live use.
+
+The [17 October entry-flow revision](agents/Owner_Entry_Onboarding_Revision_Plan.md)
+supersedes its presentation: authentication only, then dedicated shop onboarding,
+then a server-authorized `/dashboard` entry. ENTRY-01–12 cover this revision;
+ACCESS-01–12 retain the compatible registration, creation and security guarantees.
+Dashboard entry here does not implement the operational dashboard in 1.9.2.
+
 **Objective:** Establish the business rules and identities needed for trustworthy intake.  
 **Functional scope:** Shop policies, supported services, Simple mode, customers, wearers and consent.  
 **Dependencies:** None; owner approval of initial policies and forms.
@@ -318,6 +337,47 @@ requires the remaining slices and physical Android/Tamil acceptance.
 #### Functionality — Business configuration and supported services
 
 ##### Vertical Slice 1.1.1 — Configure the Shop and Commitment Policies
+
+**REA delivery brief (17 October 2026):** the
+[Shop Settings research and implementation prompt](agents/Shop_Settings_REA_Prompt.md)
+uses the existing Nool research access where available and TailorMan's public
+Settings demo as a bounded secondary reference. It retains the complete 1.1.1
+scope, owner-supplied policy inputs, concrete ticket review/publication gates and
+the service-catalogue boundary with 1.1.2. No implementation, dependency change or
+live activation is recorded by this brief.
+
+**Research/planning packet (17 October 2026):**
+[evidence and bounded unknowns](agents/Shop_Settings_REA_Evidence.md),
+[independent design/acceptance matrix](agents/Shop_Settings_Design.md) and
+[five proposed vertical tickets](agents/Shop_Settings_Ticket_Packet.md) are
+prepared for owner review. Nool Settings/profile and TailorMan demo were captured;
+follow-up scenario stalls leave persistence, policy and commitment behaviour
+unverified. The proposal keeps category ownership/binding in 1.1.2 and defines
+the evaluator contract/unbound drafts in 1.1.1, preserving the dependency order.
+No ticket publication, implementation acceptance or production policy approval
+is recorded. AC-44/AC-60 configuration checks are partial scenario contributions;
+AC-61 payment duplication and AC-62 reconciliation retain later workflow gates.
+
+**Approved ticket delivery (17 October 2026):** the owner approved publication
+and proceeding with the packet. Issues #84–#88 carry native blocker links.
+Selected 1.1.1a/#84 adds existing-shop profile editing and immutable revision
+history after its merged direct prerequisites; its
+[implementation evidence and owner review](agents/Shop_Profile_Implementation_Evidence.md)
+track executable acceptance and remaining human/merge gates. Selected 1.1.1b/#85
+adds independent customer/production calendars, durable drafts and immutable
+history after #55/#56/#84 merged; its
+[implementation evidence and owner review](agents/Shop_Calendar_Implementation_Evidence.md)
+track verification and outstanding gates. Selected 1.1.1c/#86 adds receiving
+accounts/vendors ([evidence](agents/Shop_Directory_Implementation_Evidence.md));
+1.1.1d/#87 adds policy review and action-specific readiness
+([evidence](agents/Shop_Policies_Implementation_Evidence.md)). Their parallel
+integration is recorded in [integration evidence](agents/Shop_Settings_Integration_Evidence.md).
+#88 follows merged #85/#87 and adds unbound rule revisions and a category-neutral
+delivery/capacity/cutoff/rush preview
+([implementation and acceptance evidence](agents/Shop_Commitments_Implementation_Evidence.md)).
+Production category binding stays in 1.1.2; atomic order acceptance stays in 1.2.1.
+Complete 1.1.1, real category/order integration
+and live readiness are not declared by ticket A.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** SET-01, SET-02, SET-05, SET-06, SET-07, SET-08, SET-09, SET-11. Scenarios: AC-44, AC-60, AC-61, AC-62.
@@ -346,6 +406,54 @@ requires the remaining slices and physical Android/Tamil acceptance.
 #### Functionality — Customer, wearer and guardian registration
 
 ##### Vertical Slice 1.1.3 — Register Customers and Authorised Wearers
+
+**Next-feature research selection (17 October 2026):**
+[Customer and wearer REA plan](agents/Customer_Wearer_REA_Plan.md) selects this
+existing slice for the next concrete research and implementation-planning packet,
+using Nool Tech's web workflow as its primary reference. The
+[reusable prompt](agents/Customer_Wearer_REA_Prompt.md) preserves evidence limits,
+the selected-approved-ticket gate and synthetic-only operation. This does not
+complete 1.1.1/1.1.2, change 1.2.1's dependencies, approve ticket publication or
+activate live data. Existing privacy notice, retention and guardian-policy inputs
+remain prerequisites; competitor behaviour cannot supply their approval.
+
+**Approved delivery packet (17 October 2026):**
+[Customer/wearer tickets](agents/Customer_Wearer_Ticket_Packet.md) are published
+as **#78 (1.1.3a customers) → #79 (1.1.3b adult wearers/preferences) →
+#80 (1.1.3c minor/guardian)**. This splits the existing slice into complete
+vertical outcomes without adding release scope. #78 starts only after the
+owner-entry prerequisite [PR #77](https://github.com/nishanthturnstile/aarili/pull/77)
+merges to development; later tickets retain their merged direct blockers.
+The owner permits clearly labelled, nonblank
+[draft privacy fixtures](agents/Customer_Wearer_Privacy_Draft.md) for synthetic
+implementation while final notice, retention and guardian inputs remain under
+review. This revises the research brief's implementation-input gate only;
+approved production policies and all Phase 0.5/live gates remain required.
+1.1.1/1.1.2 and 1.2.1 dependencies remain unchanged.
+
+**1.1.3a implementation (17 October 2026):** onboarding PR #77 merged into
+development as `2ea55ac`. Approved #78 merged through PR #81 as `ac98740`;
+local clean verification, 12 browser journeys and both required feature CI
+checks passed. The
+[implementation evidence](agents/Customer_Registration_Implementation_Evidence.md)
+tracks CW-01/02/06/07/08/10/11/12/13. B/C retain separate tickets and merged
+prerequisite gates; this does not close 1.1.3 or any live-data gate.
+
+**1.1.3b implementation (17 October 2026):** selected approved #79 starts from
+integrated `ac98740` after #55/#56/#78 merged. Adult wearer roles, interaction
+authority, independent preferences and current-state draft promotion are scoped
+in the [implementation evidence](agents/Adult_Wearer_Implementation_Evidence.md).
+Local component verification is recorded. The owner merged PR #82 as `5d00a68`
+on 17 October 2026; human/policy acceptance remains separate.
+
+**1.1.3c implementation (17 October 2026):** selected approved #80 starts from
+integrated `5d00a68` after #79 merged. Separate minor/guardian identity, pending
+claim versus authority review, scoped purpose evidence and recoverable drafts are
+recorded in the [implementation evidence and A–C mapping](agents/Minor_Guardian_Implementation_Evidence.md).
+Local verification passed; required hosted CI and owner review/merge remain pending.
+Actual order/measurement/media
+write integration, AC-39/52, final policy, Phase 0.5 and pilot/live-data gates remain
+unchanged; registration evidence alone does not close those gates.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-01, CUS-02, CUS-04, CUS-07, TRU-01, TRU-03, TRU-04, TRU-05, TRU-07, TRU-13. Scenarios: AC-02, AC-39, AC-52, AC-53.

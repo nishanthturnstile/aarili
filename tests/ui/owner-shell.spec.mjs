@@ -93,10 +93,12 @@ for (const locale of ["en", "ta"])
         await mkdir(captures, { recursive: true });
         for (const dark of [false, true]) {
           await presentation(dark);
-          await expect(nav.locator("a")).toHaveCount(2);
+          await expect(nav.locator("a")).toHaveCount(4);
+          await expect(nav.locator('a[href="/customers"]')).toBeVisible();
+          await expect(nav.locator('a[href="/settings"]')).toBeVisible();
           await expect(nav.locator('a[aria-current="page"]')).toHaveAttribute(
             "href",
-            "/owner",
+            "/dashboard",
           );
           for (const link of await nav.locator("a").all()) {
             const box = await link.boundingBox();
@@ -147,16 +149,20 @@ for (const locale of ["en", "ta"])
           });
           if (info.project.name === "phone") {
             // A full-page screenshot stitches fixed navigation at the original
-            // viewport bottom. Verify the actual scrolled footer stays usable.
-            const footer = page.locator(".owner-footer");
+            // viewport bottom. Verify the actual last action stays usable.
+            // Auth-only footer links no longer appear in a signed-in workspace.
+            const finalAction = page.getByRole("button", {
+              name: locale === "en" ? "Sign out" : "வெளியேறு",
+              exact: true,
+            });
             await page.evaluate(() =>
               window.scrollTo(0, document.documentElement.scrollHeight),
             );
-            const footerBox = await footer.boundingBox();
+            const finalActionBox = await finalAction.boundingBox();
             const navBox = await nav.boundingBox();
-            expect(footerBox.y + footerBox.height).toBeLessThanOrEqual(
-              navBox.y,
-            );
+            expect(
+              finalActionBox.y + finalActionBox.height,
+            ).toBeLessThanOrEqual(navBox.y);
             await page.screenshot({
               path: `${captures}/phone-${locale}-${dark ? "dark" : "light"}-bottom.png`,
               fullPage: false,
@@ -196,7 +202,7 @@ for (const locale of ["en", "ta"])
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(
           locale === "en" ? "Sign-in connections" : "உள்நுழைவு இணைப்புகள்",
         );
-        await nav.locator('a[href="/owner"]').click();
+        await nav.locator('a[href="/dashboard"]').click();
         await expect(nav).toBeVisible();
         await expect(page.locator("main")).toHaveAttribute("lang", "en");
 
@@ -210,6 +216,7 @@ for (const locale of ["en", "ta"])
         await expect(nav).toHaveCount(0);
         await expect(page.locator("main")).not.toContainText(shopName);
         await expect(page.locator("main").getByRole("alert")).toBeVisible();
+        await expect(page.locator('a[href="/sign-in"]')).toBeVisible();
         expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([
           "aarili-appearance",
         ]);

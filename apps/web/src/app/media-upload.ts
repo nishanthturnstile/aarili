@@ -124,6 +124,7 @@ export function createPrivateUpload(options: {
     }
   }
   return {
+    scopeKey: v7(),
     snapshot: () => state,
     subscribe(listener: () => void) {
       listeners.add(listener);
@@ -260,6 +261,25 @@ export function createPrivateUpload(options: {
       }
     },
     refresh,
+    discard() {
+      if (!active || state.busy || state.state === "uncertain") return;
+      epoch++;
+      pending = null;
+      grant = null;
+      admissionKey = null;
+      completionKey = null;
+      uploaded = false;
+      // Abandon only this page's selection. Never delete an asset or undo a
+      // queued/accepted upload; ordinary unreferenced retention owns cleanup.
+      emit({
+        state: "empty",
+        error: null,
+        asset: null,
+        bytes: null,
+        processingState: null,
+        busy: false,
+      });
+    },
     dispose() {
       unsubscribe();
       clear();

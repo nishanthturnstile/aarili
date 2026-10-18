@@ -20,7 +20,12 @@ export async function withOwnerWeb(
   { onFailure, secrets = [], google } = {},
 ) {
   return withPostgres(
-    async ({ connectionString, migrationConnectionString }) => {
+    async ({
+      connectionString,
+      migrationConnectionString,
+      adminConnectionString,
+      stop,
+    }) => {
       await migrateDatabase(migrationConnectionString);
       const socket = createServer();
       await new Promise((r) => socket.listen(0, "127.0.0.1", r));
@@ -164,7 +169,40 @@ export async function withOwnerWeb(
         }
         phase = "owner scenario";
         console.info("Owner fixture: retired routes denied; running scenario");
-        await run({ origin, setupToken, code, runtime, probeRecent });
+        await run({
+          origin,
+          setupToken,
+          code,
+          runtime,
+          probeRecent,
+          stopDatabase: stop,
+          expireAuthentication: async () => {
+            const admin = new pg.Client({
+              connectionString: adminConnectionString,
+            });
+            try {
+              await admin.connect();
+              await admin.query(
+                "update auth_session set created_at=now()-interval '10 minutes'",
+              );
+            } finally {
+              await admin.end();
+            }
+          },
+          revokeOwnerMembership: async () => {
+            // Disposable-fixture fault injection only. This credential never
+            // enters the web process and proves no runtime bypass capability.
+            const admin = new pg.Client({
+              connectionString: adminConnectionString,
+            });
+            try {
+              await admin.connect();
+              await admin.query("delete from shop_membership");
+            } finally {
+              await admin.end();
+            }
+          },
+        });
         phase = "private capture audit";
         console.info(
           "Owner fixture: scenario finished; checking private captures",

@@ -5,10 +5,21 @@ import {
   healthUnavailableSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createCustomerRoutes } from "./customers.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
 import { createOwnerRoutes } from "./owner.js";
+import { createShopCalendarRoutes } from "./shop-calendar.js";
+import { createShopCommitmentsRoutes } from "./shop-commitments.js";
+import { createShopPoliciesRoutes } from "./shop-policies.js";
+
+export { createShopPoliciesRoutes };
+
+import { createShopDirectoryRoutes } from "./shop-directory.js";
+
+import { createShopProfileRoutes } from "./shop-profile.js";
+import { createGuardianRoutes, createWearerRoutes } from "./wearers.js";
 
 const healthRoute = createRoute({
   method: "get",
@@ -68,6 +79,15 @@ export function createApi(
   });
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
+    app.route("/", createCustomerRoutes(owner));
+    app.route("/", createShopProfileRoutes(owner));
+    app.route("/", createShopCalendarRoutes(owner));
+    app.route("/", createShopPoliciesRoutes(owner));
+    app.route("/", createShopCommitmentsRoutes(owner));
+    app.route("/", createShopDirectoryRoutes(owner));
+
+    app.route("/", createWearerRoutes(owner));
+    app.route("/", createGuardianRoutes(owner));
     app.route("/", createDraftRoutes(owner));
     app.route("/", createMediaRoutes(owner));
     app.route("/", createDocumentRoutes(owner));

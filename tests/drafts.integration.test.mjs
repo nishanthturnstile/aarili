@@ -44,7 +44,12 @@ async function fixture(run) {
         ...f.owner,
         withOwnerDraft(headers, shopId, run) {
           return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
-            assert.equal(ctx.workflows.size, 0);
+            assert.deepEqual([...ctx.workflows.keys()].sort(), [
+              "shop.calendar",
+              "shop.commitments",
+              "shop.directory",
+              "shop.policies",
+            ]);
             assert.ok(ctx.instrumentation);
             // Only test-only workflow construction obtains the transaction; the
             // actual auth factory, repository and private writer remain intact.
@@ -148,6 +153,7 @@ function command(
     failure,
     boss,
     wrongResult,
+    registry,
   } = {},
 ) {
   return withShop(pool.db, who.user, who.shop, (tx) =>
@@ -156,11 +162,13 @@ function command(
         shopId: who.shop,
         actor: { type: "user", id: who.user },
         repository: decorate(draftRepository(tx, who.shop)),
-        workflows: syntheticDraftRegistry(tx, who.shop, {
-          failure,
-          boss,
-          wrongResult,
-        }),
+        workflows:
+          registry ??
+          syntheticDraftRegistry(tx, who.shop, {
+            failure,
+            boss,
+            wrongResult,
+          }),
         ...(instrumentation ? { instrumentation } : {}),
       },
       draftId,
@@ -878,9 +886,17 @@ test("0.4.2a E8 real private usage factory composes through production API with 
       "select p.name,p.subject_id,a.entity_id,p.occurred_at=a.occurred_at as same_time from product_event p join audit_event a on a.shop_id=p.shop_id and a.id=p.action_id where p.shop_id=$1 order by p.occurred_at,p.action_id",
       [f.a.shop],
     );
-    assert.deepEqual(
-      binding.rows.map((row) => row.name),
-      ["draft.saved", "draft.promoted"],
+    // Audit transaction timestamps are the usage date basis, not a monotonic
+    // sequence across transactions. Prove event identity/counts independently
+    // of wall-clock ordering while preserving the exact audit-time bindings.
+    assert.equal(binding.rows.length, 2);
+    assert.equal(
+      binding.rows.filter((row) => row.name === "draft.saved").length,
+      1,
+    );
+    assert.equal(
+      binding.rows.filter((row) => row.name === "draft.promoted").length,
+      1,
     );
     assert.ok(
       binding.rows.every(
@@ -899,3 +915,31 @@ test("0.4.2a E8 real private usage factory composes through production API with 
     });
   });
 }, 120000);
+
+test("SS-03 optional publication authorization preserves replay for earlier workflows no longer enabled", {
+  timeout: 180000,
+}, async () => {
+  await fixture(async (f) => {
+    const draftId = await id(f);
+    await put(f, draftId, complete);
+    await state(f, draftId);
+    const key = randomUUID();
+    const original = await command(
+      f,
+      draftId,
+      "promote",
+      {},
+      { key, version: 1 },
+    );
+    const before = await counts(f);
+    const replay = await command(
+      f,
+      draftId,
+      "promote",
+      {},
+      { key, version: 1, registry: new Map() },
+    );
+    assert.deepEqual(replay, original);
+    assert.deepEqual(await counts(f), before);
+  });
+});

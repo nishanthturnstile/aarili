@@ -43,6 +43,34 @@
     "./documents": {
       "types": "./dist/documents.d.ts",
       "import": "./dist/documents.js"
+    },
+    "./customers": {
+      "types": "./dist/customers.d.ts",
+      "import": "./dist/customers.js"
+    },
+    "./wearers": {
+      "types": "./dist/wearers.d.ts",
+      "import": "./dist/wearers.js"
+    },
+    "./shop-profile": {
+      "types": "./dist/shop-profile.d.ts",
+      "import": "./dist/shop-profile.js"
+    },
+    "./shop-calendar": {
+      "types": "./dist/shop-calendar.d.ts",
+      "import": "./dist/shop-calendar.js"
+    },
+    "./shop-directory": {
+      "types": "./dist/shop-directory.d.ts",
+      "import": "./dist/shop-directory.js"
+    },
+    "./shop-policies": {
+      "types": "./dist/shop-policies.d.ts",
+      "import": "./dist/shop-policies.js"
+    },
+    "./shop-commitments": {
+      "types": "./dist/shop-commitments.d.ts",
+      "import": "./dist/shop-commitments.js"
     }
   },
   "scripts": {

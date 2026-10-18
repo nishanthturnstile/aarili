@@ -1,10 +1,11 @@
 # Phase 0.4 integrated candidate evidence
 
-This records the implementation candidate for issues #51–#60, **not phase
-acceptance or live-data permission**. #51–#59 are merged; #60 requires PR review,
-CI and explicit owner-authorised merge. Repeat the integrated build/smoke on main
-after that merge before starting dependent implementation. The owner deferred
-physical Android and fluent Tamil review; their gates remain open.
+This records the implementation candidate for issues #51–#60. #51–#60 have since
+merged (PRs #61–#71) and the accepted state is now recorded in the
+[Phase 0.4 closeout acceptance](Phase_0_4_Closeout_Acceptance.md); that document
+supersedes the "candidate" framing here. It still does not grant live-data
+permission. The owner deferred physical Android and fluent Tamil review; their
+gates remain open.
 
 ## Full acceptance traceability
 
@@ -28,7 +29,9 @@ documents preserve slice-specific failure/recovery evidence and limitations.
 ## Fresh integrated verification
 
 Stable candidate verification results belong to #60's verification record and
-its PR checks. No isolated historical pass is represented as a current main pass.
+its PR checks; the accepted integrated results are recorded in the
+[Phase 0.4 closeout acceptance](Phase_0_4_Closeout_Acceptance.md). No isolated
+historical pass is represented as a current main pass.
 The repository's full `pnpm verify` includes lint/boundaries/tokens, Knip, strict
 workspace/negative types, unit tests, generated OpenAPI, Linux sandbox/PDF goldens,
 real PostgreSQL/S3/jobs tests, production build, readiness/outage/worker-shutdown

@@ -1,10 +1,12 @@
 import {
   apiErrorSchema,
+  createOwnerShopSchema,
   googleConnectionSchema,
   googleRedirectSchema,
   healthResponseSchema,
   healthUnavailableSchema,
   ownerActionSchema,
+  ownerEntrySchema,
   ownerShopSchema,
   reauthenticationSchema,
   recoveryRequestSchema,
@@ -70,6 +72,7 @@ export async function disconnectOwnerGoogle() {
     ),
   );
   clearOwnerState();
+  publishSessionChange();
   return result;
 }
 export async function startOwnerGoogle(link: boolean) {
@@ -103,6 +106,30 @@ export function isOwnerGeneration(generation: number) {
 }
 const pendingOwnerRequests = new Set<AbortController>();
 const invalidationListeners = new Set<() => void>();
+let sessionChannel: BroadcastChannel | undefined;
+export function connectOwnerSessionChanges(onRemoteChange: () => void) {
+  if (typeof window === "undefined" || typeof BroadcastChannel === "undefined")
+    return () => {};
+  let channel: BroadcastChannel;
+  try {
+    channel = new BroadcastChannel("aarili-owner-entry");
+  } catch {
+    return () => {};
+  }
+  sessionChannel = channel;
+  channel.onmessage = (event: MessageEvent<unknown>) => {
+    if (event.data === "changed") onRemoteChange();
+  };
+  return () => {
+    if (sessionChannel === channel) sessionChannel = undefined;
+    channel.close();
+  };
+}
+function publishSessionChange() {
+  // No identity, shop details or credentials cross the channel. Re-read the
+  // authoritative server state. The sending channel never receives itself.
+  sessionChannel?.postMessage("changed");
+}
 export function clearOwnerState() {
   ownerGeneration++;
   for (const request of pendingOwnerRequests) request.abort();
@@ -139,7 +166,11 @@ export async function authenticatedResult(
     pendingOwnerRequests.delete(request);
   }
 }
-async function ownerResult(response: Response, generation = ownerGeneration) {
+async function ownerResult(
+  response: Response,
+  generation = ownerGeneration,
+  recoverableCredentialFailure = false,
+) {
   const data: unknown = await response.json();
   // Body parsing can finish after an auth transition even when headers arrived
   // earlier. Reject the old identity before applying any invalidation effects.
@@ -149,7 +180,8 @@ async function ownerResult(response: Response, generation = ownerGeneration) {
     const parsed = apiErrorSchema.safeParse(data);
     const code = parsed.success ? parsed.data.error.code : "REQUEST_FAILED";
     if (
-      response.status === 401 ||
+      (response.status === 401 &&
+        !(recoverableCredentialFailure && code === "INVALID_CREDENTIALS")) ||
       (response.status === 403 && code === "SHOP_ACCESS_DENIED")
     )
       clearOwnerState();
@@ -189,6 +221,23 @@ export async function verifyOwner(code: string) {
     ),
   );
 }
+export async function readOwnerEntry(signal?: AbortSignal) {
+  return ownerEntrySchema.parse(
+    await authenticatedResult((requestSignal) =>
+      createOwnerClient().owner.entry.$get(
+        {},
+        {
+          init: {
+            cache: "no-store",
+            signal: signal
+              ? AbortSignal.any([signal, requestSignal])
+              : requestSignal,
+          },
+        },
+      ),
+    ),
+  );
+}
 export async function readOwnerShop(signal?: AbortSignal) {
   return ownerShopSchema.parse(
     await authenticatedResult((requestSignal) =>
@@ -206,10 +255,18 @@ export async function readOwnerShop(signal?: AbortSignal) {
     ),
   );
 }
-export async function completeOwnerShop() {
+export async function completeOwnerShop(
+  input: { shopName: string },
+  key: string,
+) {
+  const parsed = createOwnerShopSchema.safeParse(input);
+  if (!parsed.success) throw new OwnerRequestError("VALIDATION_FAILED");
   return ownerActionSchema.parse(
     await authenticatedResult((signal) =>
-      createOwnerClient().owner.complete.$post({}, { init: { signal } }),
+      createOwnerClient().owner.complete.$post(
+        { json: parsed.data },
+        { headers: { "Idempotency-Key": key }, init: { signal } },
+      ),
     ),
   );
 }
@@ -231,24 +288,37 @@ export async function resetOwnerPassword(
   if (!parsed.success) throw new OwnerRequestError("VALIDATION_FAILED");
   clearOwnerState();
   try {
-    return ownerActionSchema.parse(
+    const result = ownerActionSchema.parse(
       await ownerResult(
         await createOwnerClient().owner.recovery.reset.$post({
           json: parsed.data,
         }),
       ),
     );
+    publishSessionChange();
+    return result;
   } finally {
     clearOwnerState();
   }
 }
-export async function reauthenticateOwner(password: string) {
+export async function reauthenticateOwner(
+  password: string,
+  resumeCommand = false,
+) {
   const parsed = reauthenticationSchema.safeParse({ password });
   if (!parsed.success) throw new OwnerRequestError("VALIDATION_FAILED");
-  const result = await ownerResult(
-    await createOwnerClient().owner.reauthenticate.$post({ json: parsed.data }),
+  const result = await authenticatedResult(
+    (signal) =>
+      createOwnerClient().owner.reauthenticate.$post(
+        { json: parsed.data },
+        { init: { signal, cache: "no-store" } },
+      ),
+    (response, generation) => ownerResult(response, generation, true),
   );
-  clearOwnerState();
+  // Same verified owner rotates its session. A paused in-memory command may
+  // continue with its original key; other tabs still invalidate their caches.
+  if (!resumeCommand) clearOwnerState();
+  publishSessionChange();
   return ownerActionSchema.parse(result);
 }
 export async function ownerSession(
@@ -264,6 +334,7 @@ export async function ownerSession(
         body: JSON.stringify(input ?? {}),
       }),
     );
+    publishSessionChange();
   } finally {
     // Also discard reads started while the auth transition was in flight.
     clearOwnerState();

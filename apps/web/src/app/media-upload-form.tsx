@@ -6,9 +6,11 @@ import type { PrivateUpload } from "./media-upload";
 export function PrivateUploadForm({
   controller,
   locale,
+  accept,
 }: {
   controller: PrivateUpload;
   locale: "en" | "ta";
+  accept?: string;
 }) {
   const state = useSyncExternalStore(
       controller.subscribe,
@@ -59,7 +61,10 @@ export function PrivateUploadForm({
           className="ui-input"
           id="private-file"
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,audio/mpeg,audio/mp4,audio/wav"
+          accept={
+            accept ??
+            "image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,audio/mpeg,audio/mp4,audio/wav"
+          }
           disabled={state.busy || state.state === "accessEnded"}
           aria-describedby="media-limits"
           onChange={(event) => {
