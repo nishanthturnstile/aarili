@@ -372,7 +372,11 @@ accounts/vendors ([evidence](agents/Shop_Directory_Implementation_Evidence.md));
 1.1.1d/#87 adds policy review and action-specific readiness
 ([evidence](agents/Shop_Policies_Implementation_Evidence.md)). Their parallel
 integration is recorded in [integration evidence](agents/Shop_Settings_Integration_Evidence.md).
-#88 retains its merged-prerequisite gates. Complete 1.1.1, real category/order integration
+#88 follows merged #85/#87 and adds unbound rule revisions and a category-neutral
+delivery/capacity/cutoff/rush preview
+([implementation and acceptance evidence](agents/Shop_Commitments_Implementation_Evidence.md)).
+Production category binding stays in 1.1.2; atomic order acceptance stays in 1.2.1.
+Complete 1.1.1, real category/order integration
 and live readiness are not declared by ticket A.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.

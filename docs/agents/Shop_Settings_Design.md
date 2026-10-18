@@ -248,8 +248,10 @@ values into append-only audit JSON. Raw research stays outside Git.
 
 Rows below define the complete parent slice's acceptance. Ticket A's executed
 checks and remaining human acceptance are tracked separately in
-[implementation evidence](Shop_Profile_Implementation_Evidence.md); B–E remain
-planned. No whole-parent-slice acceptance is claimed.
+[implementation evidence](Shop_Profile_Implementation_Evidence.md). B–D have
+merged with their ticket-local evidence; E implementation and remaining gates
+are tracked in [commitment preview evidence](Shop_Commitments_Implementation_Evidence.md).
+No whole-parent-slice acceptance is claimed.
 Ticket-local SS IDs are stable within this packet.
 
 | Check | Requirements/scenario | Evidence required / remaining integration |
