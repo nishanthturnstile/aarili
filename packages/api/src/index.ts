@@ -16,6 +16,7 @@ import { createShopPoliciesRoutes } from "./shop-policies.js";
 
 export { createShopPoliciesRoutes };
 
+import { createServiceCatalogueRoutes } from "./service-catalogue.js";
 import { createShopDirectoryRoutes } from "./shop-directory.js";
 
 import { createShopProfileRoutes } from "./shop-profile.js";
@@ -85,6 +86,7 @@ export function createApi(
     app.route("/", createShopPoliciesRoutes(owner));
     app.route("/", createShopCommitmentsRoutes(owner));
     app.route("/", createShopDirectoryRoutes(owner));
+    app.route("/", createServiceCatalogueRoutes(owner));
 
     app.route("/", createWearerRoutes(owner));
     app.route("/", createGuardianRoutes(owner));

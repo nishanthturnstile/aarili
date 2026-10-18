@@ -29,6 +29,10 @@ import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
+  type ServiceCatalogueContext,
+  serviceCatalogueDraftWorkflow,
+} from "@aarili/core/service-catalogue";
+import {
   type ShopCalendarContext,
   shopCalendarDraftWorkflow,
 } from "@aarili/core/shop-calendar";
@@ -77,6 +81,7 @@ import { draftRepository } from "@aarili/db/draft-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
+import { serviceCatalogueRepository } from "@aarili/db/service-catalogue-repository";
 import { shopCalendarRepository } from "@aarili/db/shop-calendar-repository";
 import { shopCommitmentsRepository } from "@aarili/db/shop-commitments-repository";
 import { shopDirectoryRepository } from "@aarili/db/shop-directory-repository";
@@ -218,6 +223,11 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: ShopPoliciesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerServiceCatalogue: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceCatalogueContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerShopDirectory: <T>(
     headers: Headers,
     shopId: string,
@@ -1195,6 +1205,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "service.catalogue",
+        serviceCatalogueDraftWorkflow(catalogueContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "shop.calendar",
         shopCalendarDraftWorkflow({
           shopId,
@@ -1275,6 +1289,27 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) =>
       run(guardianContext(tx, shopId, userId)),
+    );
+  }
+  function catalogueContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): ServiceCatalogueContext {
+    return {
+      shopId,
+      actorId,
+      repository: serviceCatalogueRepository(tx, shopId),
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerServiceCatalogue<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceCatalogueContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(catalogueContext(tx, shopId, actorId)),
     );
   }
   function commitmentContext(
@@ -1733,6 +1768,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerShopDirectory,
+    withOwnerServiceCatalogue,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,

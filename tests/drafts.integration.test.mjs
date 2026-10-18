@@ -45,6 +45,7 @@ async function fixture(run) {
         withOwnerDraft(headers, shopId, run) {
           return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
             assert.deepEqual([...ctx.workflows.keys()].sort(), [
+              "service.catalogue",
               "shop.calendar",
               "shop.commitments",
               "shop.directory",

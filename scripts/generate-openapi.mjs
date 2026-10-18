@@ -6,6 +6,7 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
 import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
 import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
 import { createShopProfileRoutes } from "@aarili/api/shop-profile";
@@ -123,6 +124,16 @@ api.route(
 );
 api.route(
   "/",
+  createServiceCatalogueRoutes({
+    origin: "http://127.0.0.1:3000",
+    commandLimit: async () => null,
+    withOwnerServiceCatalogue: async () => {
+      throw Error("Offline catalogue generation");
+    },
+  }),
+);
+api.route(
+  "/",
   createShopDirectoryRoutes({
     origin: "http://127.0.0.1:3103",
     commandLimit: async () => {
@@ -167,6 +178,17 @@ assert.equal(
   4,
   "Directory routes must be present in offline OpenAPI",
 );
+for (const [path, method] of [
+  ["list", "post"],
+  ["entries/{id}", "get"],
+  ["history", "post"],
+  ["revisions/{id}", "get"],
+  ["definitions/{id}", "get"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/settings/catalogue/${path}`]?.[method],
+    `Missing catalogue contract ${method} ${path}`,
+  );
 
 await mkdir("test-results", { recursive: true });
 await writeFile(

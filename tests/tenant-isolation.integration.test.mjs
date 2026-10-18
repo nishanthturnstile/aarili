@@ -38,6 +38,9 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "serviceCatalogueRepository.current/read/definition/list/history/codeOwner/append/advance/origin",
+      "shops/:shopId/settings/catalogue/list/entries/history/revisions/definitions",
+      "service.catalogue draft promotion",
       "shopDirectoryRepository.current/read/list/history/configuration/append/advance/origin",
       "shops/:shopId/settings/directory/list/entries/history/revisions",
       "shop.directory draft promotion",
@@ -509,6 +512,10 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.media_reference",
       "public.privacy_notice_version",
       "public.product_event",
+      "public.service_catalogue_availability",
+      "public.service_catalogue_entry",
+      "public.service_catalogue_reference",
+      "public.service_catalogue_revision",
       "public.shop",
       "public.shop_calendar",
       "public.shop_calendar_revision",
@@ -702,6 +709,10 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.media_reference",
         "public.privacy_notice_version",
         "public.product_event",
+        "public.service_catalogue_availability",
+        "public.service_catalogue_entry",
+        "public.service_catalogue_reference",
+        "public.service_catalogue_revision",
         "public.shop",
         "public.shop_calendar",
         "public.shop_calendar_revision",

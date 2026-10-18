@@ -87,6 +87,14 @@
     "./shop-commitments-client": {
       "types": "./dist/shop-commitments-client.d.ts",
       "import": "./dist/shop-commitments-client.js"
+    },
+    "./service-catalogue": {
+      "types": "./dist/service-catalogue.d.ts",
+      "import": "./dist/service-catalogue.js"
+    },
+    "./service-catalogue-client": {
+      "types": "./dist/service-catalogue-client.d.ts",
+      "import": "./dist/service-catalogue-client.js"
     }
   },
   "scripts": {

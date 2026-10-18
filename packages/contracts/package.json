@@ -71,6 +71,10 @@
     "./shop-commitments": {
       "types": "./dist/shop-commitments.d.ts",
       "import": "./dist/shop-commitments.js"
+    },
+    "./service-catalogue": {
+      "types": "./dist/service-catalogue.d.ts",
+      "import": "./dist/service-catalogue.js"
     }
   },
   "scripts": {
