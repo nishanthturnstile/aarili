@@ -72,12 +72,18 @@ jobs:
           GOOGLE_PROD_CLIENT_SECRET: aarili-google-private-probe-issue-14
         run: pnpm --filter @aarili/web build && node scripts/check-artifacts.mjs
 
-  browser:
-    name: Browser smoke and accessibility
+  browser_matrix:
+    name: Browser checks (${{ matrix.viewport }})
     # Run the full browser suite for release promotion, not every PR into development.
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # The full suite now has 150 cases; keep each device isolated rather than
+    # cancelling the serial three-device run before its first device completes.
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [phone, tablet, desktop]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -92,8 +98,22 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Linux Chromium and system dependencies
         run: pnpm exec playwright install --with-deps chromium
-      - name: Phone, tablet and desktop smoke/axe with disposable PostgreSQL
-        run: pnpm test:ui
+      - name: Device smoke/axe with disposable PostgreSQL
+        run: pnpm test:ui --project=${{ matrix.viewport }}
+
+  browser:
+    # Keep the existing protected-branch required check name. It must fail when
+    # any device fails, is cancelled or is skipped; no continue-on-error path.
+    name: Browser smoke and accessibility
+    needs: browser_matrix
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require all three device jobs to pass
+        env:
+          BROWSER_RESULT: ${{ needs.browser_matrix.result }}
+        run: test "$BROWSER_RESULT" = success
 
   audit:
     name: Dependency audit
