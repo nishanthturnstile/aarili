@@ -1,4 +1,5 @@
 /// <reference path="../node_modules/bun-types/sqlite.d.ts" />
+
 import {
   createHash,
   createHmac,
@@ -27,6 +28,10 @@ import type { CustomerContext } from "@aarili/core/customers";
 import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
+import {
+  type MeasurementFormsContext,
+  measurementFormsDraftWorkflow,
+} from "@aarili/core/measurement-forms";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
   type ServiceCatalogueContext,
@@ -78,6 +83,7 @@ import { commandRepository } from "@aarili/db/command-repository";
 import { customerRepository } from "@aarili/db/customer-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
@@ -227,6 +233,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: ServiceCatalogueContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
+  withOwnerMeasurementForms: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementFormsContext) => Promise<T>,
   ) => Promise<{ data: T; headers: Headers }>;
   withOwnerShopDirectory: <T>(
     headers: Headers,
@@ -1205,6 +1216,12 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "measurement.forms",
+        measurementFormsDraftWorkflow(
+          measurementFormsContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
         "service.catalogue",
         serviceCatalogueDraftWorkflow(catalogueContext(tx, shopId, userId)),
       );
@@ -1310,6 +1327,53 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, actorId) =>
       run(catalogueContext(tx, shopId, actorId)),
+    );
+  }
+  function measurementFormsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): MeasurementFormsContext {
+    return {
+      shopId,
+      actorId,
+      repository: measurementFormsRepository(tx, shopId),
+      catalogue: catalogueContext(tx, shopId, actorId),
+      async illustrationAllowed(id, version) {
+        const repository = mediaRepository(tx, shopId);
+        await repository.lock(id);
+        const a = await repository.read(id);
+        if (
+          a?.status !== "ready" ||
+          a.version !== version ||
+          a.purpose !== "manual-pattern" ||
+          a.minor ||
+          !a.contentType.startsWith("image/")
+        )
+          return false;
+        const policy = configuration.mediaAdapters?.(
+          tx,
+          shopId,
+          actorId,
+        ).policy;
+        const access = await policy?.authorize({
+          action: "read",
+          subjectId: a.subjectId,
+          purpose: a.purpose,
+          contentType: a.contentType,
+        });
+        return !!access && !access.minor;
+      },
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerMeasurementForms<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementFormsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(measurementFormsContext(tx, shopId, actorId)),
     );
   }
   function commitmentContext(
@@ -1769,6 +1833,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopPolicies,
     withOwnerShopDirectory,
     withOwnerServiceCatalogue,
+    withOwnerMeasurementForms,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,

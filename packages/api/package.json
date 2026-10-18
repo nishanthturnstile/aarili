@@ -95,6 +95,18 @@
     "./service-catalogue-client": {
       "types": "./dist/service-catalogue-client.d.ts",
       "import": "./dist/service-catalogue-client.js"
+    },
+    "./measurement-forms": {
+      "types": "./dist/measurement-forms.d.ts",
+      "import": "./dist/measurement-forms.js"
+    },
+    "./measurement-forms-client": {
+      "types": "./dist/measurement-forms-client.d.ts",
+      "import": "./dist/measurement-forms-client.js"
+    },
+    "./media-client": {
+      "types": "./dist/media-client.d.ts",
+      "import": "./dist/media-client.js"
     }
   },
   "scripts": {
