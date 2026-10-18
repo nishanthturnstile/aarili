@@ -11,6 +11,7 @@ import {
   type OwnerRequest,
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { ServiceCatalogueScreen } from "./service-catalogue-screen";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
 import { ShopCommitmentsScreen } from "./shop-commitments-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
@@ -45,13 +46,19 @@ export function OwnerWorkspace({
 }) {
   const t = useTranslations();
   const [section, setSection] = useState<
-    "profile" | "calendar" | "policies" | "directory" | "commitments"
+    | "profile"
+    | "calendar"
+    | "policies"
+    | "directory"
+    | "commitments"
+    | "catalogue"
   >(() => {
     if (typeof window === "undefined") return "profile";
     const params = new URL(window.location.href).searchParams;
     const selected = params.get("section");
     if (
       selected === "commitments" ||
+      selected === "catalogue" ||
       selected === "directory" ||
       selected === "policies" ||
       selected === "calendar" ||
@@ -61,7 +68,13 @@ export function OwnerWorkspace({
     return params.has("draft") ? "calendar" : "profile";
   });
   function selectSection(
-    next: "profile" | "calendar" | "policies" | "directory" | "commitments",
+    next:
+      | "profile"
+      | "calendar"
+      | "policies"
+      | "directory"
+      | "commitments"
+      | "catalogue",
   ) {
     if (!guard.safe() && !window.confirm(t("calendar.discard"))) return;
     const url = new URL(window.location.href);
@@ -127,6 +140,7 @@ export function OwnerWorkspace({
                   "directory",
                   "policies",
                   "commitments",
+                  "catalogue",
                 ] as const
               ).map((item) => (
                 <Button
@@ -142,14 +156,22 @@ export function OwnerWorkspace({
                         ? "calendar.title"
                         : item === "directory"
                           ? "directory.title"
-                          : item === "commitments"
-                            ? "commitments.title"
-                            : "policies.title",
+                          : item === "catalogue"
+                            ? "catalogue.title"
+                            : item === "commitments"
+                              ? "commitments.title"
+                              : "policies.title",
                   )}
                 </Button>
               ))}
             </nav>
-            {section === "commitments" ? (
+            {section === "catalogue" ? (
+              <ServiceCatalogueScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "commitments" ? (
               <ShopCommitmentsScreen
                 shopId={entry.shop.shopId}
                 queries={queries}

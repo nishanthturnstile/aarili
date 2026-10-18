@@ -392,6 +392,20 @@ and live readiness are not declared by ticket A.
 
 ##### Vertical Slice 1.1.2 — Configure Services, Templates and Simple Mode
 
+**REA research/design and approved delivery (18 October 2026):** the
+[sanitized evidence ledger](agents/Service_Templates_REA_Evidence.md) records
+18 actual REA evidence IDs from bounded Nool/TailorMan investigation. The
+[independent design](agents/Service_Templates_Design.md) and
+[approved five-ticket packet](agents/Service_Templates_Ticket_Packet.md) cover
+SET-03/04/10 and the existing SET-08/11 category-binding seam. #97-#101 are
+published with native blockers. Selected A (#97), with all direct blockers
+merged, implements catalogue definitions, pieces/add-ons, availability/history
+and category warning authoring; see [implementation evidence](agents/Service_Catalogue_Implementation_Evidence.md).
+B-E remain gated on merged prerequisites; E implements the existing resolver.
+Full 1.1.2 acceptance, production content/policy approval and live-data activation
+remain pending. Orders, measurements, production and atomic live capacity
+acceptance remain in their existing later slices.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** SET-03, SET-04, SET-10. Scenarios: Requirement-derived checks; apply §33.1.
 - **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.

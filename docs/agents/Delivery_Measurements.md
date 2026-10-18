@@ -1,5 +1,39 @@
 # Delivery measurements
 
+## Service catalogue (#97 / 1.1.2a), 18 October 2026
+
+- Implementation session observed starting **16:37:04 IST** during initial
+  inventory after owner approval of A–E and proceeding with A. First-edit time
+  and active coding duration were not separately instrumented; do not reconstruct
+  them from Git timestamps. Existing checkout, `codex/service-catalogue`, current
+  development `964b863`; all ten direct blockers verified merged. No worktree.
+- Publication created #97–#101 with native blockers and read back all bodies and
+  edges. Initial package build 10.516s; unit/property 3/3 (0.384s); initial
+  PostgreSQL 2/2 (15.45s); scoped PostgreSQL 8 selected cases (67.43s). A test
+  callback, formatting and offline OpenAPI registration failures were corrected.
+- Exploratory browser attempts hit unchanged runtime admission limits during
+  rapid fixture creation. Tests now wait/retry; runtime limits remain intact.
+  Clean frozen install/export check passed with fresh package build 19.728s and
+  unchanged lockfile. See [implementation ledger](Service_Catalogue_Implementation_Evidence.md).
+- Corrected browser workflow passed 3/3 (7.2m); final fast gate before finish
+  fixes exited 0 (211 units, build14.09s). The independent reviewer requested
+  three display/decision fixes; one batch applied, affected fast gate exited0
+  (211 units, build12.88s). Final recapture/verdict is pending. The unchanged
+  jobs property deadline failure and isolated/full follow-up passes are retained
+  in the ledger. These are verification/rework observations, not active coding time.
+- Fresh pinned-runtime synthetic host was first observed ready at **17:09:57 IST**,
+  http://127.0.0.1:59715/settings?section=catalogue, with HTTP 200 checked after startup.
+  Review-ready, final verification, publication/CI, owner review and merge are pending. These overlapping phases are not summed as active work.
+
+- Local implementation/owner-review packet ready at **2026-10-18T17:41:13+05:30**. Final phone
+  and tablet passed after source corrections; desktop scoped rerun passed1/1
+  (2.9m), explicitly1440x900, after a documented autosave fixture race. Final33
+  captures inspected; reviewer scored all three fixes resolved, disposition ship
+  at the fix-list scope; documenter conformance complete. Final lint exited0.
+  Current review host http://127.0.0.1:57597/settings?section=catalogue was
+  observed ready17:31:39 IST and HTTP200 checked17:31:50. No active coding time
+  is inferred. PR publication/CI, owner review, merge and deployment remain pending.
+
 ## Commitment preview (#88 / 1.1.1e), 18 October 2026
 
 - Existing root checkout, `codex/commitment-preview` from integrated development
