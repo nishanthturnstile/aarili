@@ -34,6 +34,17 @@
   observed ready17:31:39 IST and HTTP200 checked17:31:50. No active coding time
   is inferred. PR publication/CI, owner review, merge and deployment remain pending.
 
+- Integration closeout: [PR #102](https://github.com/nishanthturnstile/aarili/pull/102)
+  opened **17:42:03 IST** and the owner squash-merged it at **18:09:03 IST**
+  on 18 October 2026, commit `797c3d0095635d5378e6b267fbd21e5c0fd7b7b9`.
+  PR-to-merge elapsed time was 27 minutes, not active implementation time.
+  [CI run 39126302479](https://github.com/nishanthturnstile/aarili/actions/runs/39126302479)
+  passed Fast verification (17:42:09–17:43:13 IST, 64s) and Dependency audit
+  (17:42:08–17:42:29 IST, 21s). PR creation to reported job start was 6s/5s;
+  runner queue duration is not independently known. #97 is closed. The earlier
+  pending statements above are pre-publication snapshots; production/human
+  acceptance, promotion and live-data gates remain separate.
+
 ## Commitment preview (#88 / 1.1.1e), 18 October 2026
 
 - Existing root checkout, `codex/commitment-preview` from integrated development

@@ -392,6 +392,14 @@ and live readiness are not declared by ticket A.
 
 ##### Vertical Slice 1.1.2 — Configure Services, Templates and Simple Mode
 
+**REA delivery brief (18 October 2026):** the
+[Services, Templates and Simple Mode prompt](agents/Service_Templates_REA_Prompt.md)
+uses Nool Garment Masters and TailorMan's public Item Types demo as research
+candidates. It preserves owner-approved forms/templates, versioned catalogue
+identities and the existing 1.1.1 category-binding seam. It does not approve
+ticket publication, record runtime findings or move actual order acceptance
+from 1.2.1 into configuration previews. Scope and dependencies remain unchanged.
+
 **REA research/design and approved delivery (18 October 2026):** the
 [sanitized evidence ledger](agents/Service_Templates_REA_Evidence.md) records
 18 actual REA evidence IDs from bounded Nool/TailorMan investigation. The
