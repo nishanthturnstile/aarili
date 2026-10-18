@@ -28,6 +28,14 @@
 - Local implementation/review packet complete by **12:17:20 IST**, including
   fresh independent documenter conformance. This is review-ready time, not owner
   acceptance or merge. Synthetic host HTTP 200 was checked at 12:16:58 IST.
+- Implementation commit `84f7cdb` at 12:17:55 IST; draft
+  [PR #93](https://github.com/nishanthturnstile/aarili/pull/93) published at
+  **12:18:19 IST**, targets development and closes #88 on merge. T3 linked it
+  immediately. Initial Fast verification started 12:18:25 and audit 12:18:24
+  (six/five seconds after publication) in
+  [run 39105340366](https://github.com/nishanthturnstile/aarili/actions/runs/39105340366).
+  Both were in progress at the first observation; no hosted success or merge
+  is claimed. This metadata-only follow-up does not change verified source.
 
 ## Parallel #86/#87 publication and integration, 17 October 2026
 

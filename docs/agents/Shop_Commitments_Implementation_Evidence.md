@@ -196,6 +196,15 @@ Logs are retained in ignored `.scratch/commitments-*`; they are not production d
   The local review packet was complete by **12:17:20 IST**. Owner acceptance,
   hosted CI and publication/merge metadata remain separate from local results.
 
+Publication: implementation commit `84f7cdb`; draft
+[PR #93](https://github.com/nishanthturnstile/aarili/pull/93) created at
+2026-10-18 12:18:19 IST against `development`, linked to this T3 thread and
+confirmed to close #88 on merge. Initial required Fast verification and Dependency
+audit were in progress in
+[run 39105340366](https://github.com/nishanthturnstile/aarili/actions/runs/39105340366).
+This metadata-only follow-up preserves the recorded implementation hashes.
+No merge, promotion, deployment or production authority was performed.
+
 ## Owner review packet
 
 Running synthetic review observed ready at **2026-10-18 12:16:29 IST**:
