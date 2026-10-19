@@ -45,10 +45,15 @@ async function fixture(run) {
         withOwnerDraft(headers, shopId, run) {
           return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
             assert.deepEqual([...ctx.workflows.keys()].sort(), [
+              "measurement.forms",
+              "service.catalogue",
+              "service.commitment-bindings",
+              "service.templates",
               "shop.calendar",
               "shop.commitments",
               "shop.directory",
               "shop.policies",
+              "shop.presentation",
             ]);
             assert.ok(ctx.instrumentation);
             // Only test-only workflow construction obtains the transaction; the

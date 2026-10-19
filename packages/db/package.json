@@ -215,6 +215,42 @@
     "./shop-commitments-schema": {
       "types": "./dist/shop-commitments-schema.d.ts",
       "import": "./dist/shop-commitments-schema.js"
+    },
+    "./service-catalogue-repository": {
+      "types": "./dist/service-catalogue-repository.d.ts",
+      "import": "./dist/service-catalogue-repository.js"
+    },
+    "./repositories/service-catalogue": {
+      "types": "./dist/repositories/service-catalogue.d.ts",
+      "import": "./dist/repositories/service-catalogue.js"
+    },
+    "./service-catalogue-schema": {
+      "types": "./dist/service-catalogue-schema.d.ts",
+      "import": "./dist/service-catalogue-schema.js"
+    },
+    "./measurement-forms-repository": {
+      "types": "./dist/measurement-forms-repository.d.ts",
+      "import": "./dist/measurement-forms-repository.js"
+    },
+    "./repositories/measurement-forms": {
+      "types": "./dist/repositories/measurement-forms.d.ts",
+      "import": "./dist/repositories/measurement-forms.js"
+    },
+    "./measurement-forms-schema": {
+      "types": "./dist/measurement-forms-schema.d.ts",
+      "import": "./dist/measurement-forms-schema.js"
+    },
+    "./service-templates-repository": {
+      "types": "./dist/service-templates-repository.d.ts",
+      "import": "./dist/service-templates-repository.js"
+    },
+    "./repositories/service-templates": {
+      "types": "./dist/repositories/service-templates.d.ts",
+      "import": "./dist/repositories/service-templates.js"
+    },
+    "./service-templates-schema": {
+      "types": "./dist/service-templates-schema.d.ts",
+      "import": "./dist/service-templates-schema.js"
     }
   },
   "scripts": {

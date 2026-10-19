@@ -99,6 +99,18 @@
     "./commitment-evaluator": {
       "types": "./dist/commitment-evaluator.d.ts",
       "import": "./dist/commitment-evaluator.js"
+    },
+    "./service-catalogue": {
+      "types": "./dist/service-catalogue.d.ts",
+      "import": "./dist/service-catalogue.js"
+    },
+    "./measurement-forms": {
+      "types": "./dist/measurement-forms.d.ts",
+      "import": "./dist/measurement-forms.js"
+    },
+    "./service-templates": {
+      "types": "./dist/service-templates.d.ts",
+      "import": "./dist/service-templates.js"
     }
   },
   "scripts": {

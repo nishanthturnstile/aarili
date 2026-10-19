@@ -1,5 +1,50 @@
 # Delivery measurements
 
+## Service catalogue (#97 / 1.1.2a), 18 October 2026
+
+- Implementation session observed starting **16:37:04 IST** during initial
+  inventory after owner approval of A–E and proceeding with A. First-edit time
+  and active coding duration were not separately instrumented; do not reconstruct
+  them from Git timestamps. Existing checkout, `codex/service-catalogue`, current
+  development `964b863`; all ten direct blockers verified merged. No worktree.
+- Publication created #97–#101 with native blockers and read back all bodies and
+  edges. Initial package build 10.516s; unit/property 3/3 (0.384s); initial
+  PostgreSQL 2/2 (15.45s); scoped PostgreSQL 8 selected cases (67.43s). A test
+  callback, formatting and offline OpenAPI registration failures were corrected.
+- Exploratory browser attempts hit unchanged runtime admission limits during
+  rapid fixture creation. Tests now wait/retry; runtime limits remain intact.
+  Clean frozen install/export check passed with fresh package build 19.728s and
+  unchanged lockfile. See [implementation ledger](Service_Catalogue_Implementation_Evidence.md).
+- Corrected browser workflow passed 3/3 (7.2m); final fast gate before finish
+  fixes exited 0 (211 units, build14.09s). The independent reviewer requested
+  three display/decision fixes; one batch applied, affected fast gate exited0
+  (211 units, build12.88s). Final recapture/verdict is pending. The unchanged
+  jobs property deadline failure and isolated/full follow-up passes are retained
+  in the ledger. These are verification/rework observations, not active coding time.
+- Fresh pinned-runtime synthetic host was first observed ready at **17:09:57 IST**,
+  http://127.0.0.1:59715/settings?section=catalogue, with HTTP 200 checked after startup.
+  Review-ready, final verification, publication/CI, owner review and merge are pending. These overlapping phases are not summed as active work.
+
+- Local implementation/owner-review packet ready at **2026-10-18T17:41:13+05:30**. Final phone
+  and tablet passed after source corrections; desktop scoped rerun passed1/1
+  (2.9m), explicitly1440x900, after a documented autosave fixture race. Final33
+  captures inspected; reviewer scored all three fixes resolved, disposition ship
+  at the fix-list scope; documenter conformance complete. Final lint exited0.
+  Current review host http://127.0.0.1:57597/settings?section=catalogue was
+  observed ready17:31:39 IST and HTTP200 checked17:31:50. No active coding time
+  is inferred. PR publication/CI, owner review, merge and deployment remain pending.
+
+- Integration closeout: [PR #102](https://github.com/nishanthturnstile/aarili/pull/102)
+  opened **17:42:03 IST** and the owner squash-merged it at **18:09:03 IST**
+  on 18 October 2026, commit `797c3d0095635d5378e6b267fbd21e5c0fd7b7b9`.
+  PR-to-merge elapsed time was 27 minutes, not active implementation time.
+  [CI run 39126302479](https://github.com/nishanthturnstile/aarili/actions/runs/39126302479)
+  passed Fast verification (17:42:09–17:43:13 IST, 64s) and Dependency audit
+  (17:42:08–17:42:29 IST, 21s). PR creation to reported job start was 6s/5s;
+  runner queue duration is not independently known. #97 is closed. The earlier
+  pending statements above are pre-publication snapshots; production/human
+  acceptance, promotion and live-data gates remain separate.
+
 ## Commitment preview (#88 / 1.1.1e), 18 October 2026
 
 - Existing root checkout, `codex/commitment-preview` from integrated development
@@ -578,3 +623,205 @@ further process change separately; retain the required verification and review.
   `http://127.0.0.1:49774/sign-in`. Hosted CI, owner review/merge and finished-product
   human observations remain pending. No customer implementation timer is started
   for publication of its research/ticket packet.
+
+## Issue #98 — measurement form definitions
+
+- Implementation session observed 2026-10-18T19:34:34+05:30 during pre-edit inventory; exact first-edit time was not instrumented. Work in the existing checkout, branch `codex/1.1.2b-measurement-forms`, base `29423f6`. Exact active duration remains unknown.
+- Baseline: PR #103 Fast verification and Dependency audit passed; all direct blockers #97/#57/#58 merged. Review-ready, first usable review, verification and publication timing pending.
+- Final local fast gate observed complete **20:01:39 IST**, exit 0: 216 unit/property
+  tests, lint/Knip/strict/negative checks/OpenAPI and production build (14.086s).
+  Final focused PostgreSQL started **20:02:00 IST**, 5/5, 40.82s, exit 0; includes
+  history/isolation/concurrency/rollback/private media and populated upgrade.
+- Corrected browser matrix finished by observed **20:06:06 IST**, 3/3, 4.0m,
+  exit 0. Original rate-limit/locator failures are retained in the
+  [form evidence](Measurement_Forms_Implementation_Evidence.md), as are helper
+  setup corrections. These are verification/rework observations, not active coding time.
+- Current synthetic review host first observed ready **20:05:04 IST**; HTTP 200
+  **20:05:39 IST**, http://127.0.0.1:59673/settings?section=measurementForms.
+  Exact first-ready time was not separately instrumented. Seeding uses real core
+  commands in a disposable synthetic shop; UI admission remains unchanged.
+- Clean frozen install/export check passed with unchanged lockfile. Actual active
+  implementation/verification/rework duration and CI queue/execution are unknown
+  or not applicable. Review-ready closeout follows the final supplementary check;
+  publication, owner review/merge, actual Android, fluent Tamil and AT are pending.
+- Local implementation and owner-review packet ready **2026-10-18T20:10:24.6268398+05:30** after the supplementary unavailable/read-only history check passed 6/6 (both languages, all three sizes; source availability restored). Active time remains unknown; publication and human review remain pending.
+- Owner requested check-in, PR publication, check repairs and merge on 18 October.
+  Publication preflight observed **21:14:52 IST**: development base and source
+  fingerprint unchanged. Prior PostgreSQL/browser/clean-install evidence is reused;
+  fresh fast verification is running. PR/hosted CI/merge times remain pending.
+  Human Tamil/device/AT and production-content acceptance remain separate.
+- Fresh publication fast gate observed complete **21:17:28 IST**, exit 0:
+  216/216 unit/property tests, strict/negative types, lint/Knip/OpenAPI and build
+  (12 tasks, 27.174s). Runtime source fingerprint unchanged; no heavy unchanged-input
+  PostgreSQL/browser rerun. Publication follows this completed gate.
+
+## Issue #101 — category commitment bindings
+
+- Exact implementation start was not instrumented. The first captured in-session
+  wall clock, **2026-10-18T21:43:17.543+05:30**, occurred after initial contract
+  edits; earlier active duration is unknown. Approved isolated T3 worktree
+  `t3-c63ef8f9`, branch `codex/commitment-bindings-101`, base `f604acb`. Owner
+  approved parallel #99/#101; no extra worktree. Baseline #104 required checks
+  passed and the clean local base was verified.
+- First captured focused unit start **21:51:37 IST**, 13/13 passed (836ms).
+  Implementation/rework active time is unknown, not reconstructed from commits.
+  [Issue evidence](Commitment_Bindings_Implementation_Evidence.md) retains the
+  syntax, test-fixture, encoding, limiter and recovery corrections.
+- Successful source fast gate #3: lease **22:05:50.415–22:07:18.924 IST**,
+  219/51 plus strict/negative/OpenAPI/build. Later wording/source-loading changes
+  required affected verification: final application fast gate #5 held
+  **22:35:54.852–22:37:27.428 IST**, exit 0; 219/51 (13.20s), 12-task build
+  (12.428s). Final source-only lint/Knip completed by **22:47:54 IST**, exit 0.
+- Focused binding PostgreSQL **5/5**, 38.68s; incumbent/resolver regression
+  **14 passed / 20 excluded**, 111.28s, exit 0. Required phone/tablet/900px desktop
+  bilingual recovery/axe workflows passed; fresh incumbent unbound phone passed
+  33.8s. Final all-size review-host wording/source-outage/preview/axe/reflow passed
+  **22:45:39.680 IST**, six language/size states plus three outage/retry cases.
+- Shared resource queueing is separately observable in the lease logs. For
+  example final wording fast gate #4 waited **22:24:23.530–22:30:33.902 IST**
+  (370.372s) behind #99's gates. Queue wait and overlapping implementation work
+  are not added together as active coding time. All heavy gates used exclusive
+  leases and isolated disposable databases/builds/ports.
+- Frozen clean install/new export imports passed **22:43:13.481–22:44:14.573 IST**
+  (61.092s), fresh package build 15.049s, lockfile unchanged. Production synthetic
+  review host first observed ready **22:45:26.0248223 IST**, HTTP 200,
+  `http://127.0.0.1:53330/settings?section=commitments`; private access and exact
+  seeded URL are in this worktree's ignored review-host file.
+- Initial review packet was available by **22:48:24 IST**. A same-session saved
+  draft-list gap found during final review was corrected: acknowledged rows merge
+  by ID/version, promoted rows leave the active list and save/close/resume works
+  without reload. Final application fast gate #6 passed **22:53:37.824–22:55:07.199
+  IST** (89.375s), 219/51 (11.35s), build 12.503s. The updated full 1440×900
+  browser acceptance passed **22:55:53.504–22:58:28.250 IST**, including the new
+  same-session flow. Backend/contract/export inputs were unchanged and their
+  passing evidence was reused.
+- The first child host was cleanly stopped; final rebuilt host observed ready
+  **22:59:38.1223328 IST**, HTTP 200, `http://127.0.0.1:63057/settings?section=commitments`.
+  Final bilingual three-size source-outage/preview/axe/reflow check passed
+  **23:00:42.297 IST** (11.983s). Final local review packet/source fingerprint
+  confirmed by observed **23:01:34 IST**; local commit metadata follows closeout.
+  Hosted CI, publication/owner review/merge, actual Android,
+  fluent Tamil, assistive technology and production-content/live-data acceptance
+  remain pending. No push, PR, issue write, deployment or activation was made.
+- Parent review regression reproduced a concurrent mixed-category preview at
+  **23:06:13 IST** (15-day calculation with 7-day source references). The initial
+  retest still imported the old compiled package; both failures are retained.
+  After correcting the source and rebuilding, fresh fast verification passed
+  **23:07:35.886–23:09:10.872 IST**, 219/51 and all component gates. The full
+  focused PostgreSQL suite passed **6/6**, 44.79s, ending **23:09:57.208 IST**.
+  Exact validated category values now remain consistent with preview sources.
+  Replacement production host observed ready **23:11:05.830 IST**, port 61548;
+  final six bilingual size states and three outage/retry checks passed by
+  **23:11:22.732 IST**. Review/rework time is recorded separately from the
+  child's earlier delivery; owner/device/Tamil/AT and publication gates remain.
+
+## Issue #99 ? operating templates and exact service manifests
+
+- Implementation began 2026-10-18T21:41:03+05:30 (first capability edit follows this observation), owner-approved isolated worktree `t3-53d0d7c3`, branch `codex/operating-templates-99`, integrated base `f604acb`. Frozen dependency install completed. Baseline PR #104 Fast verification and Dependency audit passed; native blockers #97/#98 closed via merged #102/#104.
+- Final verification, first usable review and review-ready timings pending. Active duration unknown; publication/merge/deployment not authorized.
+- Initial complete fast gate: 21:55:14.632–21:57:45.185 IST, exit 0, 222 tests,
+  lint/Knip/strict/negative types/OpenAPI and production build. Self-review then
+  corrected comma entry, stale-form removal, excluded-scope predecessor validation,
+  exact historical preview binding and two shell-encoded Tamil literals; an added
+  actor/hash test and generated graph case extend the final coverage.
+- Corrected runtime fast gate waited 21:58:15.445–22:04:15.697 for #101's lease,
+  then ran 22:04:15.697–22:05:47.933 IST, exit 0, **223/223** tests and all fast
+  components; build task total 14.406s. Offline generator was subsequently extended
+  additively for all six template paths: focused Biome and generation passed,
+  **59 paths**, no runtime-source change. Initial PostgreSQL: 4/4 in 72.74s;
+  corrected-source PostgreSQL acquired the lease at 22:07:21.029 IST.
+- Corrected PostgreSQL completed 22:07:52.214 IST, exit 0, 4/4 in 30.52s.
+  First browser matrix acquired the lease at 22:08:42.114 and completed
+  22:12:43.958 IST, exit 0, 3/3 in 4.0m. Direct Tamil-flow preparation exposed
+  review completeness/focus refinements; a fresh web build and six English/Tamil
+  viewport cases are queued under the same lease. Unchanged core/DB checks are
+  retained. Active implementation/rework time remains unknown.
+- Final full bilingual workflow lease: queued 22:16:21.940, acquired
+  22:21:07.133, completed 22:28:55.039 IST, exit 0; fresh production web build and
+  **6/6** workflows (7.5m), plus explicit strict web types/lint/Knip. Frozen clean
+  install/build/46 export imports completed 22:29:57.753, exit 0, unchanged lock.
+- Supplementary read-only history axe found moderate heading-order and duplicate
+  landmark defects: original 1 failure / 2 not run, exit 1, completed
+  22:30:27.930. Local screenshot/context/trace and raw log preserved. Semantic-only
+  fixes are queued for affected build and three bilingual history/reflow cases;
+  unchanged business/core/DB/export evidence is retained.
+- Corrected history lease acquired by the 22:34:23 observation; its fresh web
+  build and 3/3 bilingual history/axe/reflow tests passed, exit 0, ending
+  **22:35:38.961 IST** (browser 58.6s). Final explicit web types, root lint/Knip,
+  offline OpenAPI (59 paths) and diff checks pass. Source fingerprint and original
+  failures are in the [issue evidence](Service_Templates_Implementation_Evidence.md).
+- Hidden synthetic review process 48928 started **22:35:55.427 IST**; first
+  observed private-file/HTTP 200 readiness **22:36:21.588 IST** at
+  http://127.0.0.1:56860/settings?section=serviceTemplates. Earlier exact ready
+  time was not separately instrumented. Review packet/source closeout observed
+  **22:37:54.992 IST**. Active coding/rework time remains unknown; queue intervals
+  are separate from active implementation. Local commit preparation follows.
+- No hosted CI, publication, owner review/merge or deployment occurred. Fluent
+  Tamil, physical Android, assistive technology and production content acceptance
+  remain pending. The assigned worktree and review host are retained.
+
+## Issues #99/#101 — authorized publication and sequential integration
+
+- Owner requested both feature PRs, validation fixes and merge on 19 October
+  2026. GitHub records #105 creation at **08:31:31 IST**, #106 at **08:31:42**.
+  Both were immediately T3-linked and monitored. Their unchanged tested source
+  manifests were checked before publication (581/581 and 26/26 matching files).
+- #105 hosted Fast verification **08:31:37–08:33:21 IST** (104s) and Dependency
+  audit **08:31:37–08:31:58** (21s) passed. #106's original head passed Fast
+  verification **08:31:47–08:33:08** (81s) and audit **08:31:47–08:32:07** (20s).
+  These are GitHub check timestamps, not reconstructed active implementation time.
+- #105 squash-merged after owner authorization and successful checks at
+  **08:34:27 IST**, `7d8f819`; #99 closed. Parent development was fast-forwarded.
+  Its PR-to-merge elapsed time was **2m56s**; active review duration is unknown.
+- #106 integrated that development commit in its existing worktree, retaining
+  both slices' auth/traceability records and expanding expected table/workflow
+  inventories. Combined fast gate passed **08:35:30.410–08:37:56.862 IST**,
+  226 tests/52 files, 63 OpenAPI paths and 12-task production build (28.934s).
+  Fresh affected lint passed after the two integration-test inventory edits.
+- Combined PostgreSQL selection passed **15 cases**, eight unrelated cases
+  excluded, **116.74s**, ending **08:39:54.385 IST**. Integrated browser and
+  revised-head hosted CI/merge timestamps follow once actually observed;
+  queued time is not counted as active coding. Source, commands and raw logs are
+  linked in the binding evidence packet. Full promotion, deployment, live-data
+  and human Tamil/device/AT gates remain separate.
+- Integrated desktop browser verification passed **4/4**, **5.3m**,
+  **08:39:55.111–08:45:21.024 IST**: binding recovery/publication/history,
+  English/Tamil template workflows and bilingual history axe/200% reflow.
+  Existing phone/tablet evidence is retained for unchanged presentation inputs.
+
+## Issue #100 — Simple and Detailed workflow preview
+
+- Requested and started on 19 October 2026 in the existing owner checkout,
+  branch `codex/simple-detailed-preview`, integrated base `feda53a`.
+  Direct blocker #99 closed through merged #105; integrated #106 fast/audit CI
+  passed. No worktree was created. The first capability edit timestamp was not
+  instrumented; implementation was observed in progress at 12:40:50 IST.
+- Initial package build passed. Initial typecheck caught duplicate inherited
+  translation keys; after removing those duplicates, full typecheck passed.
+  The original duplicate-key diagnostic is in the tool transcript; its log was
+  overwritten by the corrected run. Later gates use distinct evidence filenames.
+- Final verification, review-host readiness and review-ready timestamps pending.
+  Active implementation duration unknown. PR publication, merge, deployment,
+  production content and live data remain separate gates.
+- Final core/DB verification observed by **13:00:20 IST**: 13/13 PostgreSQL
+  cases, 129.06s; fresh fast gate 227/52, 64 paths, production build 18.133s.
+  Browser test setup was corrected first for an absent landmark locator and then
+  to honour real 429 admission on both competing draft save and promotion.
+  Phone full bilingual workflow passed in 1.3m; remaining size cases running.
+- Hidden synthetic review launcher 8364 started **12:58:41.494 IST**.
+  Review readiness was observed by **12:59:20.420 IST** at
+  http://127.0.0.1:61005/settings?section=serviceTemplates; HTTP 200 subsequently
+  confirmed. Exact earlier readiness time was not instrumented. Final keyboard
+  focus refinement and its affected verification remain in progress.
+- Main bilingual matrix completed **6/6**, **5.1m**, observed **13:05:48.918 IST**.
+  The earlier host was stopped cleanly for the focus refinement; affected lint,
+  Knip, strict web types and production build passed. Replacement hidden launcher
+  29148 started **13:06:42.160 IST**; final review readiness observed by
+  **13:07:00.496 IST**, http://127.0.0.1:55115/settings?section=serviceTemplates.
+  HTTP 200 confirmed **13:07:32.574 IST**.
+- Final keyboard/axe/dirty-cancel/stale-preview cases completed **3/3**, **1.1m**,
+  observed **13:07:54.492 IST**. Final automated outcome: 227 unit/property cases,
+  13 PostgreSQL cases and nine bilingual browser workflows, with the affected
+  focus build verified separately. Human Tamil/device/AT acceptance is pending;
+  active coding/wait/rework durations remain unknown. Local commit preparation
+  follows; no publication, hosted CI, merge or deployment is claimed.

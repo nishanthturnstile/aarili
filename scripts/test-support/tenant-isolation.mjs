@@ -12,6 +12,22 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "serviceTemplatesRepository.current/read/definition/list/history/append/advance/origin",
+  "shops/:shopId/settings/service-templates/list/entries/history/revisions/definitions/preview",
+  "service.templates draft promotion",
+  "serviceTemplatesRepository.presentationCurrent/History/Read/Append/Advance",
+  "shops/:shopId/settings/service-templates/presentation",
+  "shop.presentation draft promotion",
+  "measurementFormsRepository.current/read/definition/list/history/fieldSemantics/append/advance/origin",
+  "shops/:shopId/settings/measurement-forms/list/entries/history/revisions/definitions",
+  "measurement.forms draft promotion",
+  "approvedCategoryResolver.resolve/current-only",
+  "commitmentBindingsRepository.current/read/history/append/advance/origin",
+  "shops/:shopId/settings/commitments/bindings/binding-revisions/binding-history/bound-preview",
+  "service.commitment-bindings draft promotion",
+  "serviceCatalogueRepository.current/read/definition/list/history/codeOwner/append/advance/origin",
+  "shops/:shopId/settings/catalogue/list/entries/history/revisions/definitions",
+  "service.catalogue draft promotion",
   "shopDirectoryRepository.current/read/list/history/configuration/append/advance/origin",
   "shops/:shopId/settings/directory/list/entries/history/revisions",
   "shop.directory draft promotion",

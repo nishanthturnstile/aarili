@@ -333,8 +333,10 @@ test("SET-06/11 SS-05/06/07/10 AC-60 unbound preview, unknowns, reasons, IME rec
       "SYNTHETIC விதி — review only",
     );
     await button("Sign out").click();
+    await expect(page).toHaveURL(`${origin}/sign-in`);
     await expect(page.locator("#commit-ruleLabel")).toHaveCount(0);
     await page.goBack();
+    await expect(page).toHaveURL(`${origin}/sign-in`);
     await expect(page.locator("#commit-ruleLabel")).toHaveCount(0);
   });
 });

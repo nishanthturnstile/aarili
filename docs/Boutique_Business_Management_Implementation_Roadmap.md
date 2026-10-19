@@ -392,6 +392,44 @@ and live readiness are not declared by ticket A.
 
 ##### Vertical Slice 1.1.2 — Configure Services, Templates and Simple Mode
 
+**REA delivery brief (18 October 2026):** the
+[Services, Templates and Simple Mode prompt](agents/Service_Templates_REA_Prompt.md)
+uses Nool Garment Masters and TailorMan's public Item Types demo as research
+candidates. It preserves owner-approved forms/templates, versioned catalogue
+identities and the existing 1.1.1 category-binding seam. It does not approve
+ticket publication, record runtime findings or move actual order acceptance
+from 1.2.1 into configuration previews. Scope and dependencies remain unchanged.
+
+**REA research/design and approved delivery (18 October 2026):** the
+[sanitized evidence ledger](agents/Service_Templates_REA_Evidence.md) records
+18 actual REA evidence IDs from bounded Nool/TailorMan investigation. The
+[independent design](agents/Service_Templates_Design.md) and
+[approved five-ticket packet](agents/Service_Templates_Ticket_Packet.md) cover
+SET-03/04/10 and the existing SET-08/11 category-binding seam. #97-#101 are
+published with native blockers. Selected A (#97), with all direct blockers
+merged, implements catalogue definitions, pieces/add-ons, availability/history
+and category warning authoring; see [implementation evidence](agents/Service_Catalogue_Implementation_Evidence.md).
+B (#98) is selected after #97/#57/#58 merged; its local implementation defines
+versioned garment/piece measurement forms, explicit precision/applicability and
+private method references. See [form evidence](agents/Measurement_Forms_Implementation_Evidence.md).
+C (#99 / 1.1.2c) is selected after #97/#98 merged. Its implementation adds bounded
+bilingual operating-template editors, exact service manifests and honest generated
+requirements; see [template evidence](agents/Service_Templates_Implementation_Evidence.md).
+D (#100 / 1.1.2d) is selected after #99 merged. Its local implementation adds
+an attributable versioned shop presentation preference and transient Simple/Detailed
+views of one canonical requirements preview. See [presentation evidence](agents/Workflow_Presentation_Implementation_Evidence.md).
+Per-order overrides, real intake and its two-minute target remain later work.
+E (#101) is selected after #97/#88 merged, in the specifically owner-approved
+parallel #99/#101 worktrees. Its additive bindings pin canonical category,
+availability and unchanged unbound rule revisions; the shared evaluator's v2
+configuration preview keeps demand/load unknown and activation unavailable.
+See [binding implementation evidence](agents/Commitment_Bindings_Implementation_Evidence.md)
+for issue-local verification and remaining acceptance gates. No #99/#100 domain
+implementation or real booking acceptance is included in E.
+Full 1.1.2 acceptance, production content/policy approval and live-data activation
+remain pending. Orders, measurements, production and atomic live capacity
+acceptance remain in their existing later slices.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** SET-03, SET-04, SET-10. Scenarios: Requirement-derived checks; apply §33.1.
 - **Technical prerequisites:** 0.2.3, 0.4.1. Architecture constraints in §9 apply in addition to business dependencies.

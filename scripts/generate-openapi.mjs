@@ -6,6 +6,8 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
+import { createServiceTemplatesRoutes } from "@aarili/api/service-templates";
 import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
 import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
 import { createShopProfileRoutes } from "@aarili/api/shop-profile";
@@ -123,6 +125,16 @@ api.route(
 );
 api.route(
   "/",
+  createServiceCatalogueRoutes({
+    origin: "http://127.0.0.1:3000",
+    commandLimit: async () => null,
+    withOwnerServiceCatalogue: async () => {
+      throw Error("Offline catalogue generation");
+    },
+  }),
+);
+api.route(
+  "/",
   createShopDirectoryRoutes({
     origin: "http://127.0.0.1:3103",
     commandLimit: async () => {
@@ -145,6 +157,16 @@ api.route(
     },
   }),
 );
+api.route(
+  "/",
+  createServiceTemplatesRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => null,
+    withOwnerServiceTemplates: async () => {
+      throw Error("Offline template generation");
+    },
+  }),
+);
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
@@ -154,6 +176,10 @@ for (const [path, method] of [
   ["/history", "post"],
   ["/revisions/{id}", "get"],
   ["/preview", "post"],
+  ["/bindings/{categoryId}", "get"],
+  ["/binding-revisions/{id}", "get"],
+  ["/binding-history", "post"],
+  ["/bound-preview", "post"],
 ])
   assert(
     document.paths[`/api/shops/{shopId}/settings/commitments${path}`]?.[method],
@@ -167,8 +193,34 @@ assert.equal(
   4,
   "Directory routes must be present in offline OpenAPI",
 );
+for (const [path, method] of [
+  ["list", "post"],
+  ["entries/{id}", "get"],
+  ["history", "post"],
+  ["revisions/{id}", "get"],
+  ["definitions/{id}", "get"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/settings/catalogue/${path}`]?.[method],
+    `Missing catalogue contract ${method} ${path}`,
+  );
 
 await mkdir("test-results", { recursive: true });
+for (const [path, method] of [
+  ["list", "post"],
+  ["entries/{id}", "get"],
+  ["history", "post"],
+  ["revisions/{id}", "get"],
+  ["definitions/{id}", "get"],
+  ["preview", "post"],
+  ["presentation", "post"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/settings/service-templates/${path}`]?.[
+      method
+    ],
+    `Missing service template contract ${method} ${path}`,
+  );
 await writeFile(
   "test-results/openapi.json",
   `${JSON.stringify(document, null, 2)}\n`,

@@ -4,6 +4,7 @@ import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation"
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
+import { MeasurementFormsScreen } from "./measurement-forms-screen";
 import { OwnerConnections } from "./owner-connections";
 import {
   OwnerFeedback,
@@ -11,6 +12,8 @@ import {
   type OwnerRequest,
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { ServiceCatalogueScreen } from "./service-catalogue-screen";
+import { ServiceTemplatesScreen } from "./service-templates-screen";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
 import { ShopCommitmentsScreen } from "./shop-commitments-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
@@ -45,13 +48,23 @@ export function OwnerWorkspace({
 }) {
   const t = useTranslations();
   const [section, setSection] = useState<
-    "profile" | "calendar" | "policies" | "directory" | "commitments"
+    | "profile"
+    | "calendar"
+    | "policies"
+    | "directory"
+    | "commitments"
+    | "serviceTemplates"
+    | "measurementForms"
+    | "catalogue"
   >(() => {
     if (typeof window === "undefined") return "profile";
     const params = new URL(window.location.href).searchParams;
     const selected = params.get("section");
     if (
       selected === "commitments" ||
+      selected === "serviceTemplates" ||
+      selected === "measurementForms" ||
+      selected === "catalogue" ||
       selected === "directory" ||
       selected === "policies" ||
       selected === "calendar" ||
@@ -61,7 +74,15 @@ export function OwnerWorkspace({
     return params.has("draft") ? "calendar" : "profile";
   });
   function selectSection(
-    next: "profile" | "calendar" | "policies" | "directory" | "commitments",
+    next:
+      | "profile"
+      | "calendar"
+      | "policies"
+      | "directory"
+      | "commitments"
+      | "serviceTemplates"
+      | "measurementForms"
+      | "catalogue",
   ) {
     if (!guard.safe() && !window.confirm(t("calendar.discard"))) return;
     const url = new URL(window.location.href);
@@ -127,6 +148,9 @@ export function OwnerWorkspace({
                   "directory",
                   "policies",
                   "commitments",
+                  "catalogue",
+                  "serviceTemplates",
+                  "measurementForms",
                 ] as const
               ).map((item) => (
                 <Button
@@ -142,14 +166,38 @@ export function OwnerWorkspace({
                         ? "calendar.title"
                         : item === "directory"
                           ? "directory.title"
-                          : item === "commitments"
-                            ? "commitments.title"
-                            : "policies.title",
+                          : item === "serviceTemplates"
+                            ? "serviceTemplates.title"
+                            : item === "measurementForms"
+                              ? "measurementForms.title"
+                              : item === "catalogue"
+                                ? "catalogue.title"
+                                : item === "commitments"
+                                  ? "commitments.title"
+                                  : "policies.title",
                   )}
                 </Button>
               ))}
             </nav>
-            {section === "commitments" ? (
+            {section === "serviceTemplates" ? (
+              <ServiceTemplatesScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "measurementForms" ? (
+              <MeasurementFormsScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "catalogue" ? (
+              <ServiceCatalogueScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "commitments" ? (
               <ShopCommitmentsScreen
                 shopId={entry.shop.shopId}
                 queries={queries}

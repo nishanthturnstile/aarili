@@ -183,6 +183,10 @@ export function checkBoundaries(sources) {
       file === "packages/api/src/shop-policies-client.ts" ||
       file === "packages/api/src/shop-commitments-client.ts" ||
       file === "packages/api/src/shop-directory-client.ts" ||
+      file === "packages/api/src/service-catalogue-client.ts" ||
+      file === "packages/api/src/measurement-forms-client.ts" ||
+      file === "packages/api/src/service-templates-client.ts" ||
+      file === "packages/api/src/media-client.ts" ||
       file === "packages/api/src/wearer-client.ts",
   );
   const visited = new Set();
@@ -242,6 +246,10 @@ export function checkBoundaries(sources) {
             "/shop-policies-client",
             "/shop-commitments-client",
             "/shop-directory-client",
+            "/service-catalogue-client",
+            "/measurement-forms-client",
+            "/service-templates-client",
+            "/media-client",
           ].includes(workspace[2])
         )
       )

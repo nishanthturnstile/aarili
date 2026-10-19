@@ -7,7 +7,10 @@ import {
   customerMessages,
   guardianMessages,
   type Locale,
+  measurementFormsMessages,
   ownerMessages,
+  serviceCatalogueMessages,
+  serviceTemplatesMessages,
   shopCalendarMessages,
   shopCommitmentsMessages,
   shopDirectoryMessages,
@@ -88,6 +91,9 @@ export function OwnerFlow({
           policies: shopPoliciesMessages[locale],
           commitments: shopCommitmentsMessages[locale],
           directory: shopDirectoryMessages[locale],
+          catalogue: serviceCatalogueMessages[locale],
+          measurementForms: measurementFormsMessages[locale],
+          serviceTemplates: serviceTemplatesMessages[locale],
         }}
         timeZone="Asia/Kolkata"
       >

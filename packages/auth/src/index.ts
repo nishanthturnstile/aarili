@@ -1,4 +1,5 @@
 /// <reference path="../node_modules/bun-types/sqlite.d.ts" />
+
 import {
   createHash,
   createHmac,
@@ -27,12 +28,26 @@ import type { CustomerContext } from "@aarili/core/customers";
 import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
+import {
+  type MeasurementFormsContext,
+  measurementFormsDraftWorkflow,
+} from "@aarili/core/measurement-forms";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
+import {
+  type ServiceCatalogueContext,
+  serviceCatalogueDraftWorkflow,
+} from "@aarili/core/service-catalogue";
+import {
+  presentationDraftWorkflow,
+  type ServiceTemplatesContext,
+  serviceTemplatesDraftWorkflow,
+} from "@aarili/core/service-templates";
 import {
   type ShopCalendarContext,
   shopCalendarDraftWorkflow,
 } from "@aarili/core/shop-calendar";
 import {
+  commitmentBindingsDraftWorkflow,
   type ShopCommitmentsContext,
   shopCommitmentsDraftWorkflow,
 } from "@aarili/core/shop-commitments";
@@ -74,11 +89,20 @@ import { commandRepository } from "@aarili/db/command-repository";
 import { customerRepository } from "@aarili/db/customer-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
+import {
+  approvedCategoryResolver,
+  serviceCatalogueRepository,
+} from "@aarili/db/service-catalogue-repository";
+import { serviceTemplatesRepository } from "@aarili/db/service-templates-repository";
 import { shopCalendarRepository } from "@aarili/db/shop-calendar-repository";
-import { shopCommitmentsRepository } from "@aarili/db/shop-commitments-repository";
+import {
+  commitmentBindingsRepository,
+  shopCommitmentsRepository,
+} from "@aarili/db/shop-commitments-repository";
 import { shopDirectoryRepository } from "@aarili/db/shop-directory-repository";
 import { shopPoliciesRepository } from "@aarili/db/shop-policies-repository";
 import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
@@ -218,6 +242,21 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: ShopPoliciesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerServiceCatalogue: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceCatalogueContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
+  withOwnerMeasurementForms: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementFormsContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
+  withOwnerServiceTemplates: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceTemplatesContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerShopDirectory: <T>(
     headers: Headers,
     shopId: string,
@@ -1195,6 +1234,26 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "shop.presentation",
+        presentationDraftWorkflow(serviceTemplatesContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "service.templates",
+        serviceTemplatesDraftWorkflow(
+          serviceTemplatesContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
+        "measurement.forms",
+        measurementFormsDraftWorkflow(
+          measurementFormsContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
+        "service.catalogue",
+        serviceCatalogueDraftWorkflow(catalogueContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "shop.calendar",
         shopCalendarDraftWorkflow({
           shopId,
@@ -1224,6 +1283,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       workflows.set(
         "shop.commitments",
         shopCommitmentsDraftWorkflow(commitmentContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "service.commitment-bindings",
+        commitmentBindingsDraftWorkflow(commitmentContext(tx, shopId, userId)),
       );
       const policy = wearerPolicy();
       if (policy.enabled && policy.synthetic)
@@ -1277,6 +1340,97 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       run(guardianContext(tx, shopId, userId)),
     );
   }
+  function catalogueContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): ServiceCatalogueContext {
+    return {
+      shopId,
+      actorId,
+      repository: serviceCatalogueRepository(tx, shopId),
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerServiceCatalogue<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceCatalogueContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(catalogueContext(tx, shopId, actorId)),
+    );
+  }
+  function measurementFormsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): MeasurementFormsContext {
+    return {
+      shopId,
+      actorId,
+      repository: measurementFormsRepository(tx, shopId),
+      catalogue: catalogueContext(tx, shopId, actorId),
+      async illustrationAllowed(id, version) {
+        const repository = mediaRepository(tx, shopId);
+        await repository.lock(id);
+        const a = await repository.read(id);
+        if (
+          a?.status !== "ready" ||
+          a.version !== version ||
+          a.purpose !== "manual-pattern" ||
+          a.minor ||
+          !a.contentType.startsWith("image/")
+        )
+          return false;
+        const policy = configuration.mediaAdapters?.(
+          tx,
+          shopId,
+          actorId,
+        ).policy;
+        const access = await policy?.authorize({
+          action: "read",
+          subjectId: a.subjectId,
+          purpose: a.purpose,
+          contentType: a.contentType,
+        });
+        return !!access && !access.minor;
+      },
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerMeasurementForms<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementFormsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(measurementFormsContext(tx, shopId, actorId)),
+    );
+  }
+  function serviceTemplatesContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): ServiceTemplatesContext {
+    return {
+      shopId,
+      actorId,
+      repository: serviceTemplatesRepository(tx, shopId),
+      catalogue: catalogueContext(tx, shopId, actorId),
+      forms: measurementFormsContext(tx, shopId, actorId),
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerServiceTemplates<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceTemplatesContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(serviceTemplatesContext(tx, shopId, actorId)),
+    );
+  }
   function commitmentContext(
     tx: Transaction,
     shopId: string,
@@ -1287,7 +1441,9 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       actorId,
       repository: shopCommitmentsRepository(tx, shopId),
       calendar: shopCalendarRepository(tx, shopId),
-      categories: { resolve: async () => null },
+      categories: approvedCategoryResolver(tx, shopId),
+      catalogue: serviceCatalogueRepository(tx, shopId),
+      bindings: commitmentBindingsRepository(tx, shopId),
     };
   }
   async function withOwnerShopCommitments<T>(
@@ -1733,6 +1889,9 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerShopDirectory,
+    withOwnerServiceCatalogue,
+    withOwnerMeasurementForms,
+    withOwnerServiceTemplates,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,
