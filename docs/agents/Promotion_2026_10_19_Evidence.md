@@ -92,3 +92,24 @@ The replacement promotion will run all required full checks against this
 main-inclusive candidate. No protection, timeout, assertion or retry policy is
 changed by this synchronization. Final promotion merge and integrated-main
 verification remain pending.
+
+## Owner-entry transport correction integrated
+
+The first #110 candidate `9cbdcd4` passed full Scaffold verification and
+Dependency audit, and complete phone/desktop browser suites. Tablet passed
+57/58; its owner-entry read-only redirect probe received `ECONNRESET` before a
+response, so the required aggregate correctly failed. See the retained
+[transport evidence](Promotion_110_Transport_Evidence.md) for the original log,
+official request semantics and real-socket red/green proof.
+
+Correction #111 passed Fast verification and Dependency audit on `23253dc`
+and squash-merged at **2026-10-19T08:55:32Z**, producing development `c985ce6`.
+The helper allows one retry only for `ECONNRESET` on read-only redirect probes;
+HTTP errors and persistent resets still fail. No business command, application
+runtime, schema, dependency, suite retry, timeout or gate changes.
+
+The existing #110 promotion branch integrates `c985ce6` conflict-free. Its
+application/package/test tree is exactly corrected development; main's prior
+ancestry and existing browser matrix remain. The full release checks must pass
+on the new exact promotion revision before its authorized merge to main. No
+earlier failing/incomplete device result is treated as passing evidence.
