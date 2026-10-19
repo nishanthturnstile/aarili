@@ -172,6 +172,15 @@ Local review-ready observed **19 October 2026, 17:55:47 IST**, after final
 verification, visual correction, source-manifest and focused-staging checks.
 Human acceptance, hosted feature CI and owner merge review remain separate.
 
+Published draft [PR #115](https://github.com/nishanthturnstile/aarili/pull/115)
+at **17:56:44 IST**, targeting development, implementation commit
+`f2eebbccf146354f8434109d7af35b86522eb263`. Registered with T3 immediately.
+Initial [CI run 39252113026](https://github.com/nishanthturnstile/aarili/actions/runs/39252113026)
+started fast verification/audit at **17:56:50 IST** (6s after PR creation); both
+were in progress at inspection. Scaffold/browser were skipped as expected for
+a feature PR. The publication-record follow-up changes documentation only;
+final-head CI, human review and merge remain pending, with no automatic promotion.
+
 Running synthetic surface: **http://127.0.0.1:52751/orders**, observed ready
 **17:50:48 IST** after the final build. Private local access:
 `.scratch/quick-order-review-host/private.json`; never paste it into chat, Git or
