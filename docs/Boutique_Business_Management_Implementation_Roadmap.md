@@ -514,6 +514,20 @@ unchanged; registration evidence alone does not close those gates.
 
 ##### Vertical Slice 1.2.1 — Create and Recover a Quick Order
 
+**Next-slice review (19 October 2026):**
+[Order intake readiness and REA sources](agents/Order_Intake_Readiness_REA_Review.md)
+records merged setup/configuration prerequisites, scoped verification evidence
+and the then-pending #108 promotion. It selects Nool live order intake and
+TailorMan's public New Bill demo for bounded research, with explicit later-slice
+sources for grouping, alterations and repeat work. This is a research/validation
+snapshot, not implementation/ticket approval or a change to the dependencies.
+
+The [Quick Order REA prompt](agents/Quick_Order_REA_Prompt.md) turns this selected
+research target into a reusable evidence, design and approved-ticket delivery
+brief. It retains exact configuration pinning, server drafts and atomic capacity
+acceptance, with payments and later booking/service lifecycles kept in their
+existing slices.
+
 **Approved delivery packet (19 October 2026):**
 [REA evidence](agents/Quick_Order_REA_Evidence.md),
 [independent design and QO acceptance matrix](agents/Quick_Order_Design.md),
@@ -550,6 +564,13 @@ fluent-Tamil, policy, owner acceptance and promotion gates remain separate.
 #### Functionality — Independent outfits, packages and services
 
 ##### Vertical Slice 1.2.2 — Group Garments and Track Outfit Pieces
+
+**REA delivery brief (19 October 2026):** the
+[Grouped Bookings and Outfit Pieces prompt](agents/Grouped_Bookings_REA_Prompt.md)
+uses Nool's multi-garment order workflow, TailorMan's public multi-row/package
+layout and TailorMate only as a reserve. It preserves independent garment orders,
+piece-scoped identity, existing capacity accounting and later payment/fulfilment
+boundaries. This brief does not publish tickets or change scope/dependencies.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-02, ORD-03, ORD-13, ORD-14. Scenarios: AC-01, AC-63.
