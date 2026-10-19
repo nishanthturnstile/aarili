@@ -211,3 +211,13 @@ pending, separate from automated verification. Stop with
 `node scripts/review-quick-orders.mjs pieces stop`; this removes private access and
 the fixture's own temporary web/database resources. No other checkout or service
 is cleaned up implicitly.
+
+## Publication and review state
+
+Draft [PR #121](https://github.com/nishanthturnstile/aarili/pull/121) targets
+`development`, created **19 October 2026, 22:35:04 IST**. Capability commit
+`cd15d4d` matches the committed source manifest. At **22:35:12 IST**, hosted
+Fast verification and Dependency audit were queued; promotion-only scaffold/
+browser jobs were correctly skipped. [Hosted run](https://github.com/nishanthturnstile/aarili/actions/runs/39291091095).
+No hosted success, owner acceptance, merge or deployment is claimed. The PR was
+immediately registered with this thread; B/C remain blocked on direct merges.
