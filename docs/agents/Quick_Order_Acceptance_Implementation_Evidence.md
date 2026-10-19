@@ -258,3 +258,12 @@ browser results. Required feature CI and owner review remain pending until the
 PR readback. No full promotion `pnpm verify`, full browser suite or PDF run is
 claimed for this feature delivery. These retain the documented promotion gates;
 no document rendering input changed. No merge/deployment/live data operation.
+
+Draft [PR #116](https://github.com/nishanthturnstile/aarili/pull/116) was created
+**20:35:58 IST**, targets development, and is registered with T3. Verified runtime
+commit: `61314d60c2299a1d0123fae395bd1cf62ab17b34`; this publication-record update
+changes documentation only. Initial [run 39274946591](https://github.com/nishanthturnstile/aarili/actions/runs/39274946591)
+queued fast verification and audit at 20:36:10 IST (12s after creation); full
+scaffold/browser jobs were skipped as designed for a feature PR. This is not a
+passing hosted-CI claim; the documentation push supersedes that initial head.
+Required final-head CI, human acceptance and owner merge review remain pending.
