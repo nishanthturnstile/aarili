@@ -27,6 +27,7 @@ import {
   TemplateContentEditor,
   TemplateContentView,
 } from "./service-template-content";
+import { PresentationProvider } from "./shop-presentation";
 
 type T = ReturnType<typeof useTranslations<"serviceTemplates">>;
 type Listed = Awaited<
@@ -431,6 +432,25 @@ function Editor({
   );
 }
 export function ServiceTemplatesScreen({
+  shopId,
+  queries,
+  guard,
+}: {
+  shopId: string;
+  queries: ReturnType<typeof createOwnerQueries>;
+  guard: OwnerGuard;
+}) {
+  return (
+    <PresentationProvider key={shopId} shopId={shopId} guard={guard}>
+      <ServiceTemplatesContent
+        shopId={shopId}
+        queries={queries}
+        guard={guard}
+      />
+    </PresentationProvider>
+  );
+}
+function ServiceTemplatesContent({
   shopId,
   queries,
   guard,

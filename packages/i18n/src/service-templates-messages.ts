@@ -1,6 +1,26 @@
 import { serviceCatalogueMessages } from "./service-catalogue-messages.js";
 export const serviceTemplatesMessages = {
   en: {
+    simple: "Simple",
+    detailed: "Detailed",
+    shopMode: "Workflow presentation",
+    preferenceIntro:
+      "Choose the default view for new work. Changing this preference preserves existing work and every template revision.",
+    currentMode: "Shop default: {mode}",
+    sampleMode: "Sample view (temporary)",
+    useShopMode: "Use shop default",
+    editPreference: "Change shop default",
+    refreshPreference: "Reload preference",
+    resumePreference: "Resume preference draft",
+    preferenceHistory: "Presentation history",
+    preferenceReview:
+      "Publish {mode} as the shop default? Existing work stays unchanged.",
+    illustrativeMilestones:
+      "Illustrative milestones only. No booking, task progress or handover is recorded.",
+    booked: "Booked",
+    "handed-over": "Handed over",
+    lifecycle: "Separate lifecycle step — unavailable in this preview",
+    canonicalDetail: "Piece details and instructions",
     ...serviceCatalogueMessages.en,
     title: "Operating templates",
     "service-template": "Service manifest",
@@ -95,6 +115,26 @@ export const serviceTemplatesMessages = {
       "Allowed placeholders: service, scope, price_basis, ready_date, collection_date, supplied_materials. Use double braces. Price and dates remain unresolved.",
   },
   ta: {
+    simple: "எளிய காட்சி",
+    detailed: "விரிவான காட்சி",
+    shopMode: "வேலைக் காட்சி அமைப்பு",
+    preferenceIntro:
+      "புதிய வேலைக்கான இயல்புக் காட்சியைத் தேர்ந்தெடுக்கவும். இந்த மாற்றம் ஏற்கெனவே உள்ள வேலைகளையும் வார்ப்புருப் பதிப்புகளையும் மாற்றாது.",
+    currentMode: "கடையின் இயல்புக் காட்சி: {mode}",
+    sampleMode: "மாதிரிக் காட்சி (தற்காலிகம்)",
+    useShopMode: "கடையின் இயல்புக் காட்சியைப் பயன்படுத்து",
+    editPreference: "இயல்புக் காட்சியை மாற்று",
+    refreshPreference: "அமைப்பை மீண்டும் ஏற்று",
+    resumePreference: "அமைப்பு வரைவைத் தொடரவும்",
+    preferenceHistory: "காட்சி அமைப்பு வரலாறு",
+    preferenceReview:
+      "கடையின் இயல்புக் காட்சியாக {mode} வெளியிடவா? ஏற்கெனவே உள்ள வேலைகள் மாறாது.",
+    illustrativeMilestones:
+      "விளக்க நிலைகள் மட்டுமே. முன்பதிவு, வேலை முன்னேற்றம் அல்லது ஒப்படைப்பு பதிவாகாது.",
+    booked: "முன்பதிவு",
+    "handed-over": "ஒப்படைப்பு",
+    lifecycle: "தனியான செயல்நிலை — இந்த முன்னோட்டத்தில் கிடைக்காது",
+    canonicalDetail: "பகுதி விவரங்களும் வழிமுறைகளும்",
     ...serviceCatalogueMessages.ta,
     title: "செயல்பாட்டு வார்ப்புருக்கள்",
     "service-template": "முழுச் சேவை வரையறை",

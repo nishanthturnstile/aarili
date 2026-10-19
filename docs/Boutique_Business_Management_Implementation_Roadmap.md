@@ -415,7 +415,10 @@ private method references. See [form evidence](agents/Measurement_Forms_Implemen
 C (#99 / 1.1.2c) is selected after #97/#98 merged. Its implementation adds bounded
 bilingual operating-template editors, exact service manifests and honest generated
 requirements; see [template evidence](agents/Service_Templates_Implementation_Evidence.md).
-D retains its own selected-issue/merged-prerequisite gate.
+D (#100 / 1.1.2d) is selected after #99 merged. Its local implementation adds
+an attributable versioned shop presentation preference and transient Simple/Detailed
+views of one canonical requirements preview. See [presentation evidence](agents/Workflow_Presentation_Implementation_Evidence.md).
+Per-order overrides, real intake and its two-minute target remain later work.
 E (#101) is selected after #97/#88 merged, in the specifically owner-approved
 parallel #99/#101 worktrees. Its additive bindings pin canonical category,
 availability and unchanged unbound rule revisions; the shared evaluator's v2

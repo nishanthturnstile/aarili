@@ -1,8 +1,25 @@
 import type {
+  PresentationDraft,
+  PresentationRevision,
   ServiceTemplateDraft,
   ServiceTemplateRevision,
 } from "@aarili/contracts/service-templates";
 export interface ServiceTemplatesRepository {
+  presentationCurrent(): Promise<PresentationRevision | undefined>;
+  presentationHistory(before?: number): Promise<PresentationRevision[]>;
+  presentationRead(id: string): Promise<PresentationRevision | undefined>;
+  presentationAppend(
+    input: PresentationDraft & {
+      actorId: string;
+      originDraftId: string;
+      key: string;
+      requestId: string;
+    },
+  ): Promise<PresentationRevision>;
+  presentationAdvance(
+    revision: PresentationRevision,
+    expected: number,
+  ): Promise<boolean>;
   lock(): Promise<void>;
   current(entryId: string): Promise<ServiceTemplateRevision | undefined>;
   read(id: string): Promise<ServiceTemplateRevision | undefined>;

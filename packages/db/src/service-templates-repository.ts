@@ -1,4 +1,5 @@
 import {
+  presentationRevisionSchema,
   serviceTemplatesDefinitionSchema,
   serviceTemplatesRevisionSchema,
   templateSections,
@@ -18,6 +19,57 @@ export function serviceTemplatesRepository(
       effectiveAt: new Date(r.effectiveAt as string).toISOString(),
     });
   const repo: ServiceTemplatesRepository = {
+    async presentationCurrent() {
+      const r = (
+        await tx.execute(
+          sql`select r.* from shop_presentation_revision r join shop_presentation p on (p.shop_id,p.current_id)=(r.shop_id,r.id) where r.shop_id=${shopId}::uuid`,
+        )
+      ).rows[0];
+      return r ? presentationRow(r) : undefined;
+    },
+    async presentationHistory(before) {
+      return (
+        await tx.execute(
+          sql`select * from shop_presentation_revision where shop_id=${shopId}::uuid and (${before ?? null}::integer is null or version<${before ?? null}::integer) order by version desc limit 26`,
+        )
+      ).rows.map(presentationRow);
+    },
+    async presentationRead(id) {
+      const r = (
+        await tx.execute(
+          sql`select * from shop_presentation_revision where shop_id=${shopId}::uuid and id=${id}::uuid`,
+        )
+      ).rows[0];
+      return r ? presentationRow(r) : undefined;
+    },
+    async presentationAppend(r) {
+      const ids = (
+        await tx.execute<{ id: string; audit: string }>(
+          sql`select uuidv7() as id,uuidv7() as audit`,
+        )
+      ).rows[0];
+      if (!ids) throw Error("Presentation identity unavailable");
+      await tx.execute(
+        sql`insert into audit_event(shop_id,id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,changes) values(${shopId}::uuid,${ids.audit}::uuid,'user',${r.actorId}::uuid,'shop-presentation.publish','shop_presentation_revision',${ids.id}::uuid,${r.requestId}::uuid,${r.key}::uuid,${JSON.stringify({ mode: r.mode, version: r.baseVersion + 1 })}::jsonb)`,
+      );
+      await tx.execute(
+        sql`insert into shop_presentation_revision(shop_id,id,version,previous_id,mode,reason,actor_id,audit_id,origin_draft_id) values(${shopId}::uuid,${ids.id}::uuid,${r.baseVersion + 1},${r.baseRevisionId}::uuid,${r.mode},${r.reason},${r.actorId}::uuid,${ids.audit}::uuid,${r.originDraftId}::uuid)`,
+      );
+      const revision = await repo.presentationRead(ids.id);
+      if (!revision) throw Error("Presentation publication unavailable");
+      return revision;
+    },
+    async presentationAdvance(r, expected) {
+      return !!(
+        await (expected === 0
+          ? tx.execute(
+              sql`insert into shop_presentation(shop_id,current_id,version) values(${shopId}::uuid,${r.id}::uuid,${r.version}) on conflict do nothing returning shop_id`,
+            )
+          : tx.execute(
+              sql`update shop_presentation set current_id=${r.id}::uuid,version=${r.version} where shop_id=${shopId}::uuid and version=${expected} returning shop_id`,
+            ))
+      ).rowCount;
+    },
     async lock() {
       await tx.execute(
         sql`select pg_advisory_xact_lock(hashtextextended(${`serviceTemplates:${shopId}`},0))`,
@@ -153,4 +205,16 @@ export function serviceTemplatesRepository(
     },
   };
   return repo;
+}
+function presentationRow(r: Record<string, unknown>) {
+  return presentationRevisionSchema.parse({
+    id: r.id,
+    version: r.version,
+    previousId: r.previous_id,
+    mode: r.mode,
+    reason: r.reason,
+    actorId: r.actor_id,
+    effectiveAt: new Date(r.effective_at as string).toISOString(),
+    originDraftId: r.origin_draft_id,
+  });
 }

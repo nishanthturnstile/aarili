@@ -213,6 +213,7 @@ for (const [path, method] of [
   ["revisions/{id}", "get"],
   ["definitions/{id}", "get"],
   ["preview", "post"],
+  ["presentation", "post"],
 ])
   assert(
     document.paths[`/api/shops/{shopId}/settings/service-templates/${path}`]?.[

@@ -1,4 +1,6 @@
 import {
+  presentationCommandSchema,
+  presentationDraftSchema,
   type ServiceRequirementsPreview,
   type ServiceTemplateContent,
   type ServiceTemplateDraft,
@@ -269,7 +271,16 @@ export function serviceTemplatesDraftWorkflow(
 
 // Configuration projection only: no execution, approvals, receipts or booking writes.
 export async function previewServiceRequirements(
-  ctx: ServiceTemplatesContext,
+  ctx: {
+    actorId: string;
+    repository: Pick<ServiceTemplatesRepository, "definition">;
+    catalogue: {
+      repository: Pick<ServiceCatalogueContext["repository"], "definition">;
+    };
+    forms: {
+      repository: Pick<MeasurementFormsContext["repository"], "definition">;
+    };
+  },
   input: unknown,
   templateRevisionId?: string,
 ) {
@@ -286,6 +297,13 @@ export async function previewServiceRequirements(
     .filter((x) => x !== null)
     .map((x) => `${x.entryId}:${x.revisionId}`);
   if (templateRevisionId) sources.unshift(`template:${templateRevisionId}`);
+  const unavailableSources: string[] = [];
+  for (const ref of [c.service, ...c.pieces, ...c.addons]) {
+    if (!ref) continue;
+    const exact = await ctx.catalogue.repository.definition(ref.revisionId);
+    if (!exact || exact.entryId !== ref.entryId)
+      unavailableSources.push(`${ref.entryId}:${ref.revisionId}`);
+  }
   const items: ServiceRequirementsPreview["items"] = templateSections.flatMap(
     (name) =>
       c[name].map((item) => {
@@ -335,6 +353,7 @@ export async function previewServiceRequirements(
   for (const ref of c.forms) {
     const form = await ctx.forms.repository.definition(ref.revisionId);
     if (!form || form.entryId !== ref.entryId) {
+      unavailableSources.push(`${ref.entryId}:${ref.revisionId}`);
       items.push({
         section: "measurement",
         key: ref.revisionId,
@@ -381,11 +400,101 @@ export async function previewServiceRequirements(
         });
   }
   return {
-    fingerprint: await requestHash({ content: c, actor: ctx.actorId, sources }),
+    fingerprint: await requestHash({
+      content: c,
+      actor: ctx.actorId,
+      sources,
+      items,
+      unavailableSources,
+    }),
+    definition: c,
+    templateRevisionId: templateRevisionId ?? null,
+    unavailableSources,
+    milestones: (
+      ["booked", "cutting", "work", "trial", "ready", "handed-over"] as const
+    ).map((key) => {
+      const tasks = c.tasks.filter((t) => t.milestone === key);
+      const generated = tasks
+        .map((t) => items.find((i) => i.section === "tasks" && i.key === t.key))
+        .filter((i) => i !== undefined);
+      return {
+        key,
+        state:
+          key === "booked" || key === "handed-over"
+            ? ("lifecycle" as const)
+            : c.sections.tasks.decision === "unresolved" ||
+                (c.sections.tasks.decision === "applicable" &&
+                  !c.tasks.length) ||
+                (c.sections.tasks.decision === "not-applicable" &&
+                  !c.sections.tasks.reason.trim()) ||
+                generated.some((t) => t.state !== "not-required")
+              ? ("unresolved" as const)
+              : ("not-applicable" as const),
+        taskKeys: tasks.map((t) => t.key),
+        requiredBlockers: generated
+          .filter((t) => t.required !== false && t.state === "unresolved")
+          .map((t) => t.key),
+      };
+    }),
     effects: "none" as const,
     activation: "unavailable" as const,
     sections: templateSections.map((key) => ({ key, ...c.sections[key] })),
     items,
     sources,
+  };
+}
+
+export async function readPresentation(
+  ctx: ServiceTemplatesContext,
+  before?: number,
+) {
+  await ctx.repository.lock();
+  const revision = (await ctx.repository.presentationCurrent()) ?? null;
+  const rows = await ctx.repository.presentationHistory(before);
+  return {
+    mode: revision?.mode ?? ("simple" as const),
+    revision,
+    history: rows.slice(0, 25),
+    next: rows.length > 25 ? (rows[24]?.version ?? null) : null,
+  };
+}
+export function presentationDraftWorkflow(
+  ctx: ServiceTemplatesContext,
+): DraftWorkflow {
+  return {
+    schemaVersion: 1,
+    draftSchema: presentationDraftSchema,
+    commandSchema: presentationCommandSchema,
+    async revalidate(input) {
+      const c = presentationCommandSchema.parse(input);
+      await ctx.repository.lock();
+      const current = await ctx.repository.presentationCurrent();
+      if (
+        (current?.version ?? 0) !== c.baseVersion ||
+        (current?.id ?? null) !== c.baseRevisionId
+      )
+        fail(412, "VERSION_STALE");
+      if (current?.mode === c.mode) fail(409, "REQUEST_CONFLICT");
+    },
+    async promote(input, _action, draftId, request) {
+      const c = presentationCommandSchema.parse(input);
+      const revision = await ctx.repository.presentationAppend({
+        ...c,
+        actorId: ctx.actorId,
+        originDraftId: draftId,
+        ...request,
+      });
+      if (!(await ctx.repository.presentationAdvance(revision, c.baseVersion)))
+        fail(412, "VERSION_STALE");
+      return { type: "shop.presentation.revision", id: revision.id };
+    },
+    async verifyResult(result, draftId) {
+      if (
+        result.type !== "shop.presentation.revision" ||
+        (await ctx.repository.presentationRead(result.id))?.originDraftId !==
+          draftId
+      )
+        fail(409, "REQUEST_CONFLICT");
+    },
   };
 }

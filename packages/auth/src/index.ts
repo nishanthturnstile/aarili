@@ -38,6 +38,7 @@ import {
   serviceCatalogueDraftWorkflow,
 } from "@aarili/core/service-catalogue";
 import {
+  presentationDraftWorkflow,
   type ServiceTemplatesContext,
   serviceTemplatesDraftWorkflow,
 } from "@aarili/core/service-templates";
@@ -1232,6 +1233,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
+      workflows.set(
+        "shop.presentation",
+        presentationDraftWorkflow(serviceTemplatesContext(tx, shopId, userId)),
+      );
       workflows.set(
         "service.templates",
         serviceTemplatesDraftWorkflow(
