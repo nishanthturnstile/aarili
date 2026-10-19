@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { readEntryRedirect } from "../../scripts/test-support/entry-redirect.mjs";
 import { withOwnerWeb } from "../../scripts/test-support/owner-web.mjs";
 import { prepareOwnerScreen } from "./owner-presentation.mjs";
 
@@ -19,9 +20,10 @@ test("ENTRY-01–12 authoritative entry, interrupted onboarding, direct links, c
       stopDatabase,
     }) => {
       const redirect = async (path, destination) => {
-        const response = await page.request.get(`${origin}${path}`, {
-          maxRedirects: 0,
-        });
+        const response = await readEntryRedirect(
+          page.request,
+          `${origin}${path}`,
+        );
         expect(response.status()).toBe(307);
         expect(new URL(response.headers().location, origin).pathname).toBe(
           destination,
