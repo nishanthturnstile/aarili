@@ -654,3 +654,49 @@ further process change separately; retain the required verification and review.
   216/216 unit/property tests, strict/negative types, lint/Knip/OpenAPI and build
   (12 tasks, 27.174s). Runtime source fingerprint unchanged; no heavy unchanged-input
   PostgreSQL/browser rerun. Publication follows this completed gate.
+
+
+## Issue #99 ? operating templates and exact service manifests
+
+- Implementation began 2026-10-18T21:41:03+05:30 (first capability edit follows this observation), owner-approved isolated worktree `t3-53d0d7c3`, branch `codex/operating-templates-99`, integrated base `f604acb`. Frozen dependency install completed. Baseline PR #104 Fast verification and Dependency audit passed; native blockers #97/#98 closed via merged #102/#104.
+- Final verification, first usable review and review-ready timings pending. Active duration unknown; publication/merge/deployment not authorized.
+- Initial complete fast gate: 21:55:14.632–21:57:45.185 IST, exit 0, 222 tests,
+  lint/Knip/strict/negative types/OpenAPI and production build. Self-review then
+  corrected comma entry, stale-form removal, excluded-scope predecessor validation,
+  exact historical preview binding and two shell-encoded Tamil literals; an added
+  actor/hash test and generated graph case extend the final coverage.
+- Corrected runtime fast gate waited 21:58:15.445–22:04:15.697 for #101's lease,
+  then ran 22:04:15.697–22:05:47.933 IST, exit 0, **223/223** tests and all fast
+  components; build task total 14.406s. Offline generator was subsequently extended
+  additively for all six template paths: focused Biome and generation passed,
+  **59 paths**, no runtime-source change. Initial PostgreSQL: 4/4 in 72.74s;
+  corrected-source PostgreSQL acquired the lease at 22:07:21.029 IST.
+- Corrected PostgreSQL completed 22:07:52.214 IST, exit 0, 4/4 in 30.52s.
+  First browser matrix acquired the lease at 22:08:42.114 and completed
+  22:12:43.958 IST, exit 0, 3/3 in 4.0m. Direct Tamil-flow preparation exposed
+  review completeness/focus refinements; a fresh web build and six English/Tamil
+  viewport cases are queued under the same lease. Unchanged core/DB checks are
+  retained. Active implementation/rework time remains unknown.
+- Final full bilingual workflow lease: queued 22:16:21.940, acquired
+  22:21:07.133, completed 22:28:55.039 IST, exit 0; fresh production web build and
+  **6/6** workflows (7.5m), plus explicit strict web types/lint/Knip. Frozen clean
+  install/build/46 export imports completed 22:29:57.753, exit 0, unchanged lock.
+- Supplementary read-only history axe found moderate heading-order and duplicate
+  landmark defects: original 1 failure / 2 not run, exit 1, completed
+  22:30:27.930. Local screenshot/context/trace and raw log preserved. Semantic-only
+  fixes are queued for affected build and three bilingual history/reflow cases;
+  unchanged business/core/DB/export evidence is retained.
+- Corrected history lease acquired by the 22:34:23 observation; its fresh web
+  build and 3/3 bilingual history/axe/reflow tests passed, exit 0, ending
+  **22:35:38.961 IST** (browser 58.6s). Final explicit web types, root lint/Knip,
+  offline OpenAPI (59 paths) and diff checks pass. Source fingerprint and original
+  failures are in the [issue evidence](Service_Templates_Implementation_Evidence.md).
+- Hidden synthetic review process 48928 started **22:35:55.427 IST**; first
+  observed private-file/HTTP 200 readiness **22:36:21.588 IST** at
+  http://127.0.0.1:56860/settings?section=serviceTemplates. Earlier exact ready
+  time was not separately instrumented. Review packet/source closeout observed
+  **22:37:54.992 IST**. Active coding/rework time remains unknown; queue intervals
+  are separate from active implementation. Local commit preparation follows.
+- No hosted CI, publication, owner review/merge or deployment occurred. Fluent
+  Tamil, physical Android, assistive technology and production content acceptance
+  remain pending. The assigned worktree and review host are retained.

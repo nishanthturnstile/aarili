@@ -79,6 +79,10 @@
     "./measurement-forms": {
       "types": "./dist/measurement-forms.d.ts",
       "import": "./dist/measurement-forms.js"
+    },
+    "./service-templates": {
+      "types": "./dist/service-templates.d.ts",
+      "import": "./dist/service-templates.js"
     }
   },
   "scripts": {

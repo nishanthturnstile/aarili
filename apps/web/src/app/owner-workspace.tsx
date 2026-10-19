@@ -13,6 +13,7 @@ import {
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 import { ServiceCatalogueScreen } from "./service-catalogue-screen";
+import { ServiceTemplatesScreen } from "./service-templates-screen";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
 import { ShopCommitmentsScreen } from "./shop-commitments-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
@@ -52,6 +53,7 @@ export function OwnerWorkspace({
     | "policies"
     | "directory"
     | "commitments"
+    | "serviceTemplates"
     | "measurementForms"
     | "catalogue"
   >(() => {
@@ -60,6 +62,7 @@ export function OwnerWorkspace({
     const selected = params.get("section");
     if (
       selected === "commitments" ||
+      selected === "serviceTemplates" ||
       selected === "measurementForms" ||
       selected === "catalogue" ||
       selected === "directory" ||
@@ -77,6 +80,7 @@ export function OwnerWorkspace({
       | "policies"
       | "directory"
       | "commitments"
+      | "serviceTemplates"
       | "measurementForms"
       | "catalogue",
   ) {
@@ -145,6 +149,7 @@ export function OwnerWorkspace({
                   "policies",
                   "commitments",
                   "catalogue",
+                  "serviceTemplates",
                   "measurementForms",
                 ] as const
               ).map((item) => (
@@ -161,18 +166,26 @@ export function OwnerWorkspace({
                         ? "calendar.title"
                         : item === "directory"
                           ? "directory.title"
-                          : item === "measurementForms"
-                            ? "measurementForms.title"
-                            : item === "catalogue"
-                              ? "catalogue.title"
-                              : item === "commitments"
-                                ? "commitments.title"
-                                : "policies.title",
+                          : item === "serviceTemplates"
+                            ? "serviceTemplates.title"
+                            : item === "measurementForms"
+                              ? "measurementForms.title"
+                              : item === "catalogue"
+                                ? "catalogue.title"
+                                : item === "commitments"
+                                  ? "commitments.title"
+                                  : "policies.title",
                   )}
                 </Button>
               ))}
             </nav>
-            {section === "measurementForms" ? (
+            {section === "serviceTemplates" ? (
+              <ServiceTemplatesScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "measurementForms" ? (
               <MeasurementFormsScreen
                 shopId={entry.shop.shopId}
                 queries={queries}
