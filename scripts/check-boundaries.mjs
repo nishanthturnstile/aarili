@@ -185,6 +185,7 @@ export function checkBoundaries(sources) {
       file === "packages/api/src/shop-directory-client.ts" ||
       file === "packages/api/src/service-catalogue-client.ts" ||
       file === "packages/api/src/measurement-forms-client.ts" ||
+      file === "packages/api/src/service-templates-client.ts" ||
       file === "packages/api/src/media-client.ts" ||
       file === "packages/api/src/wearer-client.ts",
   );
@@ -247,6 +248,7 @@ export function checkBoundaries(sources) {
             "/shop-directory-client",
             "/service-catalogue-client",
             "/measurement-forms-client",
+            "/service-templates-client",
             "/media-client",
           ].includes(workspace[2])
         )

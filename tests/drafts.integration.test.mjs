@@ -48,6 +48,7 @@ async function fixture(run) {
               "measurement.forms",
               "service.catalogue",
               "service.commitment-bindings",
+              "service.templates",
               "shop.calendar",
               "shop.commitments",
               "shop.directory",

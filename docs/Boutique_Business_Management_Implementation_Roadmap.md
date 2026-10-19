@@ -412,7 +412,10 @@ and category warning authoring; see [implementation evidence](agents/Service_Cat
 B (#98) is selected after #97/#57/#58 merged; its local implementation defines
 versioned garment/piece measurement forms, explicit precision/applicability and
 private method references. See [form evidence](agents/Measurement_Forms_Implementation_Evidence.md).
-C-E retain their own selected-issue/merged-prerequisite gates; E implements the existing resolver.
+C (#99 / 1.1.2c) is selected after #97/#98 merged. Its implementation adds bounded
+bilingual operating-template editors, exact service manifests and honest generated
+requirements; see [template evidence](agents/Service_Templates_Implementation_Evidence.md).
+D retains its own selected-issue/merged-prerequisite gate.
 E (#101) is selected after #97/#88 merged, in the specifically owner-approved
 parallel #99/#101 worktrees. Its additive bindings pin canonical category,
 availability and unchanged unbound rule revisions; the shared evaluator's v2

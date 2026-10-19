@@ -402,3 +402,57 @@ the already-merged measurement-form inventory correction. There is no lockfile,
 package manifest/export-map or owner navigation change to reconcile. Migration
 0028 and all commitment-specific implementation/evidence/review scripts belong
 to this issue. Local commit only; no PR, push, issue update or merge was made.
+
+## Authorized publication and sequential integration — 19 October 2026
+
+The owner explicitly requested both PRs to development, validation fixes and
+merge once checks pass. PR #105 (#99) and PR #106 (#101) were published and
+T3-linked. Original heads `44fcb11` and `e30f40a` each passed hosted Fast
+verification and Dependency audit:
+[template CI](https://github.com/nishanthturnstile/aarili/actions/runs/39192697719),
+[binding CI](https://github.com/nishanthturnstile/aarili/actions/runs/39192709510).
+No comments, requested changes or outstanding reviews were present before #105's
+authorized squash merge at **08:34:27 IST**, `7d8f819`; issue #99 closed and the
+parent development checkout was fast-forwarded.
+
+#106 then merged that exact development commit into its existing assigned
+worktree. The three predicted conflicts were resolved by retaining both slices'
+auth imports/workflows and both roadmap/delivery records. The leading auth
+declaration reference remains first. Isolation catalogs, offline OpenAPI route
+assertions and tenant fixture paths retain both additions. Expected tenant-table,
+registered-path and production draft-workflow test inventories were expanded for
+#99, without removing assertions. A focused Biome check initially requested one
+indent correction; it was corrected and the final root lint passed.
+
+Integrated source: `e30f40a` plus `7d8f819`, reconciled as above. Code/config/test
+manifest `.scratch/integrated-source.json` covers **608 non-document files**,
+SHA-256 **`eabc58e82bec13918e81bdead118c7397ea9206263abf1613eebf09c75d9c4cd`**.
+
+- Frozen install exited **0**, unchanged lockfile, existing 14 workspaces.
+- `pnpm verify:fast` exited **0**, lease **08:35:30.410–08:37:56.862 IST**:
+  **226 tests / 52 files**, lint, Knip, strict/negative types, **63 OpenAPI paths**,
+  production build **12 tasks / 28.934s**. Raw output/status:
+  `.scratch/integrated-fast.log(.exit.json)`.
+- Only the two expected-inventory integration files changed after fast lint had
+  read them. Final `pnpm lint` exited **0**, 509 files, 302 boundary sources,
+  71 UI/token sources. `.scratch/integrated-lint-final.log` retains PowerShell's
+  stderr wrapper records along with actual successful output; captured native
+  exit code was 0. Application/build/unit inputs did not change.
+- Focused real PostgreSQL command selected both issue suites, canonical resolver,
+  registered tenant paths, drift gate, baseline upgrade and production draft
+  composition: **15 passed / 8 deliberately excluded**, five files, **116.74s**,
+  exit **0**, ending **08:39:54.385 IST**. Output/status:
+  `.scratch/integrated-postgres.log(.exit.json)`.
+- Integrated browser acceptance exited **0**, **4/4**, **5.3m**, lease
+  **08:39:55.111–08:45:21.024 IST**: the binding workflow, English and Tamil
+  template workflows, and bilingual exact-history axe/200% reflow. Command:
+  `pnpm exec node scripts/test-ui.mjs service-templates.spec.mjs service-templates-history.spec.mjs commitment-bindings.spec.mjs --project=desktop --max-failures=1`.
+  Output/status: `.scratch/integrated-browser.log(.exit.json)`. It observed the
+  existing 429 then 412 path, honored Retry-After and explicitly recovered; no
+  policy or timeout changed. Earlier full bilingual phone/tablet evidence remains
+  recorded for unchanged presentation inputs. Revised-head hosted checks must
+  still pass before the authorized #106 squash merge.
+
+The old #101 review host was stopped through its own launcher before rebuilding.
+Parent and #99 hosts/worktrees were preserved. Human Tamil, physical-device/AT,
+production-content/pilot, full promotion and deployment gates remain separate.

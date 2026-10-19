@@ -38,6 +38,10 @@ import {
   serviceCatalogueDraftWorkflow,
 } from "@aarili/core/service-catalogue";
 import {
+  type ServiceTemplatesContext,
+  serviceTemplatesDraftWorkflow,
+} from "@aarili/core/service-templates";
+import {
   type ShopCalendarContext,
   shopCalendarDraftWorkflow,
 } from "@aarili/core/shop-calendar";
@@ -92,6 +96,7 @@ import {
   approvedCategoryResolver,
   serviceCatalogueRepository,
 } from "@aarili/db/service-catalogue-repository";
+import { serviceTemplatesRepository } from "@aarili/db/service-templates-repository";
 import { shopCalendarRepository } from "@aarili/db/shop-calendar-repository";
 import {
   commitmentBindingsRepository,
@@ -245,6 +250,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: MeasurementFormsContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
+  withOwnerServiceTemplates: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceTemplatesContext) => Promise<T>,
   ) => Promise<{ data: T; headers: Headers }>;
   withOwnerShopDirectory: <T>(
     headers: Headers,
@@ -1223,6 +1233,12 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "service.templates",
+        serviceTemplatesDraftWorkflow(
+          serviceTemplatesContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
         "measurement.forms",
         measurementFormsDraftWorkflow(
           measurementFormsContext(tx, shopId, userId),
@@ -1385,6 +1401,29 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, actorId) =>
       run(measurementFormsContext(tx, shopId, actorId)),
+    );
+  }
+  function serviceTemplatesContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): ServiceTemplatesContext {
+    return {
+      shopId,
+      actorId,
+      repository: serviceTemplatesRepository(tx, shopId),
+      catalogue: catalogueContext(tx, shopId, actorId),
+      forms: measurementFormsContext(tx, shopId, actorId),
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerServiceTemplates<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ServiceTemplatesContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(serviceTemplatesContext(tx, shopId, actorId)),
     );
   }
   function commitmentContext(
@@ -1847,6 +1886,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopDirectory,
     withOwnerServiceCatalogue,
     withOwnerMeasurementForms,
+    withOwnerServiceTemplates,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,
