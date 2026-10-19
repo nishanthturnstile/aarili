@@ -3,6 +3,8 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { mkdir, open, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { emptyQuickOrder } from "@aarili/contracts/orders";
+import { seedOrderAcceptance } from "./test-support/order-acceptance.mjs";
 import { withOwnerWeb } from "./test-support/owner-web.mjs";
 import { seedQuickOrder } from "./test-support/seed-quick-order.mjs";
 
@@ -25,7 +27,14 @@ if (["stop", "expire"].includes(process.argv[2])) {
   process.once("SIGTERM", stop);
   try {
     await withOwnerWeb(
-      async ({ origin, setupToken, code, runtime, expireAuthentication }) => {
+      async ({
+        origin,
+        setupToken,
+        code,
+        runtime,
+        expireAuthentication,
+        seedCommand,
+      }) => {
         const cookies = new Map();
         async function request(path, body, extra = {}) {
           const r = await fetch(`${origin}/api${path}`, {
@@ -61,6 +70,88 @@ if (["stop", "expire"].includes(process.argv[2])) {
         const { shop } = await request("/owner/entry");
         const seed = await seedQuickOrder(runtime, shop.shopId);
         try {
+          async function setup(
+            path,
+            { method = "POST", body, etag, key = randomUUID() } = {},
+          ) {
+            const response = await seedCommand(
+              new Request(`${origin}/api/shops/${shop.shopId}/${path}`, {
+                method,
+                headers: {
+                  Origin: origin,
+                  Cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join("; "),
+                  "Content-Type": "application/json",
+                  "Idempotency-Key": key,
+                  ...(etag ? { "If-Match": etag } : {}),
+                },
+                ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+              }),
+            );
+            if (!response.ok)
+              throw Error(
+                `Synthetic acceptance setup failed (${response.status})`,
+              );
+            return response.json();
+          }
+          await seedOrderAcceptance(setup, seed.sources);
+          const uuid7 = () => randomUUID().replace(/^(........-....-)./, "$17"),
+            deliveryDate = new Date(Date.now() + 30 * 86400000)
+              .toISOString()
+              .slice(0, 10);
+          const intake = {
+            ...emptyQuickOrder(),
+            customerId: seed.customer.customerId,
+            wearerId: seed.wearer.wearerId,
+            manifest: {
+              entryId: seed.sources.before.entryId,
+              revisionId: seed.sources.before.id,
+              definitionId: seed.sources.before.definition.id,
+            },
+            deliveryDate,
+            priceState: "quoted",
+            priceText: "0",
+          };
+          const review = await setup("orders/review", { body: intake }),
+            bookedId = uuid7();
+          await setup(`drafts/${bookedId}`, {
+            method: "PUT",
+            body: {
+              workflow: "order.quick",
+              schemaVersion: 1,
+              payload: {
+                ...intake,
+                commitmentReview: {
+                  fingerprint: review.fingerprint,
+                  acknowledged: true,
+                  exceptionReason: review.evaluation.warnings.length
+                    ? "SYNTHETIC review only"
+                    : "",
+                  waiveRush: false,
+                  waiverReason: "",
+                },
+              },
+            },
+          });
+          const booked = await setup(`drafts/${bookedId}/promote`, {
+              body: {},
+              etag: '"v1"',
+            }),
+            draftId = uuid7();
+          await setup(`drafts/${draftId}`, {
+            method: "PUT",
+            body: {
+              workflow: "order.quick",
+              schemaVersion: 1,
+              payload: {
+                ...intake,
+                deliveryDate: "",
+                priceState: "to-be-quoted",
+                priceText: "",
+                instructions:
+                  "SYNTHETIC unfinished intake — not for production",
+              },
+            },
+          });
           await writeFile(
             file("private.json"),
             JSON.stringify({
@@ -68,6 +159,9 @@ if (["stop", "expire"].includes(process.argv[2])) {
               email,
               password,
               url: `${origin}/orders`,
+              orderId: booked.draft.result.id,
+              draftId,
+              deliveryDate,
             }),
             { mode: 0o600 },
           );

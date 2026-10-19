@@ -3,8 +3,38 @@ import {
   quickOrderCommandSchema,
   quickOrderDraftSchema,
 } from "@aarili/contracts/orders";
+import { formatOrderPaise } from "@aarili/i18n";
+import { parseRupees } from "@aarili/money";
 import fc from "fast-check";
 import { expect, test } from "vitest";
+
+test("QO-01/07 exact intake currency formatting round-trips every safe paise boundary in English and Tamil", () => {
+  for (const locale of ["en", "ta"] as const) {
+    expect(formatOrderPaise(0, locale)).toBe("₹0.00");
+    expect(formatOrderPaise(1, locale)).toBe("₹0.01");
+    expect(
+      parseRupees(
+        formatOrderPaise(Number.MAX_SAFE_INTEGER, locale)
+          .replace("₹", "")
+          .replaceAll(",", ""),
+      ),
+    ).toBe(Number.MAX_SAFE_INTEGER);
+    fc.assert(
+      fc.property(
+        fc.bigInt({ min: 0n, max: BigInt(Number.MAX_SAFE_INTEGER) }),
+        (v) => {
+          expect(
+            parseRupees(
+              formatOrderPaise(Number(v), locale)
+                .replace("₹", "")
+                .replaceAll(",", ""),
+            ),
+          ).toBe(Number(v));
+        },
+      ),
+    );
+  }
+});
 
 test("QO-01/04 incomplete intake retains partial values and quoted zero without authorising a command", () => {
   const v = {

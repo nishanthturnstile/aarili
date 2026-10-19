@@ -251,6 +251,18 @@
     "./service-templates-schema": {
       "types": "./dist/service-templates-schema.d.ts",
       "import": "./dist/service-templates-schema.js"
+    },
+    "./orders-repository": {
+      "types": "./dist/orders-repository.d.ts",
+      "import": "./dist/orders-repository.js"
+    },
+    "./repositories/orders": {
+      "types": "./dist/repositories/orders.d.ts",
+      "import": "./dist/repositories/orders.js"
+    },
+    "./orders-schema": {
+      "types": "./dist/orders-schema.d.ts",
+      "import": "./dist/orders-schema.js"
     }
   },
   "scripts": {

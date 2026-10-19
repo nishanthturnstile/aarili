@@ -1,6 +1,16 @@
 import { z } from "zod";
+import { apiErrorSchema } from "./index.js";
 import { serviceRequirementsPreviewSchema } from "./service-templates.js";
 import { localDateValid } from "./shop-calendar.js";
+import { commitmentPreviewSchema } from "./shop-commitments.js";
+
+export const orderDecisionSchema = z.strictObject({
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  acknowledged: z.boolean(),
+  exceptionReason: z.string().max(1000),
+  waiveRush: z.boolean(),
+  waiverReason: z.string().max(1000),
+});
 
 // Intake retains raw incomplete values. It is never an accepted commitment.
 export const quickOrderDraftSchema = z.strictObject({
@@ -26,6 +36,7 @@ export const quickOrderDraftSchema = z.strictObject({
   priceState: z.enum(["to-be-quoted", "quoted"]),
   priceText: z.string().max(40),
   instructions: z.string().max(2000),
+  commitmentReview: orderDecisionSchema.nullable().optional(),
 });
 export type QuickOrderDraft = z.infer<typeof quickOrderDraftSchema>;
 export const quickOrderCommandSchema = quickOrderDraftSchema.superRefine(
@@ -97,3 +108,63 @@ export const quickOrderPreviewSchema = z.strictObject({
   commitment: z.literal("unavailable"),
 });
 export type QuickOrderPreview = z.infer<typeof quickOrderPreviewSchema>;
+
+export const orderReviewSchema = z.strictObject({
+  fingerprint: z.string(),
+  intake: quickOrderPreviewSchema,
+  evaluation: commitmentPreviewSchema.nullable(),
+  unknowns: z.array(z.string()),
+  synthetic: z.boolean(),
+  serverDate: z.string(),
+});
+export type OrderReview = z.infer<typeof orderReviewSchema>;
+export const acceptedOrderSchema = z.strictObject({
+  id: z.uuid(),
+  code: z.string(),
+  originDraftId: z.uuid(),
+  version: z.number().int().positive(),
+  presentation: z.enum(["simple", "detailed"]),
+  ownerId: z.uuid(),
+  createdAt: z.iso.datetime(),
+  draftCreatedAt: z.iso.datetime(),
+  acceptedAt: z.iso.datetime(),
+  intake: quickOrderDraftSchema,
+  customer: quickOrderPreviewSchema.shape.customer,
+  wearer: quickOrderPreviewSchema.shape.wearer,
+  pricePaise: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),
+  originalPromise: z.strictObject({ date: z.string(), time: z.string() }),
+  currentPromise: z.strictObject({ date: z.string(), time: z.string() }),
+  requirements: serviceRequirementsPreviewSchema,
+  review: orderReviewSchema,
+  snapshotDigest: z.string(),
+  snapshot: z.record(z.string(), z.unknown()),
+  synthetic: z.literal(true),
+});
+export type AcceptedOrder = z.infer<typeof acceptedOrderSchema>;
+export const orderErrorSchema = apiErrorSchema.extend({
+  current: acceptedOrderSchema.optional(),
+});
+export type OrderError = z.infer<typeof orderErrorSchema>;
+export const orderListQuerySchema = z.strictObject({
+  before: z.uuid().optional(),
+});
+export const orderListSchema = z.strictObject({
+  orders: z.array(acceptedOrderSchema).max(25),
+  next: z.uuid().nullable(),
+});
+export const orderModeSchema = z.strictObject({
+  mode: z.enum(["simple", "detailed"]),
+});
+export const orderHistoryQuerySchema = z.strictObject({
+  beforeVersion: z.number().int().positive().optional(),
+});
+export const orderHistoryEntrySchema = z.strictObject({
+  version: z.number().int().positive(),
+  mode: z.enum(["simple", "detailed"]),
+  actorId: z.uuid(),
+  recordedAt: z.iso.datetime(),
+});
+export const orderHistorySchema = z.strictObject({
+  entries: z.array(orderHistoryEntrySchema).max(25),
+  next: z.number().int().positive().nullable(),
+});

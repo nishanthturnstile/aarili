@@ -1,5 +1,37 @@
 # Delivery measurements
 
+## Quick Order B (#114 / 1.2.1b), 19 October 2026
+
+- Owner selected B after #115 merged; all direct blockers rechecked. Existing
+  checkout, `codex/quick-order-acceptance`, from development `c6ab32d`; no worktree.
+  Pre-implementation seam-audit checkpoint observed **19:12:07 IST**. Exact first
+  capability-edit timestamp and active coding duration were not instrumented and
+  remain unknown. The owner separately approved count/week/retained-demand/QO-code
+  conventions during this session; exact reply time was not recorded.
+- Implementation/verification observed underway **19:55:14 IST**. Initial focused
+  PostgreSQL 2/2, expanded 10/10 (104.44s). Superseded migration/inventory assertions
+  and actual price/time/conflict refinements are recorded in the
+  [B evidence](Quick_Order_Acceptance_Implementation_Evidence.md).
+- Default fast suite hit existing five-second command/jobs property deadlines
+  under 54 workers. Bounded unchanged assertions/timeouts passed 235/235 (31.75s).
+  A complete fast command with VITEST_MAX_WORKERS=4 passed, including 70-path OpenAPI
+  and production build (38.12s); later conflict/UI changes trigger affected checks.
+  This records resource-concurrency diagnosis, not a weakened acceptance gate.
+- First usable B host observed ready **20:17:32 IST**,
+  http://127.0.0.1:50577/orders; privately signed-in T3 reopen confirmed afterward.
+  This is a synthetic software review surface, not human acceptance.
+- Full integration completed: 170/170 in 2464.74s; final B focused 17/17 in
+  345.67s plus the added binding race 1/1 in 29.35s. B/A browser regressions
+  6/6 in 12.6m; final UI navigation refinement reruns only affected checks.
+- Final build 12/12 in 22.493s; refreshed host ready **20:32:18 IST**,
+  http://127.0.0.1:54496/orders. Original B host retired for this rebuild.
+- Final B/access-loss checks **6/6 passed in 2.7m**, including new-draft protection
+  during unknown mode outcome and exact recovery. Local review-ready observed
+  **20:35:19 IST**. PR/CI and owner waiting/merge phases remain pending.
+  Overlapping test/docs/rework time is not summed or represented as active
+  implementation time.
+
+
 ## Quick Order A (#113 / 1.2.1a), 19 October 2026
 
 - Owner approved A–B/publication and selected A. Existing checkout,
@@ -32,6 +64,10 @@
   IST** (6s after PR creation); execution/final-head results remain pending.
   Publication-record follow-up is documentation only. CI/owner waiting, active
   rework duration and merge time remain pending/unknown as applicable.
+
+- Subsequent readback: #115 merged **19:06:15 IST**, `c6ab32d`; final-head fast/audit
+  passed in run 39252227034. PR-to-merge elapsed **1h 9m 31s**, not coding time.
+  Feature full/browser jobs were skipped as designed. B was selected afterward.
 
 ## Quick Order preparation (1.2.1), 19 October 2026
 

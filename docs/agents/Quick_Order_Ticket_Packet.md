@@ -1,11 +1,11 @@
 # Quick Order: approved vertical ticket packet
 
-19 October 2026. Parent roadmap slice **1.2.1**. The owner approved **A?B**,
+19 October 2026. Parent roadmap slice **1.2.1**. The owner approved **A-B**,
 authorised publication and selected **A** for implementation. Published and read
 back through authenticated `gh` using the installed `to-tickets` workflow:
 
-- **A: [#113](https://github.com/nishanthturnstile/aarili/issues/113)** ? selected; direct blockers merged.
-- **B: [#114](https://github.com/nishanthturnstile/aarili/issues/114)** ? approved/published; waits for A to merge.
+- **A: [#113](https://github.com/nishanthturnstile/aarili/issues/113)**: merged through #115.
+- **B: [#114](https://github.com/nishanthturnstile/aarili/issues/114)**: implemented for owner review after A merged.
 
 Production policy, human acceptance, merge, promotion and deployment remain separate.
 
@@ -25,8 +25,8 @@ roadmap 1.1.1–1.1.3, 1.2.1–1.2.4, 1.3.2, 1.4.2–1.4.4;
 | A — **1.2.1a: Save, find and resume a Quick Order draft** | Choose existing customer/authorised wearer and exact eligible service, enter partial date/price/details, inspect unresolved requirements in either mode, save/reload/list/resume honestly. No order is booked. | Merged #56 durable drafts, #78/#79/#80 identity/guardian, #99 exact manifests and #100 presentation. Their transitive foundation/catalogue/form prerequisites remain merged requirements. |
 | B — **1.2.1b: Accept and reopen a Quick Order with atomic capacity and exact history** | Review current server-resolved commitment, accept with supported exceptions, receive one readable order ID, reopen its exact snapshots/checklist/owner and change presentation without losing data. | A **merged**, plus merged #84 profile/timezone, #85 calendar, #87 policies and #101 category binding (including its #88 rules prerequisite). |
 
-Native blockers were added and read back: A ? #56/#78/#79/#80/#99/#100;
-B ? #113/#84/#85/#87/#101. All A blockers and B?s foundation blockers are
+Native blockers were added and read back: A -> #56/#78/#79/#80/#99/#100;
+B -> #113/#84/#85/#87/#101. All A blockers and B's foundation blockers are
 closed with merged closing PRs. A starts from development `ca6aad0` in the
 existing checkout on `codex/quick-order-drafts`. #110 merged with successful
 full CI; it was rechecked rather than assumed and was never an invented blocker.
@@ -37,9 +37,11 @@ and visible reopen/detail result; splitting its locking/snapshots into a hidden
 backend ticket would leave an unproved acceptance boundary. No separate generic
 order/draft/template module, evaluator or UI-only “success” ticket is proposed.
 
-Publication and A selection use the owner?s explicit approval. No grouping issue,
-worktree, B implementation, merge, deployment or live-data activation is included.
-A?s draft PR targets `development` under the established workflow.
+Initial publication and A selection used the owner's explicit approval. The
+owner subsequently selected #114 after #115 merged, and approved the count/week/
+retained-demand/QO-code conventions recorded in the design. No worktree,
+production policy, merge, deployment or live-data activation is authorised.
+B's feature PR targets development under the established workflow.
 
 ## Shared requirements for both tickets
 
@@ -251,7 +253,17 @@ and its disposable infrastructure; never another task's host or worktree.
 **Approval record:** the owner answered **“Approve A–B, publish, and implement A.”**
 This satisfies the [development workflow](Development_Workflow.md) requirement
 to **“propose a concrete breakdown for approval before publishing new tickets.”**
-#113/#114 are published; A is selected and B waits for A to merge. No repeated
-publication/selection approval is needed. The research profile was restored and
+#113/#114 were published under that approval; A was selected first and merged
+in #115. B is now selected as recorded below. No repeated publication approval
+is needed. The research profile was restored and
 authenticated investigation resumed. Production policy, human acceptance, merge,
 promotion and live-data gates remain separate.
+
+## B selection update (19 October 2026)
+
+The owner requested implementation of #114 after #113 merged in #115 and
+confirmed: one accepted garment in its promised-delivery week, retain booked
+demand after completion, shop-scoped QO-000001 onward, and block effort-point
+acceptance until a reviewed mapping exists. Production caps, lead times and
+rush values remain separately gated. See
+[acceptance delivery](Quick_Order_Acceptance_Implementation_Evidence.md).
