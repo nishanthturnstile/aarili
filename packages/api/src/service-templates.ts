@@ -1,6 +1,7 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  presentationStateSchema,
   serviceRequirementsPreviewRequestSchema,
   serviceRequirementsPreviewSchema,
   serviceTemplatesDefinitionSchema,
@@ -14,6 +15,7 @@ import {
 import { DraftFailure } from "@aarili/core/drafts";
 import {
   previewServiceRequirements,
+  readPresentation,
   readServiceTemplateDefinition,
   readServiceTemplateEntry,
   readServiceTemplateHistory,
@@ -126,6 +128,31 @@ export function createServiceTemplatesRoutes(
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/settings/service-templates/presentation",
+        request: {
+          params,
+          body: body(
+            z.strictObject({
+              beforeVersion: z.number().int().positive().optional(),
+            }),
+          ),
+        },
+        responses: { 200: response(presentationStateSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerServiceTemplates(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readPresentation(ctx, c.req.valid("json").beforeVersion),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",

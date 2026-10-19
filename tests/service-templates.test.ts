@@ -1,14 +1,12 @@
 import { randomUUID } from "node:crypto";
 import {
   emptyServiceTemplateContent,
+  presentServiceRequirements,
   serviceTemplatesCommandSchema,
   serviceTemplatesDraftSchema,
   templateSections,
 } from "@aarili/contracts/service-templates";
-import {
-  previewServiceRequirements,
-  type ServiceTemplatesContext,
-} from "@aarili/core/service-templates";
+import { previewServiceRequirements } from "@aarili/core/service-templates";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
@@ -92,6 +90,65 @@ const value = () => {
   };
 };
 describe("ST-03/04/07 bounded manifests and honest requirements", () => {
+  it("ST-05/06 property: repeated disclosure switches retain exact canonical definitions, dependencies, unresolved values and actor", async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.array(fc.boolean(), { minLength: 2, maxLength: 80 }),
+        fc.integer({ min: 1, max: 30 }),
+        async (switches, n) => {
+          const c = value().content;
+          c.tasks = Array.from({ length: n }, (_, i) => ({
+            ...row(`task-${i}`),
+            milestone: i % 2 ? ("work" as const) : ("cutting" as const),
+            assignee: "owner" as const,
+            predecessors: i ? [`task-${i - 1}`] : [],
+            prerequisites: ["measurement" as const],
+          }));
+          const actorId = randomUUID();
+          const ctx = {
+            actorId,
+            forms: { repository: { definition: async () => undefined } },
+            repository: { definition: async () => undefined },
+            catalogue: { repository: { definition: async () => undefined } },
+          };
+          const canonical = await previewServiceRequirements(ctx, c),
+            snapshot = JSON.stringify(canonical);
+          for (const detailed of switches) {
+            const view = presentServiceRequirements(
+              canonical,
+              detailed ? "detailed" : "simple",
+            );
+            expect(JSON.stringify(canonical)).toBe(snapshot);
+            expect(
+              view.items
+                .filter((x) => x.section === "tasks")
+                .every((x) => x.assigneeId === actorId),
+            ).toBe(true);
+            expect(
+              view.items.filter((x) => x.required && x.state === "unresolved"),
+            ).toEqual(
+              canonical.items.filter(
+                (x) => x.required && x.state === "unresolved",
+              ),
+            );
+            expect(
+              view.milestones
+                .filter((m) => m.state === "lifecycle")
+                .map((m) => m.key),
+            ).toEqual(["booked", "handed-over"]);
+          }
+          expect(canonical.definition).toEqual(c);
+          expect(
+            canonical.milestones.find((m) => m.key === "trial")?.state,
+          ).toBe("not-applicable");
+          expect(canonical.items.every((x) => x.state === "unresolved")).toBe(
+            true,
+          );
+        },
+      ),
+      { numRuns: 50 },
+    );
+  });
   it("keeps incomplete draft distinct from publishable not-applicable decisions", () => {
     const v = { ...value(), content: emptyServiceTemplateContent() };
     expect(serviceTemplatesDraftSchema.safeParse(v).success).toBe(true);
@@ -211,8 +268,10 @@ describe("ST-03/04/07 bounded manifests and honest requirements", () => {
     ];
     const ctx = {
       actorId: randomUUID(),
-      forms: { repository: {} },
-    } as ServiceTemplatesContext;
+      forms: { repository: { definition: async () => undefined } },
+      repository: { definition: async () => undefined },
+      catalogue: { repository: { definition: async () => undefined } },
+    };
     const preview = await previewServiceRequirements(ctx, v.content);
     expect(preview.effects).toBe("none");
     expect(preview.activation).toBe("unavailable");
@@ -234,5 +293,11 @@ describe("ST-03/04/07 bounded manifests and honest requirements", () => {
     expect((await previewServiceRequirements(ctx, c)).items[0]?.state).toBe(
       "not-required",
     );
+    c.tasks = [];
+    expect(
+      (await previewServiceRequirements(ctx, c)).milestones
+        .filter((m) => m.state !== "lifecycle")
+        .every((m) => m.state === "unresolved"),
+    ).toBe(true);
   });
 });

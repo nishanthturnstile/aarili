@@ -411,6 +411,24 @@ export const serviceTemplatesHistorySchema = z.strictObject({
 });
 export const serviceRequirementsPreviewSchema = z.strictObject({
   fingerprint: z.string(),
+  definition: serviceTemplatesContentSchema,
+  templateRevisionId: z.uuid().nullable(),
+  unavailableSources: z.array(z.string()),
+  milestones: z.array(
+    z.strictObject({
+      key: z.enum([
+        "booked",
+        "cutting",
+        "work",
+        "trial",
+        "ready",
+        "handed-over",
+      ]),
+      state: z.enum(["unresolved", "not-applicable", "lifecycle"]),
+      taskKeys: z.array(z.string()),
+      requiredBlockers: z.array(z.string()),
+    }),
+  ),
   effects: z.literal("none"),
   activation: z.literal("unavailable"),
   sections: z.array(
@@ -471,3 +489,61 @@ export function emptyServiceTemplateContent(
 export type ServiceRequirementsPreview = z.infer<
   typeof serviceRequirementsPreviewSchema
 >;
+// A disclosure projection never rewrites the canonical preview or its fingerprint.
+export function presentServiceRequirements(
+  preview: ServiceRequirementsPreview,
+  mode: "simple" | "detailed",
+) {
+  return {
+    items:
+      mode === "detailed"
+        ? preview.items
+        : preview.items.filter(
+            (r) => r.state === "unresolved" || r.required === true,
+          ),
+    milestones: preview.milestones,
+    definition: mode === "detailed" ? preview.definition : null,
+  };
+}
+
+export const presentationModeSchema = z.enum(["simple", "detailed"]);
+export const presentationDraftSchema = z.strictObject({
+  baseVersion: z.number().int().min(0).max(2147483646),
+  baseRevisionId: z.uuid().nullable(),
+  mode: presentationModeSchema,
+  reason: text(1000),
+});
+export const presentationCommandSchema = presentationDraftSchema.superRefine(
+  (v, ctx) => {
+    if ((v.baseVersion === 0) !== (v.baseRevisionId === null))
+      ctx.addIssue({
+        code: "custom",
+        path: ["baseRevisionId"],
+        message: "Invalid base revision",
+      });
+    if (!v.reason.trim())
+      ctx.addIssue({
+        code: "custom",
+        path: ["reason"],
+        message: "Enter a review reason",
+      });
+  },
+);
+export const presentationRevisionSchema = z.strictObject({
+  id: z.uuid(),
+  version: z.number().int().positive(),
+  previousId: z.uuid().nullable(),
+  actorId: z.uuid(),
+  effectiveAt: z.iso.datetime(),
+  originDraftId: z.uuid(),
+  mode: presentationModeSchema,
+  reason: z.string(),
+});
+export const presentationStateSchema = z.strictObject({
+  mode: presentationModeSchema,
+  revision: presentationRevisionSchema.nullable(),
+  history: z.array(presentationRevisionSchema).max(25),
+  next: z.number().int().positive().nullable(),
+});
+export type PresentationDraft = z.infer<typeof presentationDraftSchema>;
+export type PresentationRevision = z.infer<typeof presentationRevisionSchema>;

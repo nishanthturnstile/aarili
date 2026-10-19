@@ -788,3 +788,40 @@ further process change separately; retain the required verification and review.
   **08:39:55.111–08:45:21.024 IST**: binding recovery/publication/history,
   English/Tamil template workflows and bilingual history axe/200% reflow.
   Existing phone/tablet evidence is retained for unchanged presentation inputs.
+
+## Issue #100 — Simple and Detailed workflow preview
+
+- Requested and started on 19 October 2026 in the existing owner checkout,
+  branch `codex/simple-detailed-preview`, integrated base `feda53a`.
+  Direct blocker #99 closed through merged #105; integrated #106 fast/audit CI
+  passed. No worktree was created. The first capability edit timestamp was not
+  instrumented; implementation was observed in progress at 12:40:50 IST.
+- Initial package build passed. Initial typecheck caught duplicate inherited
+  translation keys; after removing those duplicates, full typecheck passed.
+  The original duplicate-key diagnostic is in the tool transcript; its log was
+  overwritten by the corrected run. Later gates use distinct evidence filenames.
+- Final verification, review-host readiness and review-ready timestamps pending.
+  Active implementation duration unknown. PR publication, merge, deployment,
+  production content and live data remain separate gates.
+- Final core/DB verification observed by **13:00:20 IST**: 13/13 PostgreSQL
+  cases, 129.06s; fresh fast gate 227/52, 64 paths, production build 18.133s.
+  Browser test setup was corrected first for an absent landmark locator and then
+  to honour real 429 admission on both competing draft save and promotion.
+  Phone full bilingual workflow passed in 1.3m; remaining size cases running.
+- Hidden synthetic review launcher 8364 started **12:58:41.494 IST**.
+  Review readiness was observed by **12:59:20.420 IST** at
+  http://127.0.0.1:61005/settings?section=serviceTemplates; HTTP 200 subsequently
+  confirmed. Exact earlier readiness time was not instrumented. Final keyboard
+  focus refinement and its affected verification remain in progress.
+- Main bilingual matrix completed **6/6**, **5.1m**, observed **13:05:48.918 IST**.
+  The earlier host was stopped cleanly for the focus refinement; affected lint,
+  Knip, strict web types and production build passed. Replacement hidden launcher
+  29148 started **13:06:42.160 IST**; final review readiness observed by
+  **13:07:00.496 IST**, http://127.0.0.1:55115/settings?section=serviceTemplates.
+  HTTP 200 confirmed **13:07:32.574 IST**.
+- Final keyboard/axe/dirty-cancel/stale-preview cases completed **3/3**, **1.1m**,
+  observed **13:07:54.492 IST**. Final automated outcome: 227 unit/property cases,
+  13 PostgreSQL cases and nine bilingual browser workflows, with the affected
+  focus build verified separately. Human Tamil/device/AT acceptance is pending;
+  active coding/wait/rework durations remain unknown. Local commit preparation
+  follows; no publication, hosted CI, merge or deployment is claimed.

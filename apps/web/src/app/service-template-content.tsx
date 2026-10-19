@@ -5,13 +5,17 @@ import {
 } from "@aarili/api/service-catalogue-client";
 import { previewServiceRequirements } from "@aarili/api/service-templates-client";
 import type { ServiceTemplateContent } from "@aarili/contracts/service-templates";
-import { templateSections } from "@aarili/contracts/service-templates";
+import {
+  presentServiceRequirements,
+  templateSections,
+} from "@aarili/contracts/service-templates";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { v7 } from "uuid";
+import { usePresentationMode } from "./shop-presentation";
 
 type Content = ServiceTemplateContent;
 type Section = (typeof templateSections)[number];
@@ -806,6 +810,10 @@ function RequirementsPreview({
 }) {
   const t = useTranslations("serviceTemplates"),
     locale = useLocale();
+  const shopMode = usePresentationMode();
+  const modeId = useId();
+  const [override, setOverride] = useState<"simple" | "detailed">();
+  const mode = override ?? shopMode;
   const [preview, setPreview] = useState<{
       source: Content;
       value: Awaited<ReturnType<typeof previewServiceRequirements>>;
@@ -822,7 +830,12 @@ function RequirementsPreview({
     };
   }, []);
   const fresh =
-    preview && JSON.stringify(preview.source) === JSON.stringify(content);
+    preview &&
+    JSON.stringify(preview.source) === JSON.stringify(content) &&
+    preview.value.templateRevisionId === (templateRevisionId ?? null);
+  const projection = fresh
+    ? presentServiceRequirements(preview.value, mode)
+    : null;
   return (
     <section aria-label={landmark ? t("previewTitle") : undefined}>
       <h4>{t("previewTitle")}</h4>
@@ -858,6 +871,42 @@ function RequirementsPreview({
       {fresh && (
         <>
           <p>{t("manual")}</p>
+          {preview.value.unavailableSources.length > 0 && (
+            <p role="alert">
+              {t("referencesUnavailable")}:{" "}
+              {preview.value.unavailableSources.join(", ")}
+            </p>
+          )}
+          <fieldset>
+            <legend>{t("sampleMode")}</legend>
+            {(["simple", "detailed"] as const).map((value) => (
+              <label className="directory-check" key={value}>
+                <input
+                  type="radio"
+                  name={`mode-${modeId}`}
+                  checked={mode === value}
+                  onChange={() => setOverride(value)}
+                />
+                {t(value)}
+              </label>
+            ))}
+            <Button variant="ghost" onClick={() => setOverride(undefined)}>
+              {t("useShopMode")}
+            </Button>
+          </fieldset>
+          <p>{t("illustrativeMilestones")}</p>
+          <ol>
+            {preview.value.milestones.map((m) => (
+              <li key={m.key}>
+                <strong>{t(m.key)}</strong> · {t(m.state)}
+                {m.requiredBlockers.length > 0 && (
+                  <p>
+                    {t("blockers")}: {m.requiredBlockers.join(", ")}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ol>
           <p className="shop-actor">{preview.value.fingerprint}</p>
           {preview.value.sections.map((s) => (
             <p key={s.key}>
@@ -865,7 +914,7 @@ function RequirementsPreview({
             </p>
           ))}
           <ul>
-            {preview.value.items.map((r) => (
+            {projection?.items.map((r) => (
               <li key={`${r.section}:${r.key}`}>
                 <strong>{locale === "ta" ? r.labelTa : r.labelEn}</strong> ·{" "}
                 {t(
@@ -876,7 +925,7 @@ function RequirementsPreview({
                       : "optional",
                 )}{" "}
                 · {t(r.applicability)} · {t(r.state)}
-                <p>{r.source}</p>
+                {mode === "detailed" && <p>{r.source}</p>}
                 {r.blockers.length > 0 && (
                   <p>
                     {t("blockers")}: {r.blockers.join(", ")}
@@ -895,6 +944,31 @@ function RequirementsPreview({
               </li>
             ))}
           </ul>
+          {mode === "detailed" && (
+            <details>
+              <summary>{t("canonicalDetail")}</summary>
+              {(["pieces", "addons"] as const).map((kind) =>
+                preview.value.definition[kind].map((r) => (
+                  <p key={r.key}>
+                    {t(kind)} · {r.key} · {r.revisionId} · {t(r.applicability)}{" "}
+                    · {r.reason}
+                  </p>
+                )),
+              )}
+              {templateSections.map((section) =>
+                preview.value.definition[section].map((r) => (
+                  <div key={`${section}:${r.key}`}>
+                    <p>
+                      {t(section)} · {r.key} · {r.scope.pieceKey ?? t("whole")}{" "}
+                      · {r.scope.addonKey ?? t("whole")}
+                    </p>
+                    <p>{locale === "ta" ? r.instructionTa : r.instructionEn}</p>
+                    <p>{r.applicabilityReason}</p>
+                  </div>
+                )),
+              )}
+            </details>
+          )}
           <h5>{t("sources")}</h5>
           {preview.value.sources.map((s) => (
             <p className="shop-actor" key={s}>

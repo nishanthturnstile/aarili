@@ -266,6 +266,7 @@ export async function assertIsolationCatalog(db: Database) {
         "public.document_share_event",
         "public.vocabulary_revision",
         "public.shop_profile_revision",
+        "public.shop_presentation_revision",
         "public.shop_directory_revision",
         "public.service_template_revision",
         "public.service_template_availability",

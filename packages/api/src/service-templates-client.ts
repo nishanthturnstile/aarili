@@ -1,5 +1,6 @@
 ﻿import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  presentationStateSchema,
   type ServiceTemplateContent,
   serviceRequirementsPreviewSchema,
   serviceTemplatesDefinitionSchema,
@@ -32,6 +33,20 @@ async function result(r: Response, generation: number) {
   return data;
 }
 const init = (signal: AbortSignal) => ({ cache: "no-store" as const, signal });
+export async function readPresentation(shopId: string, beforeVersion?: number) {
+  return presentationStateSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].settings[
+          "service-templates"
+        ].presentation.$post(
+          { param: { shopId }, json: beforeVersion ? { beforeVersion } : {} },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
 export async function readServiceTemplates(
   shopId: string,
   before?: string,

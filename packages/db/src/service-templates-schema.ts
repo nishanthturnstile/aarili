@@ -24,6 +24,37 @@ const tenantPolicies = () =>
       withCheck: sql`shop_context_allows(shop_id)`,
     }),
   );
+// 0029 owns tenant-composite FKs, FORCE RLS and immutable promotion guards.
+export const shopPresentationRevision = pgTable(
+  "shop_presentation_revision",
+  {
+    shopId: uuid("shop_id").notNull(),
+    id: uuid("id").notNull(),
+    version: integer("version").notNull(),
+    previousId: uuid("previous_id"),
+    mode: text("mode").notNull(),
+    reason: text("reason").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    auditId: uuid("audit_id").notNull(),
+    originDraftId: uuid("origin_draft_id").notNull(),
+    effectiveAt: timestamp("effective_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.id] }),
+    unique().on(t.shopId, t.version),
+    unique().on(t.shopId, t.originDraftId),
+    ...tenantPolicies(),
+  ],
+);
+export const shopPresentation = pgTable(
+  "shop_presentation",
+  {
+    shopId: uuid("shop_id").notNull(),
+    currentId: uuid("current_id").notNull(),
+    version: integer("version").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.shopId] }), ...tenantPolicies()],
+);
 export const serviceTemplatesRevision = pgTable(
   "service_template_revision",
   {
