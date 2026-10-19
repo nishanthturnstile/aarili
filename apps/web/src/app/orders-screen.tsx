@@ -1,6 +1,10 @@
 import { onOwnerInvalidation } from "@aarili/api/client";
 import { searchCustomers } from "@aarili/api/customer-client";
-import { previewQuickOrder } from "@aarili/api/orders-client";
+import {
+  listAcceptedOrders,
+  previewQuickOrder,
+  readAcceptedOrder,
+} from "@aarili/api/orders-client";
 import {
   readPresentation,
   readServiceTemplates,
@@ -9,6 +13,7 @@ import { listWearers } from "@aarili/api/wearer-client";
 import type { CustomerSearchPage } from "@aarili/contracts/customers";
 import type { DraftCursor, DraftRecord } from "@aarili/contracts/drafts";
 import {
+  type AcceptedOrder,
   emptyQuickOrder,
   type QuickOrderDraft,
   type QuickOrderPreview,
@@ -16,7 +21,11 @@ import {
 } from "@aarili/contracts/orders";
 import { presentServiceRequirements } from "@aarili/contracts/service-templates";
 import type { WearerProfile } from "@aarili/contracts/wearers";
-import { type Locale, orderMessages } from "@aarili/i18n";
+import {
+  type Locale,
+  orderAcceptanceMessages,
+  orderMessages,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
@@ -26,6 +35,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
+import { AcceptedOrderDetail, CommitmentReview } from "./order-acceptance";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 
@@ -33,6 +43,7 @@ type Services = Awaited<ReturnType<typeof readServiceTemplates>>;
 type T = (typeof orderMessages)[Locale];
 function address(id?: string) {
   const u = new URL(window.location.href);
+  u.searchParams.delete("order");
   if (id) u.searchParams.set("draft", id);
   else u.searchParams.delete("draft");
   window.history.replaceState(null, "", `${u.pathname}${u.search}`);
@@ -68,7 +79,8 @@ function Fields({
   const generation = useRef(0),
     customerGeneration = useRef(0),
     alive = useRef(true);
-  const canonical = JSON.stringify(v);
+  const { commitmentReview: _reviewDecision, ...previewInput } = v;
+  const canonical = JSON.stringify(previewInput);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -473,6 +485,12 @@ function Fields({
       >
         {t.save}
       </Button>
+      <CommitmentReview
+        shopId={shopId}
+        controller={controller}
+        form={form}
+        locale={locale}
+      />
     </>
   );
 }
@@ -481,11 +499,13 @@ function Editor({
   shopId,
   guard,
   close,
+  openBooked,
 }: {
   controller: DraftRecovery;
   shopId: string;
   guard: OwnerGuard;
   close: (force?: boolean) => void;
+  openBooked: (id: string) => void;
 }) {
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
@@ -574,6 +594,17 @@ function Editor({
         )}
       </DraftForm>
       <div className="owner-actions">
+        {s.status === "promoted" &&
+          s.committed?.result?.type === "order.accepted" && (
+            <Button
+              onClick={() => {
+                const id = controller.snapshot().committed?.result?.id;
+                if (id) openBooked(id);
+              }}
+            >
+              {orderAcceptanceMessages[locale].openBooked}
+            </Button>
+          )}
         <Button
           variant="outline"
           disabled={s.work.inFlight || s.work.outcomeUnknown}
@@ -606,11 +637,16 @@ export function OrdersScreen({
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
   const [scope] = useState(() => createDraftScope(shopId, guard));
+  const safe = useSyncExternalStore(guard.subscribe, guard.safe, () => true);
   const [controller, setController] = useState<DraftRecovery>(),
     [records, setRecords] = useState<DraftRecord[]>([]),
     [next, setNext] = useState<DraftCursor | null>(null),
     [failure, setFailure] = useState(false),
     [working, setWorking] = useState(false);
+  const [orders, setOrders] = useState<AcceptedOrder[]>([]),
+    [orderNext, setOrderNext] = useState<string | null>(null),
+    [accepted, setAccepted] = useState<AcceptedOrder>();
+  const a = orderAcceptanceMessages[locale];
   const active = useRef(true),
     selected = useRef<DraftRecovery | undefined>(undefined);
   useEffect(() => {
@@ -619,6 +655,8 @@ export function OrdersScreen({
       active.current = false;
       setRecords([]);
       setController(undefined);
+      setOrders([]);
+      setAccepted(undefined);
     });
     return () => {
       active.current = false;
@@ -637,8 +675,54 @@ export function OrdersScreen({
       ].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     );
     address(record.lifecycle === "active" ? record.id : undefined);
+    if (
+      record.lifecycle === "promoted" &&
+      record.result?.type === "order.accepted"
+    )
+      void openOrder(record.result.id);
+  }
+  async function openOrder(id: string) {
+    setWorking(true);
+    setFailure(false);
+    try {
+      const r = await readAcceptedOrder(shopId, id);
+      if (active.current) {
+        if (selected.current) scope.release(selected.current);
+        selected.current = undefined;
+        setController(undefined);
+        setAccepted(r);
+        const u = new URL(window.location.href);
+        u.searchParams.delete("draft");
+        u.searchParams.set("order", id);
+        window.history.replaceState(null, "", `${u.pathname}${u.search}`);
+      }
+    } catch {
+      if (active.current) setFailure(true);
+    } finally {
+      if (active.current) setWorking(false);
+    }
+  }
+  async function refreshOrders(before?: string) {
+    try {
+      const r = await listAcceptedOrders(shopId, before);
+      if (active.current) {
+        setOrders((rows) =>
+          before
+            ? [
+                ...rows,
+                ...r.orders.filter((o) => !rows.some((x) => x.id === o.id)),
+              ]
+            : r.orders,
+        );
+        setOrderNext(r.next);
+      }
+    } catch {
+      if (active.current) setFailure(true);
+    }
   }
   function open(initial: QuickOrderDraft, record?: DraftRecord) {
+    setAccepted(undefined);
+    address(record?.id);
     if (selected.current) scope.release(selected.current);
     const c = scope.open({
       workflow: "order.quick",
@@ -675,6 +759,12 @@ export function OrdersScreen({
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial URL read belongs to this scope lifetime
   useEffect(() => {
     void refresh();
+    void refreshOrders();
+    const orderId = new URL(window.location.href).searchParams.get("order");
+    if (orderId) {
+      void openOrder(orderId);
+      return;
+    }
     const id = new URL(window.location.href).searchParams.get("draft");
     if (id) void resume(id);
   }, [scope]);
@@ -685,6 +775,14 @@ export function OrdersScreen({
       const r = await scope.read(id);
       if (!active.current) return;
       const p = quickOrderDraftSchema.safeParse(r.payload);
+      if (
+        r.workflow === "order.quick" &&
+        r.lifecycle === "promoted" &&
+        r.result?.type === "order.accepted"
+      ) {
+        await openOrder(r.result.id);
+        return;
+      }
       if (
         r.workflow !== "order.quick" ||
         r.schemaVersion !== 1 ||
@@ -700,6 +798,7 @@ export function OrdersScreen({
     }
   }
   async function start() {
+    if (accepted && !guard.safe()) return;
     if (
       selected.current &&
       !selected.current.confirmLeave(() =>
@@ -742,60 +841,108 @@ export function OrdersScreen({
     selected.current = undefined;
     setController(undefined);
     address();
+    setAccepted(undefined);
+    const u = new URL(window.location.href);
+    u.searchParams.delete("order");
+    window.history.replaceState(null, "", `${u.pathname}${u.search}`);
     void refresh();
+    void refreshOrders();
   }
   return (
     <div className="order-intake">
-      <p>{t.draftOnly}</p>
+      <p>{a.draftNotice}</p>
       <div className="owner-actions">
-        <Button disabled={working} onClick={() => void start()}>
+        <Button
+          disabled={working || (!!accepted && !safe)}
+          onClick={() => void start()}
+        >
           {t.newDraft}
         </Button>
         <Button
           variant="outline"
           disabled={working}
-          onClick={() => void refresh()}
+          onClick={() => {
+            void refresh();
+            void refreshOrders();
+          }}
         >
           {t.reload}
         </Button>
       </div>
       {failure && <p role="alert">{t.error}</p>}
       {working && <p role="status">{t.loading}</p>}
-      {controller ? (
+      {accepted ? (
+        <AcceptedOrderDetail
+          guard={guard}
+          key={accepted.id}
+          order={accepted}
+          shopId={shopId}
+          locale={locale}
+          back={() => close(true)}
+        />
+      ) : controller ? (
         <Editor
           key={controller.instance}
           controller={controller}
           shopId={shopId}
           guard={guard}
           close={close}
+          openBooked={(id) => void openOrder(id)}
         />
       ) : (
-        <section aria-label={t.resume}>
-          <h2>{t.resume}</h2>
-          {records.length === 0 && !working && <p>{t.empty}</p>}
-          <ul className="order-choices">
-            {records.map((r, i) => (
-              <li key={r.id}>
-                <Button
-                  variant="outline"
-                  disabled={working}
-                  onClick={() => void resume(r.id)}
-                >
-                  {t.newDraft} {i + 1} · {t.savedAt}{" "}
-                  {new Date(r.updatedAt).toLocaleString(
-                    locale === "ta" ? "ta-IN" : "en-IN",
-                  )}
-                  {r.stale ? ` · ${t.stale}` : ""}
-                </Button>
-              </li>
-            ))}
-          </ul>
-          {next && (
-            <Button disabled={working} onClick={() => void refresh(next)}>
-              {t.more}
-            </Button>
-          )}
-        </section>
+        <>
+          <section aria-label={a.orders}>
+            <h2>{a.orders}</h2>
+            {orders.length === 0 && !working && <p>{a.empty}</p>}
+            <ul className="order-choices">
+              {orders.map((o) => (
+                <li key={o.id}>
+                  <Button
+                    variant="outline"
+                    disabled={working}
+                    onClick={() => void openOrder(o.id)}
+                  >
+                    {o.code} · {o.customer?.label} · {o.currentPromise.date}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {orderNext && (
+              <Button
+                disabled={working}
+                onClick={() => void refreshOrders(orderNext)}
+              >
+                {a.more}
+              </Button>
+            )}
+          </section>
+          <section aria-label={t.resume}>
+            <h2>{t.resume}</h2>
+            {records.length === 0 && !working && <p>{t.empty}</p>}
+            <ul className="order-choices">
+              {records.map((r, i) => (
+                <li key={r.id}>
+                  <Button
+                    variant="outline"
+                    disabled={working}
+                    onClick={() => void resume(r.id)}
+                  >
+                    {t.newDraft} {i + 1} · {t.savedAt}{" "}
+                    {new Date(r.updatedAt).toLocaleString(
+                      locale === "ta" ? "ta-IN" : "en-IN",
+                    )}
+                    {r.stale ? ` · ${t.stale}` : ""}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {next && (
+              <Button disabled={working} onClick={() => void refresh(next)}>
+                {t.more}
+              </Button>
+            )}
+          </section>
+        </>
       )}
     </div>
   );

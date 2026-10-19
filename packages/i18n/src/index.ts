@@ -8,7 +8,11 @@ export type Locale = "en" | "ta";
 export { documentMessages } from "./document-messages.js";
 export { measurementFormsMessages } from "./measurement-forms-messages.js";
 export { mediaMessages } from "./media-messages.js";
-export { orderMessages } from "./order-messages.js";
+export {
+  formatOrderPaise,
+  orderAcceptanceMessages,
+  orderMessages,
+} from "./order-messages.js";
 export { serviceCatalogueMessages } from "./service-catalogue-messages.js";
 export { serviceTemplatesMessages } from "./service-templates-messages.js";
 export { sharingMessages } from "./sharing-messages.js";

@@ -1,10 +1,20 @@
 # Quick Order A: implementation and owner-review evidence
 
 19 October 2026. **#113 / 1.2.1a selected and implemented for review**.
-The owner approved A–B, authorised publication and selected A. #114 (B) waits
-for A to merge. This does not complete accepted orders, AC-60 or all of 1.2.1.
+At the A delivery, the owner had approved A-B, authorised publication and
+selected A; B awaited A's merge. This A-only record does not itself complete
+accepted orders, AC-60 or all of 1.2.1. See the subsequent B selection below.
 [REA evidence](Quick_Order_REA_Evidence.md), [design/QO matrix](Quick_Order_Design.md),
 [approved tickets](Quick_Order_Ticket_Packet.md).
+
+## Subsequent B selection
+
+A merged in #115 at `c6ab32d` (19 October 13:36:15Z), with feature fast/audit CI
+successful. The owner then selected #114 and approved the count/week/retained-
+demand/QO-code conventions. B implementation and verification are tracked in
+[Quick Order acceptance evidence](Quick_Order_Acceptance_Implementation_Evidence.md).
+The A-only scope and preparation records below are historical; production,
+merge/promotion and human acceptance remain separate gates.
 
 ## Current approval and baseline
 

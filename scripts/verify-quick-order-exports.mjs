@@ -77,7 +77,7 @@ try {
     [
       "--input-type=module",
       "-e",
-      'for(const p of ["@aarili/contracts/orders","@aarili/core/orders","@aarili/api/orders","@aarili/api/orders-client"]) await import(p);',
+      'for(const p of ["@aarili/contracts/orders","@aarili/core/orders","@aarili/api/orders","@aarili/api/orders-client","@aarili/db/orders-repository","@aarili/db/repositories/orders","@aarili/db/orders-schema"]) await import(p);',
     ],
     { cwd: scratch, stdio: "inherit" },
   );

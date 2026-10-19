@@ -95,6 +95,7 @@ import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
+import { ordersRepository } from "@aarili/db/orders-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
 import {
@@ -1349,6 +1350,12 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       },
       guardians: guardianContext(tx, shopId, actorId),
       templates: serviceTemplatesContext(tx, shopId, actorId),
+      acceptance: {
+        repository: ordersRepository(tx, shopId),
+        commitments: commitmentContext(tx, shopId, actorId),
+        profile: shopProfileRepository(tx, shopId),
+        policies: shopPoliciesRepository(tx, shopId),
+      },
     };
   }
   async function withOwnerQuickOrder<T>(

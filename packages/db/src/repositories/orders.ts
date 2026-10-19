@@ -1,0 +1,64 @@
+import type {
+  AcceptedOrder,
+  OrderReview,
+  QuickOrderDraft,
+} from "@aarili/contracts/orders";
+import type { ServiceRequirementsPreview } from "@aarili/contracts/service-templates";
+import type { RequestRepository } from "./request.js";
+
+export type OrderSources = {
+  manifestId: string;
+  definitionId: string;
+  categoryId: string;
+  bindingId: string;
+  ruleId: string;
+  calendarId: string;
+  profileId: string;
+  policiesId: string;
+  presentationId: string | null;
+};
+export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
+  now(): Promise<Date>;
+  lockCapacity(categoryId: string): Promise<void>;
+  lockOrder(id: string): Promise<void>;
+  demand(
+    categoryId: string,
+    start: string,
+    end: string,
+  ): Promise<
+    { id: string; quantity: number; unit: string; deliveryDate: string }[]
+  >;
+  read(id: string): Promise<AcceptedOrder | undefined>;
+  list(before?: string): Promise<AcceptedOrder[]>;
+  origin(id: string, draftId: string): Promise<boolean>;
+  accept(input: {
+    draftId: string;
+    actorId: string;
+    key: string;
+    requestId: string;
+    intake: QuickOrderDraft;
+    review: OrderReview;
+    requirements: ServiceRequirementsPreview;
+    sources: OrderSources;
+    snapshot: Record<string, unknown>;
+    digest: string;
+  }): Promise<AcceptedOrder>;
+  mode(
+    id: string,
+    mode: "simple" | "detailed",
+    actorId: string,
+    key: string,
+    requestId: string,
+  ): Promise<void>;
+  history(
+    id: string,
+    before?: number,
+  ): Promise<
+    {
+      version: number;
+      mode: "simple" | "detailed";
+      actorId: string;
+      recordedAt: string;
+    }[]
+  >;
+}

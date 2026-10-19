@@ -174,6 +174,15 @@ export async function withOwnerWeb(
           setupToken,
           code,
           runtime,
+          // In-process fixture setup only: real auth/commands, without consuming
+          // interactive admission. No HTTP route or environment bypass is added.
+          seedCommand: async (request) => {
+            probeOwner ??= ownerAuthFromEnvironment(webEnv);
+            return createOwnerVerificationApi(async () => true, {
+              ...probeOwner,
+              commandLimit: async () => 0,
+            }).fetch(request);
+          },
           probeRecent,
           stopDatabase: stop,
           expireAuthentication: async () => {

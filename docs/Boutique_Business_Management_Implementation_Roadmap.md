@@ -527,6 +527,15 @@ acceptance, and AC-58 costing/AC-61 payments are not closed here. #110 was
 rechecked and merged with successful full CI. Human/policy/promotion/live gates
 remain separate; no merge or deployment is implicit.
 
+**B implementation selection (19 October 2026):** A merged through #115 at
+`c6ab32d`; every #114 direct blocker is merged. The owner selected B and approved
+one accepted garment in its promised-delivery week, retained booked demand,
+shop-scoped QO numbering and blocked effort acceptance until reviewed mapping.
+[Acceptance implementation and QO evidence](agents/Quick_Order_Acceptance_Implementation_Evidence.md)
+records current-rule locking, atomic order/demand/snapshots, durable reopen and
+attributable presentation changes. This contributes SET-11/AC-60; physical-device,
+fluent-Tamil, policy, owner acceptance and promotion gates remain separate.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-01, ORD-04, ORD-05, ORD-06, ORD-11, USE-03, USE-04, USE-08. Scenarios: AC-40, AC-55, AC-58, AC-59.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.

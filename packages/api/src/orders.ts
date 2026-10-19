@@ -1,12 +1,27 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
-import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  acceptedOrderSchema,
+  orderErrorSchema,
+  orderHistoryQuerySchema,
+  orderHistorySchema,
+  orderListQuerySchema,
+  orderListSchema,
+  orderModeSchema,
+  orderReviewSchema,
   quickOrderDraftSchema,
   quickOrderPreviewSchema,
 } from "@aarili/contracts/orders";
 import { CustomerFailure } from "@aarili/core/customers";
 import { DraftFailure } from "@aarili/core/drafts";
-import { previewQuickOrder } from "@aarili/core/orders";
+import {
+  changeOrderPresentation,
+  listAcceptedOrders,
+  OrderFailure,
+  previewQuickOrder,
+  readAcceptedOrder,
+  readOrderHistory,
+  reviewQuickOrder,
+} from "@aarili/core/orders";
 import { GuardianFailure, WearerFailure } from "@aarili/core/wearers";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
@@ -17,7 +32,7 @@ const response = <S extends z.ZodType>(schema: S) => ({
   content: { "application/json": { schema } },
 });
 export function createOrderRoutes(
-  owner: Pick<OwnerAuth, "origin" | "withOwnerQuickOrder">,
+  owner: Pick<OwnerAuth, "origin" | "withOwnerQuickOrder" | "commandLimit">,
 ) {
   const app = new OpenAPIHono({
     defaultHook: (r, c) => {
@@ -46,6 +61,24 @@ export function createOrderRoutes(
         { error: { code: "UNSAFE_ORIGIN", message: "Request denied" } },
         403,
       );
+    if (c.req.path.endsWith("/presentation")) {
+      const retry = await owner.commandLimit();
+      if (retry) {
+        c.header("Retry-After", String(retry));
+        return c.json(
+          {
+            error: {
+              code: "RATE_LIMITED",
+              message: "Wait before trying again",
+            },
+          },
+          429,
+        );
+      }
+    }
+    const boundedHeaders = new Headers(c.req.raw.headers);
+    boundedHeaders.delete("Content-Length");
+    c.req.raw = new Request(c.req.raw, { headers: boundedHeaders });
     return next();
   });
   app.use(
@@ -59,7 +92,7 @@ export function createOrderRoutes(
         ),
     }),
   );
-  const error = response(draftErrorSchema);
+  const error = response(orderErrorSchema);
   const routes = app.openapi(
     createRoute({
       method: "post",
@@ -93,7 +126,182 @@ export function createOrderRoutes(
       return c.json(r.data, 200);
     },
   );
+  const orderRoutes = routes
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/review",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          body: {
+            required: true,
+            content: { "application/json": { schema: quickOrderDraftSchema } },
+          },
+        },
+        responses: {
+          200: response(orderReviewSchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerQuickOrder(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => reviewQuickOrder(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/list",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          body: {
+            required: true,
+            content: { "application/json": { schema: orderListQuerySchema } },
+          },
+        },
+        responses: {
+          200: response(orderListSchema),
+          401: error,
+          403: error,
+          409: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerQuickOrder(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => listAcceptedOrders(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/{id}/read",
+        request: { params: z.object({ shopId: z.uuid(), id: z.uuid() }) },
+        responses: {
+          200: response(acceptedOrderSchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const p = c.req.valid("param"),
+          r = await owner.withOwnerQuickOrder(
+            c.req.raw.headers,
+            p.shopId,
+            (ctx) => readAcceptedOrder(ctx, p.id),
+          );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/{id}/history",
+        request: {
+          params: z.object({ shopId: z.uuid(), id: z.uuid() }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: orderHistoryQuerySchema },
+            },
+          },
+        },
+        responses: {
+          200: response(orderHistorySchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const p = c.req.valid("param"),
+          r = await owner.withOwnerQuickOrder(
+            c.req.raw.headers,
+            p.shopId,
+            (ctx) => readOrderHistory(ctx, p.id, c.req.valid("json")),
+          );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/{id}/presentation",
+        request: {
+          params: z.object({ shopId: z.uuid(), id: z.uuid() }),
+          body: {
+            required: true,
+            content: { "application/json": { schema: orderModeSchema } },
+          },
+        },
+        responses: {
+          200: response(acceptedOrderSchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          412: error,
+          422: error,
+          428: error,
+          429: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const p = c.req.valid("param"),
+          r = await owner.withOwnerQuickOrder(
+            c.req.raw.headers,
+            p.shopId,
+            (ctx) =>
+              changeOrderPresentation(ctx, p.id, c.req.valid("json"), {
+                key: c.req.header("Idempotency-Key"),
+                ifMatch: c.req.header("If-Match"),
+                requestId:
+                  c.req.header("X-Request-Id") ??
+                  globalThis.crypto.randomUUID(),
+              }),
+          );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    );
   app.onError((e, c) => {
+    if (e instanceof OrderFailure) {
+      if (e.body.current) c.header("ETag", `"v${e.body.current.version}"`);
+      return c.json(e.body, e.status);
+    }
     if (e instanceof DraftFailure) return c.json(e.body, e.status);
     if (
       e instanceof CustomerFailure ||
@@ -124,5 +332,5 @@ export function createOrderRoutes(
       503,
     );
   });
-  return routes;
+  return orderRoutes;
 }

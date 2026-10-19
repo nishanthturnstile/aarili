@@ -1,7 +1,8 @@
 # Create and Recover a Quick Order: independent design
 
-19 October 2026. Roadmap **1.2.1**. **A?B breakdown approved; #113 (A) selected for implementation.
-B waits for A?s merge. Production policy remains unapproved.**
+19 October 2026. Roadmap **1.2.1**. **A-B approved; A merged in #115.
+The owner selected #114 (B) and approved the count/week/code conventions below.
+Production policy remains unapproved.**
 [Research evidence and gaps](Quick_Order_REA_Evidence.md),
 [vertical tickets](Quick_Order_Ticket_Packet.md),
 [current delivery status](Quick_Order_Implementation_Evidence.md).
@@ -21,11 +22,11 @@ architecture §§6–11/15 govern boundaries and integrity. The
 [binding evidence](Commitment_Bindings_Implementation_Evidence.md) are reused.
 Competitor observations do not supply policy values or implementation contracts.
 
-Current implementation baseline (rechecked 19 October): development `ca6aad0`
+A implementation baseline (rechecked at its start on 19 October): development `ca6aad0`
 includes all A prerequisites, #111 and #112. Promotion #110 merged at `29c4975`;
 [run 39231567178](https://github.com/nishanthturnstile/aarili/actions/runs/39231567178)
 passed scaffold, all three browser projects, audit and aggregate checks.
-The owner approved/published A?B as #113/#114 and selected A. Earlier planning
+The owner approved/published A-B as #113/#114 and selected A. Earlier planning
 status and failed promotion heads are retained in the historical preparation
 ledger, not treated as current state.
 
@@ -139,8 +140,8 @@ contracts and db, not a new package. Proposed relational records:
   retain their source/reason; optional undecided stays unresolved. No execution
   command is included.
 - Accepted capacity demand associated with the exact acceptance and sources;
-  initial readable-code allocation uses a tenant-scoped locked counter. Choose
-  the readable order-code format during ticket review; it is not bill numbering.
+  initial readable-code allocation uses a tenant-scoped locked counter. Use
+  owner-approved shop-scoped `QO-000001` onward; this is not bill numbering.
   Committed identifiers are never recycled. UUIDs remain the opaque route IDs.
 
 Cross-record links use composite shop foreign keys, including draft origin,
@@ -223,14 +224,14 @@ owner-proposal definition or a synthetic fixture into approved production data.
 Use existing eligibility/review gates and an explicit reviewed production-content
 decision where required. Synthetic fixtures stay permanently synthetic.
 
-**Proposed authoritative load model, for owner review:** count accepted demand
+**Owner-approved authoritative load model (19 October 2026, #114 selection):** count accepted demand
 assigned to the promised-delivery week of each canonical category. Drafts and
 risk previews contribute zero. For garment-count policy, one outfit order
 contributes one, not the number of template pieces/tasks. Effort-point policy
 requires an exact reviewed server-side demand value and provenance within the
 existing commitment/configuration module; no browser number or guessed default.
 Reject acceptance as unresolved when that mapping or existing comparable demand
-is unavailable. This is a proposal, not approval of units, weights or caps.
+is unavailable. The owner approved garment-count intake, delivery-week allocation and retained booked demand. Effort mapping and production weights/caps remain unapproved.
 
 Demand facts preserve allocation date, unit, quantity and source. Recompute
 current bucket load from accepted contributions under the current reviewed
@@ -298,8 +299,9 @@ presentation-only change cannot alter commitment or financial facts.
 ## Acceptance matrix
 
 QO identifiers below are ticket-local checks, not new product requirement IDs.
-Every row is **specified, not executed**, until linked fresh implementation
-evidence exists. See ticket ownership and commands in the packet.
+Rows below define the required proof. Execution status and remaining human
+acceptance are recorded per row in the [A evidence](Quick_Order_Implementation_Evidence.md)
+and [B evidence](Quick_Order_Acceptance_Implementation_Evidence.md).
 
 | Check | Product / scenario contribution | Required proof |
 | --- | --- | --- |
@@ -342,10 +344,20 @@ ticket's explicit full checks are required; reuse unaffected baseline evidence.
 No new document renderer is needed here; existing Tamil PDF goldens remain a
 promotion/pilot check and must run when their inputs change.
 
-Owner review must settle the concrete ticket breakdown/selection, readable order
-code convention, booked-demand basis and inclusion/release semantics, count vs
-effort and exact effort mapping, week allocation/boundary, category caps, lead
-time/counting basis, cut-offs, exceptions and rush wording. Initial production
+The owner approved A-B and selected both sequentially, including QO numbering
+and the retained garment-count delivery-week model recorded below. Effort mapping
+remains unapproved and blocked. Production category caps, lead-time/counting
+basis, cut-offs, exceptions and rush wording still require review. Initial production
 catalogue/form/template/privacy/retention approvals remain separate. Labelled
 synthetic fixtures can test proposed semantics without approving production.
 The two-minute figure remains a design target until measured in actual intake.
+
+## B implementation selection and lock audit
+
+A merged through #115 at `c6ab32d`; all #114 direct blockers were rechecked.
+The owner then selected #114 and approved one accepted garment in its promised-
+delivery week, retained booked demand after completion, shop-scoped QO-000001
+onward and blocked effort-point acceptance until a reviewed mapping exists.
+Production caps/lead/rush/content/privacy activation remain separate.
+[Acceptance implementation evidence](Quick_Order_Acceptance_Implementation_Evidence.md)
+records the publisher-compatible lock audit, current verification and review packet.

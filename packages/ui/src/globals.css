@@ -1488,11 +1488,11 @@
   border-radius: var(--radius);
 }
 .order-editor select:focus-visible,
-.order-editor summary:focus-visible {
+.order-intake summary:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
-.order-editor summary {
+.order-intake summary {
   cursor: pointer;
   min-height: 44px;
   padding-block: var(--space-control);
@@ -1500,6 +1500,22 @@
 .order-related-fields {
   display: grid;
   gap: var(--space-page);
+}
+.order-intake .order-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-control);
+  min-height: 44px;
+  padding-block: var(--space-control);
+  cursor: pointer;
+}
+.order-intake .order-check input {
+  flex: none;
+  accent-color: var(--primary);
+}
+.order-intake .order-check input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
 }
 @media (min-width: 768px) {
   .order-related-fields {
