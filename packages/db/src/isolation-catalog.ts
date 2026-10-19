@@ -279,6 +279,7 @@ export async function assertIsolationCatalog(db: Database) {
         "public.measurement_form_availability",
         "public.measurement_form_reference",
         "public.service_catalogue_revision",
+        "public.service_commitment_binding_revision",
         "public.service_catalogue_availability",
         "public.service_catalogue_reference",
         "public.vocabulary_search_key",

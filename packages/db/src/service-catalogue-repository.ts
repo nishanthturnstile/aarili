@@ -4,6 +4,27 @@ import {
 } from "@aarili/contracts/service-catalogue";
 import { sql, type Transaction } from "./index.js";
 import type { ServiceCatalogueRepository } from "./repositories/service-catalogue.js";
+
+// Structural implementation of the framework-free ApprovedCategoryResolver seam.
+// Only current published category definitions qualify; history is a separate API.
+export function approvedCategoryResolver(tx: Transaction, shopId: string) {
+  const catalogue = serviceCatalogueRepository(tx, shopId);
+  return {
+    async resolve(id: string) {
+      const r = await catalogue.current(id);
+      if (!r?.available || r.definition.content.kind !== "category")
+        return null;
+      return {
+        shopId: shopId.toLowerCase(),
+        id: r.entryId,
+        version: `${r.definition.id}:${r.id}:v${r.version}`,
+        warningDays: r.definition.content.warningDays,
+        eligible: true,
+        synthetic: r.definition.authority === "synthetic-fixture",
+      };
+    },
+  };
+}
 export function serviceCatalogueRepository(
   tx: Transaction,
   shopId: string,

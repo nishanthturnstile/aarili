@@ -4,6 +4,7 @@ import {
   catalogueEntrySchema,
   catalogueHistorySchema,
   catalogueListSchema,
+  catalogueRevisionSchema,
 } from "@aarili/contracts/service-catalogue";
 import { hc } from "hono/client";
 import {
@@ -16,6 +17,18 @@ import type { createServiceCatalogueRoutes } from "./service-catalogue.js";
 
 const client = () =>
   hc<ReturnType<typeof createServiceCatalogueRoutes>>("/api");
+export async function readCatalogueRevision(shopId: string, id: string) {
+  return catalogueRevisionSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].settings.catalogue.revisions[":id"].$get(
+          { param: { shopId, id } },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
 async function result(r: Response, generation: number) {
   const data: unknown = await r.json();
   if (!isOwnerGeneration(generation))

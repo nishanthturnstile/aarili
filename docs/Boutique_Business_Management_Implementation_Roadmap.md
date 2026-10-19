@@ -415,7 +415,14 @@ private method references. See [form evidence](agents/Measurement_Forms_Implemen
 C (#99 / 1.1.2c) is selected after #97/#98 merged. Its implementation adds bounded
 bilingual operating-template editors, exact service manifests and honest generated
 requirements; see [template evidence](agents/Service_Templates_Implementation_Evidence.md).
-D-E retain their own selected-issue/merged-prerequisite gates; E implements the existing resolver.
+D retains its own selected-issue/merged-prerequisite gate.
+E (#101) is selected after #97/#88 merged, in the specifically owner-approved
+parallel #99/#101 worktrees. Its additive bindings pin canonical category,
+availability and unchanged unbound rule revisions; the shared evaluator's v2
+configuration preview keeps demand/load unknown and activation unavailable.
+See [binding implementation evidence](agents/Commitment_Bindings_Implementation_Evidence.md)
+for issue-local verification and remaining acceptance gates. No #99/#100 domain
+implementation or real booking acceptance is included in E.
 Full 1.1.2 acceptance, production content/policy approval and live-data activation
 remain pending. Orders, measurements, production and atomic live capacity
 acceptance remain in their existing later slices.

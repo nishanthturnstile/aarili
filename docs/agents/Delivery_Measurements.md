@@ -655,6 +655,65 @@ further process change separately; retain the required verification and review.
   (12 tasks, 27.174s). Runtime source fingerprint unchanged; no heavy unchanged-input
   PostgreSQL/browser rerun. Publication follows this completed gate.
 
+## Issue #101 — category commitment bindings
+
+- Exact implementation start was not instrumented. The first captured in-session
+  wall clock, **2026-10-18T21:43:17.543+05:30**, occurred after initial contract
+  edits; earlier active duration is unknown. Approved isolated T3 worktree
+  `t3-c63ef8f9`, branch `codex/commitment-bindings-101`, base `f604acb`. Owner
+  approved parallel #99/#101; no extra worktree. Baseline #104 required checks
+  passed and the clean local base was verified.
+- First captured focused unit start **21:51:37 IST**, 13/13 passed (836ms).
+  Implementation/rework active time is unknown, not reconstructed from commits.
+  [Issue evidence](Commitment_Bindings_Implementation_Evidence.md) retains the
+  syntax, test-fixture, encoding, limiter and recovery corrections.
+- Successful source fast gate #3: lease **22:05:50.415–22:07:18.924 IST**,
+  219/51 plus strict/negative/OpenAPI/build. Later wording/source-loading changes
+  required affected verification: final application fast gate #5 held
+  **22:35:54.852–22:37:27.428 IST**, exit 0; 219/51 (13.20s), 12-task build
+  (12.428s). Final source-only lint/Knip completed by **22:47:54 IST**, exit 0.
+- Focused binding PostgreSQL **5/5**, 38.68s; incumbent/resolver regression
+  **14 passed / 20 excluded**, 111.28s, exit 0. Required phone/tablet/900px desktop
+  bilingual recovery/axe workflows passed; fresh incumbent unbound phone passed
+  33.8s. Final all-size review-host wording/source-outage/preview/axe/reflow passed
+  **22:45:39.680 IST**, six language/size states plus three outage/retry cases.
+- Shared resource queueing is separately observable in the lease logs. For
+  example final wording fast gate #4 waited **22:24:23.530–22:30:33.902 IST**
+  (370.372s) behind #99's gates. Queue wait and overlapping implementation work
+  are not added together as active coding time. All heavy gates used exclusive
+  leases and isolated disposable databases/builds/ports.
+- Frozen clean install/new export imports passed **22:43:13.481–22:44:14.573 IST**
+  (61.092s), fresh package build 15.049s, lockfile unchanged. Production synthetic
+  review host first observed ready **22:45:26.0248223 IST**, HTTP 200,
+  `http://127.0.0.1:53330/settings?section=commitments`; private access and exact
+  seeded URL are in this worktree's ignored review-host file.
+- Initial review packet was available by **22:48:24 IST**. A same-session saved
+  draft-list gap found during final review was corrected: acknowledged rows merge
+  by ID/version, promoted rows leave the active list and save/close/resume works
+  without reload. Final application fast gate #6 passed **22:53:37.824–22:55:07.199
+  IST** (89.375s), 219/51 (11.35s), build 12.503s. The updated full 1440×900
+  browser acceptance passed **22:55:53.504–22:58:28.250 IST**, including the new
+  same-session flow. Backend/contract/export inputs were unchanged and their
+  passing evidence was reused.
+- The first child host was cleanly stopped; final rebuilt host observed ready
+  **22:59:38.1223328 IST**, HTTP 200, `http://127.0.0.1:63057/settings?section=commitments`.
+  Final bilingual three-size source-outage/preview/axe/reflow check passed
+  **23:00:42.297 IST** (11.983s). Final local review packet/source fingerprint
+  confirmed by observed **23:01:34 IST**; local commit metadata follows closeout.
+  Hosted CI, publication/owner review/merge, actual Android,
+  fluent Tamil, assistive technology and production-content/live-data acceptance
+  remain pending. No push, PR, issue write, deployment or activation was made.
+- Parent review regression reproduced a concurrent mixed-category preview at
+  **23:06:13 IST** (15-day calculation with 7-day source references). The initial
+  retest still imported the old compiled package; both failures are retained.
+  After correcting the source and rebuilding, fresh fast verification passed
+  **23:07:35.886–23:09:10.872 IST**, 219/51 and all component gates. The full
+  focused PostgreSQL suite passed **6/6**, 44.79s, ending **23:09:57.208 IST**.
+  Exact validated category values now remain consistent with preview sources.
+  Replacement production host observed ready **23:11:05.830 IST**, port 61548;
+  final six bilingual size states and three outage/retry checks passed by
+  **23:11:22.732 IST**. Review/rework time is recorded separately from the
+  child's earlier delivery; owner/device/Tamil/AT and publication gates remain.
 
 ## Issue #99 ? operating templates and exact service manifests
 
@@ -700,3 +759,32 @@ further process change separately; retain the required verification and review.
 - No hosted CI, publication, owner review/merge or deployment occurred. Fluent
   Tamil, physical Android, assistive technology and production content acceptance
   remain pending. The assigned worktree and review host are retained.
+
+## Issues #99/#101 — authorized publication and sequential integration
+
+- Owner requested both feature PRs, validation fixes and merge on 19 October
+  2026. GitHub records #105 creation at **08:31:31 IST**, #106 at **08:31:42**.
+  Both were immediately T3-linked and monitored. Their unchanged tested source
+  manifests were checked before publication (581/581 and 26/26 matching files).
+- #105 hosted Fast verification **08:31:37–08:33:21 IST** (104s) and Dependency
+  audit **08:31:37–08:31:58** (21s) passed. #106's original head passed Fast
+  verification **08:31:47–08:33:08** (81s) and audit **08:31:47–08:32:07** (20s).
+  These are GitHub check timestamps, not reconstructed active implementation time.
+- #105 squash-merged after owner authorization and successful checks at
+  **08:34:27 IST**, `7d8f819`; #99 closed. Parent development was fast-forwarded.
+  Its PR-to-merge elapsed time was **2m56s**; active review duration is unknown.
+- #106 integrated that development commit in its existing worktree, retaining
+  both slices' auth/traceability records and expanding expected table/workflow
+  inventories. Combined fast gate passed **08:35:30.410–08:37:56.862 IST**,
+  226 tests/52 files, 63 OpenAPI paths and 12-task production build (28.934s).
+  Fresh affected lint passed after the two integration-test inventory edits.
+- Combined PostgreSQL selection passed **15 cases**, eight unrelated cases
+  excluded, **116.74s**, ending **08:39:54.385 IST**. Integrated browser and
+  revised-head hosted CI/merge timestamps follow once actually observed;
+  queued time is not counted as active coding. Source, commands and raw logs are
+  linked in the binding evidence packet. Full promotion, deployment, live-data
+  and human Tamil/device/AT gates remain separate.
+- Integrated desktop browser verification passed **4/4**, **5.3m**,
+  **08:39:55.111–08:45:21.024 IST**: binding recovery/publication/history,
+  English/Tamil template workflows and bilingual history axe/200% reflow.
+  Existing phone/tablet evidence is retained for unchanged presentation inputs.
