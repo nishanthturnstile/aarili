@@ -53,6 +53,7 @@ async function fixture(run) {
               "shop.commitments",
               "shop.directory",
               "shop.policies",
+              "shop.presentation",
             ]);
             assert.ok(ctx.instrumentation);
             // Only test-only workflow construction obtains the transaction; the
