@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ClipboardList,
   House,
   Link2,
   PanelLeftClose,
@@ -16,7 +17,7 @@ export function WorkspaceNavigation({
   shopName,
   labels,
 }: {
-  current: "owner" | "connections" | "customers" | "settings";
+  current: "owner" | "connections" | "customers" | "orders" | "settings";
   shopName: string;
   labels: {
     navigation: string;
@@ -26,6 +27,7 @@ export function WorkspaceNavigation({
     settingsShort?: string;
     connections: string;
     customers?: string;
+    orders?: string;
     settings?: string;
     currentShop: string;
     expandNavigation: string;
@@ -68,6 +70,12 @@ export function WorkspaceNavigation({
             short: labels.homeShort,
             Icon: House,
             id: "owner",
+          },
+          {
+            href: "/orders",
+            label: labels.orders,
+            Icon: ClipboardList,
+            id: "orders",
           },
           {
             href: "/customers",

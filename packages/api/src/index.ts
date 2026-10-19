@@ -9,6 +9,7 @@ import { createCustomerRoutes } from "./customers.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
+import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
 import { createServiceTemplatesRoutes } from "./service-templates.js";
 import { createShopCalendarRoutes } from "./shop-calendar.js";
@@ -83,6 +84,7 @@ export function createApi(
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));
+    app.route("/", createOrderRoutes(owner));
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));

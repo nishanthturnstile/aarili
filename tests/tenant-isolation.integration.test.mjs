@@ -38,6 +38,8 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "shops/:shopId/orders/intake-preview",
+      "order.quick draft save/read/list/replay/abandon",
       "serviceTemplatesRepository.current/read/definition/list/history/append/advance/origin",
       "shops/:shopId/settings/service-templates/list/entries/history/revisions/definitions/preview",
       "service.templates draft promotion",

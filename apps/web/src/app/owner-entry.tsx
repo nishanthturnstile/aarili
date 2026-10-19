@@ -18,6 +18,7 @@ export type EntryMode =
   | "dashboard"
   | "connections"
   | "settings"
+  | "orders"
   | "customers"
   | "customer-new"
   | "customer-profile";
@@ -74,7 +75,8 @@ export function OwnerEntryScreen({
                 | "/onboarding"
                 | "/dashboard"
                 | "/connections"
-                | "/settings"),
+                | "/settings"
+                | "/orders"),
         );
         if (destination) {
           window.location.replace(destination);

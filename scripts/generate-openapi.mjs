@@ -6,6 +6,7 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createOrderRoutes } from "@aarili/api/orders";
 import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
 import { createServiceTemplatesRoutes } from "@aarili/api/service-templates";
 import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
@@ -15,6 +16,15 @@ import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createOrderRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerQuickOrder: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createShopPoliciesRoutes({
@@ -171,6 +181,10 @@ const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
 });
+assert(
+  document.paths["/api/shops/{shopId}/orders/intake-preview"]?.post,
+  "Missing Quick Order intake preview contract",
+);
 for (const [path, method] of [
   ["", "get"],
   ["/history", "post"],

@@ -83,6 +83,10 @@
     "./service-templates": {
       "types": "./dist/service-templates.d.ts",
       "import": "./dist/service-templates.js"
+    },
+    "./orders": {
+      "types": "./dist/orders.d.ts",
+      "import": "./dist/orders.js"
     }
   },
   "scripts": {

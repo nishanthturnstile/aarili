@@ -1,4 +1,5 @@
 import {
+  abandonDraft,
   getDraft,
   getDrafts,
   onOwnerInvalidation,
@@ -70,6 +71,7 @@ export function createDraftScope(
           save: (id, input, key, etag) =>
             putDraft(shopId, id, input, key, etag),
           promote: (id, key, etag) => promoteDraft(shopId, id, key, etag),
+          abandon: (id, key, etag) => abandonDraft(shopId, id, key, etag),
         },
       });
       controllers.add(controller);

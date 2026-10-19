@@ -46,6 +46,7 @@ async function fixture(run) {
           return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
             assert.deepEqual([...ctx.workflows.keys()].sort(), [
               "measurement.forms",
+              "order.quick",
               "service.catalogue",
               "service.commitment-bindings",
               "service.templates",
@@ -502,7 +503,10 @@ test("0.4.2a E3/E4/E7 AC-38/55 same-key races, initial PUT conflict, distinct-ke
         (
           await withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
             readDraft(
-              { repository: draftRepository(tx, f.a.shop) },
+              {
+                repository: draftRepository(tx, f.a.shop),
+                workflows: new Map(),
+              },
               rollbackId,
             ),
           )

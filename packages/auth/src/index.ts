@@ -34,6 +34,10 @@ import {
 } from "@aarili/core/measurement-forms";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
+  type QuickOrderContext,
+  quickOrderDraftWorkflow,
+} from "@aarili/core/orders";
+import {
   type ServiceCatalogueContext,
   serviceCatalogueDraftWorkflow,
 } from "@aarili/core/service-catalogue";
@@ -232,6 +236,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerQuickOrder: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuickOrderContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerShopCommitments: <T>(
     headers: Headers,
     shopId: string,
@@ -1234,6 +1243,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "order.quick",
+        quickOrderDraftWorkflow(quickOrderContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "shop.presentation",
         presentationDraftWorkflow(serviceTemplatesContext(tx, shopId, userId)),
       );
@@ -1314,6 +1327,38 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
           : {}),
       });
     });
+  }
+  function quickOrderContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): QuickOrderContext {
+    const actor = { type: "user" as const, id: actorId };
+    return {
+      customers: {
+        shopId,
+        actor,
+        repository: customerRepository(tx, shopId),
+        policy: configuration.customerPolicy ?? blockedCustomerPolicy,
+      },
+      wearers: {
+        shopId,
+        actor,
+        repository: wearerRepository(tx, shopId, wearerPolicy().notice?.id),
+        policy: wearerPolicy(),
+      },
+      guardians: guardianContext(tx, shopId, actorId),
+      templates: serviceTemplatesContext(tx, shopId, actorId),
+    };
+  }
+  async function withOwnerQuickOrder<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuickOrderContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(quickOrderContext(tx, shopId, actorId)),
+    );
   }
   function guardianContext(
     tx: Transaction,
@@ -1892,6 +1937,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerServiceCatalogue,
     withOwnerMeasurementForms,
     withOwnerServiceTemplates,
+    withOwnerQuickOrder,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,
