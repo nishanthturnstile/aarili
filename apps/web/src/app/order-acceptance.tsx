@@ -10,7 +10,6 @@ import type {
   OrderReview,
   QuickOrderDraft,
 } from "@aarili/contracts/orders";
-import { presentServiceRequirements } from "@aarili/contracts/service-templates";
 import {
   formatOrderPaise,
   type Locale,
@@ -24,6 +23,7 @@ import { Input } from "@aarili/ui/components/input";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { DraftRecovery } from "./draft-recovery";
+import { OrderPiecesDetail } from "./order-pieces";
 import type { OwnerGuard } from "./owner-feedback";
 
 function material(v: QuickOrderDraft) {
@@ -360,6 +360,7 @@ export function AcceptedOrderDetail({
   const t = orderAcceptanceMessages[locale],
     [order, setOrder] = useState(initial),
     [working, setWorking] = useState(false),
+    [pieceBusy, setPieceBusy] = useState(false),
     [message, setMessage] = useState<"error" | "checking" | "stale">(),
     [conflict, setConflict] = useState<{
       current: AcceptedOrder;
@@ -506,10 +507,6 @@ export function AcceptedOrderDetail({
       if (alive.current) setWorking(false);
     }
   }
-  const items = presentServiceRequirements(
-    order.requirements,
-    order.presentation,
-  ).items;
   return (
     <section className="owner-form" aria-label={order.code}>
       <h2 tabIndex={-1} ref={heading}>
@@ -590,24 +587,19 @@ export function AcceptedOrderDetail({
         </dl>
       </details>
       <p>{t.next}</p>
-      <h3>{t.blocker}</h3>
-      <ul>
-        {items.map((i) => (
-          <li key={`${i.section}:${i.key}`}>
-            <strong>{locale === "ta" ? i.labelTa : i.labelEn}</strong> —{" "}
-            {i.state === "not-required" ? t.notRequired : t.unresolved}
-            {i.assigneeId && ` · ${t.owner}`}
-            {order.presentation === "detailed" && !!i.blockers.length && (
-              <p>
-                {t.blocker}: {i.blockers.length}
-              </p>
-            )}
-          </li>
-        ))}
-      </ul>
+      <OrderPiecesDetail
+        order={order}
+        shopId={shopId}
+        locale={locale}
+        guard={guard}
+        disabled={working || !!pending.current}
+        onBusy={setPieceBusy}
+      />
       <div className="owner-actions">
         <Button
-          disabled={working || !!pending.current || message === "stale"}
+          disabled={
+            working || pieceBusy || !!pending.current || message === "stale"
+          }
           onClick={() =>
             void mode(order.presentation === "simple" ? "detailed" : "simple")
           }
@@ -616,7 +608,7 @@ export function AcceptedOrderDetail({
         </Button>
         <Button
           variant="outline"
-          disabled={working || !!pending.current}
+          disabled={working || pieceBusy || !!pending.current}
           onClick={() => void reload()}
         >
           {t.reload}
@@ -641,7 +633,7 @@ export function AcceptedOrderDetail({
       )}
       <Button
         variant="outline"
-        disabled={working || !!pending.current}
+        disabled={working || pieceBusy || !!pending.current}
         onClick={() => void loadHistory()}
       >
         {t.history}
@@ -671,7 +663,7 @@ export function AcceptedOrderDetail({
       )}
       <Button
         variant="ghost"
-        disabled={working || !!pending.current}
+        disabled={working || pieceBusy || !!pending.current}
         onClick={back}
       >
         {t.back}

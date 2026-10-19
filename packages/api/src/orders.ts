@@ -1,12 +1,14 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import {
   acceptedOrderSchema,
+  materializeOrderPiecesSchema,
   orderErrorSchema,
   orderHistoryQuerySchema,
   orderHistorySchema,
   orderListQuerySchema,
   orderListSchema,
   orderModeSchema,
+  orderPiecesSchema,
   orderReviewSchema,
   quickOrderDraftSchema,
   quickOrderPreviewSchema,
@@ -16,10 +18,12 @@ import { DraftFailure } from "@aarili/core/drafts";
 import {
   changeOrderPresentation,
   listAcceptedOrders,
+  materializeOrderPieces,
   OrderFailure,
   previewQuickOrder,
   readAcceptedOrder,
   readOrderHistory,
+  readOrderPieces,
   reviewQuickOrder,
 } from "@aarili/core/orders";
 import { GuardianFailure, WearerFailure } from "@aarili/core/wearers";
@@ -61,7 +65,10 @@ export function createOrderRoutes(
         { error: { code: "UNSAFE_ORIGIN", message: "Request denied" } },
         403,
       );
-    if (c.req.path.endsWith("/presentation")) {
+    if (
+      c.req.path.endsWith("/presentation") ||
+      c.req.path.endsWith("/pieces/materialize")
+    ) {
       const retry = await owner.commandLimit();
       if (retry) {
         c.header("Retry-After", String(retry));
@@ -127,6 +134,79 @@ export function createOrderRoutes(
     },
   );
   const orderRoutes = routes
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/{id}/pieces/read",
+        request: { params: z.object({ shopId: z.uuid(), id: z.uuid() }) },
+        responses: {
+          200: response(orderPiecesSchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const p = c.req.valid("param");
+        const r = await owner.withOwnerQuickOrder(
+          c.req.raw.headers,
+          p.shopId,
+          (ctx) => readOrderPieces(ctx, p.id),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.orderVersion}"`);
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/{id}/pieces/materialize",
+        request: {
+          params: z.object({ shopId: z.uuid(), id: z.uuid() }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: materializeOrderPiecesSchema },
+            },
+          },
+        },
+        responses: {
+          200: response(orderPiecesSchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          412: error,
+          422: error,
+          428: error,
+          429: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const p = c.req.valid("param");
+        const r = await owner.withOwnerQuickOrder(
+          c.req.raw.headers,
+          p.shopId,
+          (ctx) =>
+            materializeOrderPieces(ctx, p.id, c.req.valid("json"), {
+              key: c.req.header("Idempotency-Key"),
+              ifMatch: c.req.header("If-Match"),
+              requestId:
+                c.req.header("X-Request-Id") ?? globalThis.crypto.randomUUID(),
+            }),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.orderVersion}"`);
+        return c.json(r.data, 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",

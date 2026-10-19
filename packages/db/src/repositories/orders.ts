@@ -1,5 +1,7 @@
 import type {
   AcceptedOrder,
+  OrderPieceStructure,
+  OrderPieces,
   OrderReview,
   QuickOrderDraft,
 } from "@aarili/contracts/orders";
@@ -18,6 +20,7 @@ export type OrderSources = {
   presentationId: string | null;
 };
 export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
+  pieces: OrderPiecesRepository;
   now(): Promise<Date>;
   lockCapacity(categoryId: string): Promise<void>;
   lockOrder(id: string): Promise<void>;
@@ -61,4 +64,20 @@ export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
       recordedAt: string;
     }[]
   >;
+}
+
+export interface OrderPiecesRepository extends RequestRepository<OrderPieces> {
+  read(orderId: string): Promise<OrderPieces | undefined>;
+  write(input: {
+    orderId: string;
+    orderVersion: number;
+    snapshotDigest: string;
+    structure: OrderPieceStructure;
+    digest: string;
+    actorId: string;
+    key: string;
+    requestId: string;
+    reason: string;
+    acceptance: boolean;
+  }): Promise<void>;
 }

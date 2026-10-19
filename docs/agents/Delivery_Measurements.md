@@ -1,5 +1,17 @@
 # Delivery measurements
 
+## Grouped bookings 1.2.2 preparation, 19 October 2026
+
+Research/design/ticket preparation only, based on integrated development
+`68d07ed`, branch `codex/grouped-bookings-design`. No selected approved 1.2.2
+implementation ticket, implementation PR or first usable grouped-booking host
+exists yet. This does **not** consume an implementation-delivery measurement
+slot. Research evidence, fresh fast-check results and pending scope decisions
+are in [Grouped_Bookings_Implementation_Evidence.md](Grouped_Bookings_Implementation_Evidence.md).
+Active research/design duration was not instrumented and remains unknown.
+Start delivery timing when the owner selects an approved published ticket;
+implementation, local verification, CI, review waiting and rework remain pending.
+
 ## Quick Order B (#114 / 1.2.1b), 19 October 2026
 
 - Owner selected B after #115 merged; all direct blockers rechecked. Existing
@@ -924,3 +936,22 @@ further process change separately; retain the required verification and review.
   focus build verified separately. Human Tamil/device/AT acceptance is pending;
   active coding/wait/rework durations remain unknown. Local commit preparation
   follows; no publication, hosted CI, merge or deployment is claimed.
+
+## Issue #118 ? outfit pieces / 1.2.2a
+
+- Owner approved the A?C packet and publication, with initial payments manual-only
+  in their later slice. A selected **19 October 2026, 22:05:08 IST**; base
+  `68d07ed`, existing checkout `codex/outfit-pieces`. First edit and active coding/
+  rework time were not separately instrumented and remain unknown.
+- First usable synthetic host observed **22:28:05 IST**, loopback orders route,
+  with a historical salwar and incomplete intake. Owner review packet ready
+  **22:34:08 IST**; human review/merge remain pending.
+- Full affected PostgreSQL **44/44, 381.28s**; after final scope/client refinement,
+  affected PostgreSQL **5/5, 61.02s**. Final fast gate: **238 tests, 18.75s**,
+  lint/Knip/types/negative/OpenAPI checks and production build **15.769s**.
+- New and existing Quick Order browser flows **6/6, 2.6m** across three sizes;
+  exact desktop 1440 ? 900 follow-up **1/1, 28.5s**. No reconstructed active
+  implementation duration or aggregate overlapping-test duration is claimed.
+- [Implementation/review evidence](Grouped_Bookings_Pieces_Implementation_Evidence.md)
+  records commands, tested-source hashes, recovery and pending human acceptance.
+  PR/CI timestamps follow publication; no merge or deployment occurred.

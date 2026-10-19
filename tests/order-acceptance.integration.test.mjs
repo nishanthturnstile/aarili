@@ -4,11 +4,13 @@ import { createApi } from "@aarili/api";
 import { emptyQuickOrder } from "@aarili/contracts/orders";
 import { syntheticCustomerPolicy } from "@aarili/core/customer-policy";
 import { mutateDraft } from "@aarili/core/drafts";
+import { materializeOrderPieces } from "@aarili/core/orders";
 import { sql, withShop } from "@aarili/db";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { assertIsolationCatalog } from "@aarili/db/isolation-catalog";
 import { test } from "vitest";
 import { migrateDatabase } from "../scripts/migrate.mjs";
+import { seedHistoricalPieceOrder } from "../scripts/test-support/historical-pieces.mjs";
 import { seedOrderAcceptance } from "../scripts/test-support/order-acceptance.mjs";
 import { seedQuickOrder } from "../scripts/test-support/seed-quick-order.mjs";
 import { withTenantFixture } from "../scripts/test-support/tenant-isolation.mjs";
@@ -43,7 +45,9 @@ async function fixture(work, extra = {}, seedOptions = {}) {
         assert.equal(r.status, 200, await r.clone().text());
         return r.json();
       };
-      f.seed = await seedQuickOrder(f.runtime.pool, f.a.shop);
+      f.seed = await seedQuickOrder(f.runtime.pool, f.a.shop, {
+        outfit: !!seedOptions.outfit,
+      });
       try {
         f.config = await seedOrderAcceptance(f.ok, f.seed.sources, seedOptions);
         f.value = {
@@ -215,6 +219,7 @@ test(
           await f.admin.query(`select
  (select count(*)::int from garment_order) orders,(select count(*)::int from order_acceptance_snapshot) snapshots,
  (select count(*)::int from order_requirement) requirements,(select count(*)::int from order_capacity_demand) demand,
+ (select count(*)::int from order_piece_set) piece_sets,(select count(*)::int from order_piece) pieces,(select count(*)::int from order_requirement_scope) scopes,
  (select count(*)::int from order_presentation_event) history,(select count(*)::int from audit_event) audit,
  (select count(*)::int from idempotency_key) keys,(select count(*)::int from durable_draft where lifecycle='promoted') promoted`)
         ).rows[0];
@@ -224,6 +229,9 @@ test(
         "order_requirement",
         "order_capacity_demand",
         "order_presentation_event",
+        "order_piece_set",
+        "order_piece",
+        "order_requirement_scope",
         "durable_draft",
         "audit_event",
         "idempotency_key",
@@ -922,4 +930,463 @@ test(
           (e) => e.code === "42501",
         );
     }),
+);
+
+async function acceptedFixture(f, value = f.value) {
+  const d = await f.save(await f.reviewed(value));
+  const r = await f.promote(d);
+  assert.equal(r.status, 200, await r.clone().text());
+  return f.ok(`orders/${(await r.json()).draft.result.id}/read`);
+}
+// Disposable synthetic downgrade of ONLY the new structural schema creates the
+// exact existing v1 acceptance rows that a 0030 installation supplies. No accepted
+// snapshot/demand/draft/audit is edited. Then run the real migration runner.
+async function legacyFixture(f) {
+  const o = await acceptedFixture(f);
+  await f.admin.query(`DROP TRIGGER order_piece_acceptance_commit ON garment_order;
+    DROP TABLE order_requirement_scope,order_piece,order_piece_set;
+    DROP FUNCTION order_piece_commit_guard(),order_piece_child_guard(),order_piece_set_guard();
+    DELETE FROM aarili_migration WHERE name='0031_outfit_pieces.sql'`);
+  const before = (
+    await f.admin.query("select count(*)::int n from audit_event")
+  ).rows[0].n;
+  await migrateDatabase(f.migrationConnectionString);
+  assert.equal(
+    (await f.admin.query("select count(*)::int n from audit_event")).rows[0].n,
+    before,
+  );
+  assert.deepEqual(await f.ok(`orders/${o.id}/read`), o);
+  return o;
+}
+
+test(
+  "GB-05/06 minor guardian withdrawal serializes with historical materialisation and denies read/exact replay afterwards",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const c = await f.ok(`customers/${f.value.customerId}`, {
+            method: "GET",
+          }),
+          at = new Date().toISOString();
+        const w = await f.ok(`customers/${c.id}/wearers`, {
+          body: {
+            mode: "new",
+            displayName: "SYNTHETIC piece child",
+            age: "minor",
+            preferences: {
+              language: "",
+              channel: "",
+              fit: "",
+              style: "",
+              delivery: "",
+              source: "",
+            },
+            relationship: {
+              kind: "family",
+              statementByPersonId: c.personId,
+              authorised: true,
+              informed: true,
+              source: "in-person",
+              occurredAt: at,
+              interaction: "SYNTHETIC guarded outfit",
+            },
+          },
+        });
+        const path = `customers/${c.id}/wearers/${w.wearerId}/guardians`;
+        await f.ok(path, {
+          etag: `"v${w.version}"`,
+          body: {
+            guardian: { mode: "new", displayName: "SYNTHETIC guardian" },
+            authority: "parent",
+            scope: "measurement",
+            source: "in-person",
+            occurredAt: at,
+          },
+        });
+        let g = await f.ok(path, { method: "GET" });
+        const verification = {
+          authorityId: g.authority.id,
+          status: "confirmed",
+          method: "synthetic-review-v1",
+          evidenceRef: "SYNTHETIC",
+          scope: "measurement",
+          source: "in-person",
+          occurredAt: at,
+        };
+        await f.ok(`${path}/verification-events`, {
+          etag: `"v${g.version}"`,
+          body: verification,
+        });
+        const o = await acceptedFixture(f, {
+          ...f.value,
+          wearerId: w.wearerId,
+        });
+        await seedHistoricalPieceOrder(f.admin, o.id);
+        g = await f.ok(path, { method: "GET" });
+        const key = randomUUID(),
+          body = {
+            snapshotDigest: o.snapshotDigest,
+            reason: "SYNTHETIC parent-authorised historical structure",
+          };
+        let entered, release;
+        const ready = new Promise((r) => {
+            entered = r;
+          }),
+          gate = new Promise((r) => {
+            release = r;
+          });
+        const preparing = f.owner.withOwnerQuickOrder(
+          new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
+          f.a.shop,
+          async (ctx) => {
+            const original = ctx.acceptance.repository.pieces;
+            const pieces = {
+              ...original,
+              async write(...args) {
+                await original.write(...args);
+                entered();
+                await gate;
+              },
+            };
+            return materializeOrderPieces(
+              {
+                ...ctx,
+                acceptance: {
+                  ...ctx.acceptance,
+                  repository: { ...ctx.acceptance.repository, pieces },
+                },
+              },
+              o.id,
+              body,
+              { key, ifMatch: '"v1"', requestId: randomUUID() },
+            );
+          },
+        );
+        await Promise.race([
+          ready,
+          preparing.then(() => assert.fail("Missing piece write barrier")),
+        ]);
+        const withdrawal = f.request(`${path}/verification-events`, {
+          etag: `"v${g.version}"`,
+          body: { ...verification, status: "withdrawn" },
+        });
+        try {
+          await waitForLock(f);
+        } finally {
+          release();
+        }
+        assert.equal((await preparing).data.state, "materialized");
+        assert.equal((await withdrawal).status, 200);
+        assert.equal(
+          (await f.request(`orders/${o.id}/pieces/read`)).status,
+          404,
+        );
+        assert.equal(
+          (
+            await f.request(`orders/${o.id}/pieces/materialize`, {
+              key,
+              etag: '"v1"',
+              body,
+            })
+          ).status,
+          404,
+        );
+        assert.equal(
+          (await f.admin.query("select count(*)::int n from order_piece_set"))
+            .rows[0].n,
+          1,
+        );
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-02/04/05/08/10 accept and reopen three exact outfit pieces, scoped unresolved work, immutable source history and forced isolation",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const o = await acceptedFixture(f),
+          path = `orders/${o.id}/pieces/read`,
+          p = await f.ok(path);
+        assert.equal(p.state, "materialized");
+        assert.equal(p.execution, "unavailable");
+        assert.equal(p.identities.length, 3);
+        assert.equal(new Set(p.identities.map((i) => i.id)).size, 3);
+        assert.deepEqual(
+          p.structure.pieces.map((p) => p.key),
+          ["top", "bottom", "dupatta"],
+        );
+        const bottom = p.structure.requirements.filter(
+          (r) => r.pieceKey === "bottom",
+        );
+        assert(
+          bottom.some((r) => o.requirements.items[r.position].key === "stitch"),
+        );
+        assert(
+          bottom.some(
+            (r) => o.requirements.items[r.position].section === "measurement",
+          ),
+        );
+        assert(
+          bottom.every(
+            (r) => o.requirements.items[r.position].state === "unresolved",
+          ),
+        );
+        assert.equal((await f.request(path, { who: f.b })).status, 404);
+        for (const table of [
+          "order_piece_set",
+          "order_piece",
+          "order_requirement_scope",
+        ]) {
+          assert.equal(
+            (
+              await f.runtime.db.execute(
+                sql.raw(`select count(*)::int n from ${table}`),
+              )
+            ).rows[0].n,
+            0,
+          );
+          assert.equal(
+            await withShop(
+              f.runtime.db,
+              f.b.user,
+              f.b.shop,
+              async (tx) =>
+                (
+                  await tx.execute(
+                    sql.raw(`select count(*)::int n from ${table}`),
+                  )
+                ).rows[0].n,
+            ),
+            0,
+          );
+          await assert.rejects(
+            withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+              tx.execute(sql.raw(`delete from ${table}`)),
+            ),
+            (e) => e.cause?.code === "42501",
+          );
+          await assert.rejects(
+            f.admin.query(`update ${table} set shop_id=shop_id`),
+            (e) => e.code === "42501",
+          );
+        }
+        await assertIsolationCatalog(f.runtime.db);
+        assert.equal(
+          (
+            await f.admin.query(
+              "select count(*)::int n from order_capacity_demand",
+            )
+          ).rows[0].n,
+          1,
+        );
+        assert.equal(
+          (await f.admin.query("select count(*)::int n from journal_batch"))
+            .rows[0].n,
+          0,
+        );
+        const piece = f.seed.sources.piece;
+        await f.seed.sources.command("service.catalogue", {
+          entryId: piece.entryId,
+          baseVersion: piece.version,
+          baseRevisionId: piece.id,
+          operation: "definition",
+          available: true,
+          reason: "SYNTHETIC new wording",
+          content: {
+            ...piece.definition.content,
+            labelEn: "CHANGED CURRENT LABEL",
+          },
+        });
+        assert.deepEqual(await f.ok(path), p);
+        const mode = await f.ok(`orders/${o.id}/presentation`, {
+          body: { mode: "detailed" },
+          etag: '"v1"',
+        });
+        assert.deepEqual(mode.requirements, o.requirements);
+        const after = await f.ok(path);
+        assert.deepEqual(after.structure, p.structure);
+        assert.deepEqual(after.identities, p.identities);
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-06/08 populated v1 upgrade has no backfill; explicit legacy materialisation races/replays once with stale and changed-request protection",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const o = await legacyFixture(f),
+          path = `orders/${o.id}/pieces/materialize`,
+          before = await f.ok(`orders/${o.id}/pieces/read`);
+        assert.equal(before.state, "historical-preview");
+        assert.deepEqual(before.identities, []);
+        const body = {
+          snapshotDigest: o.snapshotDigest,
+          reason: "SYNTHETIC reviewed historic structure",
+        };
+        assert.equal((await f.request(path, { body })).status, 428);
+        assert.equal(
+          (await f.request(path, { body, etag: '"v1"', who: f.b })).status,
+          404,
+        );
+        await f.ok(`orders/${o.id}/presentation`, {
+          body: { mode: "detailed" },
+          etag: '"v1"',
+        });
+        assert.equal(
+          (await f.request(path, { body, etag: '"v1"' })).status,
+          412,
+        );
+        assert.equal(
+          (
+            await f.request(path, {
+              body: { ...body, snapshotDigest: "0".repeat(64) },
+              etag: '"v2"',
+            })
+          ).status,
+          409,
+        );
+        const key = randomUUID(),
+          options = { body, etag: '"v2"', key };
+        const results = await Promise.all([
+          f.request(path, options),
+          f.request(path, options),
+        ]);
+        assert.deepEqual(
+          results.map((r) => r.status),
+          [200, 200],
+        );
+        const [a, b] = await Promise.all(results.map((r) => r.json()));
+        assert.deepEqual(a, b);
+        assert.equal(a.state, "materialized");
+        assert.equal(a.provenance.version, 1);
+        assert.equal(
+          (
+            await f.request(path, {
+              ...options,
+              body: { ...body, reason: "changed" },
+            })
+          ).status,
+          422,
+        );
+        assert.equal(
+          (await f.request(path, { ...options, key: randomUUID() })).status,
+          409,
+        );
+        await f.admin.query(
+          "delete from idempotency_key where shop_id=$1 and key=$2",
+          [f.a.shop, key],
+        );
+        assert.equal(
+          (await f.request(path, { ...options, key: randomUUID() })).status,
+          409,
+        );
+        const after = await f.ok(`orders/${o.id}/read`);
+        assert.equal(after.snapshotDigest, o.snapshotDigest);
+        assert.deepEqual(after.originalPromise, o.originalPromise);
+        assert.deepEqual(
+          (
+            await f.admin.query(
+              "select (select count(*)::int from order_piece_set) sets,(select count(*)::int from order_capacity_demand) demand,(select count(*)::int from audit_event where action='order.pieces.materialize') audit",
+            )
+          ).rows[0],
+          { sets: 1, demand: 1, audit: 1 },
+        );
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-05/06 actual-write failures roll back legacy piece set, identities, scoped links, audit and request result before exact retry",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const o = await legacyFixture(f),
+          path = `orders/${o.id}/pieces/materialize`,
+          key = randomUUID(),
+          options = {
+            body: {
+              snapshotDigest: o.snapshotDigest,
+              reason: "SYNTHETIC recovery",
+            },
+            etag: '"v1"',
+            key,
+          };
+        const counts = async () =>
+          (
+            await f.admin.query(
+              "select (select count(*)::int from order_piece_set) sets,(select count(*)::int from order_piece) pieces,(select count(*)::int from order_requirement_scope) scopes,(select count(*)::int from audit_event) audit,(select count(*)::int from idempotency_key) keys",
+            )
+          ).rows[0];
+        const baseline = await counts();
+        for (const target of [
+          "audit_event",
+          "order_piece_set",
+          "order_piece",
+          "order_requirement_scope",
+          "idempotency_key",
+        ]) {
+          await f.admin.query(
+            `CREATE FUNCTION test_piece_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC after actual piece write'; END $$; CREATE TRIGGER test_piece_fault AFTER INSERT ON ${target} FOR EACH ROW EXECUTE FUNCTION test_piece_fault()`,
+          );
+          try {
+            assert.equal((await f.request(path, options)).status, 503, target);
+            assert.deepEqual(await counts(), baseline, target);
+          } finally {
+            await f.admin.query(
+              `DROP TRIGGER test_piece_fault ON ${target};DROP FUNCTION test_piece_fault()`,
+            );
+          }
+        }
+        const result = await f.ok(path, options);
+        assert.equal(result.identities.length, 3);
+        assert.deepEqual(await f.ok(path, options), result);
+        const scope = (
+          await f.admin.query(
+            "select * from order_requirement_scope where piece_id is not null limit 1",
+          )
+        ).rows[0];
+        await assert.rejects(
+          withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+            tx.execute(
+              sql`insert into order_requirement_scope(shop_id,order_id,position,piece_key,piece_id) values(${f.b.shop}::uuid,${o.id}::uuid,${scope.position},${scope.piece_key},${scope.piece_id}::uuid)`,
+            ),
+          ),
+          (e) => ["42501", "23514", "23503"].includes(e.cause?.code),
+        );
+        // Isolate the composite FK from the earlier immutable-structure guard, only in this disposable admin fixture.
+        const other = await acceptedFixture(f);
+        const otherPiece = (await f.ok(`orders/${other.id}/pieces/read`))
+          .identities[0].id;
+        await f.admin.query(
+          "alter table order_requirement_scope disable trigger order_requirement_scope_immutable",
+        );
+        try {
+          await assert.rejects(
+            f.admin.query(
+              "update order_requirement_scope set piece_id=$4 where shop_id=$1 and order_id=$2 and position=$3",
+              [f.a.shop, o.id, scope.position, otherPiece],
+            ),
+            (e) => e.code === "23503" && e.constraint.includes("piece"),
+          );
+        } finally {
+          await f.admin.query(
+            "alter table order_requirement_scope enable trigger order_requirement_scope_immutable",
+          );
+        }
+      },
+      {},
+      { outfit: true },
+    ),
 );

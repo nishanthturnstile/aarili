@@ -8,12 +8,18 @@ import { seedOrderAcceptance } from "./test-support/order-acceptance.mjs";
 import { withOwnerWeb } from "./test-support/owner-web.mjs";
 import { seedQuickOrder } from "./test-support/seed-quick-order.mjs";
 
-const directory = resolve(".scratch/quick-order-review-host");
+const pieces = process.argv[2] === "pieces",
+  operation = pieces ? process.argv[3] : process.argv[2];
+const directory = resolve(
+  pieces
+    ? ".scratch/outfit-pieces-review-host"
+    : ".scratch/quick-order-review-host",
+);
 const file = (name) => resolve(directory, name);
 await mkdir(directory, { recursive: true });
-if (["stop", "expire"].includes(process.argv[2])) {
-  await writeFile(file(process.argv[2]), "requested");
-  console.info(`Quick Order review ${process.argv[2]} requested.`);
+if (["stop", "expire"].includes(operation)) {
+  await writeFile(file(operation), "requested");
+  console.info(`Quick Order review ${operation} requested.`);
 } else {
   await (await open(file("host.lock"), "wx")).close();
   await rm(file("stop"), { force: true });
@@ -34,6 +40,7 @@ if (["stop", "expire"].includes(process.argv[2])) {
         runtime,
         expireAuthentication,
         seedCommand,
+        seedHistoricalPieces,
       }) => {
         const cookies = new Map();
         async function request(path, body, extra = {}) {
@@ -68,7 +75,9 @@ if (["stop", "expire"].includes(process.argv[2])) {
           { "Idempotency-Key": randomUUID() },
         );
         const { shop } = await request("/owner/entry");
-        const seed = await seedQuickOrder(runtime, shop.shopId);
+        const seed = await seedQuickOrder(runtime, shop.shopId, {
+          outfit: pieces,
+        });
         try {
           async function setup(
             path,
@@ -137,6 +146,7 @@ if (["stop", "expire"].includes(process.argv[2])) {
               etag: '"v1"',
             }),
             draftId = uuid7();
+          if (pieces) await seedHistoricalPieces(booked.draft.result.id);
           await setup(`drafts/${draftId}`, {
             method: "PUT",
             body: {
@@ -167,7 +177,7 @@ if (["stop", "expire"].includes(process.argv[2])) {
           );
           console.info(`Quick Order review ready: ${origin}/orders`);
           console.info(
-            "Private sign-in: .scratch/quick-order-review-host/private.json (never publish).",
+            `Private sign-in: ${directory}/private.json (never publish).`,
           );
           while (!stopping) {
             try {

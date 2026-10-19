@@ -124,3 +124,57 @@ export const orderPresentationEvent = pgTable(
     ...policies(),
   ],
 );
+
+// Reviewed 0031 SQL owns composite tenant/source FKs and immutable provenance guards.
+export const orderPieceSet = pgTable(
+  "order_piece_set",
+  {
+    shopId: uuid("shop_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    version: integer("version").notNull(),
+    orderVersion: integer("order_version").notNull(),
+    snapshotDigest: text("snapshot_digest").notNull(),
+    structureDigest: text("structure_digest").notNull(),
+    content: jsonb("content").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    auditId: uuid("audit_id").notNull(),
+    commandKey: uuid("command_key").notNull(),
+    reason: text("reason").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.shopId, t.orderId] }), ...policies()],
+);
+export const orderPiece = pgTable(
+  "order_piece",
+  {
+    shopId: uuid("shop_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    id: uuid("id").notNull(),
+    sourceKey: text("source_key").notNull(),
+    entryId: uuid("entry_id").notNull(),
+    revisionId: uuid("revision_id").notNull(),
+    content: jsonb("content").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.orderId, t.id] }),
+    unique().on(t.shopId, t.id),
+    unique().on(t.shopId, t.orderId, t.sourceKey),
+    ...policies(),
+  ],
+);
+export const orderRequirementScope = pgTable(
+  "order_requirement_scope",
+  {
+    shopId: uuid("shop_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    position: integer("position").notNull(),
+    pieceKey: text("piece_key"),
+    pieceId: uuid("piece_id"),
+    addonKey: text("addon_key"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.orderId, t.position] }),
+    index("order_scope_piece").on(t.shopId, t.orderId, t.pieceId, t.position),
+    ...policies(),
+  ],
+);

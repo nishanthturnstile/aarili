@@ -10,8 +10,8 @@ import { seedServiceTemplates } from "./seed-service-templates.mjs";
 
 // Disposable setup uses real core policies/audits, without spending interactive
 // admission capacity on fixture creation. No production path imports this file.
-export async function seedQuickOrder(runtime, shopId) {
-  const sources = await seedServiceTemplates(runtime, shopId);
+export async function seedQuickOrder(runtime, shopId, options = {}) {
+  const sources = await seedServiceTemplates(runtime, shopId, options);
   const db = createDatabase(runtime.options.connectionString, 1);
   const actor = { type: "user", id: sources.actor };
   const headers = (version) => ({
