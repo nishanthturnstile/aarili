@@ -71,3 +71,24 @@ jobs succeeding. No passing result on the earlier failed head proves the final
 candidate. Owner review/merge authorization is already supplied; release CI,
 merge, local main/development synchronization and integrated-main confirmation
 remain pending until observed.
+
+## Corrected candidate preparation
+
+Correction PR #109 passed Fast verification and Dependency audit on `4d1232a`
+and squash-merged at **2026-10-19T08:13:20Z**, producing development `9759cbe`.
+Before that merge, #108 was closed as superseded so it would not launch another
+duplicate full run. Its already-failed run was cancelled while the three browser
+jobs were still running; those incomplete device results are not passes.
+
+The same checkout was fast-forwarded, then promotion branch
+`codex/promote-services-main-20261019` was created from `9759cbe`. Merging main
+`13ae373` is conflict-free and brings only the existing reviewed browser-matrix
+workflow, its workflow documentation and the earlier promotion evidence.
+The workflow remains byte-equivalent to current main. Application/package/test
+files remain identical to corrected development. The two unrelated research
+edits stay unstaged and are excluded from the merge commit.
+
+The replacement promotion will run all required full checks against this
+main-inclusive candidate. No protection, timeout, assertion or retry policy is
+changed by this synchronization. Final promotion merge and integrated-main
+verification remain pending.
