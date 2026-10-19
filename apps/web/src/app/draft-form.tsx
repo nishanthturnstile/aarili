@@ -25,6 +25,8 @@ type DraftFormProps<T extends FieldValues> = {
   locale: Locale;
   guard: ReturnType<typeof createWorkGuard>;
   children: (form: UseFormReturn<T>) => ReactNode;
+  canPromote?: boolean;
+  renderConflict?: (record: DraftRecord) => ReactNode;
 };
 export function DraftForm<T extends FieldValues>(props: DraftFormProps<T>) {
   // Same draft identity may be reopened under a new owner/controller lifetime.
@@ -37,6 +39,8 @@ function DraftFormBody<T extends FieldValues>({
   locale,
   guard,
   children,
+  canPromote = true,
+  renderConflict,
 }: DraftFormProps<T>) {
   const state = useSyncExternalStore(
     controller.subscribe,
@@ -146,7 +150,9 @@ function DraftFormBody<T extends FieldValues>({
       lang={locale}
       onSubmit={(event) => {
         event.preventDefault();
-        void form.handleSubmit(() => controller.promote())(event);
+        if (canPromote)
+          void form.handleSubmit(() => controller.promote())(event);
+        else void form.handleSubmit(() => controller.save())(event);
       }}
       onCompositionStart={() => controller.composition(true)}
       onCompositionEnd={() => {
@@ -212,9 +218,13 @@ function DraftFormBody<T extends FieldValues>({
       {state.status === "conflict" && state.conflict && (
         <section className="owner-form" aria-label={t.current}>
           <h2>{t.current}</h2>
-          <pre className="whitespace-pre-wrap break-words">
-            {JSON.stringify(state.conflict.payload, null, 2)}
-          </pre>
+          {renderConflict ? (
+            renderConflict(state.conflict)
+          ) : (
+            <pre className="whitespace-pre-wrap break-words">
+              {JSON.stringify(state.conflict.payload, null, 2)}
+            </pre>
+          )}
           <div className="owner-actions">
             <Button
               type="button"
@@ -235,14 +245,16 @@ function DraftFormBody<T extends FieldValues>({
           </div>
         </section>
       )}
-      <Button
-        type="submit"
-        disabled={
-          state.status !== "saved" || state.work.dirty || state.work.inFlight
-        }
-      >
-        {t.promote}
-      </Button>
+      {canPromote && (
+        <Button
+          type="submit"
+          disabled={
+            state.status !== "saved" || state.work.dirty || state.work.inFlight
+          }
+        >
+          {t.promote}
+        </Button>
+      )}
       {state.work.dirty && <p>{t.saveFirst}</p>}
     </form>
   );

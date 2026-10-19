@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
 import { MeasurementFormsScreen } from "./measurement-forms-screen";
+import { OrdersScreen } from "./orders-screen";
 import { OwnerConnections } from "./owner-connections";
 import {
   OwnerFeedback,
@@ -34,6 +35,7 @@ export function OwnerWorkspace({
     | "dashboard"
     | "connections"
     | "settings"
+    | "orders"
     | "customers"
     | "customer-new"
     | "customer-profile";
@@ -105,7 +107,9 @@ export function OwnerWorkspace({
               ? "connections"
               : mode === "settings"
                 ? "settings"
-                : "customers"
+                : mode === "orders"
+                  ? "orders"
+                  : "customers"
         }
         shopName={entry.shop.name}
         labels={{
@@ -116,6 +120,7 @@ export function OwnerWorkspace({
           settingsShort: t("settingsShort"),
           connections: t("connections"),
           customers: t("customers.title"),
+          orders: t("orders.title"),
           settings: t("settings.title"),
           currentShop: t("currentShop"),
           expandNavigation: t("expandNavigation"),
@@ -130,13 +135,15 @@ export function OwnerWorkspace({
               ? t("settings.title")
               : mode === "dashboard"
                 ? entry.shop.name
-                : t(
-                    mode === "customer-new"
-                      ? "customers.newTitle"
-                      : mode === "customer-profile"
-                        ? "customers.profileTitle"
-                        : "customers.title",
-                  )}
+                : mode === "orders"
+                  ? t("orders.title")
+                  : t(
+                      mode === "customer-new"
+                        ? "customers.newTitle"
+                        : mode === "customer-profile"
+                          ? "customers.profileTitle"
+                          : "customers.title",
+                    )}
         </h1>
         {mode === "settings" ? (
           <>
@@ -230,6 +237,13 @@ export function OwnerWorkspace({
               />
             )}
           </>
+        ) : mode === "orders" ? (
+          <OrdersScreen
+            key={entry.shop.shopId}
+            shopId={entry.shop.shopId}
+            queries={queries}
+            guard={guard}
+          />
         ) : mode === "customers" ||
           mode === "customer-new" ||
           mode === "customer-profile" ? (
@@ -246,6 +260,7 @@ export function OwnerWorkspace({
         ) : (
           <>
             <p className="entry-intro">{t("dashboardWelcome")}</p>
+            <a href="/orders">{t("orders.resume")}</a>
             <OwnerFeedback request={request} />
             <section
               className="entry-business-status"

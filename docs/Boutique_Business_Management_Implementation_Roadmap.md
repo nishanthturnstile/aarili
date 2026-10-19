@@ -514,6 +514,19 @@ unchanged; registration evidence alone does not close those gates.
 
 ##### Vertical Slice 1.2.1 — Create and Recover a Quick Order
 
+**Approved delivery packet (19 October 2026):**
+[REA evidence](agents/Quick_Order_REA_Evidence.md),
+[independent design and QO acceptance matrix](agents/Quick_Order_Design.md),
+[approved A–B breakdown](agents/Quick_Order_Ticket_Packet.md) and
+[delivery/verification status](agents/Quick_Order_Implementation_Evidence.md)
+track **#113 (1.2.1a)** recoverable intake drafts and **#114 (1.2.1b)** atomic
+accepted orders/snapshots/capacity/detail. The owner selected A; B waits for A’s
+merge. A reuses existing drafts/identity/templates and cannot book a commitment.
+AC-40/55 cover draft portions; AC-59 stays partial, SET-11/AC-60 need B’s atomic
+acceptance, and AC-58 costing/AC-61 payments are not closed here. #110 was
+rechecked and merged with successful full CI. Human/policy/promotion/live gates
+remain separate; no merge or deployment is implicit.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-01, ORD-04, ORD-05, ORD-06, ORD-11, USE-03, USE-04, USE-08. Scenarios: AC-40, AC-55, AC-58, AC-59.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.

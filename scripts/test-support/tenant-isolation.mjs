@@ -12,6 +12,8 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "shops/:shopId/orders/intake-preview",
+  "order.quick draft save/read/list/replay/abandon",
   "serviceTemplatesRepository.current/read/definition/list/history/append/advance/origin",
   "shops/:shopId/settings/service-templates/list/entries/history/revisions/definitions/preview",
   "service.templates draft promotion",

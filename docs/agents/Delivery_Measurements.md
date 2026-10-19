@@ -1,5 +1,56 @@
 # Delivery measurements
 
+## Quick Order A (#113 / 1.2.1a), 19 October 2026
+
+- Owner approved A–B/publication and selected A. Existing checkout,
+  `codex/quick-order-drafts` from development `ca6aad0`; no worktree, direct
+  blockers merged. Branch selection observed **16:40:52 IST**; implementation
+  observed underway **16:48:52 IST**. First edit/active coding time were not
+  separately measured and remain unknown.
+- Resumed REA saved/reopened one synthetic Nool blouse order and cancelled an
+  unsaved edit. Actual IDs/limits are in the [ledger](Quick_Order_REA_Evidence.md).
+- Verification/rework includes compilation/export, privacy/fixture, incomplete
+  promotion expectation, prefix-search fixture and baseline jobs-timeout
+  diagnoses. [Implementation evidence](Quick_Order_Implementation_Evidence.md)
+  records commands/elapsed checks; overlapping research/docs/test time is not
+  summed as active implementation time.
+- First usable synthetic host observed ready by **17:23:56 IST**,
+  http://127.0.0.1:57474/orders. Stopped to rebuild final fixes.
+- Final host observed ready **17:50:48 IST**, http://127.0.0.1:52751/orders;
+  one real incomplete intake saved through the UI and closed into Resume drafts.
+  Six functional/access browser cases passed in 3.5m; visual review then found
+  reconnect-notice grid placement. Old/new geometry was demonstrated, the CSS
+  corrected, lint/build passed (18.087s) and all three recovery journeys recaptured
+  in 2.8m with column-width assertions. These are verification/rework intervals,
+  not active coding time or human acceptance. PR/CI, owner review and merge remain
+  pending. Local review-ready observed **17:55:47 IST**, after final visual/source
+  and focused-staging checks. First-edit/active durations remain unknown; no
+  elapsed interval is relabelled coding time.
+
+## Quick Order preparation (1.2.1), 19 October 2026
+
+- Research/design/ticket preparation only; no selected approved issue and no
+  application implementation start. This does not consume one of the five
+  implementation-delivery entries. Active research/design duration is unknown;
+  do not reconstruct it from file timestamps.
+- Five REA records and the proposed A–B packet are recorded in
+  [Quick Order evidence](Quick_Order_REA_Evidence.md) and the
+  [ticket packet](Quick_Order_Ticket_Packet.md). Authenticated Nool intake remains
+  pending restoration of the dedicated research browser connection.
+- Initial fetched development was `9759cbe`; independent promotion correction
+  #111 subsequently merged as `c985ce6`. No branch/commit/PR was made by this
+  task. #110 moved to `f03780a`; fresh full CI run `39226379586` was running
+  at the closeout inspection, with dependency audit successful.
+- Implementation, first usable Quick Order host, software review-ready, feature
+  CI, review waiting/rework and merge timings remain pending. Preparation
+  verification is recorded in [delivery status](Quick_Order_Implementation_Evidence.md).
+- Preparation verification observed **14:30:39–14:33:38 IST**: fast gate failed
+  at the unchanged jobs-property timeout; isolated jobs and the full 230-test
+  suite with four workers passed, as did negative types, OpenAPI and production
+  build. Earlier lint/Knip/strict types passed. This interval includes diagnostic
+  verification and overlapping documentation work, not active implementation
+  time. Document links/traceability and desktop/phone planning preview passed.
+
 ## Service catalogue (#97 / 1.1.2a), 18 October 2026
 
 - Implementation session observed starting **16:37:04 IST** during initial

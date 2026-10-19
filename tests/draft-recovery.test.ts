@@ -5,6 +5,42 @@ import { createDraftRecovery } from "../apps/web/src/app/draft-recovery.js";
 import { createWorkGuard } from "../apps/web/src/app/pwa-runtime.js";
 
 const id = "019a5e55-2222-7000-8000-000000000001";
+
+test("QO-04/05 abandonment freezes its exact envelope across lost response and blocks edits/double clicks", async () => {
+  let count = 0;
+  const initial = record({ instructions: "செயற்கை" });
+  const abandon = vi.fn(async (_id: string, _key: string, _etag: string) => {
+    if (++count === 1) throw Error("Lost response after commit");
+    return {
+      draft: { ...initial, version: 2, lifecycle: "abandoned" as const },
+    };
+  });
+  const promote = vi.fn();
+  const controller = createDraftRecovery({
+    id,
+    workflow: initial.workflow,
+    schemaVersion: 1,
+    initial: initial.payload,
+    record: initial,
+    key: () => "frozen-abandon-key",
+    transport: { save: vi.fn(), promote, abandon, read: async () => initial },
+  });
+  await controller.abandon();
+  expect(controller.snapshot().pendingPromotion).toBe(true);
+  expect(controller.snapshot().status).toBe("checking");
+  controller.edit({ instructions: "must not replace uncertain command" });
+  expect(controller.snapshot().values).toEqual(initial.payload);
+  await controller.abandon();
+  expect(abandon).toHaveBeenCalledTimes(1);
+  await controller.retry();
+  expect(abandon.mock.calls).toEqual([
+    [id, "frozen-abandon-key", '"v1"'],
+    [id, "frozen-abandon-key", '"v1"'],
+  ]);
+  expect(controller.snapshot().status).toBe("closed");
+  expect(promote).not.toHaveBeenCalled();
+  controller.dispose();
+});
 function record(payload: Record<string, unknown>, version = 1): DraftRecord {
   return {
     id,

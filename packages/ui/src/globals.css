@@ -8,6 +8,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Sole visual authority; generator snapshots are provenance only. */
+.pwa-notice {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
 .pwa-notice:empty {
   display: none;
 }
@@ -1448,4 +1452,57 @@
 .commitment-editor legend {
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.order-intake,
+.order-editor {
+  display: grid;
+  gap: var(--space-page);
+  min-width: 0;
+}
+.order-editor dd {
+  overflow-wrap: anywhere;
+}
+.order-choices {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-control);
+}
+.order-choices button {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  justify-content: start;
+  text-align: start;
+}
+.order-editor select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--space-control);
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+}
+.order-editor select:focus-visible,
+.order-editor summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.order-editor summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-block: var(--space-control);
+}
+.order-related-fields {
+  display: grid;
+  gap: var(--space-page);
+}
+@media (min-width: 768px) {
+  .order-related-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }

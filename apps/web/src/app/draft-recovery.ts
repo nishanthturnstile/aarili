@@ -15,6 +15,7 @@ export type DraftTransport = {
     etag?: string,
   ): Promise<DraftSuccess>;
   promote(id: string, key: string, etag: string): Promise<DraftSuccess>;
+  abandon?(id: string, key: string, etag: string): Promise<DraftSuccess>;
 };
 export type DraftState = {
   id: string;
@@ -37,7 +38,7 @@ export type DraftState = {
 };
 type Pending =
   | { kind: "save"; input: DraftSave; key: string; etag?: string }
-  | { kind: "promote"; key: string; etag: string };
+  | { kind: "promote" | "abandon"; key: string; etag: string };
 function copy<T>(value: T): T {
   return structuredClone(value);
 }
@@ -127,7 +128,7 @@ export function createDraftRecovery(options: {
     const command = pending;
     const expected = epoch;
     emit({
-      pendingPromotion: command.kind === "promote",
+      pendingPromotion: command.kind !== "save",
       error: undefined,
       status: state.work.outcomeUnknown
         ? "checking"
@@ -145,7 +146,9 @@ export function createDraftRecovery(options: {
               command.key,
               command.etag,
             )
-          : await transport.promote(state.id, command.key, command.etag);
+          : command.kind === "abandon" && transport.abandon
+            ? await transport.abandon(state.id, command.key, command.etag)
+            : await transport.promote(state.id, command.key, command.etag);
       if (stopped || expected !== epoch) return;
       pending = undefined;
       const record = copy(result.draft);
@@ -202,7 +205,7 @@ export function createDraftRecovery(options: {
           status:
             error.status === 412
               ? "conflict"
-              : command.kind === "promote" && !dirty
+              : command.kind !== "save" && !dirty
                 ? "saved"
                 : "notSaved",
           conflict: error.body.current ? copy(error.body.current) : undefined,
@@ -283,7 +286,7 @@ export function createDraftRecovery(options: {
     edit(values: Record<string, unknown>) {
       if (
         stopped ||
-        pending?.kind === "promote" ||
+        (pending && pending.kind !== "save") ||
         state.status === "denied" ||
         (state.committed && state.committed.lifecycle !== "active")
       )
@@ -352,6 +355,27 @@ export function createDraftRecovery(options: {
         key: key(),
         etag: `"v${state.committed.version}"`,
       };
+      await execute();
+    },
+    async abandon() {
+      cancelTimer();
+      if (
+        stopped ||
+        composition ||
+        pending ||
+        state.work.inFlight ||
+        state.work.dirty ||
+        state.status !== "saved" ||
+        !state.committed ||
+        !transport.abandon
+      )
+        return;
+      pending = {
+        kind: "abandon",
+        key: key(),
+        etag: `"v${state.committed.version}"`,
+      };
+      emit({ pendingPromotion: true });
       await execute();
     },
     resolveConflict(choice: "server" | "local") {

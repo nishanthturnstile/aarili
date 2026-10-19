@@ -115,6 +115,14 @@
     "./service-templates-client": {
       "types": "./dist/service-templates-client.d.ts",
       "import": "./dist/service-templates-client.js"
+    },
+    "./orders": {
+      "types": "./dist/orders.d.ts",
+      "import": "./dist/orders.js"
+    },
+    "./orders-client": {
+      "types": "./dist/orders-client.d.ts",
+      "import": "./dist/orders-client.js"
     }
   },
   "scripts": {

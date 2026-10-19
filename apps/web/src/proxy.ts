@@ -63,6 +63,7 @@ export const config = {
     "/dashboard",
     "/connections",
     "/settings",
+    "/orders",
     "/customers/:path*",
   ],
 };

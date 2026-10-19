@@ -29,6 +29,7 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  authorizeDraft?(payload: Record<string, unknown>): Promise<void>;
   authorizePublication?(command: Record<string, unknown>): Promise<void>;
   schemaVersion: number;
   draftSchema: DraftSchema;
@@ -101,6 +102,7 @@ export async function readDraft(ctx: DraftContext, id: string) {
   if (!draftIdSchema.safeParse(id).success) fail(422, "VALIDATION_FAILED");
   const draft = await ctx.repository.read(id.toLowerCase());
   if (!draft) fail(404, "NOT_FOUND");
+  await ctx.workflows.get(draft.workflow)?.authorizeDraft?.(draft.payload);
   return draft;
 }
 export async function listDrafts(
@@ -113,8 +115,17 @@ export async function listDrafts(
   if (cursor && !draftCursorSchema.safeParse(cursor).success)
     fail(422, "VALIDATION_FAILED");
   const { rows, before } = await ctx.repository.list(limit + 1, cursor);
-  const drafts = rows.slice(0, limit);
-  const last = drafts.at(-1);
+  const window = rows.slice(0, limit);
+  const drafts: DraftRecord[] = [];
+  for (const row of window) {
+    try {
+      await ctx.workflows.get(row.workflow)?.authorizeDraft?.(row.payload);
+      drafts.push(row);
+    } catch (e) {
+      if (!(e instanceof DraftFailure) || e.status !== 404) throw e;
+    }
+  }
+  const last = window.at(-1);
   return {
     drafts,
     next:
@@ -181,6 +192,9 @@ export async function mutateDraft(
     )
       fail(422, "IDEMPOTENCY_MISMATCH");
     const replay = draftSuccessSchema.parse(prior.response);
+    await ctx.workflows
+      .get(replay.draft.workflow)
+      ?.authorizeDraft?.(replay.draft.payload);
     if (action === "promote")
       await ctx.workflows
         .get(replay.draft.workflow)
@@ -191,6 +205,10 @@ export async function mutateDraft(
   // never replace a committed draft while racing a different idempotency key.
   await repo.lockDraft(id);
   const current = await repo.read(id);
+  if (current)
+    await ctx.workflows
+      .get(current.workflow)
+      ?.authorizeDraft?.(current.payload);
   if (current) {
     if (expected === null) fail(428, "PRECONDITION_REQUIRED");
     if (current.version !== expected) fail(412, "VERSION_STALE", current);
@@ -215,6 +233,7 @@ export async function mutateDraft(
     const adapter = workflow(ctx, data.workflow, data.schemaVersion);
     const parsed = adapter.draftSchema.safeParse(data.payload);
     if (!parsed.success) fail(422, "VALIDATION_FAILED");
+    await adapter.authorizeDraft?.(parsed.data);
     draft = {
       ...data,
       payload: parsed.data,
