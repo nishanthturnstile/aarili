@@ -38,6 +38,7 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "order.service-change and order.services-intake draft promotion/conversion; smallServicesRepository.changes/changeOrigin/duplicateChange/change/converted/conversion/intakeOrder; supplemental demand union and scope/booking-scope/review routes",
       "smallServicesRepository.profiles/current/read/history/append/advance/origin/orders/accept/subject/lines",
       "shops/:shopId/small-services/profiles/list/read/history/orders/review/list/read",
       "service.intake-profile and order.service durable draft save/read/replay/promotion",
@@ -557,6 +558,9 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.order_presentation_event",
       "public.order_requirement",
       "public.order_requirement_scope",
+      "public.order_service_capacity_contribution",
+      "public.order_service_change",
+      "public.order_service_change_line",
       "public.privacy_notice_version",
       "public.product_event",
       "public.service_catalogue_availability",
@@ -565,6 +569,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.service_catalogue_revision",
       "public.service_commitment_binding",
       "public.service_commitment_binding_revision",
+      "public.service_intake_conversion",
       "public.service_intake_profile",
       "public.service_intake_profile_revision",
       "public.service_order_line",
@@ -789,6 +794,9 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.order_presentation_event",
         "public.order_requirement",
         "public.order_requirement_scope",
+        "public.order_service_capacity_contribution",
+        "public.order_service_change",
+        "public.order_service_change_line",
         "public.privacy_notice_version",
         "public.product_event",
         "public.service_catalogue_availability",
@@ -797,6 +805,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.service_catalogue_revision",
         "public.service_commitment_binding",
         "public.service_commitment_binding_revision",
+        "public.service_intake_conversion",
         "public.service_intake_profile",
         "public.service_intake_profile_revision",
         "public.service_order_line",

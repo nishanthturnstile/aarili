@@ -994,6 +994,61 @@ test(
         etag: `"v${guardian.version}"`,
         body: verification,
       });
+      const custom = {
+        ...emptyQuickOrder(),
+        customerId: c.id,
+        wearerId: w.wearerId,
+        manifest: f.services.kurti.profile.content.manifest,
+        deliveryDate: value.deliveryDate,
+        presentationRevisionId: value.presentationRevisionId,
+      };
+      const cr = await f.ok("orders/review", { body: custom });
+      custom.commitmentReview = {
+        fingerprint: cr.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC reviewed minor work",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const cd = await f.save(custom, { workflow: "order.quick" }),
+        cp = await f.promote(cd);
+      assert.equal(cp.status, 200, await cp.clone().text());
+      const customId = (await cp.json()).draft.result.id;
+      const scope = await f.ok(`small-services/scope/${customId}`, {
+        method: "GET",
+      });
+      const change = {
+        orderId: customId,
+        version: scope.version,
+        originalDigest: scope.originalDigest,
+        scopeDigest: scope.scopeDigest,
+        pieceId: null,
+        profile: value.profile,
+        lines: value.lines.map((l) => ({ ...l, id: randomUUID() })),
+        capacity: {
+          basis: "incremental",
+          coveredBy: null,
+          reason: "SYNTHETIC reviewed additional demand",
+        },
+        commercial: "additional-charge",
+        reason: "SYNTHETIC child requested extra alteration",
+        agreement: "SYNTHETIC exact new guardian-authorised scope",
+        review: null,
+      };
+      const ar = await f.ok("small-services/changes/review", { body: change });
+      assert.deepEqual(ar.issues, []);
+      change.review = {
+        fingerprint: ar.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC exception",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const addDraft = await f.save(change, {
+          workflow: "order.service-change",
+        }),
+        addKey = randomUUID();
+      assert.equal((await f.promote(addDraft, { key: addKey })).status, 200);
       const draft = await f.save(await f.reviewed(value)),
         key = randomUUID();
       const response = await f.promote(draft, { key });
@@ -1054,6 +1109,17 @@ test(
         release();
       }
       await revoking;
+      assert.equal(
+        (await f.request(`small-services/scope/${customId}`, { method: "GET" }))
+          .status,
+        404,
+        "SS-B guardian withdrawal protects supplemental history",
+      );
+      assert.equal(
+        (await f.promote(addDraft, { key: addKey })).status,
+        404,
+        "SS-B retry rechecks current guardian authority",
+      );
       assert(
         [404, 409].includes((await accepting).status),
         "withdrawal wins the actual authority lock race",
@@ -1074,7 +1140,7 @@ test(
       );
       assert.equal(
         (await counts(f)).demand,
-        1,
+        2,
         "revocation does not erase original accepted demand",
       );
     }),
@@ -1450,3 +1516,1123 @@ async function countsWithoutServices(f) {
     )
   ).rows[0];
 }
+
+// #125 uses the existing synthetic profile and acceptance paths; no privileged
+// fixture INSERT can stand in for the supplemental command under test.
+test(
+  "SS-B ORD-14 AC-50 accepted additions preserve originals, exact totals, covered capacity, retry and stale aggregate",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const { saree, seed } = f.services;
+      const base = {
+        ...emptyQuickOrder(),
+        customerId: seed.customer.customerId,
+        wearerId: seed.wearer.wearerId,
+        manifest: saree.profile.content.manifest,
+        deliveryDate: saree.intake.deliveryDate,
+        deliveryTime: saree.intake.deliveryTime,
+        presentationRevisionId: saree.intake.presentationRevisionId,
+        priceState: "quoted",
+        priceText: "1000",
+      };
+      const br = await f.ok("orders/review", { body: base });
+      assert.deepEqual(br.unknowns, [], JSON.stringify(br));
+      base.commitmentReview = {
+        fingerprint: br.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC reviewed",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const bd = await f.save(base, { workflow: "order.quick" });
+      const bp = await f.promote(bd);
+      assert.equal(bp.status, 200, await bp.clone().text());
+      const bid = (await bp.json()).draft.result.id;
+      const original = await f.ok(`orders/${bid}/read`, { body: {} });
+      const scope = await f.ok(`small-services/scope/${bid}`, {
+        method: "GET",
+      });
+      const value = {
+        orderId: bid,
+        version: scope.version,
+        originalDigest: scope.originalDigest,
+        scopeDigest: scope.scopeDigest,
+        pieceId: null,
+        profile: saree.intake.profile,
+        lines: saree.intake.lines.map((l, i) => ({
+          ...l,
+          id: randomUUID(),
+          priceState: "quoted",
+          priceText: i ? "50" : "100",
+        })),
+        capacity: {
+          basis: "incremental",
+          coveredBy: null,
+          reason: "SYNTHETIC mapped extra demand",
+        },
+        commercial: "additional-charge",
+        reason: "SYNTHETIC added edge work",
+        agreement:
+          "SYNTHETIC owner recorded agreement for these two priced lines and unchanged promise",
+        review: null,
+      };
+      const r = await f.ok("small-services/changes/review", { body: value });
+      assert.deepEqual(r.issues, [], JSON.stringify(r));
+      value.review = {
+        fingerprint: r.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC exception",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const d = await f.save(value, { workflow: "order.service-change" }),
+        key = randomUUID();
+      assert.equal((await f.promote(d, { etag: undefined })).status, 428);
+      const result = await f.promote(d, { key });
+      if (result.status !== 200) {
+        try {
+          await f.owner.withOwnerDraft(
+            new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
+            f.a.shop,
+            (c) =>
+              mutateDraft(
+                c,
+                d.id,
+                "promote",
+                {},
+                {
+                  key,
+                  ifMatch: `"v${d.draft.version}"`,
+                  requestId: randomUUID(),
+                },
+              ),
+          );
+        } catch (e) {
+          let c = e;
+          while (c.cause) c = c.cause;
+          assert.fail(`${c.code} ${c.message} ${c.where}`);
+        }
+      }
+      assert.equal(result.status, 200, await result.clone().text());
+      assert.deepEqual(
+        await (await f.promote(d, { key })).json(),
+        await result.json(),
+      );
+      const after = await f.ok(`orders/${bid}/read`, { body: {} }),
+        current = await f.ok(`small-services/scope/${bid}`, { method: "GET" });
+      assert.equal(after.snapshotDigest, original.snapshotDigest);
+      assert.deepEqual(after.snapshot, original.snapshot);
+      assert.equal(after.pricePaise, 100000);
+      assert.deepEqual(after.currentPromise, original.currentPromise);
+      assert.equal(current.additionsPaise, "15000");
+      assert.equal(current.totalPaise, "115000");
+      const secondValue = { ...base, priceText: "500", commitmentReview: null },
+        secondReview = await f.ok("orders/review", { body: secondValue });
+      secondValue.commitmentReview = {
+        fingerprint: secondReview.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC reviewed",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const secondId = await f.services.config.publish(
+          "order.quick",
+          secondValue,
+        ),
+        secondOrder = await f.ok(`orders/${secondId}/read`, { body: {} });
+      const bookingValue = {
+        customerId: base.customerId,
+        target: null,
+        context: {
+          occasion: "visit",
+          eventDate: "",
+          notes: "SYNTHETIC exact extra charges",
+          payerId: null,
+        },
+        reason: "SYNTHETIC group two garments",
+        orders: [after, secondOrder].map((o) => ({
+          id: o.id,
+          version: o.version,
+          snapshotDigest: o.snapshotDigest,
+        })),
+        reviewFingerprint: null,
+      };
+      const bookReview = await f.ok("orders/bookings/review", {
+        body: bookingValue,
+      });
+      bookingValue.reviewFingerprint = bookReview.fingerprint;
+      const bookingRevision = await f.services.config.publish(
+        "booking.group",
+        bookingValue,
+      );
+      const detail = await f.ok("orders/bookings/read", {
+          body: { id: bookingRevision, revision: true },
+        }),
+        prices = await f.ok(
+          `small-services/booking-scope/${detail.booking.id}`,
+          { method: "GET" },
+        );
+      assert.equal(prices.originalKnownPaise, "150000");
+      assert.equal(prices.extraKnownPaise, "15000");
+      assert.equal(prices.currentKnownPaise, "165000");
+      assert.equal(
+        prices.currentUnknownCount,
+        0,
+        "garment-price booking counts each extra charge once",
+      );
+      assert.equal(current.changes.length, 1);
+      await assertIsolationCatalog(f.runtime.db);
+      for (const table of [
+        "order_service_change",
+        "order_service_change_line",
+        "order_service_capacity_contribution",
+        "service_intake_conversion",
+      ]) {
+        const hidden = await withShop(f.runtime.db, f.b.user, f.b.shop, (tx) =>
+          tx.execute(sql`select 1 from ${sql.raw(table)}`),
+        );
+        assert.equal(hidden.rows.length, 0, `${table} cross-shop read`);
+        assert.equal(
+          (await f.runtime.db.execute(sql`select 1 from ${sql.raw(table)}`))
+            .rows.length,
+          0,
+          `${table} missing context`,
+        );
+        await assert.rejects(
+          withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+            tx.execute(sql`update ${sql.raw(table)} set shop_id=shop_id`),
+          ),
+          (e) => e.cause?.code === "42501" || e.code === "42501",
+        );
+      }
+      assert.equal(after.version, 2);
+      assert.deepEqual(
+        current.changes[0].content.lines.map((l) => l.state),
+        ["pending", "pending"],
+      );
+      assert.equal(
+        (
+          await f.request(`small-services/scope/${bid}`, {
+            method: "GET",
+            who: f.b,
+          })
+        ).status,
+        404,
+      );
+      assert.equal(
+        (await f.request("small-services/changes/review", { body: value }))
+          .status,
+        412,
+      );
+      const copy = {
+        ...value,
+        version: current.version,
+        scopeDigest: current.scopeDigest,
+        lines: value.lines.map((l) => ({ ...l, id: randomUUID() })),
+        review: null,
+      };
+      const dup = await f.ok("small-services/changes/review", { body: copy });
+      assert(dup.issues.includes("duplicateServiceSource"));
+      const covered = {
+        ...copy,
+        profile: {
+          entryId: f.services.kurti.profile.entryId,
+          revisionId: f.services.kurti.profile.id,
+        },
+        lines: f.services.kurti.intake.lines.map((l) => ({
+          ...l,
+          id: randomUUID(),
+        })),
+        capacity: {
+          basis: "already-covered",
+          coveredBy: bid,
+          reason: "SYNTHETIC explicit original demand coverage",
+        },
+      };
+      const blocked = await f.ok("small-services/changes/review", {
+        body: covered,
+      });
+      assert(blocked.issues.includes("capacityCategoryChanged"));
+      const table = await f.admin.query(
+        "select quantity from order_service_capacity_contribution where order_id=$1",
+        [bid],
+      );
+      assert.deepEqual(table.rows, [{ quantity: 1 }]);
+      const hugeText = "90071992547409.91",
+        hugeBase = { ...base, priceText: hugeText, commitmentReview: null },
+        hugeReview = await f.ok("orders/review", { body: hugeBase });
+      hugeBase.commitmentReview = {
+        fingerprint: hugeReview.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC exact boundary test",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const hugeId = await f.services.config.publish("order.quick", hugeBase),
+        hugeScope = await f.ok(`small-services/scope/${hugeId}`, {
+          method: "GET",
+        });
+      const hugeChange = {
+        ...value,
+        orderId: hugeId,
+        version: hugeScope.version,
+        originalDigest: hugeScope.originalDigest,
+        scopeDigest: hugeScope.scopeDigest,
+        lines: [
+          { ...value.lines[0], id: randomUUID(), priceText: hugeText },
+          {
+            ...value.lines[1],
+            id: randomUUID(),
+            notRequired: true,
+            notRequiredReason:
+              "SYNTHETIC independent optional line declined; leave the first line pending",
+          },
+        ],
+        review: null,
+      };
+      let h = await f.ok("small-services/changes/review", {
+        body: hugeChange,
+      });
+      assert(
+        h.issues.includes("notRequiredPrice"),
+        "not-required work cannot retain a quoted charge",
+      );
+      hugeChange.lines[1].priceState = "to-be-quoted";
+      hugeChange.lines[1].priceText = "";
+      h = await f.ok("small-services/changes/review", { body: hugeChange });
+      assert.deepEqual(h.issues, []);
+      hugeChange.review = {
+        fingerprint: h.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC exact boundary test",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      await f.services.config.publish("order.service-change", hugeChange);
+      const exact = await f.ok(`small-services/scope/${hugeId}`, {
+        method: "GET",
+      });
+      assert.equal(exact.additionsPaise, String(Number.MAX_SAFE_INTEGER));
+      assert.deepEqual(
+        exact.changes[0].content.lines.map((l) => l.state),
+        ["pending", "not-required"],
+      );
+      assert.equal(
+        exact.changes[0].content.lines[1].pricePaise,
+        null,
+        "not-required work does not become a quoted charge",
+      );
+      assert.equal(
+        exact.totalPaise,
+        (BigInt(Number.MAX_SAFE_INTEGER) * 2n).toString(),
+        "supplemental totals beyond a safe number remain readable exact strings",
+      );
+      const demand = (
+        await f.admin.query(
+          "select * from order_service_capacity_contribution where order_id=$1",
+          [bid],
+        )
+      ).rows[0];
+      await assert.rejects(
+        withShop(f.runtime.db, f.b.user, f.b.shop, (tx) =>
+          tx.execute(
+            sql`insert into order_service_capacity_contribution(shop_id,change_id,order_id,category_id,delivery_date,unit,quantity) values(${f.b.shop}::uuid,${demand.change_id}::uuid,${bid}::uuid,${demand.category_id}::uuid,${demand.delivery_date},${demand.unit},1)`,
+          ),
+        ),
+        (e) => e.cause?.code === "23503" || e.code === "23503",
+      );
+      await assert.rejects(
+        withShop(f.runtime.db, f.b.user, f.b.shop, (tx) =>
+          tx.execute(
+            sql`insert into order_service_capacity_contribution(shop_id,change_id,order_id,category_id,delivery_date,unit,quantity) values(${f.a.shop}::uuid,${demand.change_id}::uuid,${bid}::uuid,${demand.category_id}::uuid,${demand.delivery_date},${demand.unit},1)`,
+          ),
+        ),
+        (e) => e.cause?.code === "42501" || e.code === "42501",
+      );
+    }),
+);
+
+test(
+  "SS-B D6 AC-07/50 explicit custom and group conversion preserve raw input and accept selected work atomically",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const { saree, seed } = f.services;
+      const base = {
+        ...emptyQuickOrder(),
+        customerId: seed.customer.customerId,
+        wearerId: seed.wearer.wearerId,
+        manifest: saree.profile.content.manifest,
+        deliveryDate: saree.intake.deliveryDate,
+        presentationRevisionId: saree.intake.presentationRevisionId,
+        priceState: "quoted",
+        priceText: "1000",
+        instructions: "SYNTHETIC exact raw custom note",
+      };
+      const raw = structuredClone(base),
+        source = await f.save(base, { workflow: "order.quick" });
+      const convertKey = randomUUID();
+      const converted = await f.ok(`drafts/${source.id}/convert`, {
+        body: { target: "services" },
+        etag: `"v${source.draft.version}"`,
+        key: convertKey,
+      });
+      assert.equal(converted.draft.lifecycle, "promoted");
+      assert.equal(converted.draft.result.type, "order.services-intake-draft");
+      assert.deepEqual(
+        await f.ok(`drafts/${source.id}/convert`, {
+          body: { target: "services" },
+          etag: `"v${source.draft.version}"`,
+          key: convertKey,
+        }),
+        converted,
+      );
+      assert.equal(
+        (
+          await f.request(`drafts/${source.id}/convert`, {
+            body: {},
+            etag: `"v${source.draft.version}"`,
+            key: convertKey,
+          })
+        ).status,
+        422,
+      );
+      const target = await f.ok(`drafts/${converted.draft.result.id}`, {
+        method: "GET",
+      });
+      assert.deepEqual(target.payload.base, { ...raw, commitmentReview: null });
+      assert.equal(target.payload.review, null);
+      assert.deepEqual(target.payload.selections, []);
+      const provenance = await f.admin.query(
+        "select source_payload from service_intake_conversion where source_draft_id=$1",
+        [source.id],
+      );
+      assert.deepEqual(provenance.rows[0].source_payload, raw);
+      const selection = {
+        lineId: null,
+        profile: saree.intake.profile,
+        lines: saree.intake.lines.map((l) => ({
+          ...l,
+          id: randomUUID(),
+          priceState: "quoted",
+          priceText: "25",
+        })),
+        capacity: {
+          basis: "incremental",
+          coveredBy: null,
+          reason: "SYNTHETIC extra mapped demand",
+        },
+        commercial: "additional-charge",
+        reason: "SYNTHETIC selected at intake",
+        agreement: "SYNTHETIC explicit new full-scope agreement",
+      };
+      async function acceptWrapper(value, record) {
+        const r = await f.ok("small-services/intake/review", { body: value });
+        assert.deepEqual(r.issues, [], JSON.stringify(r));
+        value.review = {
+          fingerprint: r.fingerprint,
+          acknowledged: true,
+          exceptionReason: "SYNTHETIC reviewed all demand",
+          waiveRush: false,
+          waiverReason: "",
+        };
+        const draft = await f.save(value, {
+          workflow: "order.services-intake",
+          ...(record ? { id: record.id, etag: `"v${record.version}"` } : {}),
+        });
+        const key = randomUUID(),
+          response = await f.promote(draft, { key });
+        if (response.status !== 200) {
+          try {
+            await f.owner.withOwnerDraft(
+              new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
+              f.a.shop,
+              (c) =>
+                mutateDraft(
+                  c,
+                  draft.id,
+                  "promote",
+                  {},
+                  {
+                    key,
+                    ifMatch: `"v${draft.draft.version}"`,
+                    requestId: randomUUID(),
+                  },
+                ),
+            );
+          } catch (e) {
+            let cause = e;
+            while (cause.cause) cause = cause.cause;
+            assert.fail(`${cause.code} ${cause.message} ${cause.where}`);
+          }
+        }
+        assert.equal(response.status, 200, await response.clone().text());
+        return response.json();
+      }
+      const accepted = await acceptWrapper(
+        { ...target.payload, selections: [selection] },
+        target,
+      );
+      const scope = await f.ok(
+        `small-services/scope/${accepted.draft.result.id}`,
+        { method: "GET" },
+      );
+      assert.equal(scope.totalPaise, "105000");
+      assert.equal(scope.changes.length, 1);
+      const lineA = serviceDraftId(),
+        lineB = serviceDraftId();
+      const group = {
+        ...emptyGroupIntake(),
+        reason: "SYNTHETIC frozen package",
+        lines: [
+          { id: lineA, intake: base },
+          {
+            id: lineB,
+            intake: { ...base, instructions: "SYNTHETIC second garment" },
+          },
+        ],
+        commercial: {
+          basis: "package-proposal",
+          packagePriceState: "quoted",
+          packagePriceText: "1800",
+        },
+      };
+      const oldGroup = await f.save(group, { workflow: "order.group" });
+      const gc = await f.ok(`drafts/${oldGroup.id}/convert`, {
+        body: { target: "services" },
+        etag: `"v${oldGroup.draft.version}"`,
+      });
+      const gt = await f.ok(`drafts/${gc.draft.result.id}`, { method: "GET" });
+      assert.deepEqual(gt.payload.base, {
+        ...group,
+        lines: group.lines.map((l) => ({
+          ...l,
+          intake: { ...l.intake, commitmentReview: null },
+        })),
+      });
+      const gv = {
+        ...gt.payload,
+        selections: [
+          {
+            ...selection,
+            lineId: lineA,
+            commercial: "outside-package",
+            lines: selection.lines.map((l) => ({ ...l, id: randomUUID() })),
+          },
+          {
+            ...selection,
+            lineId: lineB,
+            commercial: "outside-package",
+            lines: selection.lines.map((l) => ({ ...l, id: randomUUID() })),
+            capacity: {
+              basis: "already-covered",
+              coveredBy: null,
+              reason: "SYNTHETIC expressly covered by this base garment demand",
+            },
+          },
+        ],
+      };
+      const before = (
+        await f.admin.query("select count(*)::int n from garment_order")
+      ).rows[0].n;
+      const blocked = {
+        ...gv,
+        selections: gv.selections.map((s, i) =>
+          i ? { ...s, profile: f.services.unknown.intake.profile } : s,
+        ),
+      };
+      const bad = await f.ok("small-services/intake/review", { body: blocked });
+      assert(bad.issues.length);
+      assert.equal(
+        (await f.admin.query("select count(*)::int n from garment_order"))
+          .rows[0].n,
+        before,
+      );
+      const ga = await acceptWrapper(gv, gt);
+      assert.equal(ga.draft.result.type, "booking.revision");
+      const rows = (
+        await f.admin.query(
+          "select id,price_paise from garment_order where origin_draft_id=$1 order by id",
+          [gt.id],
+        )
+      ).rows;
+      assert.equal(rows.length, 2);
+      assert(rows.every((r) => r.price_paise === null));
+      for (const row of rows) {
+        const s = await f.ok(`small-services/scope/${row.id}`, {
+          method: "GET",
+        });
+        assert(s.package);
+        assert.equal(s.totalPaise, null);
+        assert.equal(s.additionsPaise, "5000");
+        assert.equal(s.changes.length, 1);
+      }
+      const pc = await f.admin.query(
+        "select package_paise from booking_commercial_revision where origin_draft_id=$1",
+        [gt.id],
+      );
+      assert.equal(pc.rows[0].package_paise, "180000");
+      const packageDetail = await f.ok("orders/bookings/read", {
+        body: { id: ga.draft.result.id, revision: true },
+      });
+      const packageScope = await f.ok(
+        `small-services/booking-scope/${packageDetail.booking.id}`,
+        { method: "GET" },
+      );
+      assert.equal(packageScope.originalKnownPaise, "180000");
+      assert.equal(packageScope.extraKnownPaise, "10000");
+      assert.equal(packageScope.currentKnownPaise, "190000");
+      assert.equal(
+        packageScope.currentUnknownCount,
+        0,
+        "reference amounts are never added to package totals",
+      );
+      const demand = await f.admin.query(
+        "select quantity from order_service_capacity_contribution where order_id=ANY($1::uuid[])",
+        [rows.map((r) => r.id)],
+      );
+      assert.deepEqual(demand.rows, [{ quantity: 1 }]);
+    }),
+);
+
+test(
+  "SS-B AC-55/60 supplemental write faults roll back and aggregate CAS coordinates independent additions and presentation",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const { saree, seed } = f.services;
+      const base = {
+        ...emptyQuickOrder(),
+        customerId: seed.customer.customerId,
+        wearerId: seed.wearer.wearerId,
+        manifest: saree.profile.content.manifest,
+        deliveryDate: saree.intake.deliveryDate,
+        presentationRevisionId: saree.intake.presentationRevisionId,
+        priceState: "quoted",
+        priceText: "1000",
+      };
+      const br = await f.ok("orders/review", { body: base });
+      base.commitmentReview = {
+        fingerprint: br.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC reviewed",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const originalDraft = await f.save(base, { workflow: "order.quick" }),
+        originalResult = await f.promote(originalDraft);
+      assert.equal(
+        originalResult.status,
+        200,
+        await originalResult.clone().text(),
+      );
+      const orderId = (await originalResult.json()).draft.result.id;
+      async function change(key, basis = "incremental") {
+        const scope = await f.ok(`small-services/scope/${orderId}`, {
+            method: "GET",
+          }),
+          spec = saree.profile.content.lines.find((l) => l.key === key);
+        const value = {
+          orderId,
+          version: scope.version,
+          originalDigest: scope.originalDigest,
+          scopeDigest: scope.scopeDigest,
+          pieceId: null,
+          profile: saree.intake.profile,
+          lines: [
+            {
+              id: randomUUID(),
+              key: spec.key,
+              requestedWork: `SYNTHETIC ${key}`,
+              priceState: "to-be-quoted",
+              priceText: "",
+              notRequired: false,
+              notRequiredReason: "",
+            },
+          ],
+          capacity: {
+            basis,
+            coveredBy: basis === "already-covered" ? orderId : null,
+            reason: "SYNTHETIC reviewed exact coverage",
+          },
+          commercial: "additional-charge",
+          reason: "SYNTHETIC add requested work",
+          agreement: "SYNTHETIC new exact agreement",
+          review: null,
+        };
+        const review = await f.ok("small-services/changes/review", {
+          body: value,
+        });
+        assert.deepEqual(review.issues, [], JSON.stringify(review));
+        value.review = {
+          fingerprint: review.fingerprint,
+          acknowledged: true,
+          exceptionReason: "SYNTHETIC exception",
+          waiveRush: false,
+          waiverReason: "",
+        };
+        return {
+          value,
+          draft: await f.save(value, { workflow: "order.service-change" }),
+        };
+      }
+      const fault = await change("fall");
+      // Mixed recovery rows and exact scope reads share the aggregate -> identity
+      // prefix, rather than taking it in opposite orders at page reload.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const reads = await Promise.all([
+          f.request("drafts", { method: "GET" }),
+          f.request(`small-services/scope/${orderId}`, { method: "GET" }),
+        ]);
+        for (const read of reads)
+          assert.equal(read.status, 200, await read.clone().text());
+      }
+      const key = randomUUID(),
+        before = await counts(f);
+      await f.admin.query(
+        "CREATE FUNCTION synthetic_addon_fault() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'SYNTHETIC actual line write failure';END$$; CREATE TRIGGER synthetic_addon_fault BEFORE INSERT ON order_service_change_line FOR EACH ROW EXECUTE FUNCTION synthetic_addon_fault()",
+      );
+      try {
+        assert.equal((await f.promote(fault.draft, { key })).status, 503);
+        assert.deepEqual(await counts(f), before);
+        assert.equal(
+          (
+            await f.admin.query(
+              "select count(*)::int n from order_service_change",
+            )
+          ).rows[0].n,
+          0,
+        );
+      } finally {
+        await f.admin.query(
+          "DROP TRIGGER synthetic_addon_fault ON order_service_change_line; DROP FUNCTION synthetic_addon_fault()",
+        );
+      }
+      const other = await change("pico");
+      const outcomes = await Promise.all([
+        f.promote(fault.draft, { key }),
+        f.promote(other.draft),
+      ]);
+      assert.deepEqual(outcomes.map((r) => r.status).sort(), [200, 412]);
+      const loser = outcomes[0].status === 412 ? fault : other;
+      const ls = await f.ok(`drafts/${loser.draft.id}`, { method: "GET" });
+      assert.equal(ls.lifecycle, "active");
+      const scope = await f.ok(`small-services/scope/${orderId}`, {
+        method: "GET",
+      });
+      assert.equal(scope.changes.length, 1);
+      assert.equal(scope.totalPaise, null, "unknown extra price stays unknown");
+      const staleCopy = {
+        ...loser.value,
+        version: scope.version,
+        scopeDigest: scope.scopeDigest,
+        review: null,
+      };
+      const rr = await f.ok("small-services/changes/review", {
+        body: staleCopy,
+      });
+      assert.deepEqual(rr.issues, []);
+      staleCopy.review = { ...loser.value.review, fingerprint: rr.fingerprint };
+      const saved = await f.save(staleCopy, {
+        id: ls.id,
+        etag: `"v${ls.version}"`,
+        workflow: "order.service-change",
+      });
+      assert.equal((await f.promote(saved)).status, 200);
+      const covered = await change("pre-pleating", "already-covered");
+      const oldScope = await f.ok(`small-services/scope/${orderId}`, {
+        method: "GET",
+      });
+      const race = await Promise.all([
+        f.promote(covered.draft),
+        f.request(`orders/${orderId}/presentation`, {
+          body: { mode: "detailed" },
+          etag: `"v${oldScope.version}"`,
+        }),
+      ]);
+      assert.deepEqual(race.map((r) => r.status).sort(), [200, 412]);
+      if (race[0].status === 412) {
+        const s = await f.ok(`small-services/scope/${orderId}`, {
+          method: "GET",
+        });
+        const v = {
+          ...covered.value,
+          version: s.version,
+          scopeDigest: s.scopeDigest,
+          review: null,
+        };
+        const r = await f.ok("small-services/changes/review", { body: v });
+        v.review = { ...covered.value.review, fingerprint: r.fingerprint };
+        const d = await f.save(v, {
+          id: covered.draft.id,
+          etag: `"v${covered.draft.draft.version}"`,
+          workflow: "order.service-change",
+        });
+        assert.equal((await f.promote(d)).status, 200);
+      }
+      const contributions = await f.admin.query(
+        "select quantity from order_service_capacity_contribution where order_id=$1",
+        [orderId],
+      );
+      assert.deepEqual(contributions.rows, [{ quantity: 1 }, { quantity: 1 }]);
+      const final = await f.ok(`small-services/scope/${orderId}`, {
+        method: "GET",
+      });
+      assert.equal(final.changes.length, 3);
+      assert.equal(final.changes.at(-1).content.quantity, 0);
+      await f.admin.query(
+        "delete from idempotency_key where shop_id=$1 and key=$2",
+        [f.a.shop, key],
+      );
+      const closed = await f.ok(`drafts/${fault.draft.id}`, { method: "GET" });
+      assert.equal(
+        (await f.promote({ id: closed.id, draft: closed }, { key })).status,
+        409,
+        "expired request key cannot recreate an accepted source",
+      );
+      const foreignPiece = {
+        ...covered.value,
+        version: final.version,
+        scopeDigest: final.scopeDigest,
+        pieceId: randomUUID(),
+      };
+      assert.equal(
+        (
+          await f.request("small-services/changes/review", {
+            body: foreignPiece,
+          })
+        ).status,
+        404,
+      );
+    }),
+);
+
+test(
+  "SS-B AC-60 accepted add-on versus first booking membership serializes without lost scope or deadlock",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const { saree, seed } = f.services,
+        orders = [];
+      for (let i = 0; i < 2; i++) {
+        const v = {
+          ...emptyQuickOrder(),
+          customerId: seed.customer.customerId,
+          wearerId: seed.wearer.wearerId,
+          manifest: saree.profile.content.manifest,
+          deliveryDate: saree.intake.deliveryDate,
+          presentationRevisionId: saree.intake.presentationRevisionId,
+        };
+        const r = await f.ok("orders/review", { body: v });
+        v.commitmentReview = {
+          fingerprint: r.fingerprint,
+          acknowledged: true,
+          exceptionReason: "SYNTHETIC reviewed",
+          waiveRush: false,
+          waiverReason: "",
+        };
+        const id = await f.services.config.publish("order.quick", v);
+        orders.push(await f.ok(`orders/${id}/read`, { body: {} }));
+      }
+      const target = orders[0],
+        scope = await f.ok(`small-services/scope/${target.id}`, {
+          method: "GET",
+        });
+      const value = {
+        orderId: target.id,
+        version: scope.version,
+        originalDigest: scope.originalDigest,
+        scopeDigest: scope.scopeDigest,
+        pieceId: null,
+        profile: saree.intake.profile,
+        lines: saree.intake.lines.map((l) => ({ ...l, id: randomUUID() })),
+        capacity: {
+          basis: "incremental",
+          coveredBy: null,
+          reason: "SYNTHETIC reviewed incremental work",
+        },
+        commercial: "additional-charge",
+        reason: "SYNTHETIC add after acceptance",
+        agreement: "SYNTHETIC exact new agreement",
+        review: null,
+      };
+      const r = await f.ok("small-services/changes/review", { body: value });
+      assert.deepEqual(r.issues, []);
+      value.review = {
+        fingerprint: r.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC exception",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const addon = await f.save(value, { workflow: "order.service-change" });
+      const booking = {
+        customerId: target.intake.customerId,
+        target: null,
+        context: {
+          occasion: "visit",
+          eventDate: "",
+          notes: "SYNTHETIC membership race",
+          payerId: null,
+        },
+        orders: orders.map((o) => ({
+          id: o.id,
+          version: o.version,
+          snapshotDigest: o.snapshotDigest,
+        })),
+        reason: "SYNTHETIC group accepted garments",
+        reviewFingerprint: null,
+      };
+      const review = await f.ok("orders/bookings/review", { body: booking });
+      booking.reviewFingerprint = review.fingerprint;
+      const draft = await f.save(booking, { workflow: "booking.group" });
+      let entered, release;
+      const ready = new Promise((r) => {
+          entered = r;
+        }),
+        gate = new Promise((r) => {
+          release = r;
+        });
+      f.api = createApi(async () => true, {
+        ...f.owner,
+        commandLimit: async () => 0,
+        withOwnerDraft(headers, shopId, run) {
+          return f.owner.withOwnerDraft(headers, shopId, (ctx) => {
+            const workflows = new Map(ctx.workflows),
+              original = workflows.get("booking.group");
+            workflows.set("booking.group", {
+              ...original,
+              async promote(...args) {
+                const result = await original.promote(...args);
+                entered();
+                await gate;
+                return result;
+              },
+            });
+            return run({ ...ctx, workflows });
+          });
+        },
+      });
+      const grouping = f.promote(draft);
+      await Promise.race([
+        ready,
+        grouping.then(() => assert.fail("membership write barrier missed")),
+      ]);
+      const adding = f.promote(addon);
+      try {
+        await waitForLock(f);
+      } finally {
+        release();
+      }
+      assert.equal((await grouping).status, 200);
+      assert.equal((await adding).status, 409);
+      const current = await f.ok(`small-services/scope/${target.id}`, {
+        method: "GET",
+      });
+      assert.equal(current.changes.length, 0);
+      assert.equal(current.version, 1);
+      assert.equal(current.originalDigest, target.snapshotDigest);
+      assert.equal(
+        (await f.ok(`drafts/${addon.id}`, { method: "GET" })).lifecycle,
+        "active",
+      );
+      const fresh = await f.ok("small-services/changes/review", {
+        body: value,
+      });
+      assert.notEqual(
+        fresh.fingerprint,
+        r.fingerprint,
+        "membership source invalidates the old exact-scope agreement",
+      );
+      value.review = { ...value.review, fingerprint: fresh.fingerprint };
+      const revalidated = await f.save(value, {
+        id: addon.id,
+        etag: `"v${addon.draft.version}"`,
+        workflow: "order.service-change",
+      });
+      const intake = {
+        ...emptyGroupIntake(),
+        reason: "SYNTHETIC grouped capacity race",
+        lines: orders.map((o) => ({ id: serviceDraftId(), intake: o.intake })),
+      };
+      const gr = await f.ok("orders/bookings/intake-review", { body: intake });
+      intake.review = {
+        fingerprint: gr.fingerprint,
+        acknowledged: true,
+        exceptionReason: "SYNTHETIC reviewed grouped demand",
+        waiveRush: false,
+        waiverReason: "",
+      };
+      const grouped = await f.save(intake, { workflow: "order.group" });
+      const capacityRace = await Promise.all([
+        f.promote(revalidated),
+        f.promote(grouped),
+      ]);
+      assert.deepEqual(capacityRace.map((r) => r.status).sort(), [200, 409]);
+      const acceptedDemand = await f.admin.query(
+        "select (select coalesce(sum(quantity),0) from order_capacity_demand)+(select coalesce(sum(quantity),0) from order_service_capacity_contribution) as n",
+      );
+      assert.equal(
+        acceptedDemand.rows[0].n,
+        capacityRace[0].status === 200 ? "3" : "4",
+        "add-on versus grouped intake counts only committed demand once",
+      );
+      if (capacityRace[0].status !== 200) {
+        const updated = await f.ok("small-services/changes/review", {
+          body: value,
+        });
+        value.review = { ...value.review, fingerprint: updated.fingerprint };
+        const d = await f.save(value, {
+          id: revalidated.id,
+          etag: `"v${revalidated.draft.version}"`,
+          workflow: "order.service-change",
+        });
+        assert.equal((await f.promote(d)).status, 200);
+      }
+      const bookingResult = await f.ok(`drafts/${draft.id}`, { method: "GET" }),
+        bookingDetail = await f.ok("orders/bookings/read", {
+          body: { id: bookingResult.result.id, revision: true },
+        });
+      const currentPrice = await f.ok(
+        `small-services/booking-scope/${bookingDetail.booking.id}`,
+        { method: "GET" },
+      );
+      assert.equal(currentPrice.extraKnownPaise, "0");
+      assert.equal(currentPrice.extraUnknownCount, 1);
+      assert.equal(
+        currentPrice.currentUnknownCount,
+        3,
+        "unknown original and supplemental charges remain distinct unknowns",
+      );
+    }),
+);
+
+test(
+  "SS-B expand migration retains populated A service, custom, garment-price and package histories",
+  { timeout: 240000 },
+  async () =>
+    withTenantFixture(
+      async (f) => {
+        f.api = createApi(async () => true, {
+          ...f.owner,
+          commandLimit: async () => 0,
+        });
+        requests(f);
+        let services, serviceOrder, customId;
+        try {
+          await withHistoricalCustomReader(f.admin, async () => {
+            services = await seedSmallServices({
+              setup: f.ok,
+              runtime: f.runtime.pool,
+              shopId: f.a.shop,
+            });
+            f.services = services;
+            serviceOrder = (await f.accept(services.saree.intake)).order;
+            const base = {
+              ...emptyQuickOrder(),
+              customerId: services.seed.customer.customerId,
+              wearerId: services.seed.wearer.wearerId,
+              manifest: services.saree.profile.content.manifest,
+              deliveryDate: services.saree.intake.deliveryDate,
+              presentationRevisionId:
+                services.saree.intake.presentationRevisionId,
+              priceState: "quoted",
+              priceText: "1000",
+            };
+            const r = await f.ok("orders/review", { body: base });
+            base.commitmentReview = {
+              fingerprint: r.fingerprint,
+              acknowledged: true,
+              exceptionReason: "SYNTHETIC upgrade",
+              waiveRush: false,
+              waiverReason: "",
+            };
+            customId = await services.config.publish("order.quick", base);
+            for (const basis of ["garment-prices", "package-proposal"]) {
+              const v = {
+                ...emptyGroupIntake(),
+                reason: "SYNTHETIC before-0035 group",
+                lines: [
+                  { id: serviceDraftId(), intake: base },
+                  { id: serviceDraftId(), intake: base },
+                ],
+                commercial: {
+                  basis,
+                  packagePriceState:
+                    basis === "package-proposal" ? "quoted" : "to-be-quoted",
+                  packagePriceText: basis === "package-proposal" ? "1800" : "",
+                },
+              };
+              const r = await f.ok("orders/bookings/intake-review", {
+                body: v,
+              });
+              v.review = {
+                fingerprint: r.fingerprint,
+                acknowledged: true,
+                exceptionReason: "SYNTHETIC upgrade",
+                waiveRush: false,
+                waiverReason: "",
+              };
+              await services.config.publish("order.group", v);
+            }
+          });
+          const before = (
+              await f.admin.query(
+                "select order_id,content,digest from order_acceptance_snapshot order by order_id",
+              )
+            ).rows,
+            commercial = (
+              await f.admin.query(
+                "select * from booking_commercial_revision order by id",
+              )
+            ).rows;
+          await migrateDatabase(f.migrationConnectionString);
+          await assertIsolationCatalog(f.runtime.db);
+          assert.deepEqual(
+            (
+              await f.admin.query(
+                "select order_id,content,digest from order_acceptance_snapshot order by order_id",
+              )
+            ).rows,
+            before,
+          );
+          assert.deepEqual(
+            (
+              await f.admin.query(
+                "select * from booking_commercial_revision order by id",
+              )
+            ).rows,
+            commercial,
+          );
+          const service = await f.ok(
+            `small-services/orders/${serviceOrder.id}`,
+            { method: "GET" },
+          );
+          assert.deepEqual(service.lines, serviceOrder.lines);
+          const scope = await f.ok(`small-services/scope/${customId}`, {
+            method: "GET",
+          });
+          assert.equal(scope.totalPaise, "100000");
+          assert.deepEqual(scope.changes, []);
+          for (const table of [
+            "order_service_change",
+            "order_service_change_line",
+            "order_service_capacity_contribution",
+            "service_intake_conversion",
+          ])
+            assert.equal(
+              (await f.admin.query(`select count(*)::int n from ${table}`))
+                .rows[0].n,
+              0,
+            );
+        } finally {
+          await services?.close();
+        }
+      },
+      {
+        migrationThrough: "0034_standalone_service_intake.sql",
+        customerPolicy: syntheticCustomerPolicy,
+      },
+    ),
+);

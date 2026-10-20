@@ -25,6 +25,7 @@ import {
   type Locale,
   orderAcceptanceMessages,
   orderPieceMessages,
+  serviceAdditionMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
@@ -43,6 +44,10 @@ import { createDraftScope } from "./draft-scope";
 import { AcceptedOrderDetail } from "./order-acceptance";
 import { OrderPiecesDetail } from "./order-pieces";
 import type { OwnerGuard } from "./owner-feedback";
+import {
+  BookingServiceScopeSummary,
+  ServiceScopeSummary,
+} from "./service-additions";
 
 type Detail = Awaited<ReturnType<typeof readBooking>>;
 const material = (v: BookingDraft) =>
@@ -110,6 +115,7 @@ function Garment({
         </p>
       )}
       <p>{t.booked}</p>
+      <ServiceScopeSummary orderId={order.id} shopId={shopId} locale={locale} />
       {showPieces && (
         <OrderPiecesDetail
           order={{ ...order, presentation: detailed ? "detailed" : "simple" }}
@@ -935,6 +941,7 @@ export function BookingGroups({
             · {detail.booking.revision.context.eventDate}
           </p>
           <p>{detail.booking.revision.context.notes}</p>
+          <p>{serviceAdditionMessages[locale].original}</p>
           {detail.summary.basis === "garment-prices" ? (
             <p>
               {t.subtotal}:{" "}
@@ -956,6 +963,12 @@ export function BookingGroups({
               : t.prices}
           </p>
           <p>{t.independent}</p>
+          <BookingServiceScopeSummary
+            key={`${detail.booking.id}:${detail.booking.version}`}
+            bookingId={detail.booking.id}
+            shopId={shopId}
+            locale={locale}
+          />
           <Button
             disabled={!safe || busy}
             onClick={() => {

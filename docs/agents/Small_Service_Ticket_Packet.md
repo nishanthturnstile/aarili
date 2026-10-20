@@ -1,7 +1,10 @@
 # Alteration and small-service intake: approved vertical tickets
 
 20 October 2026. **A–C and D1–D6 approved; published as #124–#126. A (#124)
-selected and in implementation. B/C await their direct prerequisite merges.**
+merged through #127. The owner selected B (#125) after its blockers merged;
+[B verification and owner review](Service_Additions_Implementation_Evidence.md)
+record the locally verified implementation; owner acceptance and merge remain
+pending. C retains its prerequisite merge and selection gates.**
 Roadmap **1.2.3**, ORD-14, JOB-08/JOB-09 intake contribution; **AC-50 partial**.
 Cross-cutting scenarios: **AC-40, AC-53, AC-55 and AC-60**; SS rows state the
 applicable ticket proof and remaining full-scenario integrations.
@@ -17,7 +20,8 @@ tickets after blockers merge.” [Tracker rules](issue-tracker.md) and
 [development workflow](Development_Workflow.md) require the same concrete review.
 The owner subsequently replied “approved and proceed” to the concrete request
 for A–C/D1–D6 approval, ticket publication and A selection. Those approvals are
-reused. Production values, B/C selection, merge and deployment remain separate.
+reused. The later explicit #125 selection is recorded below. Production values,
+C selection, merge and deployment remain separate.
 
 Development `63d5123` includes #123; Quick Order #113/#114 and grouped #118–#120
 are CLOSED with merged #115/#116/#121/#122/#123. The approved to-tickets publication
@@ -31,7 +35,7 @@ Recheck direct blockers and their merge ancestry when each selected ticket start
 | Candidate | Complete owner outcome | Direct blockers / selection gate |
 | --- | --- | --- |
 | A / 1.2.3a / #124 | Save, recover, accept and reopen a standalone kurti alteration or saree service order with independent priced lines | #114, #99, #101, #118, #80, #56; all merged. A selected; D1/D2/D5/D6 implementation conventions approved. |
-| B / 1.2.3b / #125 | Add independent services during supported custom/group intake and through governed accepted-order additions | #124 must merge; #120 merged. Select B after A merge; D2/D4/D6 conventions approved. |
+| B / 1.2.3b / #125 | Add independent services during supported custom/group intake and through governed accepted-order additions | #124/#120 merged; B explicitly selected on 20 October. D2/D4/D6 reused. [Implementation evidence](Service_Additions_Implementation_Evidence.md); owner review/merge pending. |
 | C / 1.2.3c / #126 | Record and correct one eligible service line's completion with attributable evidence and sibling independence | #125 must merge (therefore A integrated). C selection remains pending; D3 convention approved. |
 
 These are sequential vertical outcomes spanning contracts/core/DB/API/typed
@@ -276,7 +280,9 @@ device/RAM/browser, Tamil fluency or AT details only where needed. Do not ask th
 owner to repeat terminal checks. The approved packet is the delivery boundary.
 Current A implementation, fresh verification and the running owner-review surface
 are recorded in the [implementation ledger](Small_Service_Implementation_Evidence.md);
-B/C remain dependent work.
+B's selected implementation and owner packet are recorded separately in
+[Service_Additions_Implementation_Evidence.md](Service_Additions_Implementation_Evidence.md).
+C still requires B's merge and its own selection.
 
 Full AC-50 also needs money/agreements, 1.5.1/property continuation, 1.7.1,
 1.8.1–1.8.3 and their direct prerequisites. Full JOB-08/09 correction/fit/cost and

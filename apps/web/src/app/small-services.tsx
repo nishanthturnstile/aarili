@@ -11,6 +11,7 @@ import {
   emptyServiceOrder,
   emptyServiceProfile,
   type ServiceProfileRevision,
+  serviceIntakeDraftSchema,
   serviceOrderDraftSchema,
   serviceProfileDraftSchema,
 } from "@aarili/contracts/small-services";
@@ -21,6 +22,7 @@ import { v7 } from "uuid";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import type { OwnerGuard } from "./owner-feedback";
+import { ServiceIntakeAddonsEditor } from "./service-intake-addons";
 import {
   ServiceIntakeEditor,
   ServiceOrderDetail,
@@ -48,6 +50,7 @@ export function SmallServices({
   profilesOnly = false,
   initialDraftId,
   initialOrderId,
+  onAccepted,
 }: {
   shopId: string;
   guard: OwnerGuard;
@@ -56,6 +59,9 @@ export function SmallServices({
   profilesOnly?: boolean;
   initialDraftId?: string | undefined;
   initialOrderId?: string | undefined;
+  onAccepted?:
+    | ((type: "order.accepted" | "booking.revision", id: string) => void)
+    | undefined;
 }) {
   const t = smallServiceMessages[locale],
     d = draftMessages[locale],
@@ -99,9 +105,11 @@ export function SmallServices({
         const map = new Map((cursor ? rows : []).map((r) => [r.id, r]));
         for (const row of r.drafts)
           if (
-            ["order.service", "service.intake-profile"].includes(
-              row.workflow,
-            ) &&
+            [
+              "order.service",
+              "service.intake-profile",
+              "order.services-intake",
+            ].includes(row.workflow) &&
             row.lifecycle === "active"
           )
             map.set(row.id, row);
@@ -189,7 +197,15 @@ export function SmallServices({
     if (record.lifecycle === "promoted") {
       if (record.result?.type === "service-order.accepted")
         void openOrder(record.result.id);
-      else close(true);
+      else if (
+        record.result &&
+        (record.result.type === "order.accepted" ||
+          record.result.type === "booking.revision") &&
+        onAccepted
+      ) {
+        release();
+        onAccepted(record.result.type, record.result.id);
+      } else close(true);
     }
   }
   function open(
@@ -237,6 +253,17 @@ export function SmallServices({
       if (!active.current) return;
       if (
         r.lifecycle === "promoted" &&
+        r.result &&
+        (r.result.type === "order.accepted" ||
+          r.result.type === "booking.revision") &&
+        onAccepted
+      ) {
+        release();
+        onAccepted(r.result.type, r.result.id);
+        return;
+      }
+      if (
+        r.lifecycle === "promoted" &&
         r.result?.type === "service-order.accepted"
       ) {
         await openOrder(r.result.id);
@@ -247,7 +274,9 @@ export function SmallServices({
           ? serviceOrderDraftSchema.safeParse(r.payload)
           : r.workflow === "service.intake-profile"
             ? serviceProfileDraftSchema.safeParse(r.payload)
-            : null;
+            : r.workflow === "order.services-intake"
+              ? serviceIntakeDraftSchema.safeParse(r.payload)
+              : null;
       if (!parsed?.success || r.lifecycle !== "active" || r.schemaVersion !== 1)
         throw Error("Unsupported draft");
       open(r.workflow, parsed.data, r);
@@ -342,6 +371,14 @@ export function SmallServices({
             guard={guard}
             locale={locale}
             close={() => close()}
+          />
+        ) : workflow === "order.services-intake" ? (
+          <ServiceIntakeAddonsEditor
+            key={controller.instance}
+            shopId={shopId}
+            controller={controller}
+            guard={guard}
+            locale={locale}
           />
         ) : (
           <ServiceProfileEditor

@@ -59,7 +59,7 @@ export function ordersRepository(
           unit: string;
           deliveryDate: string;
         }>(
-          sql`select order_id as id,quantity,unit,to_char(delivery_date,'YYYY-MM-DD') as "deliveryDate" from order_capacity_demand where shop_id=${shopId}::uuid and category_id=${categoryId}::uuid and delivery_date>=${start}::date and delivery_date<${end}::date order by order_id`,
+          sql`select id,quantity,unit,to_char(delivery_date,'YYYY-MM-DD') as "deliveryDate" from (select order_id as id,quantity,unit,delivery_date from order_capacity_demand where shop_id=${shopId}::uuid and category_id=${categoryId}::uuid union all select change_id as id,quantity,unit,delivery_date from order_service_capacity_contribution where shop_id=${shopId}::uuid and category_id=${categoryId}::uuid) demand where delivery_date>=${start}::date and delivery_date<${end}::date order by id`,
         )
       ).rows;
     },

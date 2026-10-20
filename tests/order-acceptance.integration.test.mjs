@@ -950,33 +950,40 @@ async function acceptedFixture(f, value = f.value) {
 // snapshot/demand/draft/audit is edited. Then run the real migration runner.
 async function legacyFixture(f) {
   const o = await acceptedFixture(f);
-  // This disposable structural downgrade predates the empty service-source FK.
-  // Capture and restore that exact FK and the current piece guard around the
+  // This disposable structural downgrade predates the empty service-source FKs.
+  // Capture and restore those exact FKs and the current piece guard around the
   // real 0031 migration; do not cascade away later history or weaken runtime.
   assert.equal(
     (
       await f.admin.query(
-        "select count(*)::int n from service_property_subject",
+        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line) as n",
       )
     ).rows[0].n,
-    0,
+    "0",
   );
   const references = (
     await f.admin.query(
-      "select conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid='service_property_subject'::regclass and confrelid='order_piece'::regclass",
+      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
     )
   ).rows;
-  assert.equal(references.length, 1);
-  const reference = references[0];
-  assert.match(reference.conname, /^[a-z_][a-z0-9_]*$/);
+  assert.equal(references.length, 2);
+  for (const reference of references) {
+    assert(
+      ["service_property_subject", "order_service_change_line"].includes(
+        reference.relation,
+      ),
+    );
+    assert.match(reference.conname, /^[a-z_][a-z0-9_]*$/);
+  }
   const currentGuard = (
     await f.admin.query(
       "select pg_get_functiondef('order_piece_commit_guard()'::regprocedure) definition",
     )
   ).rows[0].definition;
-  await f.admin.query(
-    `ALTER TABLE service_property_subject DROP CONSTRAINT ${reference.conname}`,
-  );
+  for (const reference of references)
+    await f.admin.query(
+      `ALTER TABLE ${reference.relation} DROP CONSTRAINT ${reference.conname}`,
+    );
   await f.admin.query(`DROP TRIGGER order_piece_acceptance_commit ON garment_order;
     DROP TABLE order_requirement_scope,order_piece,order_piece_set;
     DROP FUNCTION order_piece_commit_guard(),order_piece_child_guard(),order_piece_set_guard();
@@ -986,9 +993,20 @@ async function legacyFixture(f) {
   ).rows[0].n;
   await migrateDatabase(f.migrationConnectionString);
   await f.admin.query(currentGuard);
-  await f.admin.query(
-    `ALTER TABLE service_property_subject ADD CONSTRAINT ${reference.conname} ${reference.definition}`,
-  );
+  for (const reference of references)
+    await f.admin.query(
+      `ALTER TABLE ${reference.relation} ADD CONSTRAINT ${reference.conname} ${reference.definition}`,
+    );
+  for (const reference of references)
+    assert.equal(
+      (
+        await f.admin.query(
+          "select pg_get_constraintdef(oid) definition from pg_constraint where conrelid=$1::regclass and conname=$2",
+          [reference.relation, reference.conname],
+        )
+      ).rows[0].definition,
+      reference.definition,
+    );
   assert.equal(
     (
       await f.admin.query(
@@ -996,15 +1014,6 @@ async function legacyFixture(f) {
       )
     ).rows[0].definition,
     currentGuard,
-  );
-  assert.equal(
-    (
-      await f.admin.query(
-        "select pg_get_constraintdef(oid) definition from pg_constraint where conrelid='service_property_subject'::regclass and conname=$1",
-        [reference.conname],
-      )
-    ).rows[0].definition,
-    reference.definition,
   );
   assert.equal(
     (await f.admin.query("select count(*)::int n from audit_event")).rows[0].n,

@@ -30,6 +30,19 @@ import {
 import { requestHash } from "./request-binding.js";
 import { serviceTemplatesReferencesEligible } from "./service-templates.js";
 
+export {
+  prepareServiceDraftReads,
+  readBookingServiceScope,
+  readServiceScope,
+  reviewServiceChange,
+  serviceChangeDraftWorkflow,
+} from "./service-changes.js";
+export {
+  reviewServiceIntake,
+  serviceIntakeConversion,
+  serviceIntakeWorkflow,
+} from "./service-intake-addons.js";
+
 export type SmallServiceContext = {
   orders: QuickOrderContext;
   repository: SmallServicesRepository;
@@ -57,7 +70,7 @@ function enabled(ctx: SmallServiceContext) {
   )
     fail();
 }
-async function lockSources(ctx: SmallServiceContext) {
+export async function lockServiceSources(ctx: SmallServiceContext) {
   await ctx.orders.templates.catalogue.repository.lock();
   await ctx.orders.templates.forms.repository.lock();
   await ctx.orders.templates.repository.lock();
@@ -222,7 +235,7 @@ export function serviceProfileDraftWorkflow(
     async revalidate(input) {
       enabled(ctx);
       const v = serviceProfileCommandSchema.parse(input);
-      await lockSources(ctx);
+      await lockServiceSources(ctx);
       const current = await ctx.repository.current(v.entryId);
       if (
         (current?.version ?? 0) !== v.baseVersion ||
@@ -340,6 +353,7 @@ async function identity(
 export function serviceCapacity(
   profile: ServiceProfileRevision["content"],
   selected: { key: string; notRequired: boolean }[],
+  allowZero = false,
 ) {
   const groups = new Map<string, number | null>();
   for (const s of selected.filter((l) => !l.notRequired)) {
@@ -362,7 +376,9 @@ export function serviceCapacity(
     (sum, q) => sum + (q ?? 0),
     0,
   );
-  return Number.isSafeInteger(total) && total > 0 && total <= 2147483647
+  return Number.isSafeInteger(total) &&
+    (allowZero ? total >= 0 : total > 0) &&
+    total <= 2147483647
     ? total
     : null;
 }
@@ -434,14 +450,18 @@ export async function projectServiceRequirements(
     }),
   };
 }
-async function resolve(ctx: SmallServiceContext, v: ServiceOrderDraft) {
+export async function resolveServiceSelection(
+  ctx: SmallServiceContext,
+  v: ServiceOrderDraft,
+  covered = false,
+) {
   // Identity locks precede catalogue/profile/capacity locks on every command.
   let p = v.profile
     ? await ctx.repository.readProfile(v.profile.revisionId)
     : undefined;
   if (v.profile && (!p || p.entryId !== v.profile.entryId)) fail(404);
   const who = await identity(ctx, v, p ?? null, false);
-  await lockSources(ctx);
+  await lockServiceSources(ctx);
   p = v.profile
     ? await ctx.repository.readProfile(v.profile.revisionId)
     : undefined;
@@ -528,7 +548,10 @@ async function resolve(ctx: SmallServiceContext, v: ServiceOrderDraft) {
     )
   )
     issues.push("requiredServiceLine");
-  const quantity = p ? serviceCapacity(p.content, v.lines) : null;
+  const mappedQuantity = p
+    ? serviceCapacity(p.content, v.lines, covered)
+    : null;
+  const quantity = covered && mappedQuantity !== null ? 0 : mappedQuantity;
   if (quantity === null) issues.push("serviceCapacityMappingMissing");
   const required = lines.filter((l) => l.state !== "not-required");
   const sum = required.reduce((n, l) => n + BigInt(l.pricePaise ?? 0), 0n);
@@ -545,6 +568,7 @@ async function resolve(ctx: SmallServiceContext, v: ServiceOrderDraft) {
       wearerRequired: p?.content.wearerRequirement !== "not-required",
       quantity,
       unit: p?.content.capacityUnit ?? null,
+      allowZero: covered,
     },
   );
   if (p && shared.review.intake.requirements)
@@ -588,12 +612,12 @@ export async function reviewServiceOrder(
 ): Promise<ServiceOrderReview> {
   const p = serviceOrderDraftSchema.safeParse(input);
   if (!p.success) fail(422);
-  return (await resolve(ctx, p.data)).review;
+  return (await resolveServiceSelection(ctx, p.data)).review;
 }
 export function serviceOrderDraftWorkflow(
   ctx: SmallServiceContext,
 ): DraftWorkflow {
-  let resolved: Awaited<ReturnType<typeof resolve>> | undefined;
+  let resolved: Awaited<ReturnType<typeof resolveServiceSelection>> | undefined;
   return {
     schemaVersion: 1,
     draftSchema: serviceOrderDraftSchema,
@@ -616,7 +640,7 @@ export function serviceOrderDraftWorkflow(
     },
     async revalidate(input) {
       const v = serviceOrderCommandSchema.parse(input);
-      resolved = await resolve(ctx, v);
+      resolved = await resolveServiceSelection(ctx, v);
       const r = resolved.review,
         d = v.commitmentReview;
       if (

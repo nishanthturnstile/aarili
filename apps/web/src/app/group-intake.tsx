@@ -25,6 +25,7 @@ import {
   orderAcceptanceMessages,
   orderMessages,
   orderPieceMessages,
+  serviceAdditionMessages,
   shopCommitmentsMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
@@ -138,13 +139,13 @@ const facts = (v: GroupIntakeDraft) =>
       intake: { ...l.intake, commitmentReview: null },
     })),
   });
-function PayerPicker({
-  form,
+export function GroupPayerPicker({
+  onChange,
   shopId,
   locale,
   value,
 }: {
-  form: UseFormReturn<GroupIntakeDraft>;
+  onChange: (id: string | null) => void;
   shopId: string;
   locale: Locale;
   value: string | null;
@@ -222,7 +223,7 @@ function PayerPicker({
         type="button"
         variant="outline"
         onClick={() => {
-          form.setValue("context.payerId", null, { shouldDirty: true });
+          onChange(null);
           setResults(undefined);
         }}
       >
@@ -236,7 +237,7 @@ function PayerPicker({
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  form.setValue("context.payerId", c.id, { shouldDirty: true });
+                  onChange(c.id);
                   setResults(undefined);
                 }}
               >
@@ -678,8 +679,10 @@ function Editor({
                 {...form.register("context.notes")}
               />
             </Field>
-            <PayerPicker
-              form={form}
+            <GroupPayerPicker
+              onChange={(id) =>
+                form.setValue("context.payerId", id, { shouldDirty: true })
+              }
               shopId={shopId}
               locale={locale}
               value={v.context.payerId}
@@ -936,6 +939,7 @@ export function GroupIntake({
   back,
   initialDraftId,
   onBooked,
+  onServicesDraft,
 }: {
   shopId: string;
   guard: OwnerGuard;
@@ -943,6 +947,7 @@ export function GroupIntake({
   back: () => void;
   initialDraftId?: string | undefined;
   onBooked: (id: string) => void;
+  onServicesDraft: (id: string) => void;
 }) {
   const t = groupIntakeMessages[locale],
     [scope] = useState(() => createDraftScope(shopId, guard)),
@@ -980,6 +985,12 @@ export function GroupIntake({
       initial: emptyGroupIntake(),
       ...(record ? { record } : {}),
       committed: (r) => {
+        if (
+          alive.current &&
+          r.lifecycle === "promoted" &&
+          r.result?.type === "order.services-intake-draft"
+        )
+          onServicesDraft(r.result.id);
         if (
           alive.current &&
           r.lifecycle === "promoted" &&
@@ -1026,6 +1037,22 @@ export function GroupIntake({
   return (
     <section className="owner-form order-intake" aria-label={t.title}>
       <h2>{t.title}</h2>
+      {controller && (
+        <>
+          <p>{serviceAdditionMessages[locale].convertNote}</p>
+          <Button
+            variant="outline"
+            onClick={() =>
+              void (async () => {
+                await controller.save();
+                await controller.convert("services");
+              })()
+            }
+          >
+            {serviceAdditionMessages[locale].convert}
+          </Button>
+        </>
+      )}
       <div className="owner-actions">
         <Button
           variant="outline"

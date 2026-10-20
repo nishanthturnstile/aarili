@@ -131,6 +131,7 @@ export async function convertDraft(
   id: string,
   key: string,
   etag: string,
+  target?: "services",
 ) {
   return draftSuccessSchema.parse(
     await authenticatedResult(
@@ -138,7 +139,7 @@ export async function convertDraft(
         createDraftClient().shops[":shopId"].drafts[":id"].convert.$post(
           {
             param: { shopId, id },
-            json: {},
+            json: target ? { target } : {},
             header: { "idempotency-key": key, "if-match": etag },
           },
           { init: { cache: "no-store", signal } },

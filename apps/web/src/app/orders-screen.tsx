@@ -27,6 +27,7 @@ import {
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
+  serviceAdditionMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
@@ -560,6 +561,24 @@ function Editor({
       >
         {groupIntakeMessages[locale].convert}
       </Button>
+      <p>{serviceAdditionMessages[locale].convertNote}</p>
+      <Button
+        variant="outline"
+        disabled={
+          s.work.inFlight ||
+          s.work.outcomeUnknown ||
+          s.status === "conflict" ||
+          s.status === "promoted"
+        }
+        onClick={() =>
+          void (async () => {
+            await controller.save();
+            await controller.convert("services");
+          })()
+        }
+      >
+        {serviceAdditionMessages[locale].convert}
+      </Button>
       <DraftForm
         controller={controller}
         schema={quickOrderDraftSchema}
@@ -706,6 +725,14 @@ export function OrdersScreen({
   }, [scope]);
   function committed(record: DraftRecord) {
     if (!active.current) return;
+    if (
+      record.lifecycle === "promoted" &&
+      record.result?.type === "order.services-intake-draft"
+    ) {
+      setServiceDraft(record.result.id);
+      setServices(true);
+      return;
+    }
     setRecords((rows) =>
       [
         ...rows.filter((r) => r.id !== record.id),
@@ -834,9 +861,18 @@ export function OrdersScreen({
       if (!active.current) return;
       if (
         r.workflow === "order.service" ||
+        r.workflow === "order.services-intake" ||
         r.workflow === "service.intake-profile"
       ) {
         setServiceDraft(id);
+        setServices(true);
+        return;
+      }
+      if (
+        r.lifecycle === "promoted" &&
+        r.result?.type === "order.services-intake-draft"
+      ) {
+        setServiceDraft(r.result.id);
         setServices(true);
         return;
       }
@@ -940,6 +976,15 @@ export function OrdersScreen({
         locale={locale}
         initialDraftId={serviceDraft}
         initialOrderId={serviceOrder}
+        onAccepted={(type, id) => {
+          setServices(false);
+          setServiceDraft(undefined);
+          if (type === "order.accepted") void openOrder(id);
+          else {
+            setGroupBooking(id);
+            setGrouping(true);
+          }
+        }}
         back={() => {
           setServices(false);
           setServiceDraft(undefined);
@@ -969,6 +1014,11 @@ export function OrdersScreen({
         shopId={shopId}
         guard={guard}
         locale={locale}
+        onServicesDraft={(id) => {
+          setGroupIntake(false);
+          setServiceDraft(id);
+          setServices(true);
+        }}
         initialDraftId={convertedId}
         back={() => {
           setGroupIntake(false);

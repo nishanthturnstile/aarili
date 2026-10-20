@@ -24,4 +24,7 @@ export { shopCommitmentsMessages } from "./shop-commitments-messages.js";
 export { shopDirectoryMessages } from "./shop-directory-messages.js";
 export { shopPoliciesMessages } from "./shop-policies-messages.js";
 export { shopSettingsMessages } from "./shop-settings-messages.js";
-export { smallServiceMessages } from "./small-service-messages.js";
+export {
+  serviceAdditionMessages,
+  smallServiceMessages,
+} from "./small-service-messages.js";
