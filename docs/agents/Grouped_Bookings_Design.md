@@ -1,6 +1,7 @@
 # Group garments and track outfit pieces: independent design
 
-19 October 2026. Roadmap **1.2.2**. **A–C software packet approved; A selected.
+19 October 2026; status updated 20 October. Roadmap **1.2.2**.
+**A–C software packet approved; A merged; B (#119) selected.
 Production commercial policy remains separately gated.** [Research](Grouped_Bookings_REA_Evidence.md),
 [vertical tickets](Grouped_Bookings_Ticket_Packet.md),
 [delivery status](Grouped_Bookings_Implementation_Evidence.md).

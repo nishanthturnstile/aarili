@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createApi } from "@aarili/api";
-import { emptyQuickOrder } from "@aarili/contracts/orders";
+import { emptyBookingDraft, emptyQuickOrder } from "@aarili/contracts/orders";
 import { syntheticCustomerPolicy } from "@aarili/core/customer-policy";
 import { syntheticWearerPolicy } from "@aarili/core/wearer-policy";
 import { withShop } from "@aarili/db";
@@ -15,6 +15,35 @@ const id = () => {
   return `${u.slice(0, 14)}7${u.slice(15)}`;
 };
 const at = "2026-10-19T00:00:00.000Z";
+test(
+  "GB-B10 empty grouping drafts cannot bypass closed production/content policy",
+  { timeout: 120000 },
+  async () =>
+    withTenantFixture(async (f) => {
+      const api = createApi(async () => true, {
+        ...f.owner,
+        commandLimit: async () => 0,
+      });
+      const r = await request(f, `drafts/${id()}`, {
+        api,
+        method: "PUT",
+        body: {
+          workflow: "booking.group",
+          schemaVersion: 1,
+          payload: emptyBookingDraft,
+        },
+      });
+      assert.equal(r.status, 409, await r.clone().text());
+      assert.equal(
+        (
+          await f.admin.query(
+            "select count(*)::int n from durable_draft where workflow='booking.group'",
+          )
+        ).rows[0].n,
+        0,
+      );
+    }),
+);
 function request(
   f,
   path,

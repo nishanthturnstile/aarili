@@ -1,6 +1,11 @@
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
   acceptedOrderSchema,
+  type BookingDraft,
+  bookingDetailSchema,
+  bookingHistorySchema,
+  bookingListSchema,
+  bookingReviewSchema,
   type OrderError,
   orderErrorSchema,
   orderHistorySchema,
@@ -11,6 +16,7 @@ import {
   quickOrderPreviewSchema,
 } from "@aarili/contracts/orders";
 import { hc } from "hono/client";
+import type { createBookingRoutes } from "./bookings.js";
 import {
   authenticatedResult,
   clearOwnerState,
@@ -19,6 +25,7 @@ import {
 } from "./client.js";
 import type { createOrderRoutes } from "./orders.js";
 
+const bookingClient = () => hc<ReturnType<typeof createBookingRoutes>>("/api");
 const client = () => hc<ReturnType<typeof createOrderRoutes>>("/api");
 async function piecesResult(r: Response, generation: number) {
   const result = orderPiecesSchema.parse(await orderResult(r, generation));
@@ -204,6 +211,86 @@ export async function previewQuickOrder(
         }
         return data;
       },
+    ),
+  );
+}
+
+export async function reviewBooking(shopId: string, input: BookingDraft) {
+  return bookingReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        bookingClient().shops[":shopId"].orders.bookings.review.$post(
+          { param: { shopId }, json: input },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
+    ),
+  );
+}
+export async function readBooking(
+  shopId: string,
+  id: string,
+  revision = false,
+) {
+  return bookingDetailSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        bookingClient().shops[":shopId"].orders.bookings.read.$post(
+          { param: { shopId }, json: { id, revision } },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      async (r, generation) => {
+        const data = bookingDetailSchema.parse(
+          await orderResult(r, generation),
+        );
+        if (r.headers.get("ETag") !== `"v${data.booking.version}"`)
+          throw new OwnerRequestError("REQUEST_FAILED");
+        return data;
+      },
+    ),
+  );
+}
+export async function listBookings(shopId: string, before?: string) {
+  return bookingListSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        bookingClient().shops[":shopId"].orders.bookings.list.$post(
+          { param: { shopId }, json: before ? { before } : {} },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
+    ),
+  );
+}
+export async function historyBooking(
+  shopId: string,
+  id: string,
+  beforeVersion?: number,
+) {
+  return bookingHistorySchema.parse(
+    await authenticatedResult(
+      (s) =>
+        bookingClient().shops[":shopId"].orders.bookings.history.$post(
+          {
+            param: { shopId },
+            json: { id, ...(beforeVersion ? { beforeVersion } : {}) },
+          },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
+    ),
+  );
+}
+
+export async function listBookingCandidates(shopId: string, before?: string) {
+  return orderListSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        bookingClient().shops[":shopId"].orders.bookings.candidates.$post(
+          { param: { shopId }, json: before ? { before } : {} },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
     ),
   );
 }

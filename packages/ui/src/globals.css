@@ -1501,6 +1501,39 @@
   display: grid;
   gap: var(--space-page);
 }
+.booking-editor {
+  container-type: inline-size;
+}
+.booking-editor textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 6rem;
+  padding: var(--space-control);
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+.booking-editor textarea:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.booking-garments {
+  display: grid;
+  gap: var(--space-page);
+  min-width: 0;
+}
+.booking-garments > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@container (min-width: 50rem) {
+  .booking-garments {
+    grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
 .order-intake .order-check {
   display: flex;
   align-items: center;

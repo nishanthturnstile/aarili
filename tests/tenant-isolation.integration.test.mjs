@@ -38,6 +38,9 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "ordersRepository.bookings.read/list/history/membership/write/origin",
+      "shops/:shopId/orders/bookings/candidates/review/read/list/history",
+      "booking.group draft promotion",
       "ordersRepository.accept/read/list/demand/mode/history/origin",
       "ordersRepository.pieces.read/write and exact-key materialisation",
       "shops/:shopId/orders/:id/pieces/read/materialize",
@@ -500,6 +503,10 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
   await withTenantFixture(async ({ runtime, migration, admin }) => {
     assert.deepEqual(await assertIsolationCatalog(runtime.db), [
       "public.audit_event",
+      "public.booking",
+      "public.booking_member",
+      "public.booking_membership_history",
+      "public.booking_revision",
       "public.consent_record",
       "public.customer",
       "public.customer_person",
@@ -724,6 +731,10 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       );
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
+        "public.booking",
+        "public.booking_member",
+        "public.booking_membership_history",
+        "public.booking_revision",
         "public.consent_record",
         "public.customer",
         "public.customer_person",
