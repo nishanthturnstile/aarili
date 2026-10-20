@@ -5,7 +5,13 @@ import { seedOrderAcceptance } from "./order-acceptance.mjs";
 import { seedServiceTemplates } from "./seed-service-templates.mjs";
 
 // Disposable synthetic setup through existing real commands; no runtime imports.
-export async function seedBookingOrders({ setup, runtime, shopId, seed }) {
+export async function seedBookingOrders({
+  setup,
+  runtime,
+  shopId,
+  seed,
+  acceptOrders = true,
+}) {
   const config = await seedOrderAcceptance(setup, seed.sources);
   const blouse = await seedServiceTemplates(runtime, shopId, {
     templatePrefix: "booking-blouse-",
@@ -71,6 +77,7 @@ export async function seedBookingOrders({ setup, runtime, shopId, seed }) {
         occurredAt: at,
       },
     });
+    const intakes = [];
     const accept = async (s, wearerId, offset, priceText) => {
       const value = {
         ...emptyQuickOrder(),
@@ -88,6 +95,8 @@ export async function seedBookingOrders({ setup, runtime, shopId, seed }) {
         priceText: priceText ?? "",
         instructions: `SYNTHETIC ${priceText === null ? "salwar — bottom unresolved" : "blouse — separate promise"}`,
       };
+      intakes.push(value);
+      if (!acceptOrders) return undefined;
       const review = await setup("orders/review", { body: value });
       if (review.unknowns.length)
         throw Error(
@@ -120,7 +129,11 @@ export async function seedBookingOrders({ setup, runtime, shopId, seed }) {
       await accept(blouse, seed.wearer.wearerId, 30, "1200"),
       await accept(seed.sources, second.wearerId, 32, null),
     ];
-    return { orders, close: () => blouse.close() };
+    return {
+      orders: orders.filter(Boolean),
+      intakes,
+      close: () => blouse.close(),
+    };
   } catch (e) {
     await blouse.close();
     throw e;

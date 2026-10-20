@@ -1,7 +1,7 @@
 # Grouped bookings and outfit pieces: approved vertical tickets
 
-19 October 2026; updated 20 October. **A–C approved; A merged in #121;
-B (#119) selected for implementation.**
+19 October 2026; updated 20 October. **A–C approved; A/B merged in #121/#122;
+C (#120) implemented in draft PR #123 for owner review.**
 Roadmap **1.2.2**; [independent design and GB matrix](Grouped_Bookings_Design.md),
 [REA evidence](Grouped_Bookings_REA_Evidence.md),
 [verification status](Grouped_Bookings_Implementation_Evidence.md).
@@ -11,7 +11,7 @@ Roadmap **1.2.2**; [independent design and GB matrix](Grouped_Bookings_Design.md
 The owner approved this concrete A–C packet, publication and proceeding with A.
 The five proposed decisions below are accepted, including all-or-nothing new
 acceptance, one-time same-contact linking and `BK-000001` booking numbering.
-B's #118/#114 direct blockers are merged. C waits for #119's merge. Merge, deployment,
+B's #118/#114 direct blockers and C's #119/#114/#101 are merged. Merge, deployment,
 paid plans and live activation remain separately controlled.
 
 **Payment clarification:** manual payment recording/owner confirmation is the
@@ -38,10 +38,10 @@ were read back: #118 → #114/#99 (merged); #119 → #118/#114; #120 → #119/#1
 
 Approved order: **A → B → C**. Each is a usable vertical outcome through
 contracts/core/DB/API/client/UI and required tests, not a frontend/backend split.
-The owner selected A, whose blockers were rechecked as merged. B waits for A's PR merge; C waits for B's PR merge (and
-therefore A). Use native blocker edges and read them back when publication is
-authorised. Recheck all closing PRs at the selected ticket's start; this dated
-table is not a substitute for a fresh merged-prerequisite check.
+A and B are merged through #121/#122. The owner selected C (#120); its direct
+blockers were freshly verified merged at integrated development `7b1ca94`.
+Use native blocker edges and recheck closing PRs at each selected ticket's start;
+this dated table is not a substitute for that check.
 
 ## A — Reopen an outfit with exact pieces and visible unresolved work
 

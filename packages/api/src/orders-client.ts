@@ -6,6 +6,8 @@ import {
   bookingHistorySchema,
   bookingListSchema,
   bookingReviewSchema,
+  type GroupIntakeDraft,
+  groupIntakeReviewSchema,
   type OrderError,
   orderErrorSchema,
   orderHistorySchema,
@@ -26,6 +28,21 @@ import {
 import type { createOrderRoutes } from "./orders.js";
 
 const bookingClient = () => hc<ReturnType<typeof createBookingRoutes>>("/api");
+export async function reviewGroupIntake(
+  shopId: string,
+  input: GroupIntakeDraft,
+) {
+  return groupIntakeReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        bookingClient().shops[":shopId"].orders.bookings["intake-review"].$post(
+          { param: { shopId }, json: input },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
+    ),
+  );
+}
 const client = () => hc<ReturnType<typeof createOrderRoutes>>("/api");
 async function piecesResult(r: Response, generation: number) {
   const result = orderPiecesSchema.parse(await orderResult(r, generation));

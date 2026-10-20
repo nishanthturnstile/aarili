@@ -11,6 +11,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -25,6 +26,50 @@ const policies = () =>
       withCheck: sql`shop_context_allows(shop_id)`,
     }),
   );
+// Reviewed 0033 owns the composite FKs, FORCE policies and immutable guards.
+export const bookingCommercialRevision = pgTable(
+  "booking_commercial_revision",
+  {
+    shopId: uuid("shop_id").notNull(),
+    id: uuid("id").notNull(),
+    bookingId: uuid("booking_id").notNull(),
+    originDraftId: uuid("origin_draft_id").notNull(),
+    schemaVersion: integer("schema_version").notNull(),
+    version: integer("version").notNull(),
+    basis: text("basis").notNull(),
+    packagePaise: bigint("package_paise", { mode: "bigint" }),
+    allocation: text("allocation").notNull(),
+    scope: jsonb("scope").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    auditId: uuid("audit_id").notNull(),
+    reason: text("reason").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.id] }),
+    unique().on(t.shopId, t.bookingId),
+    unique().on(t.shopId, t.originDraftId),
+    ...policies(),
+  ],
+);
+export const orderDraftConversion = pgTable(
+  "order_draft_conversion",
+  {
+    shopId: uuid("shop_id").notNull(),
+    sourceDraftId: uuid("source_draft_id").notNull(),
+    targetDraftId: uuid("target_draft_id").notNull(),
+    lineId: uuid("line_id").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    commandKey: uuid("command_key").notNull(),
+    requestId: uuid("request_id").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.sourceDraftId] }),
+    unique().on(t.shopId, t.targetDraftId),
+    ...policies(),
+  ],
+);
 export const garmentOrder = pgTable(
   "garment_order",
   {
@@ -33,6 +78,7 @@ export const garmentOrder = pgTable(
     codeNumber: bigint("code_number", { mode: "bigint" }).notNull(),
     code: text("code").notNull(),
     originDraftId: uuid("origin_draft_id").notNull(),
+    originLineId: uuid("origin_line_id"),
     customerId: uuid("customer_id").notNull(),
     wearerId: uuid("wearer_id").notNull(),
     ownerId: uuid("owner_id").notNull(),
@@ -46,7 +92,12 @@ export const garmentOrder = pgTable(
   (t) => [
     primaryKey({ columns: [t.shopId, t.id] }),
     unique().on(t.shopId, t.code),
-    unique().on(t.shopId, t.originDraftId),
+    uniqueIndex("garment_order_single_origin")
+      .on(t.shopId, t.originDraftId)
+      .where(sql`${t.originLineId} is null`),
+    uniqueIndex("garment_order_group_origin")
+      .on(t.shopId, t.originDraftId, t.originLineId)
+      .where(sql`${t.originLineId} is not null`),
     unique().on(t.shopId, t.codeNumber),
     ...policies(),
   ],

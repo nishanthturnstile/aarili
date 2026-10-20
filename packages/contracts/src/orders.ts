@@ -122,6 +122,42 @@ export const orderReviewSchema = z.strictObject({
   serverDate: z.string(),
 });
 export type OrderReview = z.infer<typeof orderReviewSchema>;
+const canonicalUuid = z.uuid().transform((v) => v.toLowerCase());
+export const groupCommercialSchema = z.strictObject({
+  schemaVersion: z.literal(2),
+  version: z.literal(1),
+  predecessorId: z.null(),
+  id: canonicalUuid,
+  bookingId: canonicalUuid,
+  basis: z.enum(["garment-prices", "package-proposal"]),
+  packagePaise: z.string().regex(/^\d+$/).nullable(),
+  allocation: z.literal("unresolved"),
+  scope: z
+    .array(z.strictObject({ lineId: canonicalUuid, orderId: canonicalUuid }))
+    .min(2)
+    .max(20),
+  actorId: canonicalUuid,
+  recordedAt: z.iso.datetime(),
+  reason: z.string(),
+});
+export type GroupCommercial = z.infer<typeof groupCommercialSchema>;
+export const includedOrderCommercialSchema = z.strictObject({
+  schemaVersion: z.literal(2),
+  basis: z.literal("package-included"),
+  packageVersionId: canonicalUuid,
+  groupDraftId: canonicalUuid,
+  lineId: canonicalUuid,
+  allocationPaise: z.null(),
+  referencePaise: z
+    .number()
+    .int()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .nullable(),
+});
+export type IncludedOrderCommercial = z.infer<
+  typeof includedOrderCommercialSchema
+>;
 export const acceptedOrderSchema = z.strictObject({
   id: z.uuid(),
   code: z.string(),
@@ -143,16 +179,25 @@ export const acceptedOrderSchema = z.strictObject({
   snapshotDigest: z.string(),
   snapshot: z.record(z.string(), z.unknown()),
   synthetic: z.literal(true),
+  commercial: includedOrderCommercialSchema.optional(),
 });
 export type AcceptedOrder = z.infer<typeof acceptedOrderSchema>;
 export const bookingDetailSchema = z.strictObject({
   booking: bookingRecordSchema,
   orders: z.array(acceptedOrderSchema).max(50),
-  summary: z.strictObject({
-    basis: z.literal("garment-prices"),
-    knownSubtotalPaise: z.string().regex(/^\d+$/),
-    unknownCount: z.number().int().min(0).max(50),
-  }),
+  commercial: groupCommercialSchema.nullable(),
+  summary: z.union([
+    z.strictObject({
+      basis: z.literal("garment-prices"),
+      knownSubtotalPaise: z.string().regex(/^\d+$/),
+      unknownCount: z.number().int().min(0).max(50),
+    }),
+    z.strictObject({
+      basis: z.literal("package-proposal"),
+      packagePaise: z.string().regex(/^\d+$/).nullable(),
+      allocation: z.literal("unresolved"),
+    }),
+  ]),
 });
 export const bookingListSchema = z.strictObject({
   bookings: z.array(bookingRecordSchema).max(25),
@@ -165,6 +210,58 @@ export const bookingHistorySchema = z.strictObject({
 export const bookingReviewSchema = z.strictObject({
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
 });
+
+export const groupIntakeDraftSchema = z
+  .strictObject({
+    context: bookingRecordSchema.shape.revision.shape.context,
+    reason: z.string().max(1000),
+    lines: z
+      .array(
+        z.strictObject({ id: canonicalUuid, intake: quickOrderDraftSchema }),
+      )
+      .max(20),
+    commercial: z.strictObject({
+      basis: z.enum(["garment-prices", "package-proposal"]),
+      packagePriceState: z.enum(["quoted", "to-be-quoted"]),
+      packagePriceText: z.string().max(40),
+    }),
+    review: orderDecisionSchema.nullable(),
+  })
+  .superRefine((v, c) => {
+    if (new Set(v.lines.map((l) => l.id)).size !== v.lines.length)
+      c.addIssue({
+        code: "custom",
+        path: ["lines"],
+        message: "Duplicate garment identity",
+      });
+  });
+export type GroupIntakeDraft = z.infer<typeof groupIntakeDraftSchema>;
+export function emptyGroupIntake(): GroupIntakeDraft {
+  return {
+    context: { occasion: "visit", eventDate: "", notes: "", payerId: null },
+    reason: "",
+    lines: [],
+    commercial: {
+      basis: "garment-prices",
+      packagePriceState: "to-be-quoted",
+      packagePriceText: "",
+    },
+    review: null,
+  };
+}
+export const groupIntakeCommandSchema = groupIntakeDraftSchema.superRefine(
+  (v, c) => {
+    if (v.lines.length < 2 || !v.reason.trim() || !v.review?.acknowledged)
+      c.addIssue({ code: "custom", message: "Review all garments" });
+    for (const [i, l] of v.lines.entries())
+      if (!quickOrderCommandSchema.safeParse(l.intake).success)
+        c.addIssue({
+          code: "custom",
+          path: ["lines", i],
+          message: "Complete garment intake",
+        });
+  },
+);
 
 // Additive structural contract; acceptance snapshots and v1 price meaning stay intact.
 const pieceFormSchema = z.strictObject({
@@ -248,3 +345,20 @@ export const orderHistorySchema = z.strictObject({
   entries: z.array(orderHistoryEntrySchema).max(25),
   next: z.number().int().positive().nullable(),
 });
+
+export const groupIntakeReviewSchema = z.strictObject({
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  lines: z
+    .array(
+      z.strictObject({
+        id: canonicalUuid,
+        review: orderReviewSchema,
+        pieces: orderPieceStructureSchema.nullable(),
+      }),
+    )
+    .max(20),
+  basis: z.enum(["garment-prices", "package-proposal"]),
+  packagePaise: z.string().regex(/^\d+$/).nullable(),
+  unknowns: z.array(z.string()),
+});
+export type GroupIntakeReview = z.infer<typeof groupIntakeReviewSchema>;

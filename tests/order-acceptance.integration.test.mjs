@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createApi } from "@aarili/api";
-import { emptyQuickOrder } from "@aarili/contracts/orders";
+import { emptyGroupIntake, emptyQuickOrder } from "@aarili/contracts/orders";
 import { syntheticCustomerPolicy } from "@aarili/core/customer-policy";
 import { mutateDraft } from "@aarili/core/drafts";
 import { materializeOrderPieces } from "@aarili/core/orders";
+import { syntheticWearerPolicy } from "@aarili/core/wearer-policy";
 import { sql, withShop } from "@aarili/db";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { assertIsolationCatalog } from "@aarili/db/isolation-catalog";
@@ -13,6 +14,7 @@ import { migrateDatabase } from "../scripts/migrate.mjs";
 import { seedHistoricalPieceOrder } from "../scripts/test-support/historical-pieces.mjs";
 import { seedOrderAcceptance } from "../scripts/test-support/order-acceptance.mjs";
 import { seedQuickOrder } from "../scripts/test-support/seed-quick-order.mjs";
+import { seedServiceTemplates } from "../scripts/test-support/seed-service-templates.mjs";
 import { withTenantFixture } from "../scripts/test-support/tenant-isolation.mjs";
 
 const uuid7 = () => randomUUID().replace(/^(........-....-)./, "$17");
@@ -392,148 +394,152 @@ async function waitForLock(f) {
   }
   assert.fail("Acceptance did not wait on publisher lock");
 }
-for (const source of [
-  "service.catalogue",
-  "service.templates",
-  "shop.commitments",
-  "service.commitment-bindings",
-  "shop.calendar",
-  "shop.policies",
-])
-  test(
-    `QO-03/07/08 ${source} publisher race serializes current authority and prevents mixed acceptance snapshots`,
-    { timeout: 180000 },
-    async () =>
-      fixture(async (f) => {
-        const v = await f.reviewed(),
-          d = await f.save(v),
-          c = f.config.category;
-        let payload;
-        if (source === "service.catalogue")
-          payload = {
-            entryId: c.entryId,
-            baseVersion: c.version,
-            baseRevisionId: c.id,
-            operation: "availability",
-            available: false,
-            reason: "SYNTHETIC race disable",
-            content: c.definition.content,
-          };
-        if (source === "service.templates") {
-          const t = f.seed.sources.before;
-          payload = {
-            entryId: t.entryId,
-            baseVersion: t.version,
-            baseRevisionId: t.id,
-            operation: "availability",
-            available: false,
-            reason: "SYNTHETIC race disable",
-            content: t.definition.content,
-          };
-        }
-        if (source === "shop.commitments")
-          payload = {
-            baseVersion: 1,
-            baseRevisionId: f.config.ruleId,
-            configuration: { ...f.config.configuration, cap: 0 },
-          };
-        if (source === "service.commitment-bindings")
-          payload = {
-            categoryId: c.entryId,
-            categoryRevisionId: c.definition.id,
-            availabilityId: c.id,
-            ruleRevisionId: f.config.ruleId,
-            baseVersion: 1,
-            baseRevisionId: f.config.bindingId,
-            review: "pending",
-            reason: "SYNTHETIC race withdraw review",
-          };
-        if (source === "shop.calendar") {
-          const s = await f.ok("settings/calendar", { method: "GET" });
-          payload = {
-            baseVersion: s.version,
-            baseRevisionId: s.revision.id,
-            domain: "production",
-            definition: {
-              ...s.revision.calendar.production,
-              week: s.revision.calendar.production.week.map((d, i) =>
-                i === 0
-                  ? {
-                      state: "closed",
-                      ranges: [],
-                      breaks: { state: "none", ranges: [] },
-                      slots: { state: "none", ranges: [] },
-                    }
-                  : d,
-              ),
-            },
-          };
-        }
-        if (source === "shop.policies") {
-          const s = await f.ok("settings/policies", { method: "GET" });
-          payload = {
-            baseVersion: s.version,
-            baseRevisionId: s.revision.id,
-            policy: {
-              ...s.revision.policies[0],
-              reason: "SYNTHETIC changed policy",
-            },
-          };
-        }
-        const pub = uuid7();
-        await f.ok(`drafts/${pub}`, {
-          method: "PUT",
-          body: { workflow: source, schemaVersion: 1, payload },
-        });
-        let entered, release;
-        const ready = new Promise((r) => (entered = r)),
-          gate = new Promise((r) => (release = r));
-        const publisher = f.owner.withOwnerDraft(
-          new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
-          f.a.shop,
-          async (ctx) => {
-            const adapter = ctx.workflows.get(source),
-              workflows = new Map(ctx.workflows);
-            workflows.set(source, {
-              ...adapter,
-              async promote(...args) {
-                const result = await adapter.promote(...args);
-                entered();
-                await gate;
-                return result;
+for (const intakeMode of ["quick", "group"])
+  for (const source of [
+    "service.catalogue",
+    "service.templates",
+    "shop.commitments",
+    "service.commitment-bindings",
+    "shop.calendar",
+    "shop.policies",
+  ])
+    test(
+      `${intakeMode === "group" ? "GB-C06" : "QO-03/07/08"} ${source} publisher race serializes current authority and prevents mixed acceptance snapshots`,
+      { timeout: 180000 },
+      async () =>
+        fixture(async (f) => {
+          const v = await f.reviewed(),
+            d =
+              intakeMode === "group"
+                ? await saveNewGroup(f, newGroup(f))
+                : await f.save(v),
+            c = f.config.category;
+          let payload;
+          if (source === "service.catalogue")
+            payload = {
+              entryId: c.entryId,
+              baseVersion: c.version,
+              baseRevisionId: c.id,
+              operation: "availability",
+              available: false,
+              reason: "SYNTHETIC race disable",
+              content: c.definition.content,
+            };
+          if (source === "service.templates") {
+            const t = f.seed.sources.before;
+            payload = {
+              entryId: t.entryId,
+              baseVersion: t.version,
+              baseRevisionId: t.id,
+              operation: "availability",
+              available: false,
+              reason: "SYNTHETIC race disable",
+              content: t.definition.content,
+            };
+          }
+          if (source === "shop.commitments")
+            payload = {
+              baseVersion: 1,
+              baseRevisionId: f.config.ruleId,
+              configuration: { ...f.config.configuration, cap: 0 },
+            };
+          if (source === "service.commitment-bindings")
+            payload = {
+              categoryId: c.entryId,
+              categoryRevisionId: c.definition.id,
+              availabilityId: c.id,
+              ruleRevisionId: f.config.ruleId,
+              baseVersion: 1,
+              baseRevisionId: f.config.bindingId,
+              review: "pending",
+              reason: "SYNTHETIC race withdraw review",
+            };
+          if (source === "shop.calendar") {
+            const s = await f.ok("settings/calendar", { method: "GET" });
+            payload = {
+              baseVersion: s.version,
+              baseRevisionId: s.revision.id,
+              domain: "production",
+              definition: {
+                ...s.revision.calendar.production,
+                week: s.revision.calendar.production.week.map((d, i) =>
+                  i === 0
+                    ? {
+                        state: "closed",
+                        ranges: [],
+                        breaks: { state: "none", ranges: [] },
+                        slots: { state: "none", ranges: [] },
+                      }
+                    : d,
+                ),
               },
-            });
-            return mutateDraft(
-              { ...ctx, workflows },
-              pub,
-              "promote",
-              {},
-              { key: randomUUID(), requestId: randomUUID(), ifMatch: '"v1"' },
-            );
-          },
-        );
-        // Surface a publication validation failure instead of waiting for an unreachable barrier.
-        await Promise.race([
-          ready,
-          publisher.then(() =>
-            assert.fail("Publisher completed before barrier"),
-          ),
-        ]);
-        const accepting = f.promote(d);
-        try {
-          await waitForLock(f);
-        } finally {
-          release();
-        }
-        await publisher;
-        const r = await accepting;
-        assert.equal(r.status, 409, await r.clone().text());
-        assert.equal(
-          (await f.ok("orders/list", { body: {} })).orders.length,
-          0,
-        );
-      }),
-  );
+            };
+          }
+          if (source === "shop.policies") {
+            const s = await f.ok("settings/policies", { method: "GET" });
+            payload = {
+              baseVersion: s.version,
+              baseRevisionId: s.revision.id,
+              policy: {
+                ...s.revision.policies[0],
+                reason: "SYNTHETIC changed policy",
+              },
+            };
+          }
+          const pub = uuid7();
+          await f.ok(`drafts/${pub}`, {
+            method: "PUT",
+            body: { workflow: source, schemaVersion: 1, payload },
+          });
+          let entered, release;
+          const ready = new Promise((r) => (entered = r)),
+            gate = new Promise((r) => (release = r));
+          const publisher = f.owner.withOwnerDraft(
+            new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
+            f.a.shop,
+            async (ctx) => {
+              const adapter = ctx.workflows.get(source),
+                workflows = new Map(ctx.workflows);
+              workflows.set(source, {
+                ...adapter,
+                async promote(...args) {
+                  const result = await adapter.promote(...args);
+                  entered();
+                  await gate;
+                  return result;
+                },
+              });
+              return mutateDraft(
+                { ...ctx, workflows },
+                pub,
+                "promote",
+                {},
+                { key: randomUUID(), requestId: randomUUID(), ifMatch: '"v1"' },
+              );
+            },
+          );
+          // Surface a publication validation failure instead of waiting for an unreachable barrier.
+          await Promise.race([
+            ready,
+            publisher.then(() =>
+              assert.fail("Publisher completed before barrier"),
+            ),
+          ]);
+          const accepting = f.promote(d);
+          try {
+            await waitForLock(f);
+          } finally {
+            release();
+          }
+          await publisher;
+          const r = await accepting;
+          assert.equal(r.status, 409, await r.clone().text());
+          assert.equal(
+            (await f.ok("orders/list", { body: {} })).orders.length,
+            0,
+          );
+        }),
+    );
 
 test(
   "QO-07/08 simultaneous first/last clear slot: stale review rejected, exception explicit, rule changes retain load",
@@ -1397,6 +1403,259 @@ async function acceptedForBooking(f, overrides = {}) {
   assert.equal(response.status, 200, await response.clone().text());
   return f.ok(`orders/${(await response.json()).draft.result.id}/read`);
 }
+function newGroup(f, overrides = {}) {
+  return {
+    ...emptyGroupIntake(),
+    reason: "SYNTHETIC atomic intake",
+    lines: [
+      {
+        id: uuid7(),
+        intake: {
+          ...f.value,
+          priceText: "1200",
+          instructions: "SYNTHETIC first garment",
+        },
+      },
+      {
+        id: uuid7(),
+        intake: {
+          ...f.value,
+          priceState: "to-be-quoted",
+          priceText: "",
+          instructions: "SYNTHETIC second garment",
+          deliveryDate: new Date(Date.now() + 32 * 86400000)
+            .toISOString()
+            .slice(0, 10),
+        },
+      },
+    ],
+    ...overrides,
+  };
+}
+async function saveNewGroup(f, input, id = uuid7(), etag) {
+  const r = await f.ok("orders/bookings/intake-review", { body: input });
+  const payload = {
+    ...input,
+    review: {
+      fingerprint: r.fingerprint,
+      acknowledged: true,
+      exceptionReason: r.lines.some((l) => l.review.evaluation?.warnings.length)
+        ? "SYNTHETIC explicit exception"
+        : "",
+      waiveRush: false,
+      waiverReason: "",
+    },
+  };
+  return {
+    id,
+    ...(await f.ok(`drafts/${id}`, {
+      method: "PUT",
+      body: { workflow: "order.group", schemaVersion: 1, payload },
+      etag,
+    })),
+  };
+}
+test(
+  "GB-C07/09 bounded Tamil grouped drafts remain reviewable across UTF-8 transport",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      const input = newGroup(f);
+      input.lines = Array.from({ length: 20 }, () => ({
+        id: uuid7(),
+        intake: { ...f.value, instructions: "க".repeat(1700) },
+      }));
+      assert.ok(JSON.stringify(input).length < 65536);
+      assert.ok(Buffer.byteLength(JSON.stringify(input)) > 65536);
+      const saved = await saveNewGroup(f, input);
+      assert.equal(saved.draft.lifecycle, "active");
+      const oversized = structuredClone(input);
+      for (const line of oversized.lines) {
+        line.intake.instructions = "க".repeat(2000);
+        line.intake.historicalReason = "x".repeat(1000);
+      }
+      assert.ok(JSON.stringify(oversized).length > 65536);
+      assert.equal(
+        (await f.request("orders/bookings/intake-review", { body: oversized }))
+          .status,
+        422,
+      );
+      assert.equal(
+        (
+          await f.request(`drafts/${uuid7()}`, {
+            method: "PUT",
+            body: {
+              workflow: "order.group",
+              schemaVersion: 1,
+              payload: oversized,
+            },
+          })
+        ).status,
+        422,
+      );
+      assert.equal(
+        (await f.admin.query("select count(*)::int n from garment_order"))
+          .rows[0].n,
+        0,
+      );
+    }),
+);
+test(
+  "GB-C01/03/04/08 atomic group intake preserves exact garments and included proposal amounts",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        for (const basis of ["garment-prices", "package-proposal"]) {
+          const input = newGroup(f, {
+              commercial: {
+                basis,
+                packagePriceState: "quoted",
+                packagePriceText: " 2,000.25 ",
+              },
+            }),
+            d = await saveNewGroup(f, input),
+            key = randomUUID();
+          const response = await f.promote(d, { key });
+          if (response.status === 503)
+            await f.owner.withOwnerDraft(
+              new Headers({ Cookie: f.a.cookie }),
+              f.a.shop,
+              (ctx) =>
+                mutateDraft(
+                  ctx,
+                  d.id,
+                  "promote",
+                  {},
+                  {
+                    key,
+                    ifMatch: `"v${d.draft.version}"`,
+                    requestId: randomUUID(),
+                  },
+                ),
+            );
+          assert.equal(response.status, 200, await response.clone().text());
+          const result = await response.json();
+          assert.deepEqual(await (await f.promote(d, { key })).json(), result);
+          const detail = await f.ok("orders/bookings/read", {
+            body: { id: result.draft.result.id, revision: true },
+          });
+          assert.equal(detail.orders.length, 2);
+          assert.equal(detail.commercial.scope.length, 2);
+          assert.equal(detail.commercial.allocation, "unresolved");
+          const sourceIds = new Set(detail.orders.map((o) => o.id));
+          assert.equal(sourceIds.size, 2);
+          assert.deepEqual(
+            detail.commercial.scope.map((s) => s.lineId),
+            input.lines.map((l) => l.id),
+          );
+          for (const o of detail.orders) {
+            assert.ok(o.wearer.label);
+            assert.ok(
+              o.requirements.items.some((i) => i.state === "unresolved"),
+            );
+            assert.equal(
+              (await f.ok(`orders/${o.id}/pieces/read`, { body: {} })).state,
+              "materialized",
+            );
+          }
+          if (basis === "package-proposal") {
+            assert.deepEqual(detail.summary, {
+              basis,
+              packagePaise: "200025",
+              allocation: "unresolved",
+            });
+            assert.ok(
+              detail.orders.every(
+                (o) =>
+                  o.pricePaise === null &&
+                  o.commercial.allocationPaise === null,
+              ),
+            );
+            assert.equal(
+              detail.orders.find((o) => o.commercial.referencePaise !== null)
+                .commercial.referencePaise,
+              120000,
+            );
+          } else
+            assert.deepEqual(detail.summary, {
+              basis,
+              knownSubtotalPaise: "120000",
+              unknownCount: 1,
+            });
+          assert.equal((await f.promote(d, { key: randomUUID() })).status, 412);
+          assert.equal(
+            (
+              await f.request("orders/bookings/read", {
+                body: { id: detail.booking.id },
+                who: f.b,
+              })
+            ).status,
+            404,
+          );
+        }
+        const counts = (
+          await f.admin.query(
+            "select (select count(*) from garment_order)::int orders,(select count(*) from order_capacity_demand)::int demand,(select count(*) from journal_batch)::int money",
+          )
+        ).rows[0];
+        assert.deepEqual(counts, { orders: 4, demand: 4, money: 0 });
+        await assertIsolationCatalog(f.runtime.db);
+      },
+      {},
+      { outfit: true },
+    ),
+);
+test(
+  "GB-C07 exact one-time Quick Order draft conversion preserves incomplete input",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      const original = {
+          ...f.value,
+          wearerId: null,
+          deliveryDate: "",
+          instructions: "SYNTHETIC unsized draft",
+          commitmentReview: null,
+        },
+        d = await f.save(original),
+        key = randomUUID();
+      const convert = (options = {}) =>
+        f.request(`drafts/${d.id}/convert`, {
+          body: {},
+          etag: '"v1"',
+          key,
+          ...options,
+        });
+      const results = await Promise.all([convert(), convert()]);
+      for (const r of results)
+        assert.equal(r.status, 200, await r.clone().text());
+      const first = await results[0].json();
+      assert.deepEqual(await results[1].json(), first);
+      const target = await f.ok(`drafts/${first.draft.result.id}`, {
+        method: "GET",
+      });
+      assert.equal(target.workflow, "order.group");
+      assert.deepEqual(target.payload.lines[0].intake, original);
+      assert.equal(target.lifecycle, "active");
+      assert.equal((await f.promote(d)).status, 412);
+      await f.admin.query("delete from idempotency_key where key=$1", [key]);
+      assert.equal((await convert()).status, 412);
+      assert.equal(
+        (
+          await f.admin.query(
+            "select count(*)::int n from order_draft_conversion",
+          )
+        ).rows[0].n,
+        1,
+      );
+      assert.equal(
+        (await f.admin.query("select count(*)::int n from garment_order"))
+          .rows[0].n,
+        0,
+      );
+    }),
+);
 async function groupingDraft(f, orders, overrides = {}) {
   const input = {
     customerId: orders[0]?.intake.customerId ?? f.value.customerId,
@@ -1427,6 +1686,486 @@ async function groupingDraft(f, orders, overrides = {}) {
     })),
   };
 }
+test(
+  "GB-C05 adult service withdrawal denies saved group and exact accepted-result replay",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      const d = await saveNewGroup(f, newGroup(f)),
+        key = randomUUID(),
+        r = await f.promote(d, { key });
+      assert.equal(r.status, 200, await r.clone().text());
+      const result = await r.json();
+      const c = await f.ok(`customers/${f.value.customerId}`, {
+          method: "GET",
+        }),
+        w = await f.ok(`customers/${c.id}/wearers/${f.value.wearerId}`, {
+          method: "GET",
+        });
+      await f.ok(`customers/${c.id}/wearers/${w.id}/consent-events`, {
+        etag: `"v${w.version}"`,
+        body: {
+          purpose: "service",
+          decision: "withdrawal",
+          noticeId: syntheticWearerPolicy.notice.id,
+          noticeExplained: true,
+          language: "en",
+          giverPersonId: w.personId,
+          source: "in-person",
+          occurredAt: new Date().toISOString(),
+        },
+      });
+      assert.equal((await f.promote(d, { key })).status, 404);
+      assert.equal(
+        (await f.request(`drafts/${d.id}`, { method: "GET" })).status,
+        404,
+      );
+      assert.equal(
+        (
+          await f.request("orders/bookings/read", {
+            body: { id: result.draft.result.id, revision: true },
+          })
+        ).status,
+        404,
+      );
+      assert.equal(
+        (
+          await f.admin.query(
+            "select count(*)::int n from order_capacity_demand",
+          )
+        ).rows[0].n,
+        2,
+      );
+    }),
+);
+
+test(
+  "GB-C03/06 unknown effort, forged authority and invalid proposal/reference amounts fail closed",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      await acceptedForBooking(f);
+      const ruleId = await f.config.publish("shop.commitments", {
+        baseVersion: 1,
+        baseRevisionId: f.config.ruleId,
+        configuration: { ...f.config.configuration, unit: "effort-points" },
+      });
+      await f.config.publish("service.commitment-bindings", {
+        categoryId: f.config.category.entryId,
+        categoryRevisionId: f.config.category.definition.id,
+        availabilityId: f.config.category.id,
+        ruleRevisionId: ruleId,
+        baseVersion: 1,
+        baseRevisionId: f.config.bindingId,
+        review: "reviewed",
+        reason: "SYNTHETIC unresolved effort",
+      });
+      const input = newGroup(f),
+        review = await f.ok("orders/bookings/intake-review", { body: input });
+      assert.ok(
+        review.lines.every((l) =>
+          l.review.unknowns.includes("effortMappingMissing"),
+        ),
+      );
+      assert.ok(review.lines[0].review.unknowns.includes("incomparableDemand"));
+      assert.equal((await f.promote(await saveNewGroup(f, input))).status, 409);
+      for (const forged of [
+        { load: 0 },
+        { approved: true },
+        { nowTime: "00:00" },
+        { quantity: 0 },
+      ])
+        assert.equal(
+          (
+            await f.request("orders/bookings/intake-review", {
+              body: { ...input, ...forged },
+            })
+          ).status,
+          422,
+        );
+      for (const amount of ["bad", "9007199254740992.00", "-1.00"]) {
+        const invalid = {
+          ...input,
+          commercial: {
+            basis: "package-proposal",
+            packagePriceState: "quoted",
+            packagePriceText: amount,
+          },
+        };
+        assert.equal(
+          (await f.promote(await saveNewGroup(f, invalid))).status,
+          422,
+        );
+      }
+      const reference = {
+        ...input,
+        commercial: {
+          basis: "package-proposal",
+          packagePriceState: "quoted",
+          packagePriceText: "0",
+        },
+        lines: input.lines.map((l, i) =>
+          i ? l : { ...l, intake: { ...l.intake, priceText: "invalid" } },
+        ),
+      };
+      assert.equal(
+        (await f.promote(await saveNewGroup(f, reference))).status,
+        422,
+      );
+      assert.equal(
+        (await f.admin.query("select count(*)::int n from garment_order"))
+          .rows[0].n,
+        1,
+      );
+    }),
+);
+
+test(
+  "GB-C07 actual conversion write faults and competing keys preserve one active target",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      const d = await f.save(),
+        key = randomUUID(),
+        convert = (source = d, k = key) =>
+          f.request(`drafts/${source.id}/convert`, {
+            body: {},
+            etag: '"v1"',
+            key: k,
+          });
+      const count = async () => ({
+        rows: (
+          await f.admin.query(
+            "select (select count(*) from order_draft_conversion)::int links,(select count(*) from durable_draft)::int drafts,(select count(*) from audit_event)::int audit,(select count(*) from idempotency_key)::int keys",
+          )
+        ).rows[0],
+        source: await f.ok(`drafts/${d.id}`, { method: "GET" }),
+      });
+      const before = await count();
+      for (const [table, operation, condition] of [
+        ["durable_draft", "INSERT", "NEW.workflow='order.group'"],
+        ["audit_event", "INSERT", "NEW.action='draft.convert.target'"],
+        ["order_draft_conversion", "INSERT", "true"],
+        ["durable_draft", "UPDATE", "NEW.result_type='order.group-draft'"],
+        ["audit_event", "INSERT", "NEW.action='draft.convert'"],
+        ["idempotency_key", "INSERT", `NEW.key='${key}'::uuid`],
+      ]) {
+        await f.admin.query(
+          `CREATE FUNCTION test_conversion_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF ${condition} THEN RAISE EXCEPTION 'SYNTHETIC after conversion write';END IF;RETURN NEW;END $$;CREATE TRIGGER test_conversion_fault AFTER ${operation} ON ${table} FOR EACH ROW EXECUTE FUNCTION test_conversion_fault()`,
+        );
+        try {
+          assert.equal((await convert()).status, 503);
+          assert.deepEqual(await count(), before);
+        } finally {
+          await f.admin.query(
+            `DROP TRIGGER test_conversion_fault ON ${table};DROP FUNCTION test_conversion_fault()`,
+          );
+        }
+      }
+      assert.equal((await convert()).status, 200);
+      const second = await f.save();
+      const raced = await Promise.all([
+        convert(second, randomUUID()),
+        convert(second, randomUUID()),
+      ]);
+      assert.deepEqual(raced.map((r) => r.status).sort(), [200, 412]);
+      assert.equal((await count()).rows.links, 2);
+      assert.equal(
+        (await f.admin.query("select count(*)::int n from garment_order"))
+          .rows[0].n,
+        0,
+      );
+    }),
+);
+
+test(
+  "GB-C04/06 actual writes roll back every order, piece, demand, group, commercial proposal and command",
+  { timeout: 240000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const input = newGroup(f, {
+            commercial: {
+              basis: "package-proposal",
+              packagePriceState: "quoted",
+              packagePriceText: "0",
+            },
+          }),
+          d = await saveNewGroup(f, input),
+          key = randomUUID();
+        const tables = [
+          "garment_order",
+          "order_acceptance_snapshot",
+          "order_requirement",
+          "order_piece_set",
+          "order_piece",
+          "order_requirement_scope",
+          "order_capacity_demand",
+          "order_presentation_event",
+          "booking",
+          "booking_revision",
+          "booking_member",
+          "booking_membership_history",
+          "booking_commercial_revision",
+          "audit_event",
+          "durable_draft",
+          "idempotency_key",
+        ];
+        const counts = async () => {
+          const result = {};
+          for (const table of [...tables, "journal_batch", "pgboss.job"])
+            result[table] = (
+              await f.admin.query(`select count(*)::int n from ${table}`)
+            ).rows[0].n;
+          result.draft = await f.ok(`drafts/${d.id}`, { method: "GET" });
+          return result;
+        };
+        const before = await counts();
+        for (const table of tables) {
+          const condition =
+            table === "durable_draft"
+              ? "NEW.lifecycle='promoted' AND NEW.workflow='order.group'"
+              : table === "audit_event"
+                ? "NEW.action='draft.promote'"
+                : table === "idempotency_key"
+                  ? `NEW.key='${key}'::uuid`
+                  : table.startsWith("order_") || table === "garment_order"
+                    ? `(SELECT count(*) FROM ${table})>=2`
+                    : "true";
+          await f.admin.query(
+            `CREATE FUNCTION test_group_intake_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF ${condition} THEN RAISE EXCEPTION 'SYNTHETIC actual group write fault';END IF;RETURN NEW;END $$;CREATE TRIGGER test_group_intake_fault AFTER ${table === "durable_draft" ? "UPDATE" : "INSERT"} ON ${table} FOR EACH ROW EXECUTE FUNCTION test_group_intake_fault()`,
+          );
+          try {
+            assert.equal((await f.promote(d, { key })).status, 503, table);
+            assert.deepEqual(await counts(), before, table);
+          } finally {
+            await f.admin.query(
+              `DROP TRIGGER test_group_intake_fault ON ${table};DROP FUNCTION test_group_intake_fault()`,
+            );
+          }
+        }
+        const result = await f.promote(d, { key });
+        assert.equal(result.status, 200, await result.clone().text());
+        const after = await counts();
+        assert.equal(after.garment_order, 2);
+        assert.equal(after.order_capacity_demand, 2);
+        assert.equal(after.journal_batch, 0);
+        assert.equal(after["pgboss.job"], 0);
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-C04/06 cumulative last-slot and single-versus-group races reject stale whole-set reviews",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      const input = newGroup(f);
+      input.lines[1].intake.deliveryDate = input.lines[0].intake.deliveryDate;
+      const review = await f.ok("orders/bookings/intake-review", {
+        body: input,
+      });
+      assert.equal(review.lines[0].review.evaluation.facts.existing, 0);
+      assert.equal(review.lines[1].review.evaluation.facts.existing, 1);
+      assert.ok(
+        review.lines[1].review.evaluation.warnings.includes("capacityExceeded"),
+      );
+      const refused = await saveNewGroup(f, input);
+      const blocked = await f.ok(`drafts/${refused.id}`, {
+        method: "PUT",
+        etag: '"v1"',
+        body: {
+          workflow: "order.group",
+          schemaVersion: 1,
+          payload: {
+            ...refused.draft.payload,
+            review: { ...refused.draft.payload.review, exceptionReason: "" },
+          },
+        },
+      });
+      assert.equal(
+        (await f.promote({ id: refused.id, draft: blocked.draft })).status,
+        422,
+      );
+      assert.equal((await f.ok("orders/list", { body: {} })).orders.length, 0);
+      const a = await saveNewGroup(f, input),
+        b = await saveNewGroup(f, {
+          ...input,
+          lines: [...input.lines].reverse(),
+        });
+      const raced = await Promise.all([f.promote(a), f.promote(b)]);
+      assert.deepEqual(raced.map((r) => r.status).sort(), [200, 409]);
+      const next = newGroup(f),
+        g = await saveNewGroup(f, next),
+        single = await f.save(await f.reviewed());
+      const mixed = await Promise.all([f.promote(g), f.promote(single)]);
+      assert.deepEqual(mixed.map((r) => r.status).sort(), [200, 409]);
+      const rows = (
+        await f.admin.query("select count(*)::int n from garment_order")
+      ).rows[0].n;
+      assert.ok([3, 4].includes(rows));
+      assert.equal(
+        (
+          await f.admin.query(
+            "select count(*)::int n from order_capacity_demand",
+          )
+        ).rows[0].n,
+        rows,
+      );
+      assert.equal((await f.promote(g, { etag: undefined })).status, 428);
+      assert.equal(
+        (
+          await f.request(`drafts/${g.id}/promote`, {
+            body: { unexpected: true },
+            etag: '"v1"',
+          })
+        ).status,
+        422,
+      );
+    }),
+);
+
+test(
+  "GB-C04/06 different category and week locks use stable complete-set ordering",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const extra = await seedServiceTemplates(f.runtime.pool, f.a.shop, {
+          templatePrefix: "group-second-",
+        });
+        try {
+          const category = (
+            await f.ok(
+              `settings/catalogue/entries/${extra.service.definition.content.parent.entryId}`,
+              { method: "GET" },
+            )
+          ).revision;
+          await f.config.publish("service.commitment-bindings", {
+            categoryId: category.entryId,
+            categoryRevisionId: category.definition.id,
+            availabilityId: category.id,
+            ruleRevisionId: f.config.ruleId,
+            baseVersion: 0,
+            baseRevisionId: null,
+            review: "reviewed",
+            reason: "SYNTHETIC category group",
+          });
+          const input = newGroup(f);
+          input.lines[1].intake.manifest = {
+            entryId: extra.before.entryId,
+            revisionId: extra.before.id,
+            definitionId: extra.before.definition.id,
+          };
+          const a = await saveNewGroup(f, input),
+            b = await saveNewGroup(f, {
+              ...input,
+              lines: [...input.lines].reverse(),
+            });
+          const raced = await Promise.all([f.promote(a), f.promote(b)]);
+          assert.deepEqual(raced.map((r) => r.status).sort(), [200, 409]);
+          const weeks = newGroup(f);
+          weeks.lines[1].intake.deliveryDate = new Date(
+            Date.parse(weeks.lines[0].intake.deliveryDate) + 7 * 86400000,
+          )
+            .toISOString()
+            .slice(0, 10);
+          const review = await f.ok("orders/bookings/intake-review", {
+            body: weeks,
+          });
+          assert.notEqual(
+            review.lines[0].review.evaluation.facts.weekStart,
+            review.lines[1].review.evaluation.facts.weekStart,
+          );
+          assert.equal(review.lines[1].review.evaluation.facts.existing, 0);
+          const counts = (
+            await f.admin.query(
+              "select category_id,count(*)::int n from order_capacity_demand group by category_id",
+            )
+          ).rows;
+          assert.equal(counts.length, 2);
+          assert.ok(counts.every((r) => r.n === 1));
+        } finally {
+          await extra.close();
+        }
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-C05/08 populated A/B upgrade preserves snapshots and enforces immutable commercial/conversion isolation",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const a = await acceptedForBooking(f),
+          b = await acceptedForBooking(f),
+          old = await groupingDraft(f, [a, b]);
+        assert.equal((await f.promote(old)).status, 200);
+        const before = (
+          await f.admin.query(
+            "select order_id,content,digest from order_acceptance_snapshot order by order_id",
+          )
+        ).rows;
+        await migrateDatabase(f.migrationConnectionString);
+        assert.deepEqual(
+          (
+            await f.admin.query(
+              "select order_id,content,digest from order_acceptance_snapshot order by order_id",
+            )
+          ).rows,
+          before,
+        );
+        assert.equal(
+          (
+            await f.admin.query(
+              "select count(*)::int n from booking_commercial_revision",
+            )
+          ).rows[0].n,
+          0,
+        );
+        const input = newGroup(f),
+          d = await saveNewGroup(f, input);
+        assert.equal((await f.promote(d)).status, 200);
+        const quick = await f.save();
+        const converted = await f.ok(`drafts/${quick.id}/convert`, {
+          body: {},
+          etag: '"v1"',
+        });
+        assert.equal(converted.draft.result.type, "order.group-draft");
+        for (const table of [
+          "booking_commercial_revision",
+          "order_draft_conversion",
+        ]) {
+          await f.runtime.db.transaction(async (tx) => {
+            assert.equal(
+              (await tx.execute(sql.raw(`select * from ${table}`))).rows.length,
+              0,
+            );
+          });
+          await withShop(f.runtime.db, f.b.user, f.b.shop, async (tx) => {
+            assert.equal(
+              (await tx.execute(sql.raw(`select * from ${table}`))).rows.length,
+              0,
+            );
+          });
+          await assert.rejects(
+            withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+              tx.execute(sql.raw(`delete from ${table}`)),
+            ),
+            (e) => e.code === "42501" || e.cause?.code === "42501",
+          );
+        }
+        await assertIsolationCatalog(f.runtime.db);
+      },
+      { migrationThrough: "0032_accepted_booking_groups.sql" },
+      { outfit: true },
+    ),
+);
 test(
   "GB-B01/03/04/08 accepted garments group atomically with exact prices and independent immutable snapshots",
   { timeout: 180000 },
@@ -2031,5 +2770,116 @@ test(
         );
       },
       { migrationThrough: "0031_outfit_pieces.sql" },
+    ),
+);
+
+test(
+  "GB-C05 guardian withdrawal serializes with linking and denies private summaries, history, saved drafts and replay",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const m = await bookingMinor(f),
+          input = newGroup(f),
+          d = await saveNewGroup(f, {
+            ...input,
+            lines: input.lines.map((l) => ({
+              ...l,
+              intake: {
+                ...l.intake,
+                customerId: m.c.id,
+                wearerId: m.w.wearerId,
+              },
+            })),
+          }),
+          key = randomUUID();
+        let entered, release;
+        const ready = new Promise((r) => {
+            entered = r;
+          }),
+          gate = new Promise((r) => {
+            release = r;
+          });
+        const grouping = f.owner.withOwnerDraft(
+          new Headers({ Cookie: f.a.cookie }),
+          f.a.shop,
+          async (ctx) => {
+            const original = ctx.workflows.get("order.group");
+            const workflows = new Map(ctx.workflows);
+            workflows.set("order.group", {
+              ...original,
+              async promote(...args) {
+                const result = await original.promote(...args);
+                entered();
+                await gate;
+                return result;
+              },
+            });
+            return mutateDraft(
+              { ...ctx, workflows },
+              d.id,
+              "promote",
+              {},
+              { key, ifMatch: '"v1"', requestId: randomUUID() },
+            );
+          },
+        );
+        await Promise.race([
+          ready,
+          grouping.then(() => assert.fail("Missing link barrier")),
+        ]);
+        const g = await f.ok(m.path, { method: "GET" });
+        const withdrawal = f.request(`${m.path}/verification-events`, {
+          etag: `"v${g.version}"`,
+          body: { ...m.verification, status: "withdrawn" },
+        });
+        try {
+          await waitForLock(f);
+        } finally {
+          release();
+        }
+        const result = (await grouping).data;
+        assert.equal((await withdrawal).status, 200);
+        assert.equal((await f.promote(d, { key })).status, 404);
+        assert.equal(
+          (
+            await f.request("orders/bookings/read", {
+              body: { id: result.draft.result.id, revision: true },
+            })
+          ).status,
+          404,
+        );
+        assert.equal(
+          (await f.request("orders/bookings/list", { body: {} })).status,
+          404,
+        );
+        const group = (await f.admin.query("select id from booking")).rows[0]
+          .id;
+        assert.equal(
+          (await f.request("orders/bookings/history", { body: { id: group } }))
+            .status,
+          404,
+        );
+        assert.equal(
+          (await f.request(`drafts/${d.id}`, { method: "GET" })).status,
+          404,
+        );
+        assert.equal(
+          (
+            await f.request("orders/bookings/intake-review", {
+              body: d.draft.payload,
+              who: f.b,
+            })
+          ).status,
+          404,
+        );
+        assert.equal(
+          (await f.admin.query("select count(*)::int n from booking_member"))
+            .rows[0].n,
+          2,
+        );
+      },
+      {},
+      { outfit: true },
     ),
 );

@@ -35,7 +35,9 @@ import {
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
   bookingDraftWorkflow,
+  groupIntakeWorkflow,
   type QuickOrderContext,
+  quickOrderConversion,
   quickOrderDraftWorkflow,
 } from "@aarili/core/orders";
 import {
@@ -1250,7 +1252,17 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       );
       workflows.set(
         "order.quick",
-        quickOrderDraftWorkflow(quickOrderContext(tx, shopId, userId)),
+        quickOrderDraftWorkflow(
+          quickOrderContext(tx, shopId, userId),
+          quickOrderConversion(
+            quickOrderContext(tx, shopId, userId),
+            draftRepository(tx, shopId),
+          ),
+        ),
+      );
+      workflows.set(
+        "order.group",
+        groupIntakeWorkflow(quickOrderContext(tx, shopId, userId)),
       );
       workflows.set(
         "shop.presentation",

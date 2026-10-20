@@ -271,6 +271,8 @@ export async function assertIsolationCatalog(db: Database) {
         "public.order_requirement",
         "public.order_piece_set",
         "public.booking_revision",
+        "public.booking_commercial_revision",
+        "public.order_draft_conversion",
         "public.booking_member",
         "public.booking_membership_history",
         "public.order_piece",

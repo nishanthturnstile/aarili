@@ -9,7 +9,7 @@ import { templateSections } from "@aarili/contracts/service-templates";
 
 // Only the immutable accepted snapshot is input. No current-catalogue lookup.
 export function projectOrderPieces(
-  order: AcceptedOrder,
+  order: Pick<AcceptedOrder, "requirements" | "snapshot">,
 ): OrderPieceStructure | null {
   try {
     const c = order.requirements.definition;

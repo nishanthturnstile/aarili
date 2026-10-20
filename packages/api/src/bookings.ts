@@ -7,6 +7,8 @@ import {
   bookingListSchema,
   bookingReadQuerySchema,
   bookingReviewSchema,
+  groupIntakeDraftSchema,
+  groupIntakeReviewSchema,
   orderErrorSchema,
   orderListSchema,
 } from "@aarili/contracts/orders";
@@ -18,6 +20,7 @@ import {
   listBookings,
   readBooking,
   reviewBooking,
+  reviewGroupIntake,
 } from "@aarili/core/orders";
 import { GuardianFailure, WearerFailure } from "@aarili/core/wearers";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -81,19 +84,51 @@ export function createBookingRoutes(
     c.req.raw = new Request(c.req.raw, { headers: boundedHeaders });
     return next();
   });
-  app.use(
-    "/shops/:shopId/orders/bookings/*",
+  app.use("/shops/:shopId/orders/bookings/*", (c, next) =>
     bodyLimit({
-      maxSize: 65536,
+      // Match durable-draft transport bounds; Tamil text uses multiple UTF-8 bytes.
+      maxSize: c.req.path.endsWith("/intake-review") ? 512 * 1024 : 65536,
       onError: (c) =>
         c.json(
           { error: { code: "INVALID_REQUEST", message: "Request too large" } },
           413,
         ),
-    }),
+    })(c, next),
   );
   const error = response(orderErrorSchema);
   const bookingRoutes = app
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/orders/bookings/intake-review",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          body: {
+            required: true,
+            content: { "application/json": { schema: groupIntakeDraftSchema } },
+          },
+        },
+        responses: {
+          200: response(groupIntakeReviewSchema),
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerQuickOrder(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => reviewGroupIntake(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",

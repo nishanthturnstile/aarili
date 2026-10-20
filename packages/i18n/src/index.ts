@@ -7,6 +7,7 @@ export { wearerMessages } from "./wearer-messages.js";
 export type Locale = "en" | "ta";
 export { bookingMessages, formatBookingPaise } from "./booking-messages.js";
 export { documentMessages } from "./document-messages.js";
+export { groupIntakeMessages } from "./group-intake-messages.js";
 export { measurementFormsMessages } from "./measurement-forms-messages.js";
 export { mediaMessages } from "./media-messages.js";
 export {

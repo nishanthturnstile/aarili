@@ -1,8 +1,9 @@
-import {
+﻿import {
   type AcceptedOrder,
   acceptedOrderSchema,
 } from "@aarili/contracts/orders";
 import { bookingsRepository } from "./bookings-repository.js";
+import { groupIntakeRepository } from "./group-intake-repository.js";
 import { sql, type Transaction } from "./index.js";
 import { orderPiecesRepository } from "./order-pieces-repository.js";
 import type { OrdersRepository } from "./repositories/orders.js";
@@ -30,6 +31,7 @@ export function ordersRepository(
     });
   const repo: OrdersRepository = {
     ...requestRepository(tx, shopId),
+    groups: groupIntakeRepository(tx, shopId),
     bookings: bookingsRepository(tx, shopId),
     pieces: orderPiecesRepository(tx, shopId),
     async now() {
@@ -104,7 +106,7 @@ export function ordersRepository(
         sql`insert into audit_event(shop_id,id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,changes) values(${shopId}::uuid,${r.audit}::uuid,'user',${v.actorId}::uuid,'order.accept','garment_order',${r.id}::uuid,${v.requestId}::uuid,${v.key}::uuid,${JSON.stringify({ digest: v.digest })}::jsonb)`,
       );
       await tx.execute(
-        sql`insert into garment_order(shop_id,id,code_number,code,origin_draft_id,customer_id,wearer_id,owner_id,audit_id,presentation,price_state,price_paise) values(${shopId}::uuid,${r.id}::uuid,${r.n}::bigint,${code},${v.draftId}::uuid,${v.intake.customerId}::uuid,${v.intake.wearerId}::uuid,${v.actorId}::uuid,${r.audit}::uuid,${v.intake.presentation},${v.intake.priceState},${v.review.intake.pricePaise?.toString() ?? null}::bigint)`,
+        sql`insert into garment_order(shop_id,id,code_number,code,origin_draft_id${v.originLineId ? sql`,origin_line_id` : sql``},customer_id,wearer_id,owner_id,audit_id,presentation,price_state,price_paise) values(${shopId}::uuid,${r.id}::uuid,${r.n}::bigint,${code},${v.draftId}::uuid${v.originLineId ? sql`,${v.originLineId}::uuid` : sql``},${v.intake.customerId}::uuid,${v.intake.wearerId}::uuid,${v.actorId}::uuid,${r.audit}::uuid,${v.intake.presentation},${v.intake.priceState},${v.review.intake.pricePaise?.toString() ?? null}::bigint)`,
       );
       const s = v.sources;
       const promise = {
@@ -117,6 +119,7 @@ export function ordersRepository(
         intake: { ...v.review.intake, customer: null, wearer: null },
       };
       const content = {
+        ...(v.commercial ? { commercial: v.commercial } : {}),
         snapshot: v.snapshot,
         intake: v.intake,
         draftCreatedAt: new Date(r.createdAt).toISOString(),
