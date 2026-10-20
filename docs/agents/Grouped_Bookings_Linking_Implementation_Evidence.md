@@ -214,3 +214,15 @@ Automated terminal fault injection is the agent's work. Human usability findings
 and owner merge authorisation remain separate. Stop the fixture with
 `node scripts/review-booking-groups.mjs stop`; cleanup is confined to its own
 temporary web/database/access resources.
+
+## Publication
+
+Capability commit `c700673` matches all 33 source hashes in the manifest.
+Draft [PR #122](https://github.com/nishanthturnstile/aarili/pull/122) created
+**10:25:02 IST**, targeting `development`, and registered with this T3 thread.
+At **10:25:11 IST**, hosted Fast verification and Dependency audit were queued
+in [run 39372097381](https://github.com/nishanthturnstile/aarili/actions/runs/39372097381).
+Full scaffold/browser jobs were skipped by the documented feature-PR policy;
+local focused browser/PostgreSQL evidence above remains required. Hosted success
+is not claimed. This publication note changes documentation only.
+Owner acceptance, merge, deployment and #120 implementation remain pending.
