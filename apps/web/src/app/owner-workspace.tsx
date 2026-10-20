@@ -1,7 +1,8 @@
 import type { OwnerEntry } from "@aarili/contracts";
+import { type Locale, smallServiceMessages } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
 import { MeasurementFormsScreen } from "./measurement-forms-screen";
@@ -20,6 +21,7 @@ import { ShopCommitmentsScreen } from "./shop-commitments-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
 import { ShopPoliciesScreen } from "./shop-policies-screen";
 import { ShopProfileScreen } from "./shop-profile-screen";
+import { SmallServices } from "./small-services";
 export function OwnerWorkspace({
   mode,
   entry,
@@ -49,6 +51,7 @@ export function OwnerWorkspace({
   onShopNameChanged: (name: string) => void;
 }) {
   const t = useTranslations();
+  const locale = useLocale() as Locale;
   const [section, setSection] = useState<
     | "profile"
     | "calendar"
@@ -56,6 +59,7 @@ export function OwnerWorkspace({
     | "directory"
     | "commitments"
     | "serviceTemplates"
+    | "serviceProfiles"
     | "measurementForms"
     | "catalogue"
   >(() => {
@@ -65,6 +69,7 @@ export function OwnerWorkspace({
     if (
       selected === "commitments" ||
       selected === "serviceTemplates" ||
+      selected === "serviceProfiles" ||
       selected === "measurementForms" ||
       selected === "catalogue" ||
       selected === "directory" ||
@@ -83,6 +88,7 @@ export function OwnerWorkspace({
       | "directory"
       | "commitments"
       | "serviceTemplates"
+      | "serviceProfiles"
       | "measurementForms"
       | "catalogue",
   ) {
@@ -148,6 +154,13 @@ export function OwnerWorkspace({
         {mode === "settings" ? (
           <>
             <nav className="calendar-actions" aria-label={t("settings.title")}>
+              <Button
+                variant="outline"
+                aria-pressed={section === "serviceProfiles"}
+                onClick={() => selectSection("serviceProfiles")}
+              >
+                {smallServiceMessages[locale].profiles}
+              </Button>
               {(
                 [
                   "profile",
@@ -186,7 +199,23 @@ export function OwnerWorkspace({
                 </Button>
               ))}
             </nav>
-            {section === "serviceTemplates" ? (
+            {section === "serviceProfiles" ? (
+              <SmallServices
+                key={entry.shop.shopId}
+                shopId={entry.shop.shopId}
+                guard={guard}
+                locale={locale}
+                profilesOnly
+                initialDraftId={
+                  typeof window === "undefined"
+                    ? undefined
+                    : (new URL(window.location.href).searchParams.get(
+                        "draft",
+                      ) ?? undefined)
+                }
+                back={() => selectSection("serviceTemplates")}
+              />
+            ) : section === "serviceTemplates" ? (
               <ServiceTemplatesScreen
                 shopId={entry.shop.shopId}
                 queries={queries}

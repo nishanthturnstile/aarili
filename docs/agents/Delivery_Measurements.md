@@ -1,5 +1,117 @@
 # Delivery measurements
 
+## Issue #124 — standalone small-service intake / 1.2.3a
+
+- Owner approved A–C/D1–D6, ticket publication and A selection on 20 October 2026.
+  Published #124/#125/#126 with native blockers; A's six prerequisites were
+  rechecked closed and merged. Current checkout updated from origin/development
+  `63d5123`, branch `codex/standalone-service-intake`; no worktree.
+- Implementation observed underway by **2026-10-20T16:09:30+05:30**. Exact first-edit time
+  and active coding/rework durations were not separately instrumented. Existing
+  research documents/owner prompt/roadmap edits and old branches are preserved.
+- First usable service host, local verification, review readiness, hosted CI,
+  owner acceptance and merge timestamps follow actual observation. Production
+  service-capacity values/rates/privacy/live gates remain separate.
+- Focused verification began by **2026-10-20T16:19:23+05:30**. Initial nine-case PostgreSQL
+  run failed at migration parsing and the pre-upgrade fixture adapter; the next
+  run passed the populated custom/grouped upgrade but exposed the explicit
+  alteration no-measurement-form policy seam. Narrow diagnosis then found a SQL
+  variable/column ambiguity. These failures and corrections are retained in the
+  implementation evidence rather than counted as successful runs.
+- First genuine kurti+saree acceptance test passed **1/1, 10.54s**, observed by
+  **2026-10-20T16:27:12+05:30**; eight other tests were deliberately skipped for diagnosis.
+  This is a software checkpoint, not first owner-usable host or human acceptance.
+- Focused PostgreSQL **9/9, 74.84s**, observed by **2026-10-20T16:28:53+05:30**. Subsequent
+  review found duplicate garment/line identities needed a recoverable domain
+  conflict instead of the database's generic error. Affected real-PostgreSQL
+  cases then passed **2/2, 26.93s**, with seven deliberately skipped; no duplicate
+  demand and independent-customer capacity racing are asserted.
+- Pinned legacy browser workflows passed **2/2, 2.8m**. The new workflow passed
+  **1/1, 2.8m** before independent finish review identified two material UI fixes.
+  One batch replaced clipped work inputs with multiline controls and raw mapping
+  legends with exact bilingual labels. Fresh pinned build/types and the new
+  workflow passed **1/1, 3.5m**, observed by **2026-10-20T17:14:42+05:30**; all
+  40 captures were refreshed. Actual active rework time remains unknown.
+- Frozen native `pnpm.cmd verify:clean` was observed running by
+  **2026-10-20T17:14:42+05:30**, after browser fixtures were cleaned. Package-export
+  changes require this additional clean-install/native-portability proof.
+  Final result/timing, review verdict, first usable owner host and PR/CI follow
+  actual observation. Overlapping review/check elapsed times are not added to
+  active implementation time.
+- First frozen clean attempt: **2026-10-20T17:14:12.7750336+05:30 →
+  17:19:32.6182486+05:30**, **319.828s, exit 1**. Install/lint/Knip/types passed;
+  unit result **254 passed / 1 timeout** in the combined retired-route environment
+  matrix. Split it into three independent environment cases with every assertion
+  and the original timeout preserved. Focused follow-up **5/5, 14.24s**; second
+  frozen clean attempt is running. This is verification rework, not a hidden
+  successful run or measured active coding duration.
+- Finish review returned **ship** for its two scored fixes, both **resolved**;
+  the fresh documenter preserved the incumbent system and reported its evidence.
+  Physical Android, fluent-Tamil and AT acceptance remain pending.
+- Second frozen clean attempt: **2026-10-20T17:20:35.6141805+05:30 →
+  17:49:03.8157583+05:30**, **1708.192s, exit 1**. Frozen install, lint/Knip/types,
+  **257 units, 35.52s**, negative types, OpenAPI and Linux sandbox PDF goldens
+  passed. Broad integration **199 passed / 8 failed, 1233.47s**: four exact
+  registry-inventory fixtures and four historical schema/downgrade fixtures.
+  Application rules/assertions remain intact; affected reruns and remaining
+  build/smoke/artifact stages are separate actual checkpoints. Do not add this
+  elapsed duration to active coding or concurrent review time.
+- Corrected historical upgrade selection **4/4, 39.67s**, 40 unchanged cases
+  deliberately skipped; command **2026-10-20T17:52:39.328+05:30 →
+  17:53:19.946+05:30**, exit 0. First canonical draft/service follow-up passed
+  11/15 but exposed two older missing grouped registry entries in the same
+  fixture. After completing the exact inventory, follow-up **15/15, 85.94s**
+  passed, observed by **2026-10-20T17:58:05+05:30**. The 19 follow-up cases
+  include eight previously failing cases, not 19 additional unique cases.
+- Final fast gate **2026-10-20T17:57:42.776+05:30 → 17:59:58.167+05:30**,
+  **135.391s, exit 0**: 257 units/58 files in 21.31s; lint/Knip/types/negative/
+  OpenAPI and production build12/12 in23.699s. Production smoke then passed in
+  13.079s, repeat web build in12.839s and29-artifact private-canary scan passed;
+  this sequential tail completed **2026-10-20T18:00:24.260+05:30**.
+- First usable synthetic host observed by **2026-10-20T18:01:17+05:30** at
+  `http://127.0.0.1:49812/orders`; three saved named scenarios and private sign-in
+  file ready. Collaborative browser reached ordinary sign-in; health/sign-in200.
+  This is software readiness, not an owner/device/language acceptance report.
+  Review-ready packet and PR/CI timestamps follow publication/QA below; active
+  implementation/rework duration remains unknown and merge remains pending.
+- Review-ready packet observed **2026-10-20T18:03:45+05:30**, with actual running
+  host, six SS-linked human journeys and cleanup. Final document QA passed eight
+  documents/130 links/14 real Evidence IDs; all44 verified code/test hashes stayed
+  unchanged. Hosted publication timestamps follow actual creation.
+- Draft [PR #127](https://github.com/nishanthturnstile/aarili/pull/127) created
+  **2026-10-20T18:05:52+05:30**, capability commit `9cd6b79`, target development;
+  registered with T3 immediately. Initial CI created **18:05:55 IST**, jobs
+  started **18:05:58 IST**, Dependency audit finished **18:06:23 IST** SUCCESS.
+  At **18:06:24 IST**, Fast verification remained in progress in
+  [run 39423501477](https://github.com/nishanthturnstile/aarili/actions/runs/39423501477).
+  Full scaffold/browser correctly skipped on this feature PR. Later doc-only
+  publication retains all44 code/test hashes; final CI/review/merge durations
+  remain pending rather than inferred from elapsed local verification.
+
+## Small services 1.2.3 preparation, 20 October 2026
+
+- Research/design/ticket preparation only, integrated development `63d5123`,
+  existing checkout `codex/small-service-design`. Prior roadmap/prompt edits and
+  local grouped-intake planning branch were preserved. No selected approved
+  1.2.3 issue, implementation PR or new usable service host exists; this does
+  **not** consume an implementation-delivery measurement slot.
+- Current access/evidence was observed by **15:35 IST**; document preparation
+  and independent source-seam review were underway by **15:42 IST**. These are
+  observation checkpoints, not reconstructed active research/coding durations.
+  Exact first research/edit time and active research/design time remain unknown.
+- Actual pinned-runtime fast verification was observed running by **15:40:43 IST**, following
+  a PowerShell launcher refusal that ran no checks. Results and document QA are
+  recorded in [preparation evidence](Small_Service_Implementation_Evidence.md).
+  Implementation, first usable service, hosted CI, owner acceptance, review/rework
+  durations and merge time remain pending/not applicable to this preparation.
+- Fast verification completion observed by **15:49:38 IST**, exit 0: **243/243
+  tests, 46.08s**, lint/Knip/types/negative/OpenAPI and **12/12 production build,
+  28.482s** (11 cached prerequisites; fresh web build). Observation times do not
+  establish exact suite finish or active research/implementation duration.
+- Start implementation timing when the owner selects a published approved ticket.
+  Retain production-policy, live-data, physical-device/Tamil/AT and recovery gates;
+  research/design review is not software acceptance or AC-50 closure.
+
 ## Issue #120 — atomic grouped intake / 1.2.2c
 
 - Owner selected #120 on 20 October after B merged at **12:03:15 IST**. Direct

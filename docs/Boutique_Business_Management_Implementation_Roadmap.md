@@ -605,6 +605,34 @@ and partial handover remain their later slices; this does not close AC-63.
 
 ##### Vertical Slice 1.2.3 — Create Alteration and Small-Service Orders
 
+**REA delivery brief (20 October 2026):** the
+[Alteration and Small-Service prompt](agents/Small_Service_REA_Prompt.md) scopes
+standalone lightweight intake and independent add-on lines, using TailorMan's
+alteration surface and Nool's linked-alteration flow as research candidates.
+It preserves customer-property identity, reviewed service-capacity mapping and
+later custody/payment/production/fulfilment integration. It changes no scope or
+dependencies and does not approve issue publication or claim full AC-50 closure.
+
+**Research/design packet (20 October 2026):**
+[actual REA evidence](agents/Small_Service_REA_Evidence.md) records the accessible
+TailorMan alteration sample and unchanged New click; Nool's delivered-order
+reopening remains a documented, unexecuted flow because our synthetic orders are
+Pending. [Independent design](agents/Small_Service_Design.md) maps SS-01–SS-14
+to lightweight intake, exact priced lines, customer-property identity, guardian
+applicability, supplemental history and reviewed capacity coverage.
+[Approved vertical tickets](agents/Small_Service_Ticket_Packet.md) sequence
+standalone acceptance → governed custom/grouped add-ons → independent bounded
+completion. The owner approved A–C and D1–D6 implementation conventions and
+publication as [#124](https://github.com/nishanthturnstile/aarili/issues/124),
+[#125](https://github.com/nishanthturnstile/aarili/issues/125) and
+[#126](https://github.com/nishanthturnstile/aarili/issues/126), selecting A (#124).
+B/C retain their direct merge and selection gates; production values remain pending.
+[Implementation/check status](agents/Small_Service_Implementation_Evidence.md)
+records integrated development `63d5123`, merged prerequisites and remaining
+decisions. This adds traceability without changing scope/dependencies, approving
+production values or closing AC-50. Full money, custody, execution, trials/quality
+and actual handover remain their named later slices.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-14, JOB-08, JOB-09. Scenarios: AC-50.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.

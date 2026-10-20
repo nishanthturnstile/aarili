@@ -27,6 +27,7 @@ import {
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
+  smallServiceMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
@@ -42,6 +43,7 @@ import { GroupIntake } from "./group-intake";
 import { AcceptedOrderDetail, CommitmentReview } from "./order-acceptance";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { SmallServices } from "./small-services";
 
 type Services = Awaited<ReturnType<typeof readServiceTemplates>>;
 type T = (typeof orderMessages)[Locale];
@@ -666,6 +668,9 @@ export function OrdersScreen({
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
   const [grouping, setGrouping] = useState(false);
+  const [services, setServices] = useState(false),
+    [serviceDraft, setServiceDraft] = useState<string>(),
+    [serviceOrder, setServiceOrder] = useState<string>();
   const [groupIntake, setGroupIntake] = useState(false),
     [convertedId, setConvertedId] = useState<string>(),
     [groupBooking, setGroupBooking] = useState<string>();
@@ -798,6 +803,16 @@ export function OrdersScreen({
   // Scope identity changes remount this screen. Never persist private draft lists.
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial URL read belongs to this scope lifetime
   useEffect(() => {
+    const url = new URL(window.location.href);
+    if (
+      url.searchParams.has("services") ||
+      url.searchParams.has("serviceOrder")
+    ) {
+      setServiceDraft(url.searchParams.get("draft") ?? undefined);
+      setServiceOrder(url.searchParams.get("serviceOrder") ?? undefined);
+      setServices(true);
+      return;
+    }
     const orderId = new URL(window.location.href).searchParams.get("order");
     if (orderId) {
       void openOrder(orderId);
@@ -817,6 +832,14 @@ export function OrdersScreen({
     try {
       const r = await scope.read(id);
       if (!active.current) return;
+      if (
+        r.workflow === "order.service" ||
+        r.workflow === "service.intake-profile"
+      ) {
+        setServiceDraft(id);
+        setServices(true);
+        return;
+      }
       if (r.workflow === "order.group") {
         address();
         setConvertedId(r.id);
@@ -909,6 +932,22 @@ export function OrdersScreen({
       void refreshOrders();
     }
   }
+  if (services)
+    return (
+      <SmallServices
+        shopId={shopId}
+        guard={guard}
+        locale={locale}
+        initialDraftId={serviceDraft}
+        initialOrderId={serviceOrder}
+        back={() => {
+          setServices(false);
+          setServiceDraft(undefined);
+          setServiceOrder(undefined);
+          close(true);
+        }}
+      />
+    );
   if (grouping)
     return (
       <BookingGroups
@@ -956,6 +995,17 @@ export function OrdersScreen({
         {bookingMessages[locale].title}
       </Button>
       <div className="owner-actions">
+        <Button
+          variant="outline"
+          disabled={working || !safe || !!controller}
+          onClick={() => {
+            setServiceDraft(undefined);
+            setServiceOrder(undefined);
+            setServices(true);
+          }}
+        >
+          {smallServiceMessages[locale].new}
+        </Button>
         <Button
           variant="outline"
           disabled={working || !safe || !!controller}

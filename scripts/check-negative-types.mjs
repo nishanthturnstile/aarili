@@ -241,3 +241,29 @@ if (
 console.info(
   "0.4.4a six invalid document language/paper/revision/retry/method uses rejected by compiled declarations.",
 );
+const services = spawnSync(
+  process.execPath,
+  [
+    resolve("node_modules/typescript/bin/tsc"),
+    "--noEmit",
+    "-p",
+    "tests/fixtures/types/small-services-tsconfig.json",
+  ],
+  { encoding: "utf8" },
+);
+const servicesOutput = services.stdout + services.stderr;
+if (
+  services.status === 0 ||
+  (servicesOutput.match(/error TS/g) ?? []).length !== 5 ||
+  ![3, 4, 5, 6, 7].every((line) =>
+    servicesOutput.includes(`small-services-invalid.ts(${line},`),
+  )
+) {
+  console.error(servicesOutput);
+  throw Error(
+    "SS-03/09/14 service declarations must reject invented units, execution/payment fields and invalid money",
+  );
+}
+console.info(
+  "1.2.3a SS-03/09/14 five invalid service unit/state/priority/command/money uses rejected by compiled declarations.",
+);

@@ -4,6 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./small-services": {
+      "types": "./dist/small-services.d.ts",
+      "import": "./dist/small-services.js"
+    },
+    "./small-services-client": {
+      "types": "./dist/small-services-client.d.ts",
+      "import": "./dist/small-services-client.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"

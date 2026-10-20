@@ -1,6 +1,31 @@
 import { expect, test } from "vitest";
 import { checkBoundaries } from "../scripts/check-boundaries.mjs";
 
+test("SS-14 service client admits erased route types and rejects transitive server runtime", () => {
+  const sources = new Map([
+    [
+      "apps/web/src/app/page.tsx",
+      '"use client"; import "@aarili/api/small-services-client";',
+    ],
+    [
+      "packages/api/src/small-services-client.ts",
+      'import type { Routes } from "./small-services.js";',
+    ],
+    ["packages/api/src/small-services.ts", 'import "@aarili/auth";'],
+    ["packages/auth/src/index.ts", "export const privateRuntime = true;"],
+  ]);
+  expect(checkBoundaries(sources)).toEqual([]);
+  sources.set(
+    "packages/api/src/small-services-client.ts",
+    'import "./small-services.js";',
+  );
+  expect(checkBoundaries(sources)).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining("browser graph reaches server package"),
+    ]),
+  );
+});
+
 test("0.4.1b B1 generated JSON theme assets resolve without allowing executable imports", () => {
   const sources = new Map([
     ["apps/web/src/app/manifest.ts", 'import theme from "../pwa-theme.json";'],

@@ -12,10 +12,20 @@ import { createServiceTemplatesRoutes } from "@aarili/api/service-templates";
 import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
 import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
 import { createShopProfileRoutes } from "@aarili/api/shop-profile";
+import { createSmallServiceRoutes } from "@aarili/api/small-services";
 import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createSmallServiceRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerSmallServices: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createBookingRoutes({
@@ -247,6 +257,18 @@ for (const [path, method] of [
   );
 
 await mkdir("test-results", { recursive: true });
+for (const [path, method] of [
+  ["profiles/list", "post"],
+  ["profiles/history", "post"],
+  ["profiles/{id}", "get"],
+  ["orders/review", "post"],
+  ["orders/list", "post"],
+  ["orders/{id}", "get"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/small-services/${path}`]?.[method],
+    `Missing small-service contract ${method} ${path}`,
+  );
 for (const [path, method] of [
   ["list", "post"],
   ["entries/{id}", "get"],

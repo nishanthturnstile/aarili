@@ -16,6 +16,7 @@ import { createServiceTemplatesRoutes } from "./service-templates.js";
 import { createShopCalendarRoutes } from "./shop-calendar.js";
 import { createShopCommitmentsRoutes } from "./shop-commitments.js";
 import { createShopPoliciesRoutes } from "./shop-policies.js";
+import { createSmallServiceRoutes } from "./small-services.js";
 
 export { createShopPoliciesRoutes };
 
@@ -87,6 +88,7 @@ export function createApi(
     app.route("/", createCustomerRoutes(owner));
     app.route("/", createBookingRoutes(owner));
     app.route("/", createOrderRoutes(owner));
+    app.route("/", createSmallServiceRoutes(owner));
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));

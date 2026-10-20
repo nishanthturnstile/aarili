@@ -5,16 +5,16 @@ import { createOwnerVerificationApi } from "../scripts/test-support/owner-api.mj
 
 afterEach(() => vi.unstubAllEnvs());
 
-test("#48 USE-08/09 removed command, probe and documentation routes stay 404 in every environment with configured auth", async () => {
-  const owner = new Proxy(
-    {},
-    {
-      get() {
-        throw Error("Removed route touched owner auth");
+for (const environment of ["development", "test", "production"]) {
+  test(`#48 USE-08/09 removed command, probe and documentation routes stay 404 in ${environment} with configured auth`, async () => {
+    const owner = new Proxy(
+      {},
+      {
+        get() {
+          throw Error("Removed route touched owner auth");
+        },
       },
-    },
-  );
-  for (const environment of ["development", "test", "production"]) {
+    );
     vi.stubEnv("NODE_ENV", environment);
     const api = createApi(async () => true, owner);
     for (const path of [
@@ -52,8 +52,8 @@ test("#48 USE-08/09 removed command, probe and documentation routes stay 404 in 
       ),
     ).toBe(false);
     expect((await api.request("/api/healthz")).status).toBe(200);
-  }
-});
+  });
+}
 
 test("#48 ordinary browser client exports real owner transport without exemplars", () => {
   for (const name of [

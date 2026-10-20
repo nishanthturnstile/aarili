@@ -87,6 +87,10 @@
     "./orders": {
       "types": "./dist/orders.d.ts",
       "import": "./dist/orders.js"
+    },
+    "./small-services": {
+      "types": "./dist/small-services.d.ts",
+      "import": "./dist/small-services.js"
     }
   },
   "scripts": {
