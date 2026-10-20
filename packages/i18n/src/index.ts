@@ -13,6 +13,7 @@ export {
   orderAcceptanceMessages,
   orderMessages,
 } from "./order-messages.js";
+export { orderPieceMessages } from "./order-piece-messages.js";
 export { serviceCatalogueMessages } from "./service-catalogue-messages.js";
 export { serviceTemplatesMessages } from "./service-templates-messages.js";
 export { sharingMessages } from "./sharing-messages.js";

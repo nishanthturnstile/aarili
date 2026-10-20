@@ -17,7 +17,11 @@ import {
 
 // Setup bypasses only HTTP admission; every write uses the real owner transaction,
 // durable draft, strict command, request binding, audit and publication guards.
-export async function seedServiceTemplates(runtime, shopId) {
+export async function seedServiceTemplates(
+  runtime,
+  shopId,
+  { outfit = false } = {},
+) {
   const actor = (
     await runtime.query("select user_id from owner_bootstrap where singleton")
   ).rows[0].user_id;
@@ -93,72 +97,103 @@ export async function seedServiceTemplates(runtime, shopId) {
           ...emptyCatalogueContent(kind),
           code,
           labelEn: `SYNTHETIC ${code}`,
-          labelTa: "செயற்கை ஆடை",
+          labelTa:
+            {
+              top: "செயற்கை மேல் பகுதி",
+              bottom: "செயற்கை கீழ் பகுதி",
+              dupatta: "செயற்கை துப்பட்டா",
+            }[code] ?? "செயற்கை ஆடை",
           ...extra,
         },
       });
-    const category = await catalogue("category", "blouse"),
-      piece = await catalogue("piece", "body");
-    const service = await catalogue("service", "blouse-stitching", {
-      parent: definitionRef(category),
-      serviceKind: "stitching",
-      pieces: [{ ...definitionRef(piece), optional: false }],
-    });
-    const form = await command("measurement.forms", {
-      entryId: randomUUID(),
-      baseVersion: 0,
-      baseRevisionId: null,
-      operation: "definition",
-      available: true,
-      reason: "SYNTHETIC explicit precision",
-      content: {
-        ...emptyMeasurementFormContent(),
-        code: "blouse-body",
-        labelEn: "SYNTHETIC blouse form",
-        labelTa: "செயற்கை ரவிக்கை அளவுகள்",
-        service: definitionRef(service),
-        piece: definitionRef(piece),
-        decision: "required",
-        groups: [
-          {
-            id: randomUUID(),
-            labelEn: "Body",
-            labelTa: "உடல்",
-            fields: [
-              {
-                id: randomUUID(),
-                key: "length",
-                meaning: "SYNTHETIC shoulder to hem length",
-                kind: "base-length",
-                labelEn: "Body length",
-                labelTa: "உடல் நீளம்",
-                hintEn: "Reviewed method",
-                hintTa: "மதிப்பாய்வு செய்த முறை",
-                units: ["in", "cm"],
-                defaultUnit: "in",
-                required: true,
-                precision: {
-                  unit: "in",
-                  increment: "0.25",
-                  review: "SYNTHETIC precision decision",
-                },
-              },
-            ],
-          },
-        ],
+    const category = await catalogue("category", outfit ? "salwar" : "blouse"),
+      piece = await catalogue("piece", outfit ? "top" : "body");
+    const pieces = [piece];
+    if (outfit)
+      for (const code of ["bottom", "dupatta"])
+        pieces.push(await catalogue("piece", code));
+    const service = await catalogue(
+      "service",
+      outfit ? "salwar-stitching" : "blouse-stitching",
+      {
+        parent: definitionRef(category),
+        serviceKind: "stitching",
+        pieces: pieces.map((p) => ({ ...definitionRef(p), optional: false })),
       },
-    });
+    );
+    const makeForm = (p) =>
+      command("measurement.forms", {
+        entryId: randomUUID(),
+        baseVersion: 0,
+        baseRevisionId: null,
+        operation: "definition",
+        available: true,
+        reason: "SYNTHETIC explicit precision",
+        content: {
+          ...emptyMeasurementFormContent(),
+          code: outfit ? `form-${p.definition.content.code}` : "blouse-body",
+          labelEn: outfit
+            ? `SYNTHETIC ${p.definition.content.code} form`
+            : "SYNTHETIC blouse form",
+          labelTa: outfit
+            ? `${p.definition.content.labelTa} அளவுகள்`
+            : "செயற்கை ரவிக்கை அளவுகள்",
+          service: definitionRef(service),
+          piece: definitionRef(p),
+          decision: "required",
+          groups: [
+            {
+              id: randomUUID(),
+              labelEn: "Body",
+              labelTa: "உடல்",
+              fields: [
+                {
+                  id: randomUUID(),
+                  key: "length",
+                  meaning: "SYNTHETIC shoulder to hem length",
+                  kind: "base-length",
+                  labelEn: "Body length",
+                  labelTa: "உடல் நீளம்",
+                  hintEn: "Reviewed method",
+                  hintTa: "மதிப்பாய்வு செய்த முறை",
+                  units: ["in", "cm"],
+                  defaultUnit: "in",
+                  required: true,
+                  precision: {
+                    unit: "in",
+                    increment: "0.25",
+                    review: "SYNTHETIC precision decision",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      });
+    const form = await makeForm(piece),
+      forms = [form];
+    for (const p of pieces.slice(1)) forms.push(await makeForm(p));
+    const manifest = (code, sequence) => {
+      const p = syntheticManifest(service, pieces, forms, code, sequence);
+      if (outfit) {
+        p.content.materials[0].scope.pieceKey = "bottom";
+        p.content.tasks.find((t) => t.key === "stitch").scope.pieceKey =
+          "bottom";
+        p.content.instructions[0].scope.pieceKey = "top";
+      }
+      return p;
+    };
     const before = await command(
       "service.templates",
-      syntheticManifest(service, [piece], [form], "before-craft", "before"),
+      manifest("before-craft", "before"),
     );
     const after = await command(
       "service.templates",
-      syntheticManifest(service, [piece], [form], "after-craft", "after"),
+      manifest("after-craft", "after"),
     );
     const draft = await command(
       "service.templates",
-      syntheticManifest(service, [piece], [form], "owner-draft", "before"),
+      manifest("owner-draft", "before"),
       false,
     );
     return {
@@ -166,6 +201,8 @@ export async function seedServiceTemplates(runtime, shopId) {
       service,
       piece,
       form,
+      pieces,
+      forms,
       before,
       after,
       draft,

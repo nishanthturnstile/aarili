@@ -141,6 +141,62 @@ export const acceptedOrderSchema = z.strictObject({
   synthetic: z.literal(true),
 });
 export type AcceptedOrder = z.infer<typeof acceptedOrderSchema>;
+
+// Additive structural contract; acceptance snapshots and v1 price meaning stay intact.
+const pieceFormSchema = z.strictObject({
+  entryId: z.uuid(),
+  revisionId: z.uuid(),
+  labelEn: z.string(),
+  labelTa: z.string(),
+});
+export const orderPieceDefinitionSchema = z.strictObject({
+  key: z.string().min(1).max(80),
+  entryId: z.uuid(),
+  revisionId: z.uuid(),
+  labelEn: z.string(),
+  labelTa: z.string(),
+  applicability: z.enum(["applicable", "unresolved", "not-applicable"]),
+  reason: z.string(),
+  form: pieceFormSchema.nullable(),
+});
+export const orderPieceStructureSchema = z.strictObject({
+  schemaVersion: z.literal(1),
+  pieces: z.array(orderPieceDefinitionSchema).max(32),
+  requirements: z.array(
+    z.strictObject({
+      position: z.number().int().min(0),
+      pieceKey: z.string().nullable(),
+      addonKey: z.string().nullable(),
+    }),
+  ),
+});
+export type OrderPieceStructure = z.infer<typeof orderPieceStructureSchema>;
+export const orderPiecesSchema = z.strictObject({
+  schemaVersion: z.literal(1),
+  orderId: z.uuid(),
+  orderVersion: z.number().int().positive(),
+  snapshotDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  state: z.enum(["historical-preview", "materialized", "unsupported"]),
+  structure: orderPieceStructureSchema.nullable(),
+  identities: z
+    .array(z.strictObject({ key: z.string(), id: z.uuid() }))
+    .max(32),
+  provenance: z
+    .strictObject({
+      version: z.literal(1),
+      actorId: z.uuid(),
+      recordedAt: z.iso.datetime(),
+      reason: z.string(),
+      digest: z.string().regex(/^[a-f0-9]{64}$/),
+    })
+    .nullable(),
+  execution: z.literal("unavailable"),
+});
+export type OrderPieces = z.infer<typeof orderPiecesSchema>;
+export const materializeOrderPiecesSchema = z.strictObject({
+  snapshotDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  reason: z.string().trim().min(1).max(1000),
+});
 export const orderErrorSchema = apiErrorSchema.extend({
   current: acceptedOrderSchema.optional(),
 });

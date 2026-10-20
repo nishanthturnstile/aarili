@@ -3,6 +3,7 @@ import {
   acceptedOrderSchema,
 } from "@aarili/contracts/orders";
 import { sql, type Transaction } from "./index.js";
+import { orderPiecesRepository } from "./order-pieces-repository.js";
 import type { OrdersRepository } from "./repositories/orders.js";
 import { requestRepository } from "./request-repository.js";
 
@@ -28,6 +29,7 @@ export function ordersRepository(
     });
   const repo: OrdersRepository = {
     ...requestRepository(tx, shopId),
+    pieces: orderPiecesRepository(tx, shopId),
     async now() {
       const r = await tx.execute<{ now: Date }>(
         sql`select clock_timestamp() now`,

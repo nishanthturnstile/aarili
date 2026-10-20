@@ -1,11 +1,14 @@
 import {
   type AcceptedOrder,
   acceptedOrderSchema,
+  materializeOrderPiecesSchema,
   type OrderError,
+  type OrderPieces,
   type OrderReview,
   orderHistoryQuerySchema,
   orderListQuerySchema,
   orderModeSchema,
+  orderPiecesSchema,
   type QuickOrderDraft,
   type QuickOrderPreview,
   quickOrderCommandSchema,
@@ -29,6 +32,7 @@ import {
   GuardianFailure,
   readGuardians,
 } from "./guardians.js";
+import { projectOrderPieces } from "./order-pieces.js";
 import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
 import {
@@ -38,6 +42,8 @@ import {
 } from "./service-templates.js";
 import type { ShopCommitmentsContext } from "./shop-commitments.js";
 import { readWearer, type WearerContext, WearerFailure } from "./wearers.js";
+
+export { projectOrderPieces, summarizePieceProgress } from "./order-pieces.js";
 
 export type QuickOrderContext = {
   customers: CustomerContext;
@@ -264,6 +270,19 @@ export function quickOrderDraftWorkflow(ctx: QuickOrderContext): DraftWorkflow {
         sources: resolved.sources,
         snapshot,
         digest: await requestHash(snapshot),
+      });
+      const structure = projectOrderPieces(order);
+      if (!structure) fail("REQUEST_CONFLICT");
+      await a.repository.pieces.write({
+        orderId: order.id,
+        orderVersion: order.version,
+        snapshotDigest: order.snapshotDigest,
+        structure,
+        digest: await requestHash(structure),
+        actorId: ctx.templates.actorId,
+        ...request,
+        reason: "Acceptance structure",
+        acceptance: true,
       });
       return { type: "order.accepted", id: order.id };
     },
@@ -592,6 +611,128 @@ export async function readOrderHistory(
     entries: rows.slice(0, 25),
     next: rows.length > 25 ? (rows[24]?.version ?? null) : null,
   };
+}
+
+export async function readOrderPieces(
+  ctx: QuickOrderContext,
+  id: string,
+): Promise<OrderPieces> {
+  const order = await readAcceptedOrder(ctx, id);
+  const identity = await references(ctx, order.intake);
+  if (
+    identity.issues.some((i) => i === "guardian" || i === "servicePermission")
+  )
+    fail("NOT_FOUND", 404);
+  const structure = projectOrderPieces(order);
+  const supported =
+    structure && (await requestHash(order.snapshot)) === order.snapshotDigest;
+  const stored = await acceptance(ctx).repository.pieces.read(order.id);
+  if (supported && stored) {
+    if (
+      stored.snapshotDigest !== order.snapshotDigest ||
+      stored.provenance?.digest !== (await requestHash(structure)) ||
+      (await requestHash(stored.structure)) !== (await requestHash(structure))
+    )
+      fail("REQUEST_CONFLICT");
+    return stored;
+  }
+  return orderPiecesSchema.parse({
+    schemaVersion: 1,
+    orderId: order.id,
+    orderVersion: order.version,
+    snapshotDigest: order.snapshotDigest,
+    state: supported ? "historical-preview" : "unsupported",
+    structure: supported ? structure : null,
+    identities: [],
+    provenance: null,
+    execution: "unavailable",
+  });
+}
+
+export async function materializeOrderPieces(
+  ctx: QuickOrderContext,
+  id: string,
+  input: unknown,
+  headers: {
+    key?: string | undefined;
+    ifMatch?: string | undefined;
+    requestId: string;
+  },
+) {
+  const p = materializeOrderPiecesSchema.safeParse(input),
+    expected = parseExpectedVersion(headers.ifMatch);
+  if (
+    !p.success ||
+    ![id, headers.key, headers.requestId].every(
+      (v) => idempotencyHeaderSchema.safeParse(v).success,
+    )
+  )
+    fail("VALIDATION_FAILED", 422);
+  if (!expected.ok)
+    throw new DraftFailure(expected.status, {
+      error: { code: expected.code, message: "Check order version" },
+    });
+  const orders = acceptance(ctx).repository,
+    repo = orders.pieces,
+    key = (headers.key as string).toLowerCase();
+  const actor = { type: "user" as const, id: ctx.templates.actorId };
+  const binding = {
+    actor,
+    action: "order.pieces.materialize",
+    hash: await requestHash({
+      id: id.toLowerCase(),
+      input: p.data,
+      expected: expected.version,
+      actor,
+    }),
+  };
+  await repo.lockKey(key);
+  const prior = await repo.replay(key);
+  // Reauthorise before returning any structural content, including replay/conflict.
+  if (prior) {
+    await readOrderPieces(ctx, id);
+    if (
+      prior.actor.id !== actor.id ||
+      prior.actor.type !== actor.type ||
+      prior.action !== binding.action ||
+      prior.hash !== binding.hash
+    )
+      throw new DraftFailure(422, {
+        error: { code: "IDEMPOTENCY_MISMATCH", message: "Request changed" },
+      });
+    return orderPiecesSchema.parse(prior.response);
+  }
+  await orders.lockOrder(id);
+  const current = await readOrderPieces(ctx, id);
+  if (current.orderVersion !== expected.version)
+    throw new OrderFailure(412, {
+      error: {
+        code: "VERSION_STALE",
+        message: "Reload order before preparing pieces",
+      },
+      current: await readAcceptedOrder(ctx, id),
+    });
+  if (
+    current.state !== "historical-preview" ||
+    !current.structure ||
+    p.data.snapshotDigest !== current.snapshotDigest
+  )
+    fail("REQUEST_CONFLICT");
+  await repo.write({
+    orderId: current.orderId,
+    orderVersion: current.orderVersion,
+    snapshotDigest: current.snapshotDigest,
+    structure: current.structure,
+    digest: await requestHash(current.structure),
+    actorId: actor.id,
+    key,
+    requestId: headers.requestId,
+    reason: p.data.reason,
+    acceptance: false,
+  });
+  const result = await readOrderPieces(ctx, id);
+  await repo.persist(key, binding, result);
+  return result;
 }
 export async function changeOrderPresentation(
   ctx: QuickOrderContext,

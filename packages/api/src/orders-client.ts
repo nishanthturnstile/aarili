@@ -5,6 +5,7 @@ import {
   orderErrorSchema,
   orderHistorySchema,
   orderListSchema,
+  orderPiecesSchema,
   orderReviewSchema,
   type QuickOrderDraft,
   quickOrderPreviewSchema,
@@ -19,6 +20,45 @@ import {
 import type { createOrderRoutes } from "./orders.js";
 
 const client = () => hc<ReturnType<typeof createOrderRoutes>>("/api");
+async function piecesResult(r: Response, generation: number) {
+  const result = orderPiecesSchema.parse(await orderResult(r, generation));
+  if (r.headers.get("ETag") !== `"v${result.orderVersion}"`)
+    throw new OwnerRequestError("REQUEST_FAILED");
+  return result;
+}
+export async function readOrderPieces(shopId: string, id: string) {
+  return orderPiecesSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].orders[":id"].pieces.read.$post(
+          { param: { shopId, id } },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      piecesResult,
+    ),
+  );
+}
+export async function materializeOrderPieces(
+  shopId: string,
+  id: string,
+  input: { snapshotDigest: string; reason: string },
+  key: string,
+  version: number,
+) {
+  return orderPiecesSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].orders[":id"].pieces.materialize.$post(
+          { param: { shopId, id }, json: input },
+          {
+            headers: { "Idempotency-Key": key, "If-Match": `"v${version}"` },
+            init: { cache: "no-store", signal: s },
+          },
+        ),
+      piecesResult,
+    ),
+  );
+}
 export class OrderRequestError extends Error {
   constructor(
     public readonly status: number,
