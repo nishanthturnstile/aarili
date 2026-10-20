@@ -15,7 +15,12 @@ export type DraftTransport = {
     etag?: string,
   ): Promise<DraftSuccess>;
   promote(id: string, key: string, etag: string): Promise<DraftSuccess>;
-  convert?(id: string, key: string, etag: string): Promise<DraftSuccess>;
+  convert?(
+    id: string,
+    key: string,
+    etag: string,
+    target?: "services",
+  ): Promise<DraftSuccess>;
   abandon?(id: string, key: string, etag: string): Promise<DraftSuccess>;
 };
 export type DraftState = {
@@ -39,7 +44,12 @@ export type DraftState = {
 };
 type Pending =
   | { kind: "save"; input: DraftSave; key: string; etag?: string }
-  | { kind: "promote" | "abandon" | "convert"; key: string; etag: string };
+  | {
+      kind: "promote" | "abandon" | "convert";
+      key: string;
+      etag: string;
+      target?: "services";
+    };
 function copy<T>(value: T): T {
   return structuredClone(value);
 }
@@ -149,7 +159,14 @@ export function createDraftRecovery(options: {
               command.etag,
             )
           : command.kind === "convert" && transport.convert
-            ? await transport.convert(state.id, command.key, command.etag)
+            ? command.target
+              ? await transport.convert(
+                  state.id,
+                  command.key,
+                  command.etag,
+                  command.target,
+                )
+              : await transport.convert(state.id, command.key, command.etag)
             : command.kind === "abandon" && transport.abandon
               ? await transport.abandon(state.id, command.key, command.etag)
               : await transport.promote(state.id, command.key, command.etag);
@@ -209,10 +226,17 @@ export function createDraftRecovery(options: {
         pending = undefined;
         const dirty =
           !state.committed || !equal(state.values, state.committed.payload);
+        // Promotion may reject a stale target aggregate while this draft's CAS
+        // is still current. Keep it editable for an explicit new scope review.
+        // Save conflicts, and responses carrying a competing draft, stay locked.
+        const targetStale =
+          command.kind === "promote" &&
+          error.status === 412 &&
+          !error.body.current;
         emit({
           pendingPromotion: false,
           status:
-            error.status === 412
+            error.status === 412 && !targetStale
               ? "conflict"
               : command.kind !== "save" && !dirty
                 ? "saved"
@@ -220,7 +244,7 @@ export function createDraftRecovery(options: {
           conflict: error.body.current ? copy(error.body.current) : undefined,
           error: error.body.error.code,
           work: {
-            dirty: error.status === 412 || dirty,
+            dirty: (error.status === 412 && !targetStale) || dirty,
             inFlight: false,
             outcomeUnknown: false,
           },
@@ -354,7 +378,7 @@ export function createDraftRecovery(options: {
           });
       }
     },
-    async convert() {
+    async convert(target?: "services") {
       cancelTimer();
       if (
         !transport.convert ||
@@ -370,6 +394,7 @@ export function createDraftRecovery(options: {
       admissionRetry = undefined;
       pending = {
         kind: "convert",
+        ...(target ? { target } : {}),
         key: key(),
         etag: `"v${state.committed.version}"`,
       };

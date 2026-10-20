@@ -1,17 +1,84 @@
 import { z } from "zod";
 import { apiErrorSchema } from "./index.js";
 import {
+  groupIntakeDraftSchema,
+  groupIntakeReviewSchema,
   orderDecisionSchema,
   orderReviewSchema,
   quickOrderDraftSchema,
   quickOrderPreviewSchema,
 } from "./orders.js";
+import { serviceRequirementsPreviewSchema } from "./service-templates.js";
 import { localDateValid } from "./shop-calendar.js";
 import { commitmentUnitSchema } from "./shop-commitments.js";
 
 const text = (n: number) => z.string().max(n);
 const key = z.string().regex(/^[a-z][a-z0-9-]{0,79}$/);
 const exactManifest = quickOrderDraftSchema.shape.manifest;
+// Separate workflow: an accepted order is never interpreted as a mutable intake.
+export const serviceChangeDraftSchema = z.strictObject({
+  orderId: z.uuid(),
+  version: z.number().int().positive(),
+  originalDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  pieceId: z.uuid().nullable(),
+  profile: z
+    .strictObject({ entryId: z.uuid(), revisionId: z.uuid() })
+    .nullable(),
+  lines: z
+    .array(
+      z.strictObject({
+        id: z.uuid(),
+        key: text(80),
+        requestedWork: text(2000),
+        priceState: z.enum(["quoted", "to-be-quoted"]),
+        priceText: text(40),
+        notRequired: z.boolean(),
+        notRequiredReason: text(1000),
+      }),
+    )
+    .max(32),
+  capacity: z.strictObject({
+    basis: z.enum(["unresolved", "incremental", "already-covered"]),
+    coveredBy: z.uuid().nullable(),
+    reason: text(1000),
+  }),
+  commercial: z.enum(["unresolved", "additional-charge", "outside-package"]),
+  reason: text(1000),
+  agreement: text(2000),
+  review: orderDecisionSchema.nullable(),
+});
+export type ServiceChangeDraft = z.infer<typeof serviceChangeDraftSchema>;
+export const serviceIntakeSelectionSchema = serviceChangeDraftSchema
+  .pick({
+    profile: true,
+    lines: true,
+    capacity: true,
+    commercial: true,
+    reason: true,
+    agreement: true,
+  })
+  .extend({ lineId: z.uuid().nullable() });
+export const serviceIntakeDraftSchema = z
+  .strictObject({
+    kind: z.enum(["custom", "group"]),
+    base: z.union([quickOrderDraftSchema, groupIntakeDraftSchema]),
+    selections: z.array(serviceIntakeSelectionSchema).max(20),
+    review: orderDecisionSchema.nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      !(
+        value.kind === "custom" ? quickOrderDraftSchema : groupIntakeDraftSchema
+      ).safeParse(value.base).success
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["base"],
+        message: "Keep the base intake's workflow kind",
+      });
+  });
+export type ServiceIntakeDraft = z.infer<typeof serviceIntakeDraftSchema>;
 export const serviceProfileContentSchema = z.strictObject({
   labelEn: text(160),
   labelTa: text(160),
@@ -292,3 +359,76 @@ export const serviceOrderListSchema = z.strictObject({
   next: z.uuid().nullable(),
 });
 export const smallServiceErrorSchema = apiErrorSchema;
+export const serviceChangeContentSchema = z.strictObject({
+  input: serviceChangeDraftSchema,
+  profile: serviceProfileRevisionSchema,
+  lines: z.array(acceptedServiceLineSchema),
+  requirements: serviceRequirementsPreviewSchema,
+  originalDigest: z.string(),
+  previousScopeDigest: z.string(),
+  originalPromise: z.strictObject({ date: z.string(), time: z.string() }),
+  membershipId: z.uuid().nullable(),
+  membershipVersion: z.number().int().positive().nullable(),
+  membershipRevisionId: z.uuid().nullable(),
+  commercialDigest: z.string().nullable(),
+  categoryId: z.uuid(),
+  unit: commitmentUnitSchema,
+  quantity: z.number().int().min(0),
+  totalPaise: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(Number.MAX_SAFE_INTEGER)
+    .nullable(),
+  fingerprint: z.string(),
+});
+export type ServiceChangeContent = z.infer<typeof serviceChangeContentSchema>;
+export const serviceChangeRecordSchema = z.strictObject({
+  id: z.uuid(),
+  orderId: z.uuid(),
+  version: z.number().int().positive(),
+  originDraftId: z.uuid(),
+  actorId: z.uuid(),
+  recordedAt: z.iso.datetime(),
+  digest: z.string(),
+  content: serviceChangeContentSchema,
+});
+export type ServiceChangeRecord = z.infer<typeof serviceChangeRecordSchema>;
+export const serviceScopeSchema = z.strictObject({
+  orderId: z.uuid(),
+  version: z.number().int().positive(),
+  originalDigest: z.string(),
+  scopeDigest: z.string(),
+  originalPaise: z.number().int().nonnegative().nullable(),
+  additionsPaise: z.string().regex(/^\d+$/).nullable(),
+  totalPaise: z.string().regex(/^\d+$/).nullable(),
+  package: z.boolean(),
+  changes: z.array(serviceChangeRecordSchema),
+});
+export type ServiceScope = z.infer<typeof serviceScopeSchema>;
+export const bookingServiceScopeSchema = z.strictObject({
+  bookingId: z.uuid(),
+  bookingVersion: z.number().int().positive(),
+  scopeDigest: z.string(),
+  basis: z.enum(["garment-prices", "package-proposal"]),
+  hasChanges: z.boolean(),
+  originalKnownPaise: z.string().regex(/^\d+$/),
+  originalUnknownCount: z.number().int().nonnegative(),
+  extraKnownPaise: z.string().regex(/^\d+$/),
+  extraUnknownCount: z.number().int().nonnegative(),
+  currentKnownPaise: z.string().regex(/^\d+$/),
+  currentUnknownCount: z.number().int().nonnegative(),
+});
+export const serviceChangeReviewSchema = z.strictObject({
+  fingerprint: z.string(),
+  scope: serviceScopeSchema,
+  selection: serviceOrderReviewSchema,
+  issues: z.array(z.string()),
+});
+export type ServiceChangeReview = z.infer<typeof serviceChangeReviewSchema>;
+export const serviceIntakeReviewSchema = z.strictObject({
+  fingerprint: z.string(),
+  base: z.union([orderReviewSchema, groupIntakeReviewSchema]),
+  selections: z.array(serviceOrderReviewSchema),
+  issues: z.array(z.string()),
+});

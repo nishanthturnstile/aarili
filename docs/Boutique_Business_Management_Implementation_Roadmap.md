@@ -626,9 +626,12 @@ completion. The owner approved A–C and D1–D6 implementation conventions and
 publication as [#124](https://github.com/nishanthturnstile/aarili/issues/124),
 [#125](https://github.com/nishanthturnstile/aarili/issues/125) and
 [#126](https://github.com/nishanthturnstile/aarili/issues/126), selecting A (#124).
-B/C retain their direct merge and selection gates; production values remain pending.
+A merged through #127. The owner subsequently selected B (#125), based on
+development `21a5e79`; [B verification and owner review](agents/Service_Additions_Implementation_Evidence.md)
+record the locally verified implementation awaiting owner acceptance/merge.
+C retains its direct merge and selection gates; production values remain pending.
 [Implementation/check status](agents/Small_Service_Implementation_Evidence.md)
-records integrated development `63d5123`, merged prerequisites and remaining
+records A's historical development `63d5123`, merged prerequisites and remaining
 decisions. This adds traceability without changing scope/dependencies, approving
 production values or closing AC-50. Full money, custody, execution, trials/quality
 and actual handover remain their named later slices.

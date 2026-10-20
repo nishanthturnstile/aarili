@@ -1,6 +1,11 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import {
   acceptedServiceOrderSchema,
+  bookingServiceScopeSchema,
+  serviceChangeDraftSchema,
+  serviceChangeReviewSchema,
+  serviceIntakeDraftSchema,
+  serviceIntakeReviewSchema,
   serviceOrderDraftSchema,
   serviceOrderListSchema,
   serviceOrderReviewSchema,
@@ -9,16 +14,21 @@ import {
   serviceProfileListSchema,
   serviceProfileQuerySchema,
   serviceProfileRevisionSchema,
+  serviceScopeSchema,
   smallServiceErrorSchema,
 } from "@aarili/contracts/small-services";
 import { CustomerFailure } from "@aarili/core/customers";
 import { DraftFailure } from "@aarili/core/drafts";
 import {
   listServiceOrders,
+  readBookingServiceScope,
   readServiceOrder,
   readServiceProfile,
   readServiceProfileHistory,
   readServiceProfiles,
+  readServiceScope,
+  reviewServiceChange,
+  reviewServiceIntake,
   reviewServiceOrder,
 } from "@aarili/core/small-services";
 import { GuardianFailure, WearerFailure } from "@aarili/core/wearers";
@@ -211,7 +221,83 @@ export function createSmallServiceRoutes(
         c.header("ETag", `"v${r.data.version}"`);
         return c.json(r.data, 200);
       },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/small-services/changes/review",
+        request: { params, body: body(serviceChangeDraftSchema) },
+        responses: { 200: response(serviceChangeReviewSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerSmallServices(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => reviewServiceChange(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/small-services/intake/review",
+        request: { params, body: body(serviceIntakeDraftSchema) },
+        responses: { 200: response(serviceIntakeReviewSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerSmallServices(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => reviewServiceIntake(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/small-services/scope/{id}",
+        request: { params: identified },
+        responses: { 200: response(serviceScopeSchema), ...failures },
+      }),
+      async (c) => {
+        const p = c.req.valid("param"),
+          r = await owner.withOwnerSmallServices(
+            c.req.raw.headers,
+            p.shopId,
+            (ctx) => readServiceScope(ctx, p.id),
+          );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
     );
+  const bookingScopeRoute = routes.openapi(
+    createRoute({
+      method: "get",
+      path: "/shops/{shopId}/small-services/booking-scope/{id}",
+      request: { params: identified },
+      responses: { 200: response(bookingServiceScopeSchema), ...failures },
+    }),
+    async (c) => {
+      const p = c.req.valid("param"),
+        r = await owner.withOwnerSmallServices(
+          c.req.raw.headers,
+          p.shopId,
+          (ctx) => readBookingServiceScope(ctx, p.id),
+        );
+      for (const cookie of r.headers.getSetCookie())
+        c.header("Set-Cookie", cookie, { append: true });
+      c.header("ETag", `"${r.data.scopeDigest}"`);
+      return c.json(r.data, 200);
+    },
+  );
   app.onError((e, c) => {
     if (e instanceof DraftFailure) return c.json(e.body, e.status);
     if (
@@ -243,5 +329,5 @@ export function createSmallServiceRoutes(
       503,
     );
   });
-  return routes;
+  return bookingScopeRoute;
 }

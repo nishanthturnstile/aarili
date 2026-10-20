@@ -26,6 +26,7 @@ import {
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
+  serviceAdditionMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
@@ -503,6 +504,10 @@ function ServiceCommitment({
 export function serviceIssue(key: string, locale: Locale) {
   const t = smallServiceMessages[locale],
     o = orderMessages[locale];
+  const addition = serviceAdditionMessages[locale];
+  if (key === "commercialBasis") return addition.commercialUnknown;
+  if (key === "newAgreementRequired") return addition.agreement;
+  if (key === "selectServiceScope") return addition.select;
   if (key in t) return t[key as keyof typeof t];
   if (key in o) return o[key as keyof typeof o];
   if (/wearer|guardian|permission/i.test(key)) return t.permission;

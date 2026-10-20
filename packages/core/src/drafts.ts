@@ -4,6 +4,7 @@ import {
   type DraftRecord,
   type DraftResult,
   type DraftSuccess,
+  draftConversionSchema,
   draftCursorSchema,
   draftIdSchema,
   draftPromotionSchema,
@@ -29,10 +30,14 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  validateEdit?(
+    previous: Record<string, unknown>,
+    next: Record<string, unknown>,
+  ): void;
   convert?(
     payload: Record<string, unknown>,
     draftId: string,
-    request: { key: string; requestId: string },
+    request: { key: string; requestId: string; target?: "services" },
   ): Promise<DraftResult>;
   authorizeDraft?(payload: Record<string, unknown>): Promise<void>;
   authorizePublication?(command: Record<string, unknown>): Promise<void>;
@@ -68,6 +73,7 @@ export type DraftContext = {
   repository: DraftRepository;
   workflows: DraftRegistry;
   instrumentation?: DraftInstrumentation;
+  prepareRead?: (records: DraftRecord[]) => Promise<void>;
 };
 export type DraftHeaders = {
   key?: string | undefined;
@@ -121,6 +127,7 @@ export async function listDrafts(
     fail(422, "VALIDATION_FAILED");
   const { rows, before } = await ctx.repository.list(limit + 1, cursor);
   const window = rows.slice(0, limit);
+  await ctx.prepareRead?.(window);
   const drafts: DraftRecord[] = [];
   for (const row of window) {
     try {
@@ -163,7 +170,12 @@ export async function mutateDraft(
   const expected =
     headers.ifMatch === undefined ? null : version(headers.ifMatch);
   const save = action === "save" ? draftSaveSchema.safeParse(input) : undefined;
-  if (action !== "save" && !draftPromotionSchema.safeParse(input).success)
+  if (
+    action !== "save" &&
+    !(
+      action === "convert" ? draftConversionSchema : draftPromotionSchema
+    ).safeParse(input).success
+  )
     fail(422, "VALIDATION_FAILED");
   if (action === "save" && !save?.success) fail(422, "VALIDATION_FAILED");
   // Only JSON is bindable; undefined/nonfinite/nonplain values must not coerce.
@@ -238,6 +250,7 @@ export async function mutateDraft(
     const adapter = workflow(ctx, data.workflow, data.schemaVersion);
     const parsed = adapter.draftSchema.safeParse(data.payload);
     if (!parsed.success) fail(422, "VALIDATION_FAILED");
+    if (current) adapter.validateEdit?.(current.payload, parsed.data);
     await adapter.authorizeDraft?.(parsed.data);
     draft = {
       ...data,
@@ -261,6 +274,9 @@ export async function mutateDraft(
         await adapter.convert(current.payload, id, {
           key,
           requestId: headers.requestId,
+          ...(draftConversionSchema.parse(input).target
+            ? { target: "services" as const }
+            : {}),
         }),
       );
       await adapter.verifyResult(result, id);

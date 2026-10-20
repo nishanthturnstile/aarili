@@ -55,3 +55,6 @@ export const draftListSchema = z.strictObject({
 });
 export type DraftList = z.infer<typeof draftListSchema>;
 export const draftPromotionSchema = z.strictObject({});
+export const draftConversionSchema = z.strictObject({
+  target: z.literal("services").optional(),
+});

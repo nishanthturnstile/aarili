@@ -84,7 +84,10 @@ function normalizedIntake(
     commitmentReview: null,
   };
 }
-async function resolve(ctx: QuickOrderContext, v: GroupIntakeDraft) {
+export async function resolveGroupIntake(
+  ctx: QuickOrderContext,
+  v: GroupIntakeDraft,
+) {
   await authorizeGroupIntake(ctx, v);
   const repo = repository(ctx),
     a = ctx.acceptance;
@@ -221,10 +224,10 @@ export async function reviewGroupIntake(
 ) {
   const value = groupIntakeDraftSchema.parse(input);
   if (canonicalJson(value).length > 65536) fail(422);
-  return (await resolve(ctx, value)).review;
+  return (await resolveGroupIntake(ctx, value)).review;
 }
 export function groupIntakeWorkflow(ctx: QuickOrderContext): DraftWorkflow {
-  let prepared: Awaited<ReturnType<typeof resolve>> | undefined;
+  let prepared: Awaited<ReturnType<typeof resolveGroupIntake>> | undefined;
   return {
     schemaVersion: 1,
     draftSchema: groupIntakeDraftSchema,
@@ -237,7 +240,7 @@ export function groupIntakeWorkflow(ctx: QuickOrderContext): DraftWorkflow {
     },
     async revalidate(input) {
       const v = groupIntakeCommandSchema.parse(input);
-      prepared = await resolve(ctx, v);
+      prepared = await resolveGroupIntake(ctx, v);
       if (
         prepared.review.unknowns.some((i) =>
           [

@@ -1145,3 +1145,35 @@ further process change separately; retain the required verification and review.
   [run 39372097381](https://github.com/nishanthturnstile/aarili/actions/runs/39372097381).
   Hosted queue/execution duration and human review duration remain pending;
   overlapping local checks are not added to active coding time.
+
+## Issue #125 / 1.2.3b — accepted service additions
+
+- Selected by owner 20 October 2026. Blockers #124/#120 merged; branch
+  `codex/service-order-addons` from development `21a5e79`.
+- Inspection observed 14:17:13 UTC; first implementation edit observed
+  14:22:35 UTC. These are wall-clock observations, not active-time estimates.
+- Baseline: #127 Fast verification and Dependency audit successful on the merged
+  prerequisite. Fresh implementation results, review readiness and publication
+  timestamps will be recorded when observed.
+- First running synthetic owner surface checked at **16:12:34 UTC**: normal
+  sign-in and custom scope; explicit grouped conversion checked by 16:13:47 UTC.
+  Final host readiness follows the final UI build. Active implementation time
+  is unknown; elapsed wall time is not represented as active time.
+- Final backend B/guardian/populated-upgrade verification: 6 passed, **200.24s**.
+  Custom/group and tenant regressions: 48 passed / 2 historical-fixture failures
+  in **782.57s**, followed by the corrected 2 tests passing in **37.94s**.
+  Isolation inventory passed in **17.53s**. Fast verification before the last
+  UI copy/conflict refinement passed in **83.11s** (260 unit tests); dependency
+  audit passed in **1.32s**. Final affected UI/check evidence follows.
+- Final capability checks after the finish correction: `verify:fast` exit 0 in
+  **89.971s**, 260 units in **11.81s**, production build **15.916s**. Main browser
+  workflow **3 passed / 14.5m**; focused conflict follow-up desktop **42.3s** and
+  phone/tablet **1.1m**. The independent-state follow-up passed in **13.53s**.
+- Fresh finish reviewer returned **fix** for textarea affordances, then **ship**
+  on that scored correction after **36** refreshed axe/overflow captures. Fresh
+  documenter preserved the incumbent system. Final clean synthetic host and
+  ordinary sign-in observed ready **16:48:14 UTC**, port **63238**.
+- Owner packet review-ready observed **16:48:14 UTC**. Human Tamil, physical
+  device/AT, policy acceptance and merge remain pending. First tryable surface
+  was earlier (16:12:34 UTC); active time remains unknown. PR/CI observations
+  follow publication; overlapping check durations are not added together.

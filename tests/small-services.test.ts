@@ -3,6 +3,7 @@ import {
   measurementFormsCommandSchema,
 } from "@aarili/contracts/measurement-forms";
 import {
+  emptyGroupIntake,
   emptyQuickOrder,
   quickOrderCommandSchema,
   quickOrderDraftSchema,
@@ -14,6 +15,7 @@ import {
   emptyServiceProfile,
   type ServiceProfileContent,
   type ServiceProfileRevision,
+  serviceIntakeDraftSchema,
   serviceOrderCommandSchema,
   serviceOrderDraftSchema,
   serviceProfileCommandSchema,
@@ -32,6 +34,32 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 const id = "019a14b0-0000-7000-8000-000000000001";
+it("SS-B D6 rejects mismatched workflow/base shapes without reinterpreting v1 payloads", () => {
+  expect(
+    serviceIntakeDraftSchema.safeParse({
+      kind: "custom",
+      base: emptyGroupIntake(),
+      selections: [],
+      review: null,
+    }).success,
+  ).toBe(false);
+  expect(
+    serviceIntakeDraftSchema.safeParse({
+      kind: "group",
+      base: emptyQuickOrder(),
+      selections: [],
+      review: null,
+    }).success,
+  ).toBe(false);
+  expect(
+    serviceIntakeDraftSchema.safeParse({
+      kind: "custom",
+      base: emptyQuickOrder(),
+      selections: [],
+      review: null,
+    }).success,
+  ).toBe(true);
+});
 function at<T>(values: T[], index: number): T {
   const value = values[index];
   if (value === undefined) throw Error("Fixture index missing");

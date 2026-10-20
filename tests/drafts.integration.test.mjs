@@ -50,6 +50,8 @@ async function fixture(run) {
               "order.group",
               "order.quick",
               "order.service",
+              "order.service-change",
+              "order.services-intake",
               "service.catalogue",
               "service.commitment-bindings",
               "service.intake-profile",

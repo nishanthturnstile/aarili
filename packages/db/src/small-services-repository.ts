@@ -1,6 +1,7 @@
 import type { AcceptedServiceOrder } from "@aarili/contracts/small-services";
 import {
   acceptedServiceOrderSchema,
+  serviceChangeRecordSchema,
   serviceProfileRevisionSchema,
 } from "@aarili/contracts/small-services";
 import { sql, type Transaction } from "./index.js";
@@ -42,6 +43,76 @@ export function smallServicesRepository(
     });
   };
   const repo: SmallServicesRepository = {
+    async intakeOrder(draftId, lineId) {
+      return (
+        await tx.execute<{ id: string }>(
+          sql`select id from garment_order where shop_id=${shopId}::uuid and origin_draft_id=${draftId}::uuid and origin_line_id is not distinct from ${lineId}::uuid`,
+        )
+      ).rows[0]?.id;
+    },
+    async converted(targetId, sourceId) {
+      return !!(
+        await tx.execute(
+          sql`select 1 from service_intake_conversion where shop_id=${shopId}::uuid and target_draft_id=${targetId}::uuid and source_draft_id=${sourceId}::uuid`,
+        )
+      ).rowCount;
+    },
+    async conversion(v) {
+      await tx.execute(
+        sql`insert into service_intake_conversion(shop_id,source_draft_id,target_draft_id,actor_id,command_key,request_id,source_payload) select ${shopId}::uuid,${v.sourceId}::uuid,${v.targetId}::uuid,${v.actorId}::uuid,${v.key}::uuid,${v.requestId}::uuid,payload from durable_draft where shop_id=${shopId}::uuid and id=${v.sourceId}::uuid`,
+      );
+    },
+    async changes(orderId) {
+      return (
+        await tx.execute(
+          sql`select * from order_service_change where shop_id=${shopId}::uuid and order_id=${orderId}::uuid order by version`,
+        )
+      ).rows.map(changeRow);
+    },
+    async changeOrigin(id, draftId) {
+      const row = (
+        await tx.execute(
+          sql`select * from order_service_change where shop_id=${shopId}::uuid and id=${id}::uuid and origin_draft_id=${draftId}::uuid`,
+        )
+      ).rows[0];
+      return row ? changeRow(row) : undefined;
+    },
+    async duplicateChange(orderId, pieceId, profile, keys, ids) {
+      return !!(
+        await tx.execute(
+          sql`select 1 from order_service_change_line where shop_id=${shopId}::uuid and (id in(select value::uuid from jsonb_array_elements_text(${JSON.stringify(ids)}::jsonb)) or (order_id=${orderId}::uuid and piece_id is not distinct from ${pieceId}::uuid and catalogue_entry_id in(select service_change_catalogue_source(p.current_id,k.value) from service_intake_profile p,jsonb_array_elements_text(${JSON.stringify(keys)}::jsonb) k where p.shop_id=${shopId}::uuid and p.entry_id=${profile}::uuid))) limit 1`,
+        )
+      ).rowCount;
+    },
+    async change(v) {
+      const ids = (
+        await tx.execute<{ id: string; audit: string }>(
+          sql`select uuidv7() id,uuidv7() audit`,
+        )
+      ).rows[0];
+      if (!ids) throw Error("Change identity unavailable");
+      await tx.execute(
+        sql`insert into audit_event(shop_id,id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,reason,changes) values(${shopId}::uuid,${ids.audit}::uuid,'user',${v.actorId}::uuid,'order.service-change','garment_order',${v.orderId}::uuid,${v.requestId}::uuid,${v.key}::uuid,${v.content.input.reason},${JSON.stringify({ version: v.version + 1, digest: v.digest })}::jsonb)`,
+      );
+      const r = (
+        await tx.execute(
+          sql`insert into order_service_change(shop_id,id,order_id,version,origin_draft_id,actor_id,audit_id,command_key,content,digest) values(${shopId}::uuid,${ids.id}::uuid,${v.orderId}::uuid,${v.version + 1},${v.draftId}::uuid,${v.actorId}::uuid,${ids.audit}::uuid,${v.key}::uuid,${JSON.stringify(v.content)}::jsonb,${v.digest}) returning *`,
+        )
+      ).rows[0];
+      for (const line of v.content.lines)
+        await tx.execute(
+          sql`insert into order_service_change_line(shop_id,id,order_id,change_id,piece_id,profile_entry_id,profile_revision_id,source_key,content,catalogue_entry_id) values(${shopId}::uuid,${line.id}::uuid,${v.orderId}::uuid,${ids.id}::uuid,${v.content.input.pieceId}::uuid,${v.content.profile.entryId}::uuid,${v.content.profile.id}::uuid,${line.key},${JSON.stringify(line)}::jsonb,service_change_catalogue_source(${v.content.profile.id}::uuid,${line.key}))`,
+        );
+      if (v.content.quantity > 0)
+        await tx.execute(
+          sql`insert into order_service_capacity_contribution(shop_id,change_id,order_id,category_id,delivery_date,unit,quantity) values(${shopId}::uuid,${ids.id}::uuid,${v.orderId}::uuid,${v.content.categoryId}::uuid,${v.content.originalPromise.date}::date,${v.content.unit},${v.content.quantity})`,
+        );
+      const changed = await tx.execute(
+        sql`update garment_order set version=version+1 where shop_id=${shopId}::uuid and id=${v.orderId}::uuid and version=${v.version} returning id`,
+      );
+      if (!changed.rowCount || !r) throw Error("Order change conflict");
+      return changeRow(r);
+    },
     async lock() {
       await tx.execute(
         sql`select pg_advisory_xact_lock(hashtextextended(${`service-intake-profile:${shopId}`},0))`,
@@ -50,7 +121,7 @@ export function smallServicesRepository(
     async identityConflict(subjectId, lineIds) {
       return !!(
         await tx.execute(
-          sql`select 1 where exists(select 1 from service_property_subject where shop_id=${shopId}::uuid and id=${subjectId}::uuid) or exists(select 1 from service_order_line where shop_id=${shopId}::uuid and id in(select value::uuid from jsonb_array_elements_text(${JSON.stringify(lineIds)}::jsonb)))`,
+          sql`select 1 where exists(select 1 from service_property_subject where shop_id=${shopId}::uuid and id=${subjectId}::uuid) or exists(select 1 from service_order_line where shop_id=${shopId}::uuid and id in(select value::uuid from jsonb_array_elements_text(${JSON.stringify(lineIds)}::jsonb))) or exists(select 1 from order_service_change_line where shop_id=${shopId}::uuid and id in(select value::uuid from jsonb_array_elements_text(${JSON.stringify(lineIds)}::jsonb)))`,
         )
       ).rowCount;
     },
@@ -225,4 +296,16 @@ export function smallServicesRepository(
     },
   };
   return repo;
+}
+function changeRow(r: Record<string, unknown>) {
+  return serviceChangeRecordSchema.parse({
+    id: r.id,
+    orderId: r.order_id,
+    version: r.version,
+    originDraftId: r.origin_draft_id,
+    actorId: r.actor_id,
+    recordedAt: new Date(r.recorded_at as string).toISOString(),
+    content: r.content,
+    digest: r.digest,
+  });
 }

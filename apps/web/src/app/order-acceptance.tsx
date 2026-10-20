@@ -25,6 +25,7 @@ import type { UseFormReturn } from "react-hook-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { OrderPiecesDetail } from "./order-pieces";
 import type { OwnerGuard } from "./owner-feedback";
+import { OrderServiceAdditions } from "./service-additions";
 
 function material(v: QuickOrderDraft) {
   const { commitmentReview: _review, ...fields } = v;
@@ -591,6 +592,14 @@ export function AcceptedOrderDetail({
         </dl>
       </details>
       <p>{t.next}</p>
+      <OrderServiceAdditions
+        key={order.id}
+        order={order}
+        shopId={shopId}
+        locale={locale}
+        guard={guard}
+        onChanged={() => void reload()}
+      />
       <OrderPiecesDetail
         order={order}
         shopId={shopId}

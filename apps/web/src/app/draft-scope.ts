@@ -71,7 +71,8 @@ export function createDraftScope(
           read: (id) => getDraft(shopId, id),
           save: (id, input, key, etag) =>
             putDraft(shopId, id, input, key, etag),
-          convert: (id, key, etag) => convertDraft(shopId, id, key, etag),
+          convert: (id, key, etag, target) =>
+            convertDraft(shopId, id, key, etag, target),
           promote: (id, key, etag) => promoteDraft(shopId, id, key, etag),
           abandon: (id, key, etag) => abandonDraft(shopId, id, key, etag),
         },

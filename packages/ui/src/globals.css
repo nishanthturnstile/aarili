@@ -1463,6 +1463,17 @@
 .order-editor dd {
   overflow-wrap: anywhere;
 }
+.service-additions {
+  overflow-wrap: anywhere;
+}
+.service-additions fieldset {
+  min-inline-size: 0;
+}
+.service-additions button {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+}
 .order-choices {
   list-style: none;
   padding: 0;
@@ -1504,7 +1515,8 @@
 .booking-editor {
   container-type: inline-size;
 }
-.booking-editor textarea {
+.booking-editor textarea,
+.service-additions textarea {
   width: 100%;
   min-width: 0;
   min-height: 6rem;
@@ -1515,7 +1527,8 @@
   border-radius: var(--radius);
   resize: vertical;
 }
-.booking-editor textarea:focus-visible {
+.booking-editor textarea:focus-visible,
+.service-additions textarea:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }

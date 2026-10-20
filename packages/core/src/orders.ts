@@ -377,6 +377,7 @@ export async function resolveServiceOrderAcceptance(
     wearerRequired: boolean;
     quantity: number | null;
     unit: string | null;
+    allowZero?: boolean;
   },
 ) {
   return resolveAcceptance(ctx, v, [], undefined, policy);
@@ -396,6 +397,7 @@ async function resolveAcceptance(
     wearerRequired: boolean;
     quantity: number | null;
     unit: string | null;
+    allowZero?: boolean;
   },
 ) {
   const a = acceptance(ctx),
@@ -522,7 +524,9 @@ async function resolveAcceptance(
     if (
       !servicePolicy.unit ||
       servicePolicy.quantity === null ||
-      servicePolicy.quantity <= 0
+      (servicePolicy.allowZero
+        ? servicePolicy.quantity < 0
+        : servicePolicy.quantity <= 0)
     )
       unknowns.push("serviceCapacityMappingMissing");
     if (servicePolicy.unit !== cfg?.unit)

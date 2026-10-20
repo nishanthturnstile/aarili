@@ -72,7 +72,11 @@ import {
   shopBrandingPolicy,
 } from "@aarili/core/shop-profile";
 import {
+  prepareServiceDraftReads,
   type SmallServiceContext,
+  serviceChangeDraftWorkflow,
+  serviceIntakeConversion,
+  serviceIntakeWorkflow,
   serviceOrderDraftWorkflow,
   serviceProfileDraftWorkflow,
 } from "@aarili/core/small-services";
@@ -1266,6 +1270,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         serviceOrderDraftWorkflow(smallServiceContext(tx, shopId, userId)),
       );
       workflows.set(
+        "order.service-change",
+        serviceChangeDraftWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.services-intake",
+        serviceIntakeWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "booking.group",
         bookingDraftWorkflow(quickOrderContext(tx, shopId, userId)),
       );
@@ -1283,6 +1295,31 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         "order.group",
         groupIntakeWorkflow(quickOrderContext(tx, shopId, userId)),
       );
+      for (const [name, kind] of [
+        ["order.quick", "custom"],
+        ["order.group", "group"],
+      ] as const) {
+        const base = workflows.get(name);
+        if (!base) throw Error("Intake workflow unavailable");
+        const conversion = serviceIntakeConversion(
+          smallServiceContext(tx, shopId, userId),
+          draftRepository(tx, shopId),
+          kind,
+        );
+        workflows.set(name, {
+          ...base,
+          convert: (input, id, request) =>
+            request.target === "services"
+              ? conversion.convert(input, id, request)
+              : base.convert
+                ? base.convert(input, id, request)
+                : Promise.reject(new Error("Conversion target required")),
+          async verifyResult(result, id) {
+            if (await conversion.verify(result, id)) return;
+            await base.verifyResult(result, id);
+          },
+        });
+      }
       workflows.set(
         "shop.presentation",
         presentationDraftWorkflow(serviceTemplatesContext(tx, shopId, userId)),
@@ -1359,6 +1396,11 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         actor: { type: "user", id: userId },
         repository: draftRepository(tx, shopId),
         workflows,
+        prepareRead: (records) =>
+          prepareServiceDraftReads(
+            smallServiceContext(tx, shopId, userId),
+            records,
+          ),
         ...(configuration.draftInstrumentation
           ? { instrumentation: configuration.draftInstrumentation(tx, shopId) }
           : {}),

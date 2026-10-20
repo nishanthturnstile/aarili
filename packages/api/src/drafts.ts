@@ -1,6 +1,7 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import {
   type DraftCursor,
+  draftConversionSchema,
   draftCursorSchema,
   draftErrorSchema,
   draftIdSchema,
@@ -237,7 +238,7 @@ export function createDraftRoutes(
           headers,
           body: {
             required: true,
-            content: { "application/json": { schema: draftPromotionSchema } },
+            content: { "application/json": { schema: draftConversionSchema } },
           },
         },
         responses: { 200: success, ...failures },

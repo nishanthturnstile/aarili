@@ -1,11 +1,17 @@
 import {
   acceptedServiceOrderSchema,
+  bookingServiceScopeSchema,
+  type ServiceChangeDraft,
+  type ServiceIntakeDraft,
   type ServiceOrderDraft,
+  serviceChangeReviewSchema,
+  serviceIntakeReviewSchema,
   serviceOrderListSchema,
   serviceOrderReviewSchema,
   serviceProfileHistorySchema,
   serviceProfileListSchema,
   serviceProfileRevisionSchema,
+  serviceScopeSchema,
   smallServiceErrorSchema,
 } from "@aarili/contracts/small-services";
 import { hc } from "hono/client";
@@ -45,6 +51,67 @@ const init = (s: AbortSignal, signal?: AbortSignal) => ({
   cache: "no-store" as const,
   signal: signal ? AbortSignal.any([s, signal]) : s,
 });
+export async function readBookingServiceScope(
+  shopId: string,
+  id: string,
+  signal?: AbortSignal,
+) {
+  return bookingServiceScopeSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["small-services"]["booking-scope"][
+          ":id"
+        ].$get({ param: { shopId, id } }, { init: init(s, signal) }),
+      result,
+    ),
+  );
+}
+export async function readServiceScope(
+  shopId: string,
+  id: string,
+  signal?: AbortSignal,
+) {
+  return serviceScopeSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["small-services"].scope[":id"].$get(
+          { param: { shopId, id } },
+          { init: init(s, signal) },
+        ),
+      result,
+    ),
+  );
+}
+export async function reviewServiceChange(
+  shopId: string,
+  input: ServiceChangeDraft,
+) {
+  return serviceChangeReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["small-services"].changes.review.$post(
+          { param: { shopId }, json: input },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
+export async function reviewServiceIntake(
+  shopId: string,
+  input: ServiceIntakeDraft,
+) {
+  return serviceIntakeReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["small-services"].intake.review.$post(
+          { param: { shopId }, json: input },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
 export async function readServiceProfiles(
   shopId: string,
   before?: string,
