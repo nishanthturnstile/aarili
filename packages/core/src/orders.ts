@@ -52,6 +52,11 @@ export {
   readBooking,
   reviewBooking,
 } from "./bookings.js";
+export {
+  groupIntakeWorkflow,
+  quickOrderConversion,
+  reviewGroupIntake,
+} from "./group-intake.js";
 export { projectOrderPieces, summarizePieceProgress } from "./order-pieces.js";
 
 export type QuickOrderContext = {
@@ -134,7 +139,10 @@ async function readReferences(ctx: QuickOrderContext, v: QuickOrderDraft) {
   }
   return { customer, wearer, issues };
 }
-async function references(ctx: QuickOrderContext, v: QuickOrderDraft) {
+export async function orderReferences(
+  ctx: QuickOrderContext,
+  v: QuickOrderDraft,
+) {
   try {
     return await readReferences(ctx, v);
   } catch (e) {
@@ -154,6 +162,7 @@ async function references(ctx: QuickOrderContext, v: QuickOrderDraft) {
     throw e;
   }
 }
+const references = orderReferences;
 export async function previewQuickOrder(
   ctx: QuickOrderContext,
   input: unknown,
@@ -218,9 +227,19 @@ export async function previewQuickOrder(
   }
   return result;
 }
-export function quickOrderDraftWorkflow(ctx: QuickOrderContext): DraftWorkflow {
+export function quickOrderDraftWorkflow(
+  ctx: QuickOrderContext,
+  conversion?: {
+    convert: NonNullable<DraftWorkflow["convert"]>;
+    verify: (
+      result: import("@aarili/contracts/drafts").DraftResult,
+      draftId: string,
+    ) => Promise<boolean>;
+  },
+): DraftWorkflow {
   let resolved: Awaited<ReturnType<typeof resolveOrderAcceptance>> | undefined;
   return {
+    ...(conversion ? { convert: conversion.convert } : {}),
     schemaVersion: 1,
     draftSchema: quickOrderDraftSchema,
     commandSchema: quickOrderCommandSchema,
@@ -261,41 +280,18 @@ export function quickOrderDraftWorkflow(ctx: QuickOrderContext): DraftWorkflow {
     async promote(input, _action, draftId, request) {
       if (!resolved?.sources || !resolved.review.intake.requirements)
         fail("REQUEST_CONFLICT");
-      const v = quickOrderCommandSchema.parse(input),
-        a = acceptance(ctx);
-      const snapshot = {
-        ...resolved.snapshot,
-        intake: v,
-        requirements: resolved.review.intake.requirements,
-        decision: v.commitmentReview,
-      };
-      const order = await a.repository.accept({
+      const v = quickOrderCommandSchema.parse(input);
+      const order = await acceptResolvedOrder(
+        ctx,
+        v,
+        resolved,
         draftId,
-        actorId: ctx.templates.actorId,
-        ...request,
-        intake: v,
-        review: resolved.review,
-        requirements: resolved.review.intake.requirements,
-        sources: resolved.sources,
-        snapshot,
-        digest: await requestHash(snapshot),
-      });
-      const structure = projectOrderPieces(order);
-      if (!structure) fail("REQUEST_CONFLICT");
-      await a.repository.pieces.write({
-        orderId: order.id,
-        orderVersion: order.version,
-        snapshotDigest: order.snapshotDigest,
-        structure,
-        digest: await requestHash(structure),
-        actorId: ctx.templates.actorId,
-        ...request,
-        reason: "Acceptance structure",
-        acceptance: true,
-      });
+        request,
+      );
       return { type: "order.accepted", id: order.id };
     },
     async verifyResult(result, draftId) {
+      if (conversion && (await conversion.verify(result, draftId))) return;
       if (
         result.type !== "order.accepted" ||
         !(await acceptance(ctx).repository.origin(result.id, draftId))
@@ -304,15 +300,71 @@ export function quickOrderDraftWorkflow(ctx: QuickOrderContext): DraftWorkflow {
     },
   };
 }
+export async function acceptResolvedOrder(
+  ctx: QuickOrderContext,
+  v: QuickOrderDraft,
+  resolved: Awaited<ReturnType<typeof resolveOrderAcceptance>>,
+  draftId: string,
+  request: { key: string; requestId: string },
+  group?: Pick<
+    Parameters<OrdersRepository["accept"]>[0],
+    "originLineId" | "commercial"
+  >,
+) {
+  const a = acceptance(ctx);
+  if (!resolved.sources || !resolved.review.intake.requirements)
+    fail("REQUEST_CONFLICT");
+  const snapshot = {
+    ...resolved.snapshot,
+    intake: v,
+    requirements: resolved.review.intake.requirements,
+    decision: v.commitmentReview,
+    ...(group?.commercial ? { commercial: group.commercial } : {}),
+  };
+  const order = await a.repository.accept({
+    draftId,
+    actorId: ctx.templates.actorId,
+    ...request,
+    intake: v,
+    review: resolved.review,
+    requirements: resolved.review.intake.requirements,
+    sources: resolved.sources,
+    snapshot,
+    digest: await requestHash(snapshot),
+    ...group,
+  });
+  const structure = projectOrderPieces(order);
+  if (!structure) fail("REQUEST_CONFLICT");
+  await a.repository.pieces.write({
+    orderId: order.id,
+    orderVersion: order.version,
+    snapshotDigest: order.snapshotDigest,
+    structure,
+    digest: await requestHash(structure),
+    actorId: ctx.templates.actorId,
+    ...request,
+    reason: "Acceptance structure",
+    acceptance: true,
+  });
+  return order;
+}
 
 function acceptance(ctx: QuickOrderContext) {
   if (!ctx.acceptance) fail("REQUEST_CONFLICT");
   return ctx.acceptance;
 }
 // Shared authoritative consumer of the existing evaluator; v1/v2 preview DTOs remain unchanged.
-async function resolveOrderAcceptance(
+export async function resolveOrderAcceptance(
   ctx: QuickOrderContext,
   v: QuickOrderDraft,
+  candidates: {
+    id: string;
+    categoryId: string;
+    deliveryDate: string;
+    quantity: number;
+    unit: string;
+  }[] = [],
+  groupClock?: Date,
 ) {
   const a = acceptance(ctx),
     c = a.commitments;
@@ -384,7 +436,7 @@ async function resolveOrderAcceptance(
       ? capacityWeek(v.deliveryDate, cfg.weekStart)
       : null;
   if (categoryId) await a.repository.lockCapacity(categoryId);
-  const now = await a.repository.now();
+  const now = groupClock ?? (await a.repository.now());
   const timezone = profile?.profile.timezone;
   const parts = timezone
     ? new Intl.DateTimeFormat("en-CA", {
@@ -409,7 +461,17 @@ async function resolveOrderAcceptance(
     unknowns.push("deliveryBeforeAcceptance");
   let load = null;
   if (categoryId && week) {
-    const rows = await a.repository.demand(categoryId, week.start, week.end);
+    const rows = [
+      ...(await a.repository.demand(categoryId, week.start, week.end)),
+      ...candidates
+        .filter(
+          (r) =>
+            r.categoryId === categoryId &&
+            r.deliveryDate >= week.start &&
+            r.deliveryDate < week.end,
+        )
+        .map(({ categoryId: _category, ...r }) => r),
+    ];
     if (!cfg?.unit) unknowns.push("capacityUnitMissing");
     else if (rows.some((r) => r.unit !== cfg.unit))
       unknowns.push("incomparableDemand");

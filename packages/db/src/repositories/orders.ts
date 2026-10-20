@@ -3,6 +3,8 @@ import type {
   BookingDraft,
   BookingRecord,
   BookingRevision,
+  GroupCommercial,
+  IncludedOrderCommercial,
   OrderPieceStructure,
   OrderPieces,
   OrderReview,
@@ -23,6 +25,7 @@ export type OrderSources = {
   presentationId: string | null;
 };
 export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
+  groups: GroupIntakeRepository;
   bookings: BookingsRepository;
   pieces: OrderPiecesRepository;
   now(): Promise<Date>;
@@ -49,6 +52,8 @@ export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
     sources: OrderSources;
     snapshot: Record<string, unknown>;
     digest: string;
+    originLineId?: string;
+    commercial?: IncludedOrderCommercial;
   }): Promise<AcceptedOrder>;
   mode(
     id: string,
@@ -68,6 +73,32 @@ export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
       recordedAt: string;
     }[]
   >;
+}
+
+export interface GroupIntakeRepository {
+  identity(): Promise<string>;
+  commercial(bookingId: string): Promise<GroupCommercial | undefined>;
+  writeCommercial(input: {
+    id: string;
+    bookingId: string;
+    draftId: string;
+    basis: GroupCommercial["basis"];
+    packagePaise: string | null;
+    scope: GroupCommercial["scope"];
+    actorId: string;
+    reason: string;
+    key: string;
+    requestId: string;
+  }): Promise<void>;
+  conversionOrigin(targetId: string, sourceId: string): Promise<boolean>;
+  convert(input: {
+    sourceId: string;
+    targetId: string;
+    lineId: string;
+    actorId: string;
+    key: string;
+    requestId: string;
+  }): Promise<void>;
 }
 
 export interface BookingsRepository {

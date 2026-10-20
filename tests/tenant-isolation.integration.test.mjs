@@ -38,6 +38,8 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "ordersRepository.groups.commercial/writeCommercial/convert/conversionOrigin",
+      "order.group atomic promotion and order.quick conversion",
       "ordersRepository.bookings.read/list/history/membership/write/origin",
       "shops/:shopId/orders/bookings/candidates/review/read/list/history",
       "booking.group draft promotion",
@@ -504,6 +506,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
     assert.deepEqual(await assertIsolationCatalog(runtime.db), [
       "public.audit_event",
       "public.booking",
+      "public.booking_commercial_revision",
       "public.booking_member",
       "public.booking_membership_history",
       "public.booking_revision",
@@ -545,6 +548,7 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.media_reference",
       "public.order_acceptance_snapshot",
       "public.order_capacity_demand",
+      "public.order_draft_conversion",
       "public.order_piece",
       "public.order_piece_set",
       "public.order_presentation_event",
@@ -732,6 +736,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
       assert.deepEqual(await assertIsolationCatalog(runtime.db), [
         "public.audit_event",
         "public.booking",
+        "public.booking_commercial_revision",
         "public.booking_member",
         "public.booking_membership_history",
         "public.booking_revision",
@@ -771,6 +776,7 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.media_reference",
         "public.order_acceptance_snapshot",
         "public.order_capacity_demand",
+        "public.order_draft_conversion",
         "public.order_piece",
         "public.order_piece_set",
         "public.order_presentation_event",

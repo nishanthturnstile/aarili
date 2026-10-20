@@ -111,6 +111,33 @@ test("GB-B01/03/04/06/07/08/09 recover grouping draft, retry lost success, retai
             await page.waitForTimeout((seconds + 1) * 1000);
           }
         };
+        async function saveUntil() {
+          const status = page
+            .getByRole("status")
+            .filter({
+              hasText: new RegExp(`^${draftMessages.en.saved}$`),
+            })
+            .last();
+          for (let attempt = 0; attempt < 4; attempt++) {
+            await waitAdmission();
+            const retry = page.getByRole("button", {
+              name: draftMessages.en.retry,
+              exact: true,
+            });
+            if (await retry.isVisible()) await retry.click();
+            else
+              await page
+                .getByRole("button", { name: t.save, exact: true })
+                .click();
+            try {
+              await expect(status).toBeVisible({ timeout: 2500 });
+              return;
+            } catch (error) {
+              if (!retryAfter) throw error;
+            }
+          }
+          throw Error("Save admission did not recover");
+        }
         async function inspectUntil() {
           for (let attempt = 0; attempt < 4; attempt++) {
             await waitAdmission();
@@ -187,13 +214,7 @@ test("GB-B01/03/04/06/07/08/09 recover grouping draft, retry lost success, retai
         await page
           .getByLabel(t.reason, { exact: true })
           .fill("SYNTHETIC initial grouping");
-        await page.getByRole("button", { name: t.save, exact: true }).click();
-        await expect(
-          page
-            .getByRole("status")
-            .filter({ hasText: draftMessages.en.saved })
-            .last(),
-        ).toBeVisible();
+        await saveUntil();
         const resumeTab = await context.newPage();
         await resumeTab.goto(`${origin}/orders`);
         await open(resumeTab);

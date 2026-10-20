@@ -15,6 +15,7 @@ export type DraftTransport = {
     etag?: string,
   ): Promise<DraftSuccess>;
   promote(id: string, key: string, etag: string): Promise<DraftSuccess>;
+  convert?(id: string, key: string, etag: string): Promise<DraftSuccess>;
   abandon?(id: string, key: string, etag: string): Promise<DraftSuccess>;
 };
 export type DraftState = {
@@ -38,7 +39,7 @@ export type DraftState = {
 };
 type Pending =
   | { kind: "save"; input: DraftSave; key: string; etag?: string }
-  | { kind: "promote" | "abandon"; key: string; etag: string };
+  | { kind: "promote" | "abandon" | "convert"; key: string; etag: string };
 function copy<T>(value: T): T {
   return structuredClone(value);
 }
@@ -94,6 +95,7 @@ export function createDraftRecovery(options: {
   };
   const listeners = new Set<() => void>();
   let pending: Pending | undefined;
+  let admissionRetry: Pending | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let composition = false;
   let stopped = false;
@@ -146,11 +148,14 @@ export function createDraftRecovery(options: {
               command.key,
               command.etag,
             )
-          : command.kind === "abandon" && transport.abandon
-            ? await transport.abandon(state.id, command.key, command.etag)
-            : await transport.promote(state.id, command.key, command.etag);
+          : command.kind === "convert" && transport.convert
+            ? await transport.convert(state.id, command.key, command.etag)
+            : command.kind === "abandon" && transport.abandon
+              ? await transport.abandon(state.id, command.key, command.etag)
+              : await transport.promote(state.id, command.key, command.etag);
       if (stopped || expected !== epoch) return;
       pending = undefined;
+      admissionRetry = undefined;
       const record = copy(result.draft);
       const dirty = !equal(state.values, record.payload);
       emit({
@@ -197,6 +202,10 @@ export function createDraftRecovery(options: {
           work: { ...state.work, inFlight: false, outcomeUnknown: true },
         });
       } else if (error instanceof DraftRequestError && error.status < 500) {
+        // Admission is known to have rejected this command. Keep its explicit
+        // retry intent without claiming an unknown outcome or blocking edits.
+        admissionRetry =
+          error.status === 429 && command.kind !== "save" ? command : undefined;
         pending = undefined;
         const dirty =
           !state.committed || !equal(state.values, state.committed.payload);
@@ -255,6 +264,7 @@ export function createDraftRecovery(options: {
     epoch++;
     cancelTimer();
     pending = undefined;
+    admissionRetry = undefined;
     emit({
       values: {},
       pendingPromotion: false,
@@ -291,6 +301,7 @@ export function createDraftRecovery(options: {
         (state.committed && state.committed.lifecycle !== "active")
       )
         return;
+      if (!equal(state.values, values)) admissionRetry = undefined;
       const dirty = !state.committed || !equal(values, state.committed.payload);
       emit({
         values: copy(values),
@@ -315,6 +326,11 @@ export function createDraftRecovery(options: {
     },
     save,
     async retry() {
+      if (composition && admissionRetry) return;
+      if (!pending && admissionRetry && !state.work.dirty) {
+        pending = admissionRetry;
+        admissionRetry = undefined;
+      }
       if (pending) await execute();
       else await save();
     },
@@ -338,6 +354,27 @@ export function createDraftRecovery(options: {
           });
       }
     },
+    async convert() {
+      cancelTimer();
+      if (
+        !transport.convert ||
+        stopped ||
+        composition ||
+        pending ||
+        state.work.inFlight ||
+        state.work.dirty ||
+        state.status !== "saved" ||
+        !state.committed
+      )
+        return;
+      admissionRetry = undefined;
+      pending = {
+        kind: "convert",
+        key: key(),
+        etag: `"v${state.committed.version}"`,
+      };
+      await execute();
+    },
     async promote() {
       cancelTimer();
       if (
@@ -350,6 +387,7 @@ export function createDraftRecovery(options: {
         !state.committed
       )
         return;
+      admissionRetry = undefined;
       pending = {
         kind: "promote",
         key: key(),
@@ -370,6 +408,7 @@ export function createDraftRecovery(options: {
         !transport.abandon
       )
         return;
+      admissionRetry = undefined;
       pending = {
         kind: "abandon",
         key: key(),
@@ -403,6 +442,7 @@ export function createDraftRecovery(options: {
       epoch++;
       cancelTimer();
       pending = undefined;
+      admissionRetry = undefined;
       state = {
         ...state,
         values: {},

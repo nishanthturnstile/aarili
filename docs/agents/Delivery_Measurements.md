@@ -1,5 +1,34 @@
 # Delivery measurements
 
+## Issue #120 — atomic grouped intake / 1.2.2c
+
+- Owner selected #120 on 20 October after B merged at **12:03:15 IST**. Direct
+  blockers #119/#114/#101 were verified merged; branch
+  `codex/multi-garment-acceptance` starts at integrated development `7b1ca94`.
+  Implementation was underway by **12:06:06 IST**; the exact first-edit time,
+  active coding and rework durations were not separately instrumented.
+- Initial C PostgreSQL **2/2, 22.15s** after correcting SQL BOM/alias errors.
+  C scope **12 passed / 1 fixture failure, 103.05s**; corrected salwar/blouse
+  fixture follow-up **1/1, 12.73s**. Full affected four-file PostgreSQL
+  regression **63/63, 406.17s**. Logs and unaffected-evidence reuse are recorded
+  in [intake evidence](Grouped_Bookings_Intake_Implementation_Evidence.md).
+- Initial unit/recovery selection **23/23, 1.08s**. Final C PostgreSQL after the
+  exact pre-acceptance piece projection **16/16, 140.12s**; Tamil bounds follow-up
+  **1/1, 11.52s**. Sequential `verify:fast` finished **13:39:06 IST**, native exit
+  0: **243/243 tests, 15.78s**, all fast gates and production build **13.07s**.
+- First usable disposable owner host observed by **13:28:24 IST**; actual packet,
+  browser recovery/failure honesty and source hashes are in the intake evidence.
+  B browser confirmation passed at all three sizes. Final C browser **3/3, 3.3m**
+  completed by **13:46:22 IST**; all 18 scoped workflows have passing evidence
+  through explicit unchanged-path reuse and targeted confirmations. Independent
+  review found two UI gaps; one batch reused existing columns and added row cues.
+  Post-fix fast gate finished **13:52:40 IST**, **243/243, 20.12s**, production
+  build **21.975s**. Post-fix browser **6/6, 4.7m**, observed by **13:57:54 IST**.
+  Reviewer scored both fixes resolved, ship at that scope. The fresh documenter
+  preserved the incumbent system; software/packet review-ready observed
+  **13:59:25 IST**. PR/CI times follow publication. Human acceptance remains
+  pending. Overlapping commands are not added to active implementation time.
+
 ## Grouped bookings 1.2.2 preparation, 19 October 2026
 
 Research/design/ticket preparation only, based on integrated development

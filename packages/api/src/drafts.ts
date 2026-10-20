@@ -231,6 +231,38 @@ export function createDraftRoutes(
     .openapi(
       createRoute({
         method: "post",
+        path: "/shops/{shopId}/drafts/{id}/convert",
+        request: {
+          params,
+          headers,
+          body: {
+            required: true,
+            content: { "application/json": { schema: draftPromotionSchema } },
+          },
+        },
+        responses: { 200: success, ...failures },
+      }),
+      async (c) => {
+        const { shopId, id } = c.req.valid("param");
+        const result = await owner.withOwnerDraft(
+          c.req.raw.headers,
+          shopId,
+          (ctx) =>
+            mutateDraft(ctx, id, "convert", c.req.valid("json"), {
+              key: c.req.header("Idempotency-Key"),
+              ifMatch: c.req.header("If-Match"),
+              requestId: c.get("requestId"),
+            }),
+        );
+        c.header("ETag", versionTag(result.data.draft.version));
+        for (const cookie of result.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(draftSuccessSchema.parse(result.data), 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
         path: "/shops/{shopId}/drafts/{id}/promote",
         request: {
           params,

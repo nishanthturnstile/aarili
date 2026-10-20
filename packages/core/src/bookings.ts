@@ -149,6 +149,13 @@ async function resolve(ctx: QuickOrderContext, v: BookingDraft, lock: boolean) {
   if (target?.version === 2147483647) fail(409, "REQUEST_CONFLICT");
   if (target && target.customerId !== v.customerId)
     fail(409, "REQUEST_CONFLICT");
+  if (
+    target &&
+    v.orders.length &&
+    (await ctx.acceptance?.repository.groups.commercial(target.id))?.basis ===
+      "package-proposal"
+  )
+    fail(409, "REQUEST_CONFLICT");
   const added = [];
   for (const source of v.orders) {
     const o = await readAcceptedOrder(ctx, source.id);
@@ -228,7 +235,21 @@ export async function readBooking(
   );
   if (record.revision.context.payerId)
     await readCustomer(ctx.customers, record.revision.context.payerId);
-  return { booking: record, orders, summary: bookingPriceSummary(orders) };
+  const commercial =
+    (await ctx.acceptance?.repository.groups.commercial(record.id)) ?? null;
+  return {
+    booking: record,
+    orders,
+    commercial,
+    summary:
+      commercial?.basis === "package-proposal"
+        ? {
+            basis: "package-proposal" as const,
+            packagePaise: commercial.packagePaise,
+            allocation: "unresolved" as const,
+          }
+        : bookingPriceSummary(orders),
+  };
 }
 export async function listBookings(ctx: QuickOrderContext, before?: string) {
   const rows = await repo(ctx).list(before);

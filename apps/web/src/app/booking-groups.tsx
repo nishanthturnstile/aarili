@@ -21,6 +21,7 @@ import {
   draftMessages,
   formatBookingPaise,
   formatOrderPaise,
+  groupIntakeMessages,
   type Locale,
   orderAcceptanceMessages,
   orderPieceMessages,
@@ -91,14 +92,23 @@ function Garment({
         </dd>
         <dt>{a.price}</dt>
         <dd>
-          {order.pricePaise === null
-            ? locale === "ta"
-              ? "விலை குறிப்பிடப்படவில்லை"
-              : "To be quoted"
-            : formatOrderPaise(order.pricePaise, locale)}
+          {order.commercial
+            ? groupIntakeMessages[locale].included
+            : order.pricePaise === null
+              ? locale === "ta"
+                ? "விலை குறிப்பிடப்படவில்லை"
+                : "To be quoted"
+              : formatOrderPaise(order.pricePaise, locale)}
         </dd>
       </dl>
       <p>{order.intake.instructions}</p>
+      {order.commercial && (
+        <p>
+          {groupIntakeMessages[locale].included}{" "}
+          {groupIntakeMessages[locale].reference}:{" "}
+          {formatOrderPaise(order.commercial.referencePaise, locale)}
+        </p>
+      )}
       <p>{t.booked}</p>
       {showPieces && (
         <OrderPiecesDetail
@@ -370,11 +380,15 @@ function Editor({
             <div className="booking-garments">
               <section aria-label={t.choose}>
                 <h3>{t.choose}</h3>
+                {target?.commercial?.basis === "package-proposal" && (
+                  <p>{groupIntakeMessages[locale].frozen}</p>
+                )}
                 {choices.length === 0 && <p>{t.noChoices}</p>}
                 <ul className="order-choices">
                   {choices
                     .filter(
                       (o) =>
+                        target?.commercial?.basis !== "package-proposal" &&
                         (!v.customerId ||
                           o.intake.customerId === v.customerId) &&
                         !v.orders.some((s) => s.id === o.id) &&
@@ -449,22 +463,39 @@ function Editor({
                 ))}
               </section>
             </div>
+            {target?.commercial?.basis === "package-proposal" ? (
+              <p>
+                {groupIntakeMessages[locale].packagePrice}:{" "}
+                {target.commercial.packagePaise === null
+                  ? groupIntakeMessages[locale].packageUnknown
+                  : formatBookingPaise(
+                      target.commercial.packagePaise,
+                      locale,
+                    )}{" "}
+                · {groupIntakeMessages[locale].allocation}
+              </p>
+            ) : (
+              <p>
+                {t.subtotal}:{" "}
+                {formatBookingPaise(
+                  [...(target?.orders ?? []), ...selected]
+                    .reduce((sum, o) => sum + BigInt(o.pricePaise ?? 0), 0n)
+                    .toString(),
+                  locale,
+                )}{" "}
+                · {t.unknown}:{" "}
+                {
+                  [...(target?.orders ?? []), ...selected].filter(
+                    (o) => o.pricePaise === null,
+                  ).length
+                }
+              </p>
+            )}
             <p>
-              {t.subtotal}:{" "}
-              {formatBookingPaise(
-                [...(target?.orders ?? []), ...selected]
-                  .reduce((sum, o) => sum + BigInt(o.pricePaise ?? 0), 0n)
-                  .toString(),
-                locale,
-              )}{" "}
-              · {t.unknown}:{" "}
-              {
-                [...(target?.orders ?? []), ...selected].filter(
-                  (o) => o.pricePaise === null,
-                ).length
-              }
+              {target?.commercial?.basis === "package-proposal"
+                ? groupIntakeMessages[locale].noPayment
+                : t.prices}
             </p>
-            <p>{t.prices}</p>
             {(failed || s.status === "conflict" || s.error) && (
               <div role="alert">
                 <p>{t.error}</p>
@@ -575,11 +606,13 @@ export function BookingGroups({
   guard,
   locale,
   back,
+  initialBookingRevision,
 }: {
   shopId: string;
   guard: OwnerGuard;
   locale: Locale;
   back: () => void;
+  initialBookingRevision?: string | undefined;
 }) {
   const t = bookingMessages[locale],
     [scope] = useState(() => createDraftScope(shopId, guard));
@@ -595,12 +628,35 @@ export function BookingGroups({
     [order, setOrder] = useState<AcceptedOrder>(),
     [history, setHistory] =
       useState<Awaited<ReturnType<typeof historyBooking>>>(),
-    [busy, setBusy] = useState(false),
+    [busy, setBusy] = useState(!!initialBookingRevision),
     [failed, setFailed] = useState(false),
     [detailed, setDetailed] = useState(false);
   const alive = useRef(true),
     selected = useRef<DraftRecovery | undefined>(undefined),
     safe = useSyncExternalStore(guard.subscribe, guard.safe, () => true);
+  useEffect(() => {
+    if (!initialBookingRevision) return;
+    let active = true;
+    setBusy(true);
+    void readBooking(shopId, initialBookingRevision, true).then(
+      (r) => {
+        if (active) {
+          setDetail(r);
+          setFailed(false);
+          setBusy(false);
+        }
+      },
+      () => {
+        if (active) {
+          setFailed(true);
+          setBusy(false);
+        }
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [initialBookingRevision, shopId]);
   useEffect(() => {
     alive.current = true;
     const stop = onOwnerInvalidation(() => {
@@ -688,6 +744,7 @@ export function BookingGroups({
     });
   }
   useEffect(() => {
+    if (initialBookingRevision) return;
     let active = true;
     setBusy(true);
     void Promise.all([
@@ -721,7 +778,7 @@ export function BookingGroups({
     return () => {
       active = false;
     };
-  }, [shopId, scope]);
+  }, [shopId, scope, initialBookingRevision]);
   function release() {
     if (selected.current) scope.release(selected.current);
     selected.current = undefined;
@@ -878,12 +935,26 @@ export function BookingGroups({
             · {detail.booking.revision.context.eventDate}
           </p>
           <p>{detail.booking.revision.context.notes}</p>
+          {detail.summary.basis === "garment-prices" ? (
+            <p>
+              {t.subtotal}:{" "}
+              {formatBookingPaise(detail.summary.knownSubtotalPaise, locale)} ·{" "}
+              {t.unknown}: {detail.summary.unknownCount}
+            </p>
+          ) : (
+            <p>
+              {groupIntakeMessages[locale].packagePrice}:{" "}
+              {detail.summary.packagePaise === null
+                ? groupIntakeMessages[locale].packageUnknown
+                : formatBookingPaise(detail.summary.packagePaise, locale)}{" "}
+              · {groupIntakeMessages[locale].allocation}
+            </p>
+          )}
           <p>
-            {t.subtotal}:{" "}
-            {formatBookingPaise(detail.summary.knownSubtotalPaise, locale)} ·{" "}
-            {t.unknown}: {detail.summary.unknownCount}
+            {detail.summary.basis === "package-proposal"
+              ? groupIntakeMessages[locale].noPayment
+              : t.prices}
           </p>
-          <p>{t.prices}</p>
           <p>{t.independent}</p>
           <Button
             disabled={!safe || busy}
@@ -896,9 +967,13 @@ export function BookingGroups({
                 context: r.booking.revision.context,
               });
               setTarget(r);
+              if (r.commercial?.basis !== "package-proposal")
+                void run(() => loadChoices());
             }}
           >
-            {t.edit}
+            {detail.commercial?.basis === "package-proposal"
+              ? groupIntakeMessages[locale].contextEdit
+              : t.edit}
           </Button>
           <label className="order-check">
             <input

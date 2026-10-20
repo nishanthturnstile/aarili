@@ -563,9 +563,13 @@ export function AcceptedOrderDetail({
         <dd>{order.intake.eventDate || "—"}</dd>
         <dt>{t.price}</dt>
         <dd>
-          {order.intake.priceState === "to-be-quoted"
-            ? t.toQuote
-            : formatOrderPaise(order.pricePaise, locale)}
+          {order.commercial
+            ? locale === "ta"
+              ? "தொகுப்பில் அடங்கும்; ஆடை பங்கீடு தெரியவில்லை"
+              : "Included in package; line allocation unknown"
+            : order.intake.priceState === "to-be-quoted"
+              ? t.toQuote
+              : formatOrderPaise(order.pricePaise, locale)}
         </dd>
         <dt>{t.owner}</dt>
         <dd>{locale === "ta" ? "கடை உரிமையாளர்" : "Shop owner"}</dd>

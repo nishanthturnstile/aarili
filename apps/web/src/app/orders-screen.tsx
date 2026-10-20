@@ -23,6 +23,7 @@ import { presentServiceRequirements } from "@aarili/contracts/service-templates"
 import type { WearerProfile } from "@aarili/contracts/wearers";
 import {
   bookingMessages,
+  groupIntakeMessages,
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
@@ -37,6 +38,7 @@ import { BookingGroups } from "./booking-groups";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
+import { GroupIntake } from "./group-intake";
 import { AcceptedOrderDetail, CommitmentReview } from "./order-acceptance";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
@@ -50,18 +52,20 @@ function address(id?: string) {
   else u.searchParams.delete("draft");
   window.history.replaceState(null, "", `${u.pathname}${u.search}`);
 }
-function Fields({
+export function QuickOrderFields({
   form,
   controller,
   shopId,
   t,
   locale,
+  grouped = false,
 }: {
   form: UseFormReturn<QuickOrderDraft>;
   controller: DraftRecovery;
   shopId: string;
   t: T;
   locale: Locale;
+  grouped?: boolean;
 }) {
   const s = useSyncExternalStore(
     controller.subscribe,
@@ -478,21 +482,27 @@ function Fields({
           <p>{t.sourceMissing}</p>
         )}
       </section>
-      <Button
-        type="button"
-        disabled={
-          s.work.inFlight || s.work.outcomeUnknown || s.status === "conflict"
-        }
-        onClick={() => void controller.save()}
-      >
-        {t.save}
-      </Button>
-      <CommitmentReview
-        shopId={shopId}
-        controller={controller}
-        form={form}
-        locale={locale}
-      />
+      {!grouped && (
+        <>
+          <Button
+            type="button"
+            disabled={
+              s.work.inFlight ||
+              s.work.outcomeUnknown ||
+              s.status === "conflict"
+            }
+            onClick={() => void controller.save()}
+          >
+            {t.save}
+          </Button>
+          <CommitmentReview
+            shopId={shopId}
+            controller={controller}
+            form={form}
+            locale={locale}
+          />
+        </>
+      )}
     </>
   );
 }
@@ -531,6 +541,23 @@ function Editor({
       <h2 tabIndex={-1} ref={heading}>
         {t.newDraft}
       </h2>
+      <Button
+        variant="outline"
+        disabled={
+          s.work.inFlight ||
+          s.work.outcomeUnknown ||
+          s.status === "conflict" ||
+          s.status === "promoted"
+        }
+        onClick={() =>
+          void (async () => {
+            await controller.save();
+            await controller.convert();
+          })()
+        }
+      >
+        {groupIntakeMessages[locale].convert}
+      </Button>
       <DraftForm
         controller={controller}
         schema={quickOrderDraftSchema}
@@ -586,7 +613,7 @@ function Editor({
         }}
       >
         {(form) => (
-          <Fields
+          <QuickOrderFields
             form={form}
             controller={controller}
             shopId={shopId}
@@ -639,6 +666,9 @@ export function OrdersScreen({
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
   const [grouping, setGrouping] = useState(false);
+  const [groupIntake, setGroupIntake] = useState(false),
+    [convertedId, setConvertedId] = useState<string>(),
+    [groupBooking, setGroupBooking] = useState<string>();
   const [scope] = useState(() => createDraftScope(shopId, guard));
   const safe = useSyncExternalStore(guard.subscribe, guard.safe, () => true);
   const [controller, setController] = useState<DraftRecovery>(),
@@ -683,6 +713,13 @@ export function OrdersScreen({
       record.result?.type === "order.accepted"
     )
       void openOrder(record.result.id);
+    if (
+      record.lifecycle === "promoted" &&
+      record.result?.type === "order.group-draft"
+    ) {
+      setConvertedId(record.result.id);
+      setGroupIntake(true);
+    }
   }
   async function openOrder(id: string) {
     setWorking(true);
@@ -761,15 +798,18 @@ export function OrdersScreen({
   // Scope identity changes remount this screen. Never persist private draft lists.
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial URL read belongs to this scope lifetime
   useEffect(() => {
-    void refresh();
-    void refreshOrders();
     const orderId = new URL(window.location.href).searchParams.get("order");
     if (orderId) {
       void openOrder(orderId);
       return;
     }
     const id = new URL(window.location.href).searchParams.get("draft");
-    if (id) void resume(id);
+    if (id) {
+      void resume(id);
+      return;
+    }
+    void refresh();
+    void refreshOrders();
   }, [scope]);
   async function resume(id: string) {
     setWorking(true);
@@ -777,6 +817,22 @@ export function OrdersScreen({
     try {
       const r = await scope.read(id);
       if (!active.current) return;
+      if (r.workflow === "order.group") {
+        address();
+        setConvertedId(r.id);
+        setGroupIntake(true);
+        return;
+      }
+      if (
+        r.workflow === "order.quick" &&
+        r.lifecycle === "promoted" &&
+        r.result?.type === "order.group-draft"
+      ) {
+        address();
+        setConvertedId(r.result.id);
+        setGroupIntake(true);
+        return;
+      }
       const p = quickOrderDraftSchema.safeParse(r.payload);
       if (
         r.workflow === "order.quick" &&
@@ -826,7 +882,7 @@ export function OrdersScreen({
       if (active.current) setWorking(false);
     }
   }
-  function close(force = false) {
+  function close(force = false, refreshLists = true) {
     const c = selected.current;
     if (
       c &&
@@ -848,8 +904,10 @@ export function OrdersScreen({
     const u = new URL(window.location.href);
     u.searchParams.delete("order");
     window.history.replaceState(null, "", `${u.pathname}${u.search}`);
-    void refresh();
-    void refreshOrders();
+    if (refreshLists) {
+      void refresh();
+      void refreshOrders();
+    }
   }
   if (grouping)
     return (
@@ -857,7 +915,34 @@ export function OrdersScreen({
         shopId={shopId}
         guard={guard}
         locale={locale}
-        back={() => setGrouping(false)}
+        back={() => {
+          setGrouping(false);
+          setGroupBooking(undefined);
+          void refresh();
+          void refreshOrders();
+        }}
+        initialBookingRevision={groupBooking}
+      />
+    );
+  if (groupIntake)
+    return (
+      <GroupIntake
+        shopId={shopId}
+        guard={guard}
+        locale={locale}
+        initialDraftId={convertedId}
+        back={() => {
+          setGroupIntake(false);
+          setConvertedId(undefined);
+          close(true);
+        }}
+        onBooked={(id) => {
+          setGroupIntake(false);
+          setConvertedId(undefined);
+          setGroupBooking(id);
+          setGrouping(true);
+          close(true, false);
+        }}
       />
     );
   return (
@@ -871,6 +956,16 @@ export function OrdersScreen({
         {bookingMessages[locale].title}
       </Button>
       <div className="owner-actions">
+        <Button
+          variant="outline"
+          disabled={working || !safe || !!controller}
+          onClick={() => {
+            setConvertedId(undefined);
+            setGroupIntake(true);
+          }}
+        >
+          {groupIntakeMessages[locale].new}
+        </Button>
         <Button
           disabled={working || (!!accepted && !safe)}
           onClick={() => void start()}

@@ -29,6 +29,11 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  convert?(
+    payload: Record<string, unknown>,
+    draftId: string,
+    request: { key: string; requestId: string },
+  ): Promise<DraftResult>;
   authorizeDraft?(payload: Record<string, unknown>): Promise<void>;
   authorizePublication?(command: Record<string, unknown>): Promise<void>;
   schemaVersion: number;
@@ -137,7 +142,7 @@ export async function listDrafts(
 export async function mutateDraft(
   ctx: DraftContext,
   id: string,
-  action: "save" | "promote" | "abandon",
+  action: "save" | "promote" | "abandon" | "convert",
   input: unknown,
   headers: DraftHeaders,
 ): Promise<DraftSuccess> {
@@ -249,6 +254,17 @@ export async function mutateDraft(
   } else {
     if (!current) fail(404, "NOT_FOUND");
     let result: DraftResult | null = null;
+    if (action === "convert") {
+      const adapter = workflow(ctx, current.workflow, current.schemaVersion);
+      if (!adapter.convert) fail(409, "REQUEST_CONFLICT");
+      result = draftResultSchema.parse(
+        await adapter.convert(current.payload, id, {
+          key,
+          requestId: headers.requestId,
+        }),
+      );
+      await adapter.verifyResult(result, id);
+    }
     if (action === "promote") {
       const adapter = workflow(ctx, current.workflow, current.schemaVersion);
       const complete = adapter.commandSchema.safeParse(current.payload);
@@ -265,7 +281,8 @@ export async function mutateDraft(
     }
     draft = {
       ...current,
-      lifecycle: action === "promote" ? "promoted" : "abandoned",
+      lifecycle:
+        action === "promote" || action === "convert" ? "promoted" : "abandoned",
       version: current.version + 1,
       updatedAt: now,
       stale: false,
@@ -296,7 +313,7 @@ export async function mutateDraft(
       event:
         action === "save"
           ? "saved"
-          : action === "promote"
+          : action === "promote" || action === "convert"
             ? "promoted"
             : "abandoned",
       schemaVersion: draft.schemaVersion,

@@ -1,5 +1,6 @@
 import {
   abandonDraft,
+  convertDraft,
   getDraft,
   getDrafts,
   onOwnerInvalidation,
@@ -70,6 +71,7 @@ export function createDraftScope(
           read: (id) => getDraft(shopId, id),
           save: (id, input, key, etag) =>
             putDraft(shopId, id, input, key, etag),
+          convert: (id, key, etag) => convertDraft(shopId, id, key, etag),
           promote: (id, key, etag) => promoteDraft(shopId, id, key, etag),
           abandon: (id, key, etag) => abandonDraft(shopId, id, key, etag),
         },
