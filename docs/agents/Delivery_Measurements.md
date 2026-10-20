@@ -26,7 +26,10 @@
   build **21.975s**. Post-fix browser **6/6, 4.7m**, observed by **13:57:54 IST**.
   Reviewer scored both fixes resolved, ship at that scope. The fresh documenter
   preserved the incumbent system; software/packet review-ready observed
-  **13:59:25 IST**. PR/CI times follow publication. Human acceptance remains
+  **13:59:25 IST**. Draft [PR #123](https://github.com/nishanthturnstile/aarili/pull/123)
+  opened **14:00:27 IST**; initial-head CI observed **14:00:39 IST** with fast
+  queued/dependency audit running. Documentation-only follow-up retains all
+  verified source hashes; no latest-head CI pass is claimed. Human acceptance remains
   pending. Overlapping commands are not added to active implementation time.
 
 ## Grouped bookings 1.2.2 preparation, 19 October 2026

@@ -241,9 +241,17 @@ Report: `.scratch/grouped-bookings/c-documentation-report.md`. Pre-existing
 supported-surface inventory drift in the design-system document was reported
 without changing the baseline or creating new design-system artifacts.
 
-Software/packet review-ready observed **13:59:25 IST, 20 October**. The focused
-draft PR and hosted-check observation are recorded after publication; owner
-acceptance, CI, merge and live activation remain separate gates.
+Software/packet review-ready observed **13:59:25 IST, 20 October**.
+[Draft PR #123](https://github.com/nishanthturnstile/aarili/pull/123) opened at
+**08:30:27 UTC / 14:00:27 IST** against `development`, implementation commit
+`92d6a18`, and was immediately registered with this T3 thread. This publication
+metadata follow-up changes documentation only; all 37 verified source blobs
+remain identical. Initial feature run
+[39393898720](https://github.com/nishanthturnstile/aarili/actions/runs/39393898720)
+was observed at **14:00:39 IST** with Fast verification queued and Dependency
+audit in progress; full scaffold/browser jobs skipped per feature workflow.
+That is an initial-head observation, not a latest-head CI pass. Owner acceptance,
+current-head CI, merge and live activation remain separate gates.
 
 ## Acceptance mapping
 

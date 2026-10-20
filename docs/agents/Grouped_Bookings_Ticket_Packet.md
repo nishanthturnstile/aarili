@@ -1,7 +1,7 @@
 # Grouped bookings and outfit pieces: approved vertical tickets
 
 19 October 2026; updated 20 October. **A–C approved; A/B merged in #121/#122;
-C (#120) selected for implementation.**
+C (#120) implemented in draft PR #123 for owner review.**
 Roadmap **1.2.2**; [independent design and GB matrix](Grouped_Bookings_Design.md),
 [REA evidence](Grouped_Bookings_REA_Evidence.md),
 [verification status](Grouped_Bookings_Implementation_Evidence.md).

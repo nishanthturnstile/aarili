@@ -1,7 +1,7 @@
 # Grouped bookings 1.2.2: preparation and owner-review status
 
 19 October 2026; current frontier updated 20 October. **A–C approved/published
-as #118–#120; A/B merged through #121/#122; C (#120) selected.**
+as #118–#120; A/B merged through #121/#122; C (#120) in draft PR #123.**
 The research/preparation record below is historical. A's application implementation,
 verification and running owner review are tracked in
 [piece implementation evidence](Grouped_Bookings_Pieces_Implementation_Evidence.md).
