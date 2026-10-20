@@ -6,6 +6,7 @@ import {
   draftMessages,
   groupIntakeMessages,
   serviceAdditionMessages,
+  serviceLineMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
 import AxeBuilder from "@axe-core/playwright";
@@ -376,8 +377,19 @@ test("SS-B accepted service drafts, exact supplemental history, conversion and b
           await expect(
             section.getByRole("button", { name: t.review, exact: true }),
           ).toHaveCount(0, { timeout: 15000 });
+          await expect(
+            page.getByRole("region", {
+              name: serviceLineMessages[locale].title,
+              exact: true,
+            }),
+          ).toContainText(`${serviceLineMessages[locale].summary}: 2`);
           await section.getByText(t.history, { exact: true }).click();
-          await expect(section.getByText(text, { exact: true })).toBeVisible();
+          const acceptedHistory = section
+            .locator("details")
+            .filter({ has: page.getByText(t.history, { exact: true }) });
+          await expect(
+            acceptedHistory.getByText(text, { exact: true }),
+          ).toBeVisible();
           const after = await setup(`orders/${orderId}/read`, { body: {} }),
             current = await setup(`small-services/scope/${orderId}`, {
               method: "GET",

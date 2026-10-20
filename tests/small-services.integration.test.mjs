@@ -12,6 +12,7 @@ import { migrateDatabase } from "../scripts/migrate.mjs";
 import { withHistoricalCustomReader } from "../scripts/test-support/historical-custom-reader.mjs";
 import { seedOrderAcceptance } from "../scripts/test-support/order-acceptance.mjs";
 import { seedQuickOrder } from "../scripts/test-support/seed-quick-order.mjs";
+import { seedServiceAdditions } from "../scripts/test-support/service-additions.mjs";
 import {
   seedSmallServices,
   serviceDraftId,
@@ -134,7 +135,7 @@ function requests(f) {
     };
   };
 }
-async function fixture(work) {
+async function fixture(work, options = {}) {
   return withTenantFixture(
     async (f) => {
       f.api = createApi(async () => true, {
@@ -146,6 +147,7 @@ async function fixture(work) {
         setup: f.ok,
         runtime: f.runtime.pool,
         shopId: f.a.shop,
+        taskLinked: options.taskLinked ?? false,
       });
       try {
         await work(f);
@@ -153,7 +155,7 @@ async function fixture(work) {
         await f.services.close();
       }
     },
-    { customerPolicy: syntheticCustomerPolicy },
+    { customerPolicy: syntheticCustomerPolicy, ...options },
   );
 }
 const fresh = (v) => ({
@@ -162,6 +164,120 @@ const fresh = (v) => ({
   lines: v.lines.map((l) => ({ ...l, id: randomUUID() })),
   commitmentReview: null,
 });
+test(
+  "SS-C/ORD-14 taskless completion is independent, corrected by linked history, retry safe and capacity neutral",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const accepted = await f.accept(f.services.saree.intake),
+        id = accepted.order.id;
+      const path = `small-services/progress/${id}`;
+      const view = await f.ok(path, { method: "GET" });
+      assert.equal(view.lines.length, 2);
+      assert.equal(view.summary.pending, 2);
+      const line = view.lines[0],
+        key = randomUUID();
+      const body = {
+        commandId: randomUUID(),
+        action: "complete",
+        orderVersion: view.orderVersion,
+        scopeDigest: view.scopeDigest,
+        sourceId: line.sourceId,
+        sourceDigest: line.sourceDigest,
+        attested: true,
+        note: "SYNTHETIC owner checked fall work",
+      };
+      const target = `${path}/lines/${line.line.id}`;
+      const before = await counts(f);
+      assert.equal((await f.request(target, { body })).status, 428);
+      assert.equal(
+        (await f.request(target, { body: { ...body, note: "" }, etag: '"v1"' }))
+          .status,
+        422,
+      );
+      const r = await f.request(target, { body, etag: '"v1"', key });
+      assert.equal(r.status, 200, await r.clone().text());
+      const result = await r.json();
+      assert.equal(result.version, 2);
+      assert.deepEqual(await f.ok(target, { body, etag: '"v1"', key }), result);
+      assert.equal(
+        (
+          await f.request(target, {
+            body: { ...body, sourceId: randomUUID() },
+            etag: '"v1"',
+            key,
+          })
+        ).status,
+        422,
+        "changed bound source is a payload mismatch, after current authorization",
+      );
+      const after = await f.ok(path, { method: "GET" });
+      assert.equal(after.summary.completed, 1);
+      assert.equal(after.summary.pending, 1);
+      const done = after.lines.find((l) => l.line.id === line.line.id);
+      assert.equal(done.history.length, 1);
+      assert.equal(done.history[0].note, body.note);
+      assert.equal((await counts(f)).demand, before.demand);
+      const { audit: beforeAudit, keys: beforeKeys, ...beforeEffects } = before;
+      const {
+        audit: afterAudit,
+        keys: afterKeys,
+        ...afterEffects
+      } = await counts(f);
+      assert.deepEqual(
+        afterEffects,
+        beforeEffects,
+        "completion changes no money, queue, requirements, property, garment or demand rows",
+      );
+      assert.equal(afterAudit, beforeAudit + 1);
+      assert.equal(afterKeys, beforeKeys + 1);
+      assert.deepEqual(
+        await f.ok(`small-services/orders/${id}`, { method: "GET" }),
+        accepted.order,
+      );
+      assert.equal(
+        (
+          await f.request(target, {
+            body: { ...body, commandId: randomUUID() },
+            etag: '"v1"',
+          })
+        ).status,
+        412,
+      );
+      assert.equal(
+        (
+          await f.request(target, {
+            body: { ...body, note: "changed" },
+            etag: '"v1"',
+            key,
+          })
+        ).status,
+        422,
+      );
+      const correction = {
+        commandId: randomUUID(),
+        action: "correct",
+        orderVersion: after.orderVersion,
+        scopeDigest: after.scopeDigest,
+        sourceId: line.sourceId,
+        sourceDigest: line.sourceDigest,
+        correctionOf: result.transitionId,
+        reason: "SYNTHETIC completion entered against wrong line",
+      };
+      const corrected = await f.ok(target, { body: correction, etag: '"v2"' });
+      assert.equal(corrected.version, 3);
+      const final = await f.ok(path, { method: "GET" });
+      assert.equal(final.summary.pending, 2);
+      assert.equal(
+        final.lines.find((l) => l.line.id === line.line.id).history.length,
+        2,
+      );
+      assert.equal(
+        (await f.request(path, { method: "GET", who: f.b })).status,
+        404,
+      );
+    }),
+);
 async function counts(f) {
   return (
     await f.admin.query(`select
@@ -181,6 +297,607 @@ async function counts(f) {
     (select count(*)::int from pgboss.job) jobs`)
   ).rows[0];
 }
+
+test(
+  "SS-C expand migration retains existing A/B snapshots, grouped scope and demand, with initial progress version one",
+  { timeout: 240000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const standalone = await f.accept(f.services.saree.intake);
+        const additions = await seedServiceAdditions({
+          setup: f.ok,
+          runtime: f.runtime.pool,
+          shopId: f.a.shop,
+          services: f.services,
+        });
+        const value = structuredClone(additions.change),
+          r = await f.ok("small-services/changes/review", { body: value });
+        assert.deepEqual(r.issues, []);
+        value.review = {
+          fingerprint: r.fingerprint,
+          acknowledged: true,
+          exceptionReason: "SYNTHETIC upgrade reviewed addition",
+          waiveRush: false,
+          waiverReason: "",
+        };
+        const d = await f.ok(`drafts/${additions.changeDraftId}`, {
+          method: "GET",
+        });
+        const saved = await f.save(value, {
+          id: d.id,
+          workflow: "order.service-change",
+          etag: `"v${d.version}"`,
+        });
+        const accepted = await f.promote(saved);
+        assert.equal(accepted.status, 200, await accepted.clone().text());
+        const packageOrderId = additions.groups[1].orderIds[0],
+          packageScope = await f.ok(`small-services/scope/${packageOrderId}`, {
+            method: "GET",
+          });
+        const packageChange = {
+          ...structuredClone(value),
+          orderId: packageOrderId,
+          version: packageScope.version,
+          originalDigest: packageScope.originalDigest,
+          scopeDigest: packageScope.scopeDigest,
+          commercial: "outside-package",
+          lines: value.lines.map((l) => ({ ...l, id: randomUUID() })),
+          review: null,
+        };
+        const packageReview = await f.ok("small-services/changes/review", {
+          body: packageChange,
+        });
+        assert.deepEqual(packageReview.issues, []);
+        packageChange.review = {
+          ...value.review,
+          fingerprint: packageReview.fingerprint,
+        };
+        const packageDraft = await f.save(packageChange, {
+          workflow: "order.service-change",
+        });
+        assert.equal((await f.promote(packageDraft)).status, 200);
+        const frozen = async () => ({
+          snapshots: (
+            await f.admin.query(
+              "select * from order_acceptance_snapshot order by order_id",
+            )
+          ).rows,
+          changes: (
+            await f.admin.query(
+              "select * from order_service_change order by id",
+            )
+          ).rows,
+          demand: (
+            await f.admin.query(
+              "select * from order_capacity_demand order by order_id",
+            )
+          ).rows,
+          contributions: (
+            await f.admin.query(
+              "select * from order_service_capacity_contribution order by change_id",
+            )
+          ).rows,
+          commercial: (
+            await f.admin.query(
+              "select * from booking_commercial_revision order by id",
+            )
+          ).rows,
+        });
+        const before = await frozen();
+        await migrateDatabase(f.migrationConnectionString);
+        await assertIsolationCatalog(f.runtime.db);
+        assert.deepEqual(await frozen(), before);
+        for (const id of [
+          standalone.order.id,
+          additions.customId,
+          packageOrderId,
+        ]) {
+          const v = await f.ok(`small-services/progress/${id}`, {
+            method: "GET",
+          });
+          assert.equal(v.lines.length, 2);
+          assert(
+            v.lines.every(
+              (l) =>
+                l.version === 1 &&
+                l.state === "pending" &&
+                l.history.length === 0,
+            ),
+          );
+        }
+        const v = await f.ok(`small-services/progress/${additions.customId}`, {
+            method: "GET",
+          }),
+          l = v.lines[0];
+        const body = {
+          commandId: randomUUID(),
+          action: "complete",
+          orderVersion: v.orderVersion,
+          scopeDigest: v.scopeDigest,
+          sourceId: l.sourceId,
+          sourceDigest: l.sourceDigest,
+          attested: true,
+          note: "SYNTHETIC existing supplemental line checked",
+        };
+        await f.ok(`small-services/progress/${v.orderId}/lines/${l.line.id}`, {
+          body,
+          etag: '"v1"',
+        });
+        assert.deepEqual(await frozen(), before);
+        const packageProgress = await f.ok(
+            `small-services/progress/${packageOrderId}`,
+            { method: "GET" },
+          ),
+          packageLine = packageProgress.lines[0];
+        await f.ok(
+          `small-services/progress/${packageOrderId}/lines/${packageLine.line.id}`,
+          {
+            etag: '"v1"',
+            body: {
+              ...body,
+              commandId: randomUUID(),
+              orderVersion: packageProgress.orderVersion,
+              scopeDigest: packageProgress.scopeDigest,
+              sourceId: packageLine.sourceId,
+              sourceDigest: packageLine.sourceDigest,
+            },
+          },
+        );
+        assert.equal(
+          (
+            await f.ok(`small-services/progress/${packageOrderId}`, {
+              method: "GET",
+            })
+          ).summary.pending,
+          1,
+        );
+        assert.equal(
+          (
+            await f.ok(
+              `small-services/progress/${additions.groups[1].orderIds[1]}`,
+              { method: "GET" },
+            )
+          ).lines.length,
+          0,
+          "completion does not add lines to a sibling garment",
+        );
+        assert.deepEqual(
+          await frozen(),
+          before,
+          "group membership, frozen package proposal and supplemental demand survive completion",
+        );
+        const pending = v.lines[1];
+        let entered, release;
+        const ready = new Promise((r) => {
+            entered = r;
+          }),
+          gate = new Promise((r) => {
+            release = r;
+          });
+        const changing = f.owner.withOwnerQuickOrder(
+          new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
+          f.a.shop,
+          async (ctx) => {
+            const { changeOrderPresentation } = await import(
+              "@aarili/core/orders"
+            );
+            const result = await changeOrderPresentation(
+              ctx,
+              v.orderId,
+              { mode: "detailed" },
+              {
+                key: randomUUID(),
+                requestId: randomUUID(),
+                ifMatch: `"v${v.orderVersion}"`,
+              },
+            );
+            entered();
+            await gate;
+            return result;
+          },
+        );
+        await Promise.race([
+          ready,
+          changing.then(() => assert.fail("SS-C parent write barrier missed")),
+        ]);
+        const completing = f.request(
+          `small-services/progress/${v.orderId}/lines/${pending.line.id}`,
+          {
+            etag: '"v1"',
+            body: {
+              ...body,
+              commandId: randomUUID(),
+              sourceId: pending.sourceId,
+              sourceDigest: pending.sourceDigest,
+            },
+          },
+        );
+        try {
+          await waitForLock(f);
+        } finally {
+          release();
+        }
+        await changing;
+        assert.equal(
+          (await completing).status,
+          412,
+          "SS-C parent scope change wins the actual aggregate lock race",
+        );
+        assert.equal(
+          (
+            await f.ok(`small-services/progress/${v.orderId}`, {
+              method: "GET",
+            })
+          ).summary.pending,
+          1,
+        );
+      },
+      { migrationThrough: "0035_service_order_addons.sql" },
+    ),
+);
+
+test(
+  "SS-C NR and task-linked lines cannot be attested; illegal scope, order and correction references fail closed",
+  { timeout: 240000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const value = fresh(f.services.saree.intake);
+        value.lines.push({
+          id: randomUUID(),
+          key: "pre-pleating",
+          requestedWork: "",
+          priceState: "to-be-quoted",
+          priceText: "",
+          notRequired: true,
+          notRequiredReason: "SYNTHETIC explicitly not requested",
+        });
+        const accepted = await f.accept(value),
+          task = await f.accept(f.services.kurti.intake);
+        for (const [id, blocked] of [
+          [accepted.order.id, "not-required"],
+          [task.order.id, "task-linked"],
+        ]) {
+          const v = await f.ok(`small-services/progress/${id}`, {
+              method: "GET",
+            }),
+            l = v.lines.find((l) => l.blocked === blocked);
+          assert(l);
+          assert.equal(l.eligible, false);
+          const body = {
+            commandId: randomUUID(),
+            action: "complete",
+            orderVersion: v.orderVersion,
+            scopeDigest: v.scopeDigest,
+            sourceId: l.sourceId,
+            sourceDigest: l.sourceDigest,
+            attested: true,
+            note: "SYNTHETIC cannot override applicability or execution",
+          };
+          const target = `small-services/progress/${id}/lines/${l.line.id}`;
+          assert.equal(
+            (await f.request(target, { body, etag: '"v1"' })).status,
+            409,
+          );
+          assert.equal(
+            (
+              await f.request(target, {
+                body: { ...body, attested: false },
+                etag: '"v1"',
+              })
+            ).status,
+            422,
+          );
+          assert.equal(
+            (
+              await f.request(target, {
+                body: { ...body, sourceId: randomUUID() },
+                etag: '"v1"',
+              })
+            ).status,
+            409,
+          );
+          assert.equal(
+            (
+              await f.request(
+                `small-services/progress/${randomUUID()}/lines/${l.line.id}`,
+                { body, etag: '"v1"' },
+              )
+            ).status,
+            404,
+          );
+          assert.equal(
+            (
+              await f.request(
+                `small-services/progress/${id}/lines/${randomUUID()}`,
+                { body, etag: '"v1"' },
+              )
+            ).status,
+            404,
+          );
+        }
+        const v = await f.ok(`small-services/progress/${accepted.order.id}`, {
+            method: "GET",
+          }),
+          l = v.lines.find((l) => l.eligible);
+        const correction = {
+          commandId: randomUUID(),
+          action: "correct",
+          orderVersion: v.orderVersion,
+          scopeDigest: v.scopeDigest,
+          sourceId: l.sourceId,
+          sourceDigest: l.sourceDigest,
+          correctionOf: randomUUID(),
+          reason: "SYNTHETIC cannot correct pending work",
+        };
+        assert.equal(
+          (
+            await f.request(
+              `small-services/progress/${v.orderId}/lines/${l.line.id}`,
+              { body: correction, etag: '"v1"' },
+            )
+          ).status,
+          409,
+        );
+      },
+      { taskLinked: true },
+    ),
+);
+
+test(
+  "SS-C AC-55/60 actual-write rollback, concurrent CAS, durable replay and audited note erasure",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const accepted = await f.accept(f.services.saree.intake),
+        id = accepted.order.id,
+        path = `small-services/progress/${id}`;
+      let view = await f.ok(path, { method: "GET" });
+      const line = view.lines[0],
+        target = `${path}/lines/${line.line.id}`;
+      const body = {
+          commandId: randomUUID(),
+          action: "complete",
+          orderVersion: view.orderVersion,
+          scopeDigest: view.scopeDigest,
+          sourceId: line.sourceId,
+          sourceDigest: line.sourceDigest,
+          attested: true,
+          note: "SYNTHETIC erasable evidence",
+        },
+        key = randomUUID();
+      const state = async () => ({
+        base: await counts(f),
+        rows: (
+          await f.admin.query(
+            "select (select count(*)::int from service_line_transition) history,(select count(*)::int from service_line_current) current,(select count(*)::int from service_line_evidence) evidence",
+          )
+        ).rows[0],
+      });
+      const before = await state();
+      await assert.rejects(
+        f.owner.withOwnerSmallServices(
+          new Headers({ Cookie: f.a.cookie, Origin: f.owner.origin }),
+          f.a.shop,
+          async (ctx) => {
+            const { commandServiceLine } = await import(
+              "@aarili/core/small-services"
+            );
+            return commandServiceLine(
+              {
+                ...ctx,
+                repository: {
+                  ...ctx.repository,
+                  progress: {
+                    ...ctx.repository.progress,
+                    persist: (k, b, r) =>
+                      ctx.repository.progress.persist(k, b, {
+                        ...r,
+                        note: "SYNTHETIC notes must never enter replay JSON",
+                      }),
+                  },
+                },
+              },
+              id,
+              line.line.id,
+              body,
+              { key, ifMatch: '"v1"', requestId: randomUUID() },
+            );
+          },
+        ),
+        (e) => e.code === "23514" || e.cause?.code === "23514",
+      );
+      assert.deepEqual(
+        await state(),
+        before,
+        "deferred guard rejects nonminimal replay atomically",
+      );
+      for (const table of [
+        "audit_event",
+        "service_line_transition",
+        "service_line_current",
+        "service_line_evidence",
+        "idempotency_key",
+      ]) {
+        await f.admin.query(
+          `CREATE FUNCTION synthetic_line_fault() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'SYNTHETIC actual service completion write fault';END$$; CREATE TRIGGER synthetic_line_fault AFTER INSERT ON ${table} FOR EACH ROW EXECUTE FUNCTION synthetic_line_fault()`,
+        );
+        try {
+          assert.equal(
+            (await f.request(target, { body, key, etag: '"v1"' })).status,
+            503,
+          );
+          assert.deepEqual(await state(), before);
+        } finally {
+          await f.admin.query(
+            `DROP TRIGGER synthetic_line_fault ON ${table}; DROP FUNCTION synthetic_line_fault()`,
+          );
+        }
+      }
+      const results = await Promise.all([
+        f.request(target, { body, key, etag: '"v1"' }),
+        f.request(target, {
+          body: { ...body, commandId: randomUUID() },
+          etag: '"v1"',
+        }),
+      ]);
+      assert.deepEqual(results.map((r) => r.status).sort(), [200, 412]);
+      const winner = await results.find((r) => r.status === 200).json();
+      const persisted = (
+        await f.admin.query(
+          "select command_key as key,command_id as id from service_line_transition where id=$1",
+          [winner.transitionId],
+        )
+      ).rows[0];
+      const winningBody = { ...body, commandId: persisted.id };
+      await f.admin.query(
+        "delete from idempotency_key where shop_id=$1 and key=$2",
+        [f.a.shop, persisted.key],
+      );
+      assert.deepEqual(
+        await f.ok(target, {
+          body: winningBody,
+          key: persisted.key,
+          etag: '"v1"',
+        }),
+        winner,
+        "durable history survives expired response keys",
+      );
+      assert.equal(
+        (await f.request(target, { body: winningBody, etag: '"v1"' })).status,
+        409,
+        "command identity cannot move to a new key",
+      );
+      await assert.rejects(
+        withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+          tx.execute(
+            sql`select redact_service_line_note(${f.a.shop}::uuid,${winner.transitionId}::uuid,${randomUUID()}::uuid)`,
+          ),
+        ),
+        (e) => e.cause?.code === "42501",
+      );
+      const client = await f.admin.connect();
+      try {
+        await client.query(
+          "CREATE TEMP TABLE service_line_evidence(note text); CREATE TEMP TABLE audit_event(note text)",
+        );
+        for (const shop of [null, f.b.shop]) {
+          await client.query("begin");
+          await client.query("set local role app_privacy");
+          if (shop)
+            await client.query(
+              "select set_config('app.user_id',$1,true),set_config('app.shop_id',$2,true),set_config('app.actor_id',$1,true)",
+              [f.a.user, shop],
+            );
+          await assert.rejects(
+            client.query("select redact_service_line_note($1,$2,$3)", [
+              f.a.shop,
+              winner.transitionId,
+              randomUUID(),
+            ]),
+            (e) => e.code === "42501",
+          );
+          await client.query("rollback");
+        }
+        await client.query("begin");
+        await client.query("set local role app_privacy");
+        await client.query(
+          "select set_config('app.user_id',$1,true),set_config('app.shop_id',$2,true),set_config('app.actor_id',$1,true)",
+          [f.a.user, f.a.shop],
+        );
+        await client.query("select redact_service_line_note($1,$2,$3)", [
+          f.a.shop,
+          winner.transitionId,
+          randomUUID(),
+        ]);
+        await client.query("commit");
+      } catch (e) {
+        await client.query("rollback");
+        throw e;
+      } finally {
+        await client.query(
+          "DROP TABLE IF EXISTS pg_temp.service_line_evidence,pg_temp.audit_event",
+        );
+        client.release();
+      }
+      view = await f.ok(path, { method: "GET" });
+      const history = view.lines.find(
+        (l) => l.line.id === line.line.id,
+      ).history;
+      assert.equal(history[0].note, null);
+      assert.equal(history[0].redacted, true);
+      assert.deepEqual(
+        await f.ok(target, {
+          body: winningBody,
+          key: persisted.key,
+          etag: '"v1"',
+        }),
+        winner,
+      );
+      assert.equal(JSON.stringify(winner).includes(body.note), false);
+      assert.equal((await state()).rows.history, 1);
+      const correction = {
+        commandId: randomUUID(),
+        action: "correct",
+        orderVersion: view.orderVersion,
+        scopeDigest: view.scopeDigest,
+        sourceId: line.sourceId,
+        sourceDigest: line.sourceDigest,
+        correctionOf: winner.transitionId,
+        reason: "SYNTHETIC concurrent correction",
+      };
+      const corrections = await Promise.all([
+        f.request(target, { body: correction, etag: '"v2"' }),
+        f.request(target, {
+          body: { ...correction, commandId: randomUUID() },
+          etag: '"v2"',
+        }),
+      ]);
+      assert.deepEqual(corrections.map((r) => r.status).sort(), [200, 412]);
+      view = await f.ok(path, { method: "GET" });
+      const independent = await Promise.all(
+        view.lines.map((l) =>
+          f.request(`${path}/lines/${l.line.id}`, {
+            etag: `"v${l.version}"`,
+            body: {
+              commandId: randomUUID(),
+              action: "complete",
+              orderVersion: view.orderVersion,
+              scopeDigest: view.scopeDigest,
+              sourceId: l.sourceId,
+              sourceDigest: l.sourceDigest,
+              attested: true,
+              note: "SYNTHETIC independently checked line",
+            },
+          }),
+        ),
+      );
+      assert.deepEqual(
+        independent.map((r) => r.status),
+        [200, 200],
+      );
+      assert.equal((await f.ok(path, { method: "GET" })).summary.completed, 2);
+      assert.equal(
+        (await f.runtime.db.execute(sql`select * from service_line_transition`))
+          .rows.length,
+        0,
+        "missing tenant context fails closed",
+      );
+      await assert.rejects(
+        withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+          tx.execute(
+            sql`update service_line_current set version=version+1 where shop_id=${f.a.shop}::uuid and line_id=${line.line.id}::uuid`,
+          ),
+        ),
+        (e) => e.cause?.code === "23514",
+      );
+      assert.deepEqual(
+        await f.ok(`small-services/orders/${id}`, { method: "GET" }),
+        accepted.order,
+      );
+    }),
+);
 
 test(
   "SS-01/02/03/06/07/09/10/13/14 standalone kurti and saree retain minimal exact priced lines, covered demand and immutable source history",
@@ -1060,6 +1777,32 @@ test(
           .status,
         200,
       );
+      const completionCommands = [];
+      for (const orderId of [order, customId]) {
+        const v = await f.ok(`small-services/progress/${orderId}`, {
+            method: "GET",
+          }),
+          l = v.lines[0];
+        const command = {
+          path: `small-services/progress/${orderId}/lines/${l.line.id}`,
+          options: {
+            key: randomUUID(),
+            etag: '"v1"',
+            body: {
+              commandId: randomUUID(),
+              action: "complete",
+              orderVersion: v.orderVersion,
+              scopeDigest: v.scopeDigest,
+              sourceId: l.sourceId,
+              sourceDigest: l.sourceDigest,
+              attested: true,
+              note: "SYNTHETIC current verified guardian authority",
+            },
+          },
+        };
+        await f.ok(command.path, command.options);
+        completionCommands.push(command);
+      }
       guardian = await f.ok(path, { method: "GET" });
       const racingDraft = await f.save(await f.reviewed(fresh(value)));
       let entered, release;
@@ -1103,6 +1846,10 @@ test(
         ),
       ]);
       const accepting = f.promote(racingDraft);
+      const completing = f.request(
+        completionCommands[0].path,
+        completionCommands[0].options,
+      );
       try {
         await waitForLock(f);
       } finally {
@@ -1110,11 +1857,32 @@ test(
       }
       await revoking;
       assert.equal(
+        (await completing).status,
+        404,
+        "SS-C guardian withdrawal wins a concurrent cached completion replay",
+      );
+      assert.equal(
         (await f.request(`small-services/scope/${customId}`, { method: "GET" }))
           .status,
         404,
         "SS-B guardian withdrawal protects supplemental history",
       );
+      for (const command of completionCommands)
+        assert.equal(
+          (await f.request(command.path, command.options)).status,
+          404,
+          "SS-C exact replay rechecks revoked guardian authority",
+        );
+      for (const orderId of [order, customId])
+        assert.equal(
+          (
+            await f.request(`small-services/progress/${orderId}`, {
+              method: "GET",
+            })
+          ).status,
+          404,
+          "SS-C history hides revoked minor authority",
+        );
       assert.equal(
         (await f.promote(addDraft, { key: addKey })).status,
         404,

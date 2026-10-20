@@ -3,8 +3,10 @@
 20 October 2026. Roadmap **1.2.3**. Research supports the
 [independent design](Small_Service_Design.md) and
 [proposed tickets](Small_Service_Ticket_Packet.md). It proves neither Aarili
-acceptance nor competitor backend guarantees. Application implementation is
-awaiting selection of an approved ticket.
+acceptance nor competitor backend guarantees. A/B subsequently merged through
+#127/#128; the owner selected C (#126). Its
+[implementation and check status](Service_Line_Completion_Implementation_Evidence.md)
+reuse this ledger without claiming new competitor observations or persistence.
 
 ## Access, scope and capture method
 

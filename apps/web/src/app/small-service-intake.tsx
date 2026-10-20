@@ -27,6 +27,7 @@ import {
   orderAcceptanceMessages,
   orderMessages,
   serviceAdditionMessages,
+  serviceLineMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
@@ -38,6 +39,7 @@ import { v7 } from "uuid";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import type { OwnerGuard } from "./owner-feedback";
+import { ServiceLineCompletion } from "./service-line-completion";
 
 function SourceOrder({
   shopId,
@@ -1167,11 +1169,13 @@ export function ServiceIntakeEditor({
 }
 
 export function ServiceOrderDetail({
+  shopId,
   order,
   locale,
   back,
   reload,
 }: {
+  shopId: string;
   order: AcceptedServiceOrder;
   locale: Locale;
   back: () => void;
@@ -1230,7 +1234,6 @@ export function ServiceOrderDetail({
                     {line.priceState === "to-be-quoted"
                       ? a.toQuote
                       : formatOrderPaise(line.pricePaise, locale)}{" "}
-                    · {t.pending}
                   </>
                 )}
               </p>
@@ -1260,7 +1263,13 @@ export function ServiceOrderDetail({
           <dd>{order.snapshotDigest}</dd>
         </dl>
       </details>
-      <p>{t.noEffects}</p>
+      <p>{serviceLineMessages[locale].boundary}</p>
+      <ServiceLineCompletion
+        key={`${shopId}:${order.id}:${order.version}`}
+        shopId={shopId}
+        orderId={order.id}
+        locale={locale}
+      />
       <div className="owner-actions">
         <Button variant="outline" onClick={back}>
           {t.backToServices}

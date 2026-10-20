@@ -6,6 +6,7 @@ import {
 } from "@aarili/contracts/small-services";
 import { sql, type Transaction } from "./index.js";
 import type { SmallServicesRepository } from "./repositories/small-services.js";
+import { serviceLineRepository } from "./service-line-repository.js";
 
 export function smallServicesRepository(
   tx: Transaction,
@@ -43,6 +44,7 @@ export function smallServicesRepository(
     });
   };
   const repo: SmallServicesRepository = {
+    progress: serviceLineRepository(tx, shopId),
     async intakeOrder(draftId, lineId) {
       return (
         await tx.execute<{ id: string }>(

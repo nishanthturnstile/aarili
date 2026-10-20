@@ -1,7 +1,7 @@
 # Alteration and small-service intake: independent design
 
 20 October 2026. Roadmap **1.2.3**. **A–C/D1–D6 approved and published as
-#124–#126; A (#124) selected. Production content/activation remain unapproved.**
+#124–#126; A/B merged and C (#126) selected. Production content/activation remain unapproved.**
 [REA observations and limits](Small_Service_REA_Evidence.md),
 [vertical tickets and decisions](Small_Service_Ticket_Packet.md),
 [delivery/check status](Small_Service_Implementation_Evidence.md).
@@ -23,8 +23,11 @@ Integrated development **63d5123** contains Quick Order #113/#114 via #115/#116,
 catalogue/forms/templates/presentation/bindings #97–#101 and grouped #118–#120
 via #121–#123. #123 merged 20 October 09:47:12 UTC; its fast/audit gates passed.
 At research baseline only Dependency Dashboard #28 was open. The subsequent owner
-approval published #124–#126 and selected A; #125/#126 remain blocked on their
-new prerequisites. Historical planning observations do not override that approval.
+approval published #124–#126 and selected A. A/B subsequently merged through
+#127/#128; the owner selected C on updated development `8e708e8`.
+[C implementation evidence](Service_Line_Completion_Implementation_Evidence.md)
+records verification and remaining owner/merge gates. Historical planning
+observations do not override those approvals.
 Existing production-authority, privacy, restore and pilot gates remain unchanged.
 
 This contributes **ORD-14**, **JOB-09 intake** and the future **JOB-08** connection,

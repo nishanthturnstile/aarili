@@ -6,6 +6,9 @@ import {
   serviceChangeReviewSchema,
   serviceIntakeDraftSchema,
   serviceIntakeReviewSchema,
+  serviceLineCommandSchema,
+  serviceLineProgressSchema,
+  serviceLineResultSchema,
   serviceOrderDraftSchema,
   serviceOrderListSchema,
   serviceOrderReviewSchema,
@@ -19,9 +22,12 @@ import {
 } from "@aarili/contracts/small-services";
 import { CustomerFailure } from "@aarili/core/customers";
 import { DraftFailure } from "@aarili/core/drafts";
+import { OrderFailure } from "@aarili/core/orders";
 import {
+  commandServiceLine,
   listServiceOrders,
   readBookingServiceScope,
+  readServiceLineProgress,
   readServiceOrder,
   readServiceProfile,
   readServiceProfileHistory,
@@ -54,13 +60,14 @@ const failures = {
   413: error,
   422: error,
   428: error,
+  429: error,
   503: error,
 };
 const params = z.object({ shopId: z.uuid() });
 const identified = z.object({ shopId: z.uuid(), id: z.uuid() });
 
 export function createSmallServiceRoutes(
-  owner: Pick<OwnerAuth, "origin" | "withOwnerSmallServices">,
+  owner: Pick<OwnerAuth, "origin" | "withOwnerSmallServices" | "commandLimit">,
 ) {
   const app = new OpenAPIHono({
     defaultHook: (r, c) => {
@@ -94,6 +101,24 @@ export function createSmallServiceRoutes(
         403,
       );
     const h = new Headers(c.req.raw.headers);
+    if (
+      c.req.method === "POST" &&
+      c.req.path.includes("/small-services/progress/")
+    ) {
+      const retry = await owner.commandLimit();
+      if (retry) {
+        c.header("Retry-After", String(retry));
+        return c.json(
+          {
+            error: {
+              code: "RATE_LIMITED",
+              message: "Wait before trying again",
+            },
+          },
+          429,
+        );
+      }
+    }
     h.delete("Content-Length");
     c.req.raw = new Request(c.req.raw, { headers: h });
     return next();
@@ -298,8 +323,58 @@ export function createSmallServiceRoutes(
       return c.json(r.data, 200);
     },
   );
+  const progressRoutes = bookingScopeRoute
+    .openapi(
+      createRoute({
+        method: "get",
+        path: "/shops/{shopId}/small-services/progress/{id}",
+        request: { params: identified },
+        responses: { 200: response(serviceLineProgressSchema), ...failures },
+      }),
+      async (c) => {
+        const p = c.req.valid("param"),
+          r = await owner.withOwnerSmallServices(
+            c.req.raw.headers,
+            p.shopId,
+            (ctx) => readServiceLineProgress(ctx, p.id),
+          );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/small-services/progress/{id}/lines/{lineId}",
+        request: {
+          params: identified.extend({ lineId: z.uuid() }),
+          body: body(serviceLineCommandSchema),
+        },
+        responses: { 200: response(serviceLineResultSchema), ...failures },
+      }),
+      async (c) => {
+        const p = c.req.valid("param"),
+          r = await owner.withOwnerSmallServices(
+            c.req.raw.headers,
+            p.shopId,
+            (ctx) =>
+              commandServiceLine(ctx, p.id, p.lineId, c.req.valid("json"), {
+                key: c.req.header("Idempotency-Key"),
+                ifMatch: c.req.header("If-Match"),
+                requestId:
+                  c.res.headers.get("X-Request-Id") ?? crypto.randomUUID(),
+              }),
+          );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    );
   app.onError((e, c) => {
-    if (e instanceof DraftFailure) return c.json(e.body, e.status);
+    if (e instanceof DraftFailure || e instanceof OrderFailure)
+      return c.json(e.body, e.status);
     if (
       e instanceof CustomerFailure ||
       e instanceof WearerFailure ||
@@ -329,5 +404,5 @@ export function createSmallServiceRoutes(
       503,
     );
   });
-  return bookingScopeRoute;
+  return progressRoutes;
 }

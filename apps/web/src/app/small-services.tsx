@@ -356,6 +356,7 @@ export function SmallServices({
       {busy && <p role="status">{t.loading}</p>}
       {order ? (
         <ServiceOrderDetail
+          shopId={shopId}
           key={order.id}
           order={order}
           locale={locale}

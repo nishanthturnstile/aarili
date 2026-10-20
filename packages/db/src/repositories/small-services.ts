@@ -4,14 +4,63 @@ import type {
   AcceptedServiceOrder,
   ServiceChangeContent,
   ServiceChangeRecord,
+  ServiceLineProgress,
+  ServiceLineResult,
+  ServiceLineSource,
   ServiceOrderDraft,
   ServiceOrderReview,
   ServiceProfileDraft,
   ServiceProfileRevision,
 } from "@aarili/contracts/small-services";
 import type { OrderSources } from "./orders.js";
+import type { RequestRepository } from "./request.js";
 
 export interface SmallServicesRepository {
+  progress: RequestRepository<ServiceLineResult> & {
+    sources(orderId: string): Promise<ServiceLineSource[]>;
+    current(orderId: string): Promise<
+      {
+        lineId: string;
+        version: number;
+        state: "pending" | "completed";
+        lastId: string;
+      }[]
+    >;
+    history(
+      orderId: string,
+    ): Promise<ServiceLineProgress["lines"][number]["history"]>;
+    prior(
+      commandId: string,
+      key: string,
+    ): Promise<
+      | {
+          id: string;
+          lineId: string;
+          version: number;
+          hash: string;
+          actorId: string;
+          key: string;
+          commandId: string;
+        }
+      | undefined
+    >;
+    write(v: {
+      source: ServiceLineSource;
+      orderId: string;
+      expected: number;
+      to: "pending" | "completed";
+      correctionOf: string | null;
+      parentVersion: number;
+      bookingId: string | null;
+      bookingVersion: number | null;
+      actorId: string;
+      commandId: string;
+      key: string;
+      hash: string;
+      requestId: string;
+      note: string;
+    }): Promise<ServiceLineResult>;
+  };
   intakeOrder(
     draftId: string,
     lineId: string | null,
