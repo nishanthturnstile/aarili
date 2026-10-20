@@ -71,6 +71,11 @@ import {
   type ShopProfileContext,
   shopBrandingPolicy,
 } from "@aarili/core/shop-profile";
+import {
+  type SmallServiceContext,
+  serviceOrderDraftWorkflow,
+  serviceProfileDraftWorkflow,
+} from "@aarili/core/small-services";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
   syntheticGuardianPolicy,
@@ -115,6 +120,7 @@ import { shopDirectoryRepository } from "@aarili/db/shop-directory-repository";
 import { shopPoliciesRepository } from "@aarili/db/shop-policies-repository";
 import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
+import { smallServicesRepository } from "@aarili/db/small-services-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
 import {
   guardianRepository,
@@ -240,6 +246,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerSmallServices: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: SmallServiceContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerQuickOrder: <T>(
     headers: Headers,
     shopId: string,
@@ -1247,6 +1258,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "service.intake-profile",
+        serviceProfileDraftWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.service",
+        serviceOrderDraftWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "booking.group",
         bookingDraftWorkflow(quickOrderContext(tx, shopId, userId)),
       );
@@ -1382,6 +1401,25 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, actorId) =>
       run(quickOrderContext(tx, shopId, actorId)),
+    );
+  }
+  function smallServiceContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): SmallServiceContext {
+    return {
+      orders: quickOrderContext(tx, shopId, actorId),
+      repository: smallServicesRepository(tx, shopId),
+    };
+  }
+  async function withOwnerSmallServices<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: SmallServiceContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(smallServiceContext(tx, shopId, actorId)),
     );
   }
   function guardianContext(
@@ -1962,6 +2000,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerMeasurementForms,
     withOwnerServiceTemplates,
     withOwnerQuickOrder,
+    withOwnerSmallServices,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,

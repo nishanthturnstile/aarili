@@ -366,16 +366,50 @@ export async function resolveOrderAcceptance(
   }[] = [],
   groupClock?: Date,
 ) {
+  return resolveAcceptance(ctx, v, candidates, groupClock);
+}
+// Framework-free internal adapter. Only the service workflow supplies this after
+// checking the exact reviewed profile; browser DTOs have no policy override.
+export async function resolveServiceOrderAcceptance(
+  ctx: QuickOrderContext,
+  v: QuickOrderDraft,
+  policy: {
+    wearerRequired: boolean;
+    quantity: number | null;
+    unit: string | null;
+  },
+) {
+  return resolveAcceptance(ctx, v, [], undefined, policy);
+}
+async function resolveAcceptance(
+  ctx: QuickOrderContext,
+  v: QuickOrderDraft,
+  candidates: {
+    id: string;
+    categoryId: string;
+    deliveryDate: string;
+    quantity: number;
+    unit: string;
+  }[],
+  groupClock?: Date,
+  servicePolicy?: {
+    wearerRequired: boolean;
+    quantity: number | null;
+    unit: string | null;
+  },
+) {
   const a = acceptance(ctx),
     c = a.commitments;
   const intake = await previewQuickOrder(ctx, v); // identity -> catalogue -> forms -> templates
+  if (servicePolicy && !servicePolicy.wearerRequired && !v.wearerId)
+    intake.issues = intake.issues.filter((issue) => issue !== "wearer");
   await c.repository.lock();
   if (c.bindings) await c.bindings.lock();
   await c.calendar.lock();
   await a.policies.lock();
   await a.profile.lock();
   const unknowns = [...intake.issues] as string[];
-  if (!quickOrderCommandSchema.safeParse(v).success)
+  if (!servicePolicy && !quickOrderCommandSchema.safeParse(v).success)
     unknowns.push("incompleteIntake");
   const rule = await c.repository.current(),
     calendar = await c.calendar.current(),
@@ -484,7 +518,16 @@ export async function resolveOrderAcceptance(
         asOf: now.toISOString(),
       };
   }
-  if (cfg?.unit !== "garments") unknowns.push("effortMappingMissing");
+  if (servicePolicy) {
+    if (
+      !servicePolicy.unit ||
+      servicePolicy.quantity === null ||
+      servicePolicy.quantity <= 0
+    )
+      unknowns.push("serviceCapacityMappingMissing");
+    if (servicePolicy.unit !== cfg?.unit)
+      unknowns.push("incomparableServiceDemand");
+  } else if (cfg?.unit !== "garments") unknowns.push("effortMappingMissing");
   const evaluation =
     rule && localDateValid(today) && localDateValid(v.deliveryDate)
       ? await evaluateCommitment({
@@ -504,7 +547,11 @@ export async function resolveOrderAcceptance(
             bookingTime: time,
             deliveryDate: v.deliveryDate,
             deliveryTime: v.deliveryTime || null,
-            quantity: cfg?.unit === "garments" ? 1 : null,
+            quantity: servicePolicy
+              ? servicePolicy.quantity
+              : cfg?.unit === "garments"
+                ? 1
+                : null,
             unit: cfg?.unit ?? null,
             priority: v.priority,
             occasion: v.occasion,

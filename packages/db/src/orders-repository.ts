@@ -66,7 +66,7 @@ export function ordersRepository(
     async read(id) {
       const r = (
         await tx.execute(
-          sql`${select} where o.shop_id=${shopId}::uuid and o.id=${id}::uuid`,
+          sql`${select} where o.shop_id=${shopId}::uuid and o.intake_kind='custom' and o.id=${id}::uuid`,
         )
       ).rows[0];
       return r ? row(r) : undefined;
@@ -74,7 +74,7 @@ export function ordersRepository(
     async list(before) {
       return (
         await tx.execute(
-          sql`${select} where o.shop_id=${shopId}::uuid and (${before ?? null}::uuid is null or o.id<${before ?? null}::uuid) order by o.id desc limit 26`,
+          sql`${select} where o.shop_id=${shopId}::uuid and o.intake_kind='custom' and (${before ?? null}::uuid is null or o.id<${before ?? null}::uuid) order by o.id desc limit 26`,
         )
       ).rows.map(row);
     },

@@ -193,7 +193,9 @@ async function validate(ctx: MeasurementFormsContext, c: MeasurementFormDraft) {
     fail(409, "REQUEST_CONFLICT");
   if (
     c.content.decision === "not-required" &&
-    target.definition.content.serviceKind !== "small-service"
+    !["small-service", "alteration"].includes(
+      target.definition.content.serviceKind ?? "",
+    )
   )
     fail(409, "REQUEST_CONFLICT");
   if (c.content.piece) {

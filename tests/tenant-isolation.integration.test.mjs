@@ -38,6 +38,9 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "smallServicesRepository.profiles/current/read/history/append/advance/origin/orders/accept/subject/lines",
+      "shops/:shopId/small-services/profiles/list/read/history/orders/review/list/read",
+      "service.intake-profile and order.service durable draft save/read/replay/promotion",
       "ordersRepository.groups.commercial/writeCommercial/convert/conversionOrigin",
       "order.group atomic promotion and order.quick conversion",
       "ordersRepository.bookings.read/list/history/membership/write/origin",
@@ -562,6 +565,10 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.service_catalogue_revision",
       "public.service_commitment_binding",
       "public.service_commitment_binding_revision",
+      "public.service_intake_profile",
+      "public.service_intake_profile_revision",
+      "public.service_order_line",
+      "public.service_property_subject",
       "public.service_template_availability",
       "public.service_template_edge",
       "public.service_template_entry",
@@ -790,6 +797,10 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.service_catalogue_revision",
         "public.service_commitment_binding",
         "public.service_commitment_binding_revision",
+        "public.service_intake_profile",
+        "public.service_intake_profile_revision",
+        "public.service_order_line",
+        "public.service_property_subject",
         "public.service_template_availability",
         "public.service_template_edge",
         "public.service_template_entry",
