@@ -1,6 +1,11 @@
 # Service additions — 1.2.3b / issue #125
 
 Status: implemented and locally verified; prepared for owner review. Merge/deployment not authorised.
+Draft [PR #128](https://github.com/nishanthturnstile/aarili/pull/128) targets
+`development`; capability commit `0c9e0f1`. Opened 2026-10-20 16:49:36 UTC.
+Initial required checks queued in
+[run 39460838234](https://github.com/nishanthturnstile/aarili/actions/runs/39460838234)
+at 16:49:41 UTC; hosted results remain separately inspectable on the PR.
 Selected by the owner on 20 October 2026. Branch `codex/service-order-addons`
 starts at development `21a5e79` after #124/#120 merged. #127 merged at
 2026-10-20 14:15:17 UTC; prerequisite Fast verification and Dependency audit
