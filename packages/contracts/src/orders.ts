@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { bookingRecordSchema, bookingRevisionSchema } from "./bookings.js";
+
+export * from "./bookings.js";
+
 import { apiErrorSchema } from "./index.js";
 import { serviceRequirementsPreviewSchema } from "./service-templates.js";
 import { localDateValid } from "./shop-calendar.js";
@@ -141,6 +145,26 @@ export const acceptedOrderSchema = z.strictObject({
   synthetic: z.literal(true),
 });
 export type AcceptedOrder = z.infer<typeof acceptedOrderSchema>;
+export const bookingDetailSchema = z.strictObject({
+  booking: bookingRecordSchema,
+  orders: z.array(acceptedOrderSchema).max(50),
+  summary: z.strictObject({
+    basis: z.literal("garment-prices"),
+    knownSubtotalPaise: z.string().regex(/^\d+$/),
+    unknownCount: z.number().int().min(0).max(50),
+  }),
+});
+export const bookingListSchema = z.strictObject({
+  bookings: z.array(bookingRecordSchema).max(25),
+  next: z.uuid().nullable(),
+});
+export const bookingHistorySchema = z.strictObject({
+  entries: z.array(bookingRevisionSchema).max(25),
+  next: z.number().int().positive().nullable(),
+});
+export const bookingReviewSchema = z.strictObject({
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+});
 
 // Additive structural contract; acceptance snapshots and v1 price meaning stay intact.
 const pieceFormSchema = z.strictObject({

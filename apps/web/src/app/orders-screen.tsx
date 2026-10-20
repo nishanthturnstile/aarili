@@ -22,6 +22,7 @@ import {
 import { presentServiceRequirements } from "@aarili/contracts/service-templates";
 import type { WearerProfile } from "@aarili/contracts/wearers";
 import {
+  bookingMessages,
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
@@ -32,6 +33,7 @@ import { Input } from "@aarili/ui/components/input";
 import { useLocale } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { BookingGroups } from "./booking-groups";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
@@ -636,6 +638,7 @@ export function OrdersScreen({
 }) {
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
+  const [grouping, setGrouping] = useState(false);
   const [scope] = useState(() => createDraftScope(shopId, guard));
   const safe = useSyncExternalStore(guard.subscribe, guard.safe, () => true);
   const [controller, setController] = useState<DraftRecovery>(),
@@ -848,9 +851,25 @@ export function OrdersScreen({
     void refresh();
     void refreshOrders();
   }
+  if (grouping)
+    return (
+      <BookingGroups
+        shopId={shopId}
+        guard={guard}
+        locale={locale}
+        back={() => setGrouping(false)}
+      />
+    );
   return (
     <div className="order-intake">
       <p>{a.draftNotice}</p>
+      <Button
+        variant="outline"
+        disabled={working || !safe || !!controller}
+        onClick={() => setGrouping(true)}
+      >
+        {bookingMessages[locale].title}
+      </Button>
       <div className="owner-actions">
         <Button
           disabled={working || (!!accepted && !safe)}

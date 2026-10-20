@@ -1,5 +1,8 @@
 import type {
   AcceptedOrder,
+  BookingDraft,
+  BookingRecord,
+  BookingRevision,
   OrderPieceStructure,
   OrderPieces,
   OrderReview,
@@ -20,6 +23,7 @@ export type OrderSources = {
   presentationId: string | null;
 };
 export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
+  bookings: BookingsRepository;
   pieces: OrderPiecesRepository;
   now(): Promise<Date>;
   lockCapacity(categoryId: string): Promise<void>;
@@ -64,6 +68,23 @@ export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
       recordedAt: string;
     }[]
   >;
+}
+
+export interface BookingsRepository {
+  lock(id: string): Promise<void>;
+  read(id: string, revision?: boolean): Promise<BookingRecord | undefined>;
+  list(before?: string): Promise<BookingRecord[]>;
+  history(id: string, before?: number): Promise<BookingRevision[]>;
+  membership(orderId: string): Promise<string | undefined>;
+  origin(revisionId: string, draftId: string): Promise<boolean>;
+  write(input: {
+    draft: BookingDraft;
+    draftId: string;
+    actorId: string;
+    key: string;
+    requestId: string;
+    sources: BookingRevision["sources"];
+  }): Promise<BookingRevision>;
 }
 
 export interface OrderPiecesRepository extends RequestRepository<OrderPieces> {

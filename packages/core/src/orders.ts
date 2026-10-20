@@ -43,6 +43,15 @@ import {
 import type { ShopCommitmentsContext } from "./shop-commitments.js";
 import { readWearer, type WearerContext, WearerFailure } from "./wearers.js";
 
+export {
+  bookingCandidates,
+  bookingDraftWorkflow,
+  bookingHistory,
+  bookingPriceSummary,
+  listBookings,
+  readBooking,
+  reviewBooking,
+} from "./bookings.js";
 export { projectOrderPieces, summarizePieceProgress } from "./order-pieces.js";
 
 export type QuickOrderContext = {

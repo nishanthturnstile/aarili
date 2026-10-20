@@ -959,3 +959,39 @@ further process change separately; retain the required verification and review.
   **22:35:04 IST**; capability commit `cd15d4d`. At **22:35:12 IST**, Fast
   verification/Dependency audit queued; CI execution/review/merge times pending.
   [Hosted run](https://github.com/nishanthturnstile/aarili/actions/runs/39291091095).
+
+## Issue #119 — grouping accepted garments / 1.2.2b
+
+- Owner selected #119 on 20 October 2026 after #121 merged at **09:22:18 IST**.
+  Existing checkout updated to `80b339f`, branch `codex/accepted-booking-groups`.
+  First edit time and active coding/rework time were not separately instrumented.
+  First new integration command started **09:28:00 IST**; this is a verification
+  timestamp, not a reconstructed implementation start.
+- Initial focused PostgreSQL **4/4, 42.20s**; exact money/strict-contract unit
+  selection **2/2, 1.57s**. Broad integration **45 passed / 4 failed, 479.77s**:
+  Docker stopped one fixture during startup; three exact inventory assertions
+  placed the new tables out of alphabetical order. No assertion was weakened.
+- Corrected inventory/real new grouping/upgrade tests and failed publisher fixture
+  follow-up **9/9, 75.87s**. The broader successful unchanged cases are reused;
+  this is not a second full run. Subsequent bounded version validation retains
+  affected checks before publication.
+- Browser failures exposed corrupted Unicode test literals, actual 429 admission
+  and duplicate piece landmarks across garments. Exact UTF-8 and unique garment
+  region labels were restored; tests respect returned Retry-After. Final results,
+  first usable host, review readiness and PR/CI timestamps follow when observed.
+- [Linking evidence](Grouped_Bookings_Linking_Implementation_Evidence.md) records
+  source hashes, recovery boundaries and pending human language/device/AT review.
+  Merge, deployment and active review duration remain pending/unknown.
+- Final finish-review fixes re-ran fast verification: **240 tests, 19.19s**,
+  lint/Knip/types/negative/OpenAPI and **12/12 build, 19.233s**; affected
+  PostgreSQL **6/6, 90.67s**. Final new browser workflows **6/6, 2.7m**, observed
+  complete **10:23:50 IST**, following independent finish-review corrections.
+  Existing six Quick Order/piece browser results remain applicable; failures and
+  corrected reruns are retained in the evidence ledger, not hidden.
+- First synthetic host observed usable **09:59:01 IST**, then stopped for fixes.
+  Final host observed ready **10:22:06 IST** at port 49680; ordinary sign-in and
+  draft resume verified in the collaborative browser. Final review-ready/PR/CI
+  timestamps follow actual publication; no active coding duration is inferred.
+- Review packet ready **10:24 IST** after finish reviewer returned **ship** on
+  all four scored fixes and 24 refreshed captures. Documenter retained the
+  incumbent system. Owner acceptance and merge remain pending.

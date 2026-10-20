@@ -31,6 +31,8 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 
+export { createBookingRoutes } from "./bookings.js";
+
 const response = <S extends z.ZodType>(schema: S) => ({
   description: "Private order intake",
   content: { "application/json": { schema } },

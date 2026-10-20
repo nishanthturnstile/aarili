@@ -178,3 +178,79 @@ export const orderRequirementScope = pgTable(
     ...policies(),
   ],
 );
+
+// 0032 reviewed SQL owns composite FKs, append-only guards and atomic completion.
+export const booking = pgTable(
+  "booking",
+  {
+    shopId: uuid("shop_id").notNull(),
+    id: uuid("id").notNull(),
+    codeNumber: bigint("code_number", { mode: "bigint" }).notNull(),
+    code: text("code").notNull(),
+    customerId: uuid("customer_id").notNull(),
+    originDraftId: uuid("origin_draft_id").notNull(),
+    version: integer("version").notNull(),
+    currentRevisionId: uuid("current_revision_id").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.id] }),
+    unique().on(t.shopId, t.code),
+    unique().on(t.shopId, t.codeNumber),
+    unique().on(t.shopId, t.originDraftId),
+    ...policies(),
+  ],
+);
+export const bookingRevision = pgTable(
+  "booking_revision",
+  {
+    shopId: uuid("shop_id").notNull(),
+    id: uuid("id").notNull(),
+    bookingId: uuid("booking_id").notNull(),
+    version: integer("version").notNull(),
+    originDraftId: uuid("origin_draft_id").notNull(),
+    context: jsonb("context").notNull(),
+    sources: jsonb("sources").notNull(),
+    payerId: uuid("payer_id"),
+    actorId: uuid("actor_id").notNull(),
+    auditId: uuid("audit_id").notNull(),
+    reason: text("reason").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.id] }),
+    unique().on(t.shopId, t.bookingId, t.version),
+    unique().on(t.shopId, t.bookingId, t.id),
+    unique().on(t.shopId, t.originDraftId),
+    ...policies(),
+  ],
+);
+export const bookingMember = pgTable(
+  "booking_member",
+  {
+    shopId: uuid("shop_id").notNull(),
+    bookingId: uuid("booking_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    sourceVersion: integer("source_version").notNull(),
+    sourceDigest: text("source_digest").notNull(),
+    revisionId: uuid("revision_id").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.orderId] }),
+    unique().on(t.shopId, t.bookingId, t.orderId),
+    index().on(t.shopId, t.bookingId, t.orderId),
+    ...policies(),
+  ],
+);
+export const bookingMembershipHistory = pgTable(
+  "booking_membership_history",
+  {
+    shopId: uuid("shop_id").notNull(),
+    bookingId: uuid("booking_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    revisionId: uuid("revision_id").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shopId, t.bookingId, t.orderId] }),
+    ...policies(),
+  ],
+);

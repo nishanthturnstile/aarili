@@ -1,6 +1,7 @@
 # Grouped bookings and outfit pieces: approved vertical tickets
 
-19 October 2026. **A–C approved; A selected as the first implementation.**
+19 October 2026; updated 20 October. **A–C approved; A merged in #121;
+B (#119) selected for implementation.**
 Roadmap **1.2.2**; [independent design and GB matrix](Grouped_Bookings_Design.md),
 [REA evidence](Grouped_Bookings_REA_Evidence.md),
 [verification status](Grouped_Bookings_Implementation_Evidence.md).
@@ -10,7 +11,7 @@ Roadmap **1.2.2**; [independent design and GB matrix](Grouped_Bookings_Design.md
 The owner approved this concrete A–C packet, publication and proceeding with A.
 The five proposed decisions below are accepted, including all-or-nothing new
 acceptance, one-time same-contact linking and `BK-000001` booking numbering.
-B/C remain blocked until their direct prerequisites merge. Merge, deployment,
+B's #118/#114 direct blockers are merged. C waits for #119's merge. Merge, deployment,
 paid plans and live activation remain separately controlled.
 
 **Payment clarification:** manual payment recording/owner confirmation is the

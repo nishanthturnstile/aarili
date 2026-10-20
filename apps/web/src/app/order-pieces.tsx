@@ -19,6 +19,7 @@ export function OrderPiecesDetail({
   guard,
   disabled,
   onBusy,
+  regionLabel,
 }: {
   order: AcceptedOrder;
   shopId: string;
@@ -26,6 +27,7 @@ export function OrderPiecesDetail({
   guard: OwnerGuard;
   disabled: boolean;
   onBusy: (busy: boolean) => void;
+  regionLabel?: string;
 }) {
   const t = orderPieceMessages[locale],
     [data, setData] = useState<OrderPieces>(),
@@ -232,7 +234,7 @@ export function OrderPiecesDetail({
         .filter((r) => r.pieceKey === null)
         .map((r) => r.position) ?? [];
   return (
-    <section className="owner-form" aria-label={t.title}>
+    <section className="owner-form" aria-label={regionLabel ?? t.title}>
       <h3>{t.title}</h3>
       {working && !data && <p role="status">{t.loading}</p>}
       {message && (

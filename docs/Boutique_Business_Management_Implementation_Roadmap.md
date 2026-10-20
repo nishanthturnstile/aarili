@@ -580,7 +580,9 @@ ORD-02/03/13/14, AC-01 and AC-63's structural contribution.
 [Proposed vertical tickets](agents/Grouped_Bookings_Ticket_Packet.md) sequence
 piece-aware Quick Orders → grouping accepted orders → atomic grouped intake.
 The owner approved the concrete breakdown and publication as #118–#120, selecting
-A (#118); B/C retain merged-prerequisite gates.
+A (#118), now merged in #121. The owner selected B (#119) on 20 October;
+[linking implementation/review evidence](agents/Grouped_Bookings_Linking_Implementation_Evidence.md)
+tracks its bounded verification. C (#120) waits for #119's merge.
 [Delivery evidence](agents/Grouped_Bookings_Implementation_Evidence.md)
 records verification limits. Initial payments are manual in their later slice;
 payment gateways/automated UPI/bank integrations are deferred. Actual payments,

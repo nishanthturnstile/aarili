@@ -34,6 +34,7 @@ import {
 } from "@aarili/core/measurement-forms";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
+  bookingDraftWorkflow,
   type QuickOrderContext,
   quickOrderDraftWorkflow,
 } from "@aarili/core/orders";
@@ -1243,6 +1244,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
+      workflows.set(
+        "booking.group",
+        bookingDraftWorkflow(quickOrderContext(tx, shopId, userId)),
+      );
       workflows.set(
         "order.quick",
         quickOrderDraftWorkflow(quickOrderContext(tx, shopId, userId)),

@@ -1390,3 +1390,646 @@ test(
       { outfit: true },
     ),
 );
+
+async function acceptedForBooking(f, overrides = {}) {
+  const d = await f.save(await f.reviewed({ ...f.value, ...overrides }));
+  const response = await f.promote(d);
+  assert.equal(response.status, 200, await response.clone().text());
+  return f.ok(`orders/${(await response.json()).draft.result.id}/read`);
+}
+async function groupingDraft(f, orders, overrides = {}) {
+  const input = {
+    customerId: orders[0]?.intake.customerId ?? f.value.customerId,
+    target: null,
+    context: {
+      occasion: "bridal",
+      eventDate: "2026-12-01",
+      notes: "SYNTHETIC family visit",
+      payerId: null,
+    },
+    orders: orders.map((o) => ({
+      id: o.id,
+      version: o.version,
+      snapshotDigest: o.snapshotDigest,
+    })),
+    reason: "SYNTHETIC group existing garments",
+    reviewFingerprint: null,
+    ...overrides,
+  };
+  const review = await f.ok("orders/bookings/review", { body: input });
+  input.reviewFingerprint = review.fingerprint;
+  const id = uuid7();
+  return {
+    id,
+    ...(await f.ok(`drafts/${id}`, {
+      method: "PUT",
+      body: { workflow: "booking.group", schemaVersion: 1, payload: input },
+    })),
+  };
+}
+test(
+  "GB-B01/03/04/08 accepted garments group atomically with exact prices and independent immutable snapshots",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const a = await acceptedForBooking(f, { priceText: "1200" }),
+          b = await acceptedForBooking(f, {
+            priceState: "to-be-quoted",
+            priceText: "",
+            deliveryDate: new Date(Date.now() + 31 * 86400000)
+              .toISOString()
+              .slice(0, 10),
+          });
+        const candidates = await f.ok("orders/bookings/candidates", {
+          body: {},
+        });
+        for (const expected of [a, b]) {
+          const actual = candidates.orders.find((o) => o.id === expected.id);
+          assert.ok(actual?.wearer?.label);
+          assert.deepEqual(actual.customer, expected.customer);
+          assert.deepEqual(actual.wearer, expected.wearer);
+        }
+        const before = (
+          await f.admin.query(
+            "select (select count(*) from order_capacity_demand)::int demand,(select count(*) from journal_batch)::int money",
+          )
+        ).rows;
+        const d = await groupingDraft(f, [a, b], {
+            context: {
+              occasion: "bridal",
+              eventDate: "2026-12-01",
+              notes: "SYNTHETIC family visit",
+              payerId: a.intake.customerId,
+            },
+          }),
+          key = randomUUID();
+        const res = await f.promote(d, { key });
+        assert.equal(res.status, 200, await res.clone().text());
+        const result = await res.json();
+        assert.deepEqual(await (await f.promote(d, { key })).json(), result);
+        const detail = await f.ok("orders/bookings/read", {
+          body: { id: result.draft.result.id, revision: true },
+        });
+        assert.equal(detail.booking.code, "BK-000001");
+        assert.deepEqual(detail.summary, {
+          basis: "garment-prices",
+          knownSubtotalPaise: "120000",
+          unknownCount: 1,
+        });
+        assert.equal(detail.orders.length, 2);
+        for (const expected of [a, b]) {
+          const actual = detail.orders.find((o) => o.id === expected.id);
+          assert.deepEqual(actual.customer, expected.customer);
+          assert.deepEqual(actual.wearer, expected.wearer);
+        }
+        assert.deepEqual(await f.ok(`orders/${a.id}/read`), a);
+        assert.deepEqual(await f.ok(`orders/${b.id}/read`), b);
+        assert.deepEqual(
+          (
+            await f.admin.query(
+              "select (select count(*) from order_capacity_demand)::int demand,(select count(*) from journal_batch)::int money",
+            )
+          ).rows,
+          before,
+        );
+        const edit = await groupingDraft(f, [], {
+          customerId: a.intake.customerId,
+          target: { id: detail.booking.id, version: 1 },
+          context: {
+            ...detail.booking.revision.context,
+            eventDate: "2026-12-09",
+          },
+        });
+        const edited = await f.promote(edit);
+        assert.equal(edited.status, 200, await edited.clone().text());
+        const history = await f.ok("orders/bookings/history", {
+          body: { id: detail.booking.id },
+        });
+        assert.equal(history.entries.length, 2);
+        assert.equal(history.entries[1].context.eventDate, "2026-12-01");
+        const retained = await f.ok("orders/bookings/read", {
+          body: { id: detail.booking.id },
+        });
+        const originalTemplate = f.seed.sources.before;
+        await f.seed.sources.command("service.templates", {
+          entryId: originalTemplate.entryId,
+          baseVersion: originalTemplate.version,
+          baseRevisionId: originalTemplate.id,
+          operation: "availability",
+          available: false,
+          reason: "SYNTHETIC source retired after grouping",
+          content: originalTemplate.definition.content,
+        });
+        assert.deepEqual(
+          await f.ok("orders/bookings/read", {
+            body: { id: detail.booking.id },
+          }),
+          retained,
+        );
+        assert.deepEqual(
+          await f.ok("orders/bookings/history", {
+            body: { id: detail.booking.id },
+          }),
+          history,
+        );
+        assert.deepEqual(await f.ok(`orders/${a.id}/read`), a);
+        assert.equal(
+          (
+            await f.request("orders/bookings/read", {
+              body: { id: detail.booking.id },
+              who: f.b,
+            })
+          ).status,
+          404,
+        );
+        await assertIsolationCatalog(f.runtime.db);
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-B06 concurrent exact creation, competing attachments, stale context and durable origin after expiry",
+  { timeout: 180000 },
+  async () =>
+    fixture(async (f) => {
+      const orders = [];
+      for (let i = 0; i < 5; i++) orders.push(await acceptedForBooking(f));
+      const a = await groupingDraft(f, orders.slice(0, 2)),
+        key = randomUUID();
+      const exact = await Promise.all([
+        f.promote(a, { key }),
+        f.promote(a, { key }),
+      ]);
+      assert.deepEqual(
+        exact.map((r) => r.status),
+        [200, 200],
+      );
+      const first = await exact[0].json();
+      assert.deepEqual(await exact[1].json(), first);
+      const mismatch = await f.promote(a, { key, etag: '"v2"' });
+      assert.equal(mismatch.status, 422);
+      assert.equal((await mismatch.json()).error.code, "IDEMPOTENCY_MISMATCH");
+      const one = await f.ok("orders/bookings/read", {
+        body: { id: first.draft.result.id, revision: true },
+      });
+      const b = await groupingDraft(f, orders.slice(2, 4)),
+        br = await f.promote(b);
+      assert.equal(br.status, 200);
+      const second = await f.ok("orders/bookings/read", {
+        body: { id: (await br.json()).draft.result.id, revision: true },
+      });
+      const links = await Promise.all(
+        [one, second].map((d) =>
+          groupingDraft(f, [orders[4]], {
+            target: { id: d.booking.id, version: d.booking.version },
+          }),
+        ),
+      );
+      const raced = await Promise.all(links.map((d) => f.promote(d)));
+      assert.deepEqual(raced.map((r) => r.status).sort(), [200, 409]);
+      const groups = await f.ok("orders/bookings/list", { body: {} });
+      const current = await f.ok("orders/bookings/read", {
+        body: { id: groups.bookings[0].id },
+      });
+      const edits = await Promise.all(
+        ["first", "second"].map((notes) =>
+          groupingDraft(f, [], {
+            target: {
+              id: current.booking.id,
+              version: current.booking.version,
+            },
+            context: { ...current.booking.revision.context, notes },
+            customerId: current.booking.customerId,
+          }),
+        ),
+      );
+      const changed = await Promise.all(edits.map((d) => f.promote(d)));
+      assert.deepEqual(changed.map((r) => r.status).sort(), [200, 412]);
+      assert.equal(
+        (await f.promote(a, { key: randomUUID(), etag: undefined })).status,
+        428,
+      );
+      assert.equal(
+        (
+          await f.request(`drafts/${a.id}/promote`, {
+            body: { unexpected: true },
+            key,
+            etag: '"v1"',
+          })
+        ).status,
+        422,
+      );
+      await f.admin.query(
+        "delete from idempotency_key where shop_id=$1 and key=$2",
+        [f.a.shop, key],
+      );
+      assert.equal((await f.promote(a, { key })).status, 412);
+      assert.equal(
+        (await f.admin.query("select count(*)::int n from booking_member"))
+          .rows[0].n,
+        5,
+      );
+      const versioned = await acceptedForBooking(f),
+        sibling = await acceptedForBooking(f),
+        stale = await groupingDraft(f, [versioned, sibling]);
+      await f.ok(`orders/${versioned.id}/presentation`, {
+        body: { mode: "detailed" },
+        etag: '"v1"',
+      });
+      assert.equal((await f.promote(stale)).status, 412);
+    }),
+);
+
+test(
+  "GB-B04/06 every actual grouping write rolls back draft, links, audit and result together",
+  { timeout: 240000 },
+  async () =>
+    fixture(async (f) => {
+      const a = await acceptedForBooking(f),
+        b = await acceptedForBooking(f),
+        d = await groupingDraft(f, [a, b]),
+        key = randomUUID();
+      const counts = async () =>
+        (
+          await f.admin.query(
+            `select (select count(*) from booking)::int bookings,(select count(*) from booking_revision)::int revisions,(select count(*) from booking_member)::int members,(select count(*) from booking_membership_history)::int history,(select count(*) from audit_event)::int audit,(select count(*) from idempotency_key)::int keys,(select count(*) from durable_draft where lifecycle='promoted')::int promoted,(select count(*) from order_capacity_demand)::int demand,(select count(*) from journal_batch)::int money,(select count(*) from pgboss.job)::int jobs`,
+          )
+        ).rows[0];
+      const before = await counts();
+      for (const table of [
+        "booking",
+        "booking_revision",
+        "booking_member",
+        "booking_membership_history",
+        "audit_event",
+        "durable_draft",
+        "idempotency_key",
+      ]) {
+        const condition =
+          table === "durable_draft"
+            ? "NEW.lifecycle='promoted' AND NEW.workflow='booking.group'"
+            : table === "audit_event"
+              ? "NEW.action='booking.revise' OR NEW.action='draft.promote'"
+              : table === "idempotency_key"
+                ? `NEW.key='${key}'::uuid`
+                : "true";
+        await f.admin.query(
+          `CREATE FUNCTION test_booking_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF ${condition} THEN RAISE EXCEPTION 'SYNTHETIC after actual booking write'; END IF;RETURN NEW; END $$;CREATE TRIGGER test_booking_fault AFTER ${table === "durable_draft" ? "UPDATE" : "INSERT"} ON ${table} FOR EACH ROW EXECUTE FUNCTION test_booking_fault()`,
+        );
+        try {
+          assert.equal((await f.promote(d, { key })).status, 503, table);
+          assert.deepEqual(await counts(), before, table);
+          assert.equal(
+            (await f.ok(`drafts/${d.id}`, { method: "GET" })).lifecycle,
+            "active",
+          );
+        } finally {
+          await f.admin.query(
+            `DROP TRIGGER test_booking_fault ON ${table};DROP FUNCTION test_booking_fault()`,
+          );
+        }
+      }
+      const result = await f.promote(d, { key });
+      assert.equal(result.status, 200, await result.clone().text());
+      assert.equal((await counts()).members, 2);
+      const revision = (await result.json()).draft.result.id,
+        group = await f.ok("orders/bookings/read", {
+          body: { id: revision, revision: true },
+        });
+      const edit = await groupingDraft(f, [], {
+          customerId: a.intake.customerId,
+          target: { id: group.booking.id, version: 1 },
+          context: {
+            ...group.booking.revision.context,
+            notes: "SYNTHETIC edit fault",
+          },
+        }),
+        base = await counts();
+      await f.admin.query(
+        "CREATE FUNCTION test_booking_update_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC pointer fault'; END $$;CREATE TRIGGER test_booking_update_fault AFTER UPDATE ON booking FOR EACH ROW EXECUTE FUNCTION test_booking_update_fault()",
+      );
+      try {
+        assert.equal((await f.promote(edit)).status, 503);
+        assert.deepEqual(await counts(), base);
+      } finally {
+        await f.admin.query(
+          "DROP TRIGGER test_booking_update_fault ON booking;DROP FUNCTION test_booking_update_fault()",
+        );
+      }
+      assert.equal((await f.promote(edit)).status, 200);
+    }),
+);
+
+async function bookingMinor(f) {
+  const c = await f.ok(`customers/${f.value.customerId}`, {
+      method: "GET",
+    }),
+    at = new Date().toISOString();
+  const w = await f.ok(`customers/${c.id}/wearers`, {
+    body: {
+      mode: "new",
+      displayName: "SYNTHETIC piece child",
+      age: "minor",
+      preferences: {
+        language: "",
+        channel: "",
+        fit: "",
+        style: "",
+        delivery: "",
+        source: "",
+      },
+      relationship: {
+        kind: "family",
+        statementByPersonId: c.personId,
+        authorised: true,
+        informed: true,
+        source: "in-person",
+        occurredAt: at,
+        interaction: "SYNTHETIC guarded outfit",
+      },
+    },
+  });
+  const path = `customers/${c.id}/wearers/${w.wearerId}/guardians`;
+  await f.ok(path, {
+    etag: `"v${w.version}"`,
+    body: {
+      guardian: { mode: "new", displayName: "SYNTHETIC guardian" },
+      authority: "parent",
+      scope: "measurement",
+      source: "in-person",
+      occurredAt: at,
+    },
+  });
+  const g = await f.ok(path, { method: "GET" });
+  const verification = {
+    authorityId: g.authority.id,
+    status: "confirmed",
+    method: "synthetic-review-v1",
+    evidenceRef: "SYNTHETIC",
+    scope: "measurement",
+    source: "in-person",
+    occurredAt: at,
+  };
+  await f.ok(`${path}/verification-events`, {
+    etag: `"v${g.version}"`,
+    body: verification,
+  });
+
+  return { c, w, path, verification };
+}
+test(
+  "GB-B05 guardian withdrawal serializes with linking and denies private summaries, history, saved drafts and replay",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const m = await bookingMinor(f),
+          child = await acceptedForBooking(f, { wearerId: m.w.wearerId }),
+          adult = await acceptedForBooking(f),
+          d = await groupingDraft(f, [adult, child]),
+          key = randomUUID();
+        let entered, release;
+        const ready = new Promise((r) => {
+            entered = r;
+          }),
+          gate = new Promise((r) => {
+            release = r;
+          });
+        const grouping = f.owner.withOwnerDraft(
+          new Headers({ Cookie: f.a.cookie }),
+          f.a.shop,
+          async (ctx) => {
+            const original = ctx.workflows.get("booking.group");
+            const workflows = new Map(ctx.workflows);
+            workflows.set("booking.group", {
+              ...original,
+              async promote(...args) {
+                const result = await original.promote(...args);
+                entered();
+                await gate;
+                return result;
+              },
+            });
+            return mutateDraft(
+              { ...ctx, workflows },
+              d.id,
+              "promote",
+              {},
+              { key, ifMatch: '"v1"', requestId: randomUUID() },
+            );
+          },
+        );
+        await Promise.race([
+          ready,
+          grouping.then(() => assert.fail("Missing link barrier")),
+        ]);
+        const g = await f.ok(m.path, { method: "GET" });
+        const withdrawal = f.request(`${m.path}/verification-events`, {
+          etag: `"v${g.version}"`,
+          body: { ...m.verification, status: "withdrawn" },
+        });
+        try {
+          await waitForLock(f);
+        } finally {
+          release();
+        }
+        const result = (await grouping).data;
+        assert.equal((await withdrawal).status, 200);
+        assert.equal((await f.promote(d, { key })).status, 404);
+        assert.equal(
+          (
+            await f.request("orders/bookings/read", {
+              body: { id: result.draft.result.id, revision: true },
+            })
+          ).status,
+          404,
+        );
+        assert.equal(
+          (await f.request("orders/bookings/list", { body: {} })).status,
+          404,
+        );
+        const group = (await f.admin.query("select id from booking")).rows[0]
+          .id;
+        assert.equal(
+          (await f.request("orders/bookings/history", { body: { id: group } }))
+            .status,
+          404,
+        );
+        assert.equal(
+          (await f.request(`drafts/${d.id}`, { method: "GET" })).status,
+          404,
+        );
+        assert.equal(
+          (
+            await f.request("orders/bookings/review", {
+              body: d.draft.payload,
+              who: f.b,
+            })
+          ).status,
+          404,
+        );
+        assert.equal(
+          (await f.admin.query("select count(*)::int n from booking_member"))
+            .rows[0].n,
+          2,
+        );
+      },
+      {},
+      { outfit: true },
+    ),
+);
+
+test(
+  "GB-B05/08 populated 0031 upgrade retains orders without automatic grouping and enforces tenant and pointer guards",
+  { timeout: 180000 },
+  async () =>
+    fixture(
+      async (f) => {
+        const a = await acceptedForBooking(f),
+          b = await acceptedForBooking(f);
+        const snapshots = (
+          await f.admin.query(
+            "select * from order_acceptance_snapshot order by order_id",
+          )
+        ).rows;
+        await migrateDatabase(f.migrationConnectionString);
+        assert.deepEqual(
+          (
+            await f.admin.query(
+              "select * from order_acceptance_snapshot order by order_id",
+            )
+          ).rows,
+          snapshots,
+        );
+        assert.equal(
+          (await f.admin.query("select count(*)::int n from booking")).rows[0]
+            .n,
+          0,
+        );
+        const wrong = await f.ok("customers", {
+          body: {
+            displayName: "SYNTHETIC other booking contact",
+            phone: "",
+            aliases: [],
+            serviceEvidence: {
+              noticeId: syntheticCustomerPolicy.notice.id,
+              language: "en",
+              decision: "grant",
+              giver: "self",
+              noticeExplained: true,
+              source: "in-person",
+              occurredAt: new Date().toISOString(),
+            },
+          },
+        });
+        const payload = {
+          customerId: wrong.customerId,
+          target: null,
+          context: {
+            occasion: "visit",
+            eventDate: "",
+            notes: "",
+            payerId: null,
+          },
+          orders: [a, b].map((o) => ({
+            id: o.id,
+            version: o.version,
+            snapshotDigest: o.snapshotDigest,
+          })),
+          reason: "SYNTHETIC wrong contact",
+          reviewFingerprint: null,
+        };
+        assert.equal(
+          (await f.request("orders/bookings/review", { body: payload })).status,
+          409,
+        );
+        assert.equal(
+          (
+            await f.request("orders/bookings/review", {
+              body: {
+                ...payload,
+                customerId: a.intake.customerId,
+                orders: [payload.orders[0], payload.orders[0]],
+              },
+            })
+          ).status,
+          422,
+        );
+        const d = await groupingDraft(f, [a, b]),
+          r = await f.promote(d);
+        assert.equal(r.status, 200);
+        const g = await f.ok("orders/bookings/read", {
+          body: { id: (await r.json()).draft.result.id, revision: true },
+        });
+        assert.equal(
+          (await f.ok("orders/bookings/candidates", { body: {} })).orders
+            .length,
+          0,
+        );
+        for (const table of [
+          "booking",
+          "booking_revision",
+          "booking_member",
+          "booking_membership_history",
+        ]) {
+          assert.equal(
+            (await f.runtime.pool.query(`select count(*)::int n from ${table}`))
+              .rows[0].n,
+            0,
+          );
+          assert.equal(
+            (
+              await withShop(f.runtime.db, f.b.user, f.b.shop, (tx) =>
+                tx.execute(sql.raw(`select count(*)::int n from ${table}`)),
+              )
+            ).rows[0].n,
+            0,
+          );
+          await assert.rejects(
+            withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+              tx.execute(sql.raw(`delete from ${table}`)),
+            ),
+          );
+        }
+        await assert.rejects(
+          withShop(f.runtime.db, f.a.user, f.a.shop, (tx) =>
+            tx.execute(
+              sql`update booking set version=version+1 where shop_id=${f.a.shop}::uuid and id=${g.booking.id}::uuid`,
+            ),
+          ),
+        );
+        await assertIsolationCatalog(f.runtime.db);
+        const count = await f.admin.query(
+          "select count(*)::int n from booking",
+        );
+        assert.equal(count.rows[0].n, 1);
+        await f.admin.query(
+          "insert into shop_membership(shop_id,user_id,role) values($1,$2,'owner')",
+          [f.a.shop, f.b.user],
+        );
+        const admitted = { ...f.b, shop: f.a.shop };
+        assert.equal(
+          (
+            await f.request("orders/bookings/read", {
+              body: { id: g.booking.id },
+              who: admitted,
+            })
+          ).status,
+          200,
+        );
+        await f.admin.query(
+          "delete from shop_membership where shop_id=$1 and user_id=$2",
+          [f.a.shop, f.b.user],
+        );
+        assert.equal(
+          (await f.request("orders/bookings/list", { body: {}, who: admitted }))
+            .status,
+          403,
+        );
+      },
+      { migrationThrough: "0031_outfit_pieces.sql" },
+    ),
+);

@@ -20,7 +20,7 @@ import {
 export async function seedServiceTemplates(
   runtime,
   shopId,
-  { outfit = false } = {},
+  { outfit = false, templatePrefix = "" } = {},
 ) {
   const actor = (
     await runtime.query("select user_id from owner_bootstrap where singleton")
@@ -174,7 +174,13 @@ export async function seedServiceTemplates(
       forms = [form];
     for (const p of pieces.slice(1)) forms.push(await makeForm(p));
     const manifest = (code, sequence) => {
-      const p = syntheticManifest(service, pieces, forms, code, sequence);
+      const p = syntheticManifest(
+        service,
+        pieces,
+        forms,
+        `${templatePrefix}${code}`,
+        sequence,
+      );
       if (outfit) {
         p.content.materials[0].scope.pieceKey = "bottom";
         p.content.tasks.find((t) => t.key === "stitch").scope.pieceKey =
