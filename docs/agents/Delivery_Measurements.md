@@ -78,6 +78,15 @@
   host, six SS-linked human journeys and cleanup. Final document QA passed eight
   documents/130 links/14 real Evidence IDs; all44 verified code/test hashes stayed
   unchanged. Hosted publication timestamps follow actual creation.
+- Draft [PR #127](https://github.com/nishanthturnstile/aarili/pull/127) created
+  **2026-10-20T18:05:52+05:30**, capability commit `9cd6b79`, target development;
+  registered with T3 immediately. Initial CI created **18:05:55 IST**, jobs
+  started **18:05:58 IST**, Dependency audit finished **18:06:23 IST** SUCCESS.
+  At **18:06:24 IST**, Fast verification remained in progress in
+  [run 39423501477](https://github.com/nishanthturnstile/aarili/actions/runs/39423501477).
+  Full scaffold/browser correctly skipped on this feature PR. Later doc-only
+  publication retains all44 code/test hashes; final CI/review/merge durations
+  remain pending rather than inferred from elapsed local verification.
 
 ## Small services 1.2.3 preparation, 20 October 2026
 

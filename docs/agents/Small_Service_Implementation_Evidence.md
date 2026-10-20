@@ -339,8 +339,14 @@ recorded above. Final source-hash/document QA passed by **18:03:45 IST**:
 three tickets/six decisions and 14 real Evidence IDs matched the retained bundles
 (10 current records). The original prompt hash remains
 `e047b034f2a03537c20b87c4f50be3a38688ebe3`; `git diff --check` passed.
-The owner-review packet is ready. Draft PR/hosted CI are recorded after creation;
-owner acceptance, merge and deployment remain separate.
+The owner-review packet is ready. Draft [PR #127](https://github.com/nishanthturnstile/aarili/pull/127)
+was created **18:05:52 IST** against `development`, capability commit `9cd6b79`,
+and registered with T3 immediately. At **18:06:24 IST**, its initial
+[run 39423501477](https://github.com/nishanthturnstile/aarili/actions/runs/39423501477)
+had Dependency audit **SUCCESS** and Fast verification **IN_PROGRESS**; scaffold
+and browser were **SKIPPED**, as expected for a feature PR. This is not final
+hosted verification of a later documentation-only checkpoint. The verified code
+hashes remain unchanged. Owner acceptance, merge and deployment remain separate.
 
 ## Historical preparation record
 
