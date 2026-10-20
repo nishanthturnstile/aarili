@@ -1,5 +1,13 @@
 # Independent service-line completion — #126 / 1.2.3c
 
+Implemented and locally verified; prepared for owner review in draft
+[PR #129](https://github.com/nishanthturnstile/aarili/pull/129), targeting
+`development`. Capability commit `2a78de79736a530da185e26c6479f57ed7de3ae8`;
+PR opened **2026-10-20 18:37:00 UTC**. Initial hosted Fast verification and
+Dependency audit were running at **18:37:15 UTC** in
+[run 39476312243](https://github.com/nishanthturnstile/aarili/actions/runs/39476312243).
+Latest checks remain inspectable on the PR; owner acceptance and merge are pending.
+
 Selected by the owner on 20 October 2026 after #125 merged through
 [PR #128](https://github.com/nishanthturnstile/aarili/pull/128), merge
 `8e708e8f1c1842af9ac5b465fae9363e86216019`. Its required Fast verification
