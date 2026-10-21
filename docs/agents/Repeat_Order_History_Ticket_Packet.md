@@ -1,4 +1,4 @@
-# Repeat orders and customer history: proposed ticket packet
+# Repeat orders and customer history: approved ticket packet
 
 21 October 2026. **Owner approved D1–D6, publication and A1 implementation.**
 [Design and field matrix](Repeat_Order_History_Design.md),

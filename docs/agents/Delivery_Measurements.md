@@ -35,6 +35,13 @@
   graph **15.490s**. Review packet and current evidence prepared by **09:37:29Z**;
   verification exit confirmation followed immediately. PR/CI/merge observations
   remain separate; no active coding duration is reconstructed.
+- Capability `96c10d2`, draft [PR #139](https://github.com/nishanthturnstile/aarili/pull/139)
+  opened **2026-10-21T09:38:58Z** and immediately linked to T3. At **09:39:05Z**,
+  Fast verification and Dependency audit were queued in
+  [run 39578594864](https://github.com/nishanthturnstile/aarili/actions/runs/39578594864).
+  Hosted execution, review waiting, human findings and merge remain pending.
+  Subsequent documentation-only closeout may supersede that run; no active time
+  or merge duration is inferred from these timestamps.
 
 ## Issue #124 — standalone small-service intake / 1.2.3a
 

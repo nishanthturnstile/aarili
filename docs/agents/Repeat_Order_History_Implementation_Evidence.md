@@ -1,9 +1,9 @@
 # Repeat orders and history: preparation and implementation status
 
-21 October 2026. **Approved A1 / #134 implementation in progress; A2–C2 remain blocked.**
+21 October 2026. **A1 / #134 implemented in draft [PR #139](https://github.com/nishanthturnstile/aarili/pull/139); owner review and hosted CI pending. A2–C2 remain blocked.**
 The preparation record below is historical; the current implementation audit follows it.
 [Design/matrix](Repeat_Order_History_Design.md),
-[proposed ticket packet](Repeat_Order_History_Ticket_Packet.md),
+[approved ticket packet](Repeat_Order_History_Ticket_Packet.md),
 [REA evidence](Repeat_Order_History_REA_Evidence.md).
 
 ## Preparation baseline and approval audit (before owner approval)
@@ -319,3 +319,19 @@ extra clean portability build. Hosted Linux feedback follows the authorised draf
 The owner-authored source prompt and its initial roadmap link are preserved and
 included unchanged as the task brief, alongside the approved preparation packet.
 All other changes belong to A1; no unrelated branch/worktree changes were made.
+
+### Publication and review state
+
+Capability commit `96c10d2bc1c7d9b13094c87a1fd0e17fc8a66c22` was pushed on
+`codex/repeat-custom-intake`; draft [PR #139](https://github.com/nishanthturnstile/aarili/pull/139)
+opened **2026-10-21T09:38:58Z**, targeting `development`, closes #134 and was
+immediately registered with T3. Working tree was clean at publication. The later
+closeout commit changes documentation only; application inputs match the tested
+capability commit. No merge, deployment or live-data action.
+
+At **09:39:05Z**, Fast verification and Dependency audit were **QUEUED** in
+[run 39578594864](https://github.com/nishanthturnstile/aarili/actions/runs/39578594864).
+Full scaffold/browser jobs are expected skipped on a feature PR. These are pending
+hosted results, not a CI pass. A documentation push may supersede this run.
+No monitoring/scheduled task was created. Owner/physical-device/Tamil/AT reports
+remain pending, and #135–#138 retain their direct blockers.
