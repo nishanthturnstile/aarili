@@ -1248,3 +1248,22 @@ further process change separately; retain the required verification and review.
   engine was stopped after restart; this is retained as infrastructure failure.
   Docker startup preceded the successful checks. Active coding time was not
   instrumented. Hosted correction and final promotion timing remain pending.
+
+### Promotion #130 browser follow-up, 21 October 2026
+
+- On `9caf9eb`, Scaffold and audit passed, but all three device jobs reached
+  their **40-minute** limit before finishing 70 cases. The aggregate failed;
+  incomplete browser execution is not a pass. Shell navigation and presentation
+  comparison also failed before cancellation.
+- Native reproduction: **3 failed / 1 passed, 5.1m** across the two affected
+  files on desktop. The new ST-06 comparison unit regression reproduced Saved
+  instead of Conflict before correction. A mistaken controller-edit assumption
+  in the new test was corrected without changing existing editing semantics.
+- Finalized `verify:fast`: **exit 0, 81.552s**, **262 unit passes** and production
+  build. Focused draft recovery: **23 passed, 1.10s**. Three shards enumerate
+  **25/23/22 tests per device**, exactly covering all 70, without duplicates.
+  Affected navigation/presentation browser workflows: **12 passed, 5.9m**,
+  all three screen classes in English/Tamil. Supplemental service-addition
+  regression: **1 passed, 5.0m** (workflow **4.8m**). Hosted follow-up durations
+  remain pending. Active coding
+  time is unknown; elapsed CI time is not counted as implementation time.

@@ -921,6 +921,7 @@ export function OrderServiceAdditions({
     };
     const c = scope.open({
       workflow: "order.service-change",
+      editableTargetConflict: true,
       schemaVersion: 1,
       initial,
       ...(record ? { record } : {}),

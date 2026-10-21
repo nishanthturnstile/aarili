@@ -87,6 +87,7 @@ export function createDraftRecovery(options: {
   key: () => string;
   committed?: (record: DraftRecord) => void;
   debounceMs?: number;
+  editableTargetConflict?: boolean;
 }) {
   const {
     workflow,
@@ -226,10 +227,11 @@ export function createDraftRecovery(options: {
         pending = undefined;
         const dirty =
           !state.committed || !equal(state.values, state.committed.payload);
-        // Promotion may reject a stale target aggregate while this draft's CAS
-        // is still current. Keep it editable for an explicit new scope review.
+        // Only callers with their own target reload/review flow may keep a
+        // stale target editable while this draft's CAS remains current.
         // Save conflicts, and responses carrying a competing draft, stay locked.
         const targetStale =
+          options.editableTargetConflict === true &&
           command.kind === "promote" &&
           error.status === 412 &&
           !error.body.current;

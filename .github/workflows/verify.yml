@@ -73,17 +73,18 @@ jobs:
         run: pnpm --filter @aarili/web build && node scripts/check-artifacts.mjs
 
   browser_matrix:
-    name: Browser checks (${{ matrix.viewport }})
+    name: Browser checks (${{ matrix.viewport }}, shard ${{ matrix.shard }}/3)
     # Run the full browser suite for release promotion, not every PR into development.
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')
     runs-on: ubuntu-24.04
-    # The full suite now has 150 cases; keep each device isolated rather than
-    # cancelling the serial three-device run before its first device completes.
+    # Keep complete device coverage within the job budget as the suite grows.
+    # Shards run whole files, retaining one worker and zero retries per job.
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
         viewport: [phone, tablet, desktop]
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -99,18 +100,18 @@ jobs:
       - name: Install Linux Chromium and system dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Device smoke/axe with disposable PostgreSQL
-        run: pnpm test:ui --project=${{ matrix.viewport }}
+        run: pnpm test:ui --project=${{ matrix.viewport }} --shard=${{ matrix.shard }}/3
 
   browser:
     # Keep the existing protected-branch required check name. It must fail when
-    # any device fails, is cancelled or is skipped; no continue-on-error path.
+    # any device shard fails, is cancelled or is skipped; no continue-on-error path.
     name: Browser smoke and accessibility
     needs: browser_matrix
     if: ${{ always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
-      - name: Require all three device jobs to pass
+      - name: Require all nine device shards to pass
         env:
           BROWSER_RESULT: ${{ needs.browser_matrix.result }}
         run: test "$BROWSER_RESULT" = success
