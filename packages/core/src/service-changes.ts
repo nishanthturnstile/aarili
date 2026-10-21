@@ -62,6 +62,18 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    if (record.workflow === "order.repeat") {
+      const ref = p.repeat;
+      if (
+        ref &&
+        typeof ref === "object" &&
+        "sourceId" in ref &&
+        typeof ref.sourceId === "string"
+      )
+        orderIds.add(ref.sourceId);
+      if (typeof p.customerId === "string") customers.add(p.customerId);
+      if (typeof p.wearerId === "string") wearers.add(p.wearerId);
+    }
     if (record.workflow === "order.service-change") {
       const v = serviceChangeDraftSchema.parse(p);
       orderIds.add(v.orderId);

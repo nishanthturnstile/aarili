@@ -4,12 +4,14 @@ import {
   readAcceptedOrder,
   readOrderHistory,
   reviewQuickOrder,
+  reviewRepeatOrder,
 } from "@aarili/api/orders-client";
 import type {
   AcceptedOrder,
   OrderReview,
   QuickOrderDraft,
 } from "@aarili/contracts/orders";
+import { repeatOrderDraftSchema } from "@aarili/contracts/orders";
 import {
   formatOrderPaise,
   type Locale,
@@ -99,7 +101,10 @@ export function CommitmentReview({
         throw Error("Resolve save");
       const input = saved.values as QuickOrderDraft,
         m = material(input),
-        r = await reviewQuickOrder(shopId, input);
+        repeated = repeatOrderDraftSchema.safeParse(input),
+        r = repeated.success
+          ? await reviewRepeatOrder(shopId, repeated.data)
+          : await reviewQuickOrder(shopId, input);
       if (
         alive.current &&
         material(controller.snapshot().values as QuickOrderDraft) === m
@@ -121,8 +126,16 @@ export function CommitmentReview({
           { shouldDirty: true },
         );
       }
-    } catch {
-      if (alive.current) setFailed(true);
+    } catch (e) {
+      if (alive.current) {
+        setFailed(true);
+        if (
+          e instanceof OrderRequestError &&
+          e.status === 404 &&
+          repeatOrderDraftSchema.safeParse(controller.snapshot().values).success
+        )
+          controller.invalidate();
+      }
     } finally {
       if (alive.current) setWorking(false);
     }

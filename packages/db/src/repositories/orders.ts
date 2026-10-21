@@ -9,8 +9,10 @@ import type {
   OrderPieces,
   OrderReview,
   QuickOrderDraft,
+  RepeatSourceRef,
 } from "@aarili/contracts/orders";
 import type { ServiceRequirementsPreview } from "@aarili/contracts/service-templates";
+import type { DraftRepository } from "./drafts.js";
 import type { RequestRepository } from "./request.js";
 
 export type OrderSources = {
@@ -25,6 +27,7 @@ export type OrderSources = {
   presentationId: string | null;
 };
 export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
+  repeats?: RepeatOrdersRepository;
   groups: GroupIntakeRepository;
   bookings: BookingsRepository;
   pieces: OrderPiecesRepository;
@@ -73,6 +76,27 @@ export interface OrdersRepository extends RequestRepository<AcceptedOrder> {
       recordedAt: string;
     }[]
   >;
+}
+
+export interface RepeatOrdersRepository {
+  drafts: DraftRepository;
+  origin(draftId: string): Promise<RepeatSourceRef | undefined>;
+  insertOrigin(
+    draftId: string,
+    source: RepeatSourceRef,
+    key: string,
+    actorId: string,
+  ): Promise<void>;
+  scope(orderId: string): Promise<{
+    bookingId: string | null;
+    bookingVersion: number | null;
+    additions: { id: string; version: number; digest: string }[];
+  }>;
+  link(draftId: string, orderId: string): Promise<void>;
+  links(
+    orderId: string,
+    before?: string,
+  ): Promise<{ sourceId: string | null; children: string[] }>;
 }
 
 export interface GroupIntakeRepository {

@@ -768,6 +768,8 @@ test("0.2.1a A5 TRU-01/AC-38 forced RLS, own membership, unauthorized grant, cro
         "order_piece",
         "order_piece_set",
         "order_presentation_event",
+        "order_repeat_origin",
+        "order_repeat_target",
         "order_requirement",
         "order_requirement_scope",
         "order_service_capacity_contribution",

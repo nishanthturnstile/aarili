@@ -43,6 +43,28 @@ export const quickOrderDraftSchema = z.strictObject({
   commitmentReview: orderDecisionSchema.nullable().optional(),
 });
 export type QuickOrderDraft = z.infer<typeof quickOrderDraftSchema>;
+export const repeatSourceRefSchema = z.strictObject({
+  sourceId: z.uuid(),
+  sourceVersion: z.number().int().positive(),
+  snapshotDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  reuseInstructions: z.boolean(),
+});
+export const repeatOrderDraftSchema = quickOrderDraftSchema.extend({
+  repeat: repeatSourceRefSchema,
+});
+export type RepeatOrderDraft = z.infer<typeof repeatOrderDraftSchema>;
+export type RepeatSourceRef = z.infer<typeof repeatSourceRefSchema>;
+export function repeatIntake(value: RepeatOrderDraft): QuickOrderDraft {
+  const { repeat: _origin, ...intake } = value;
+  return quickOrderDraftSchema.parse(intake);
+}
+export const createRepeatOrderSchema = z.strictObject({
+  draftId: z.uuid(),
+  snapshotDigest: repeatSourceRefSchema.shape.snapshotDigest,
+  scopeDigest: repeatSourceRefSchema.shape.scopeDigest,
+  reuseInstructions: z.boolean(),
+});
 export const quickOrderCommandSchema = quickOrderDraftSchema.superRefine(
   (v, c) => {
     const issue = (path: string) =>
@@ -182,6 +204,23 @@ export const acceptedOrderSchema = z.strictObject({
   commercial: includedOrderCommercialSchema.optional(),
 });
 export type AcceptedOrder = z.infer<typeof acceptedOrderSchema>;
+export const repeatSourceSchema = z.strictObject({
+  order: acceptedOrderSchema,
+  scopeDigest: repeatSourceRefSchema.shape.scopeDigest,
+  additions: z.array(
+    z.strictObject({
+      id: z.uuid(),
+      version: z.number().int(),
+      digest: z.string(),
+    }),
+  ),
+  currentManifest: quickOrderDraftSchema.shape.manifest,
+});
+export const repeatLinksSchema = z.strictObject({
+  source: z.strictObject({ id: z.uuid(), code: z.string() }).nullable(),
+  children: z.array(z.strictObject({ id: z.uuid(), code: z.string() })),
+  next: z.uuid().nullable(),
+});
 export const bookingDetailSchema = z.strictObject({
   booking: bookingRecordSchema,
   orders: z.array(acceptedOrderSchema).max(50),

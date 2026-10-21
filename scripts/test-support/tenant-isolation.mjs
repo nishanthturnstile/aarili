@@ -12,6 +12,7 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "order.repeat authorised source/create/review/links; repeatOrdersRepository origin/scope/link/links; same-shop immutable order_repeat_origin/order_repeat_target",
   "order.service-change and order.services-intake draft promotion/conversion; smallServicesRepository.changes/changeOrigin/duplicateChange/change/converted/conversion/intakeOrder; supplemental demand union and scope/booking-scope/review routes",
   "smallServicesRepository.profiles/current/read/history/append/advance/origin/orders/accept/subject/lines",
   "shops/:shopId/small-services/profiles/list/read/history/orders/review/list/read",

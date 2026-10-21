@@ -16,6 +16,7 @@ export {
   orderMessages,
 } from "./order-messages.js";
 export { orderPieceMessages } from "./order-piece-messages.js";
+export { repeatOrderMessages } from "./repeat-order-messages.js";
 export { serviceCatalogueMessages } from "./service-catalogue-messages.js";
 export { serviceLineMessages } from "./service-line-messages.js";
 export { serviceTemplatesMessages } from "./service-templates-messages.js";
