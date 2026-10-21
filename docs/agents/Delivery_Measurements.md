@@ -1236,3 +1236,15 @@ further process change separately; retain the required verification and review.
   [run 39476312243](https://github.com/nishanthturnstile/aarili/actions/runs/39476312243),
   created **18:37:03 UTC**. Queue/execution, human review and merge durations remain
   separately pending. This closeout adds metadata only; capability code is unchanged.
+
+### Promotion #130 correction, 21 October 2026
+
+- Candidate `8070349`: hosted PostgreSQL **215 passed / 1 failed**, **769.33s**;
+  bootstrap's exact inventory omitted the three service-completion tenant tables.
+- Narrow test-only correction: native `verify:fast` **exit 0, 149.278s**, including
+  **260 unit passes** and production build. Real PostgreSQL bootstrap A5
+  **1 passed / 11 filtered, 13.06s**; whole bootstrap file **12 passed, 128.61s**.
+- Initial native attempt had **12 fixture setup failures** because the Docker
+  engine was stopped after restart; this is retained as infrastructure failure.
+  Docker startup preceded the successful checks. Active coding time was not
+  instrumented. Hosted correction and final promotion timing remain pending.
