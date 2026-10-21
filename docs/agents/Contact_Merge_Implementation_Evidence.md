@@ -4,7 +4,9 @@ Implementation started 21 October 2026 at 15:50:34 UTC from development
 `1dc774626354269249009fec960637f6687b7af1`. Direct blockers #136/#137 are
 closed; PR #142 merged with Fast verification and Dependency audit successful
 in [run 39624106793](https://github.com/nishanthturnstile/aarili/actions/runs/39624106793).
-Owner selected this approved C2 ticket. Local validation is complete; draft publication and hosted/owner gates are recorded in the closeout.
+Owner selected this approved C2 ticket. Local validation is complete. Published
+[draft PR #143](https://github.com/nishanthturnstile/aarili/pull/143) to `development`;
+hosted checks, owner review and merge remain pending.
 
 ## Consumer inventory and correction boundary
 
@@ -247,6 +249,8 @@ No tunnel, public demo, live data or production activation is created.
 
 ## Final local closeout
 
+- Tested implementation commit: `405eccc685b3028c2c424b054e6396637d52a7ef`.
+  Publication metadata follow-ups do not change the runtime/test patch below.
 - Runtime/test patch SHA-256 remains
   `53ddf076fac29a4ee3c99c24c0771bf1e59ccaa9d13a2d39de17c4bed418ca48`.
 - `pnpm verify:fast`: **native exit 0, 166.194s**, **272 unit tests / 62 files**,
@@ -272,3 +276,10 @@ No tunnel, public demo, live data or production activation is created.
   Runner session is retained for owner review; startup/teardown are above.
 - Hosted feature CI, owner merge review and human language/device/AT acceptance
   remain pending. Full promotion and unavailable/sensitive-domain gates are open.
+- Draft PR #143 opened **2026-10-21T16:59:21Z** and was immediately linked to T3.
+  Initial required Fast verification and Dependency audit were in progress in
+  [run 39639716887](https://github.com/nishanthturnstile/aarili/actions/runs/39639716887)
+  when inspected. Their first observed starts were 16:59:28Z / 16:59:27Z.
+  Promotion-only checks were skipped by the feature workflow as expected.
+  A docs-only follow-up supersedes that head; it does not prove hosted success.
+  No watch, merge, deployment or additional issue was requested or performed.

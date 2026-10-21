@@ -17,6 +17,8 @@ C2's direct blockers #136/#137 are merged. Its bounded implementation and consum
 [A2 evidence](Repeat_Service_Implementation_Evidence.md),
 [B implementation evidence](Customer_History_Implementation_Evidence.md).
 [C1 implementation evidence](Identity_Review_Implementation_Evidence.md).
+[C2 draft PR #143](https://github.com/nishanthturnstile/aarili/pull/143) records
+the bounded implementation after local validation; owner/CI/domain gates remain.
 Approval covers a focused branch and draft PR to development; owner merge,
 deployment and production activation remain separate.
 
