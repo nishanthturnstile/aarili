@@ -101,7 +101,7 @@ test("SS-B D6 uncertain service conversion freezes the explicit target across re
   );
   controller.dispose();
 });
-function fixture() {
+function fixture(editableTargetConflict = false) {
   let key = 0;
   const save = vi.fn(
     async (_id: string, input: DraftSave, _key: string, _etag?: string) => ({
@@ -115,6 +115,7 @@ function fixture() {
   const controller = createDraftRecovery({
     id,
     workflow: "fixture.intake",
+    editableTargetConflict,
     schemaVersion: 1,
     initial: { value: "" },
     key: () => `key-${++key}`,
@@ -212,8 +213,56 @@ test("0.4.2b F4 stale response without current has explicit reload/review recove
   expect(controller.snapshot().values).toEqual({ value: "other" });
   controller.dispose();
 });
+test("ST-06 AC-55 stale preference promotion stays locked until explicit comparison", async () => {
+  const { controller, promote } = fixture();
+  controller.edit({ value: "exact preference", baseVersion: 1 });
+  await controller.save();
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      412,
+      { error: { code: "VERSION_STALE", message: "Preference changed" } },
+      null,
+    ),
+  );
+  await controller.promote();
+  expect(controller.snapshot().status).toBe("conflict");
+  expect(controller.snapshot().values).toEqual({
+    value: "exact preference",
+    baseVersion: 1,
+  });
+  await controller.promote();
+  expect(promote).toHaveBeenCalledOnce();
+  await controller.refreshConflict();
+  expect(controller.snapshot().conflict?.version).toBe(2);
+  controller.dispose();
+});
+
+test("SS-B AC-55 editable target policy still locks a competing draft revision", async () => {
+  const { controller, promote } = fixture(true);
+  controller.edit({ value: "exact added work", targetVersion: 1 });
+  await controller.save();
+  const current = record({ value: "other saved draft" }, 3);
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      412,
+      { error: { code: "VERSION_STALE", message: "Draft changed" }, current },
+      '"v3"',
+    ),
+  );
+  await controller.promote();
+  expect(controller.snapshot().status).toBe("conflict");
+  expect(controller.snapshot().values).toEqual({
+    value: "exact added work",
+    targetVersion: 1,
+  });
+  await controller.promote();
+  expect(promote).toHaveBeenCalledOnce();
+  expect(controller.snapshot().conflict).toEqual(current);
+  controller.dispose();
+});
+
 test("SS-B AC-55 stale target promotion keeps its current saved draft editable without merging a competing draft", async () => {
-  const { controller, save, promote } = fixture();
+  const { controller, save, promote } = fixture(true);
   controller.edit({ value: "exact added work", targetVersion: 1 });
   await controller.save();
   promote.mockRejectedValueOnce(

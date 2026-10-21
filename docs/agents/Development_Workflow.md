@@ -80,6 +80,12 @@ and the full browser suite are not gates on these PRs. Run
 focused browser validation during UI development when the changed behavior needs
 it. The PR that promotes `development` to `main` runs all three checks,
 including `Browser smoke and accessibility`, against the release candidate.
+Each of phone, tablet and desktop runs in three isolated file-level shards.
+The required `Browser smoke and accessibility` aggregate succeeds only when all
+nine jobs succeed; failed, cancelled or skipped shards cannot satisfy it. Every
+job retains one worker, zero retries and a 40-minute execution budget. The union
+of each device's shards must cover its complete applicable test set without
+duplicates. Individual test timeouts and domain rate limits remain unchanged.
 
 The owner explicitly authorises merge after review. Feature PRs to `development`
 use squash merge. Promotion PRs from `development` to `main` use a merge commit

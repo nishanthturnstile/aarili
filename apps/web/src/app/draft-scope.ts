@@ -61,6 +61,7 @@ export function createDraftScope(
       initial: Record<string, unknown>;
       record?: DraftRecord;
       committed?: (record: DraftRecord) => void;
+      editableTargetConflict?: boolean;
     }) {
       if (!active) throw new Error("Access ended");
       const controller = createDraftRecovery({
