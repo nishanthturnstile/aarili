@@ -20,7 +20,17 @@ export function smallServicesRepository(
       ...r,
       effectiveAt: new Date(r.effectiveAt as string).toISOString(),
     });
-  const select = sql`select o.id,o.code,o.origin_draft_id as "originDraftId",o.owner_id as "ownerId",o.version,o.accepted_at as "acceptedAt",s.content,s.digest from garment_order o join order_acceptance_snapshot s on (s.shop_id,s.order_id)=(o.shop_id,o.id)`;
+  const correctedSelect = sql`select o.id,o.code,o.origin_draft_id as "originDraftId",o.owner_id as "ownerId",o.version,o.accepted_at as "acceptedAt",s.content,s.digest,(select jsonb_build_object('customerId',a.current_customer_id,'originalCustomerId',a.original_customer_id,'code',c.code,'label',p.display_name,'eventId',a.event_id,'version',a.version) from customer_order_attribution a join customer c on (c.shop_id,c.id)=(a.shop_id,a.current_customer_id) join customer_person p on (p.shop_id,p.id)=(c.shop_id,c.person_id) where (a.shop_id,a.order_id)=(o.shop_id,o.id) order by a.version desc limit 1) as "currentAttribution" from garment_order o join order_acceptance_snapshot s on (s.shop_id,s.order_id)=(o.shop_id,o.id)`;
+  const originalSelect = sql`select o.id,o.code,o.origin_draft_id as "originDraftId",o.owner_id as "ownerId",o.version,o.accepted_at as "acceptedAt",s.content,s.digest from garment_order o join order_acceptance_snapshot s on (s.shop_id,s.order_id)=(o.shop_id,o.id)`;
+  async function selectOrder() {
+    return (
+      await tx.execute<{ installed: boolean }>(
+        sql`select to_regclass('customer_order_attribution') is not null as installed`,
+      )
+    ).rows[0]?.installed
+      ? correctedSelect
+      : originalSelect;
+  }
   const orderRow = (r: Record<string, unknown>): AcceptedServiceOrder => {
     const c = r.content as {
       intake: unknown;
@@ -29,6 +39,9 @@ export function smallServicesRepository(
     };
     return acceptedServiceOrderSchema.parse({
       ...c.service,
+      ...(r.currentAttribution
+        ? { currentAttribution: r.currentAttribution }
+        : {}),
       kind: "service",
       id: r.id,
       code: r.code,
@@ -213,7 +226,7 @@ export function smallServicesRepository(
     async readOrder(id) {
       const r = (
         await tx.execute(
-          sql`${select} where o.shop_id=${shopId}::uuid and o.id=${id}::uuid and o.intake_kind='service'`,
+          sql`${await selectOrder()} where o.shop_id=${shopId}::uuid and o.id=${id}::uuid and o.intake_kind='service'`,
         )
       ).rows[0];
       return r ? orderRow(r) : undefined;
@@ -221,7 +234,7 @@ export function smallServicesRepository(
     async orders(before) {
       return (
         await tx.execute(
-          sql`${select} where o.shop_id=${shopId}::uuid and o.intake_kind='service' and (${before ?? null}::uuid is null or o.id<${before ?? null}::uuid) order by o.id desc limit 26`,
+          sql`${await selectOrder()} where o.shop_id=${shopId}::uuid and o.intake_kind='service' and (${before ?? null}::uuid is null or o.id<${before ?? null}::uuid) order by o.id desc limit 26`,
         )
       ).rows.map(orderRow);
     },

@@ -1642,6 +1642,12 @@
   padding-block: var(--space-control);
   cursor: pointer;
 }
+.identity-select input {
+  accent-color: var(--primary);
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
 .order-intake .order-check input {
   flex: none;
   accent-color: var(--primary);
@@ -1654,4 +1660,12 @@
   .order-related-fields {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
+}
+
+.identity-select {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);
+  min-height: 2.75rem;
+  cursor: pointer;
 }

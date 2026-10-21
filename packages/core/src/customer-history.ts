@@ -20,6 +20,8 @@ import type { QuickOrderContext } from "./orders.js";
 import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
 
+export { applyContactMerge, previewContactMerge } from "./contact-merge.js";
+
 export class HistoryFailure extends Error {
   constructor(
     public readonly status: 404 | 409 | 412 | 422 | 428,
@@ -273,6 +275,7 @@ export async function customerHistory(
     version: c.version,
     versions,
     privacy: await ctx.repository.privacyVersion(),
+    corrections: await ctx.repository.merges.state(c.id, c.id),
     allowed,
     wearer: q.wearerId,
     query: q.query,

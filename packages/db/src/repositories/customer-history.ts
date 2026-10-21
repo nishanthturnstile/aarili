@@ -1,4 +1,7 @@
 import type {
+  ContactMergeCommand,
+  ContactMergePreview,
+  ContactMergeResult,
   CustomerHistoryEvent,
   CustomerHistoryQuery,
   CustomerPair,
@@ -10,6 +13,7 @@ import type { RequestRepository } from "./request.js";
 export type HistoryPosition = { at: string; kind: string; id: string };
 export type HistoryWindow = { watermark: string; position?: HistoryPosition };
 export interface CustomerHistoryRepository {
+  merges: ContactMergeRepository;
   reviews: RequestRepository<CustomerPairResult>;
   candidates(customerId: string, after?: string): Promise<DuplicateCandidates>;
   lockPair(first: string, second: string): Promise<void>;
@@ -50,4 +54,43 @@ export interface CustomerHistoryRepository {
       phoneDigits: string;
     },
   ): Promise<{ events: CustomerHistoryEvent[]; next: HistoryPosition | null }>;
+}
+
+export interface ContactMergeRepository
+  extends RequestRepository<ContactMergeResult> {
+  lock(): Promise<void>;
+  lockOrder(id: string): Promise<void>;
+  inventory(
+    sourceId: string,
+    survivorId: string,
+  ): Promise<ContactMergePreview["associations"]>;
+  state(
+    sourceId: string,
+    survivorId: string,
+  ): Promise<{
+    version: number;
+    aliases: { sourceId: string; survivorId: string; eventId: string }[];
+    events: ContactMergePreview["events"];
+  }>;
+  replayMerge(key: string): Promise<
+    | {
+        actorId: string;
+        hash: string;
+        result: ContactMergeResult;
+        authority: string;
+      }
+    | undefined
+  >;
+  append(value: {
+    command: ContactMergeCommand;
+    sourceVersion: number;
+    survivorVersion: number;
+    version: number;
+    actorId: string;
+    key: string;
+    hash: string;
+    requestId: string;
+    authority: string;
+    orders: ContactMergePreview["associations"];
+  }): Promise<ContactMergeResult>;
 }

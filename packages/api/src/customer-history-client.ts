@@ -1,6 +1,12 @@
 import {
+  type ContactMergeCommand,
+  type ContactMergeQuery,
   type CustomerHistoryQuery,
   type CustomerPairDecision,
+  contactMergeCommandSchema,
+  contactMergePreviewSchema,
+  contactMergeQuerySchema,
+  contactMergeResultSchema,
   customerHistoryPageSchema,
   customerHistoryQuerySchema,
   customerPairDecisionSchema,
@@ -92,6 +98,51 @@ export async function recordCustomerPair(
         {
           param: { shopId },
           json: customerPairDecisionSchema.parse(input),
+          header: { "idempotency-key": key, "if-match": etag },
+        },
+        {
+          init: {
+            cache: "no-store",
+            signal: signal ? AbortSignal.any([s, signal]) : s,
+          },
+        },
+      ),
+    ),
+  );
+}
+
+export async function readContactMerge(
+  shopId: string,
+  input: ContactMergeQuery,
+  signal?: AbortSignal,
+) {
+  return contactMergePreviewSchema.parse(
+    await authenticatedResult((s) =>
+      client()["merge-preview"].$post(
+        { param: { shopId }, json: contactMergeQuerySchema.parse(input) },
+        {
+          init: {
+            cache: "no-store",
+            signal: signal ? AbortSignal.any([s, signal]) : s,
+          },
+        },
+      ),
+    ),
+  );
+}
+export async function recordContactMerge(
+  shopId: string,
+  input: ContactMergeCommand,
+  key: string,
+  etag: string,
+  signal?: AbortSignal,
+) {
+  return contactMergeResultSchema.parse(
+    await authenticatedResult((s) =>
+      client().merge.$post(
+        {
+          param: { shopId },
+          json: contactMergeCommandSchema.parse(input),
           header: { "idempotency-key": key, "if-match": etag },
         },
         {

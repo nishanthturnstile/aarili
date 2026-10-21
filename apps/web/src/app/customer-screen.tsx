@@ -12,7 +12,11 @@ import {
   type CustomerSearchPage,
   customerContactSchema,
 } from "@aarili/contracts/customers";
-import { identityReviewMessages } from "@aarili/i18n";
+import {
+  contactMergeMessages,
+  identityReviewMessages,
+  type Locale,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import {
   Field,
@@ -530,6 +534,7 @@ export function CustomerScreen({
                     key={`${profile.id}:${profile.version}`}
                     shopId={shopId}
                     customerId={profile.id}
+                    mergedIntoId={profile.mergedInto?.id}
                     queries={queries}
                     guard={guard}
                   />
@@ -932,9 +937,19 @@ export function CustomerScreen({
 }
 function CustomerDetails({ profile }: { profile: CustomerProfile }) {
   const t = useTranslations("customers");
+  const locale = useLocale() as Locale;
   return (
     <section className="customer-details">
       <h2>{profile.displayName}</h2>
+      {profile.mergedInto && (
+        <p>
+          {contactMergeMessages[locale].merged}{" "}
+          <a href={`/customers/${profile.mergedInto.id}`}>
+            {profile.mergedInto.code} · {profile.mergedInto.displayName}
+          </a>
+        </p>
+      )}
+
       <p className="customer-muted">
         {t("currentVersion", { version: profile.version })}
       </p>

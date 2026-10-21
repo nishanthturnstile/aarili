@@ -13,12 +13,21 @@ import type {
 } from "./repositories/customers.js";
 import { requestRepository } from "./request-repository.js";
 
-const columns = sql`c.id,c.person_id as "personId",c.code,c.notes,p.display_name as "displayName",p.phone,p.email,p.aliases,p.version,p.synthetic`;
+const baseColumns = sql`c.id,c.person_id as "personId",c.code,c.notes,p.display_name as "displayName",p.phone,p.email,p.aliases,p.version,p.synthetic`;
+const resolutionColumns = sql`(select jsonb_build_object('id',target.id,'code',target.code,'displayName',tp.display_name,'eventId',m.id) from customer_merge_event m join customer target on (target.shop_id,target.id)=(m.shop_id,m.survivor_id) join customer_person tp on (tp.shop_id,tp.id)=(target.shop_id,target.person_id) where m.shop_id=c.shop_id and m.source_id=c.id and m.mode='merge' and m.survivor_id=active_contact_alias(c.shop_id,c.id) order by m.version desc limit 1) as "mergedInto"`;
 export function customerRepository(
   tx: Transaction,
   shopId: string,
 ): CustomerRepository {
   shopId = shopId.toLowerCase();
+  async function selectColumns() {
+    const installed = (
+      await tx.execute<{ installed: boolean }>(
+        sql`select to_regclass('customer_merge_event') is not null as installed`,
+      )
+    ).rows[0]?.installed;
+    return sql`${baseColumns},${installed ? resolutionColumns : sql`null as "mergedInto"`}`;
+  }
   async function keys(w: CustomerWrite) {
     // Fixed slots retire removed aliases without granting runtime deletion.
     for (let ordinal = 0; ordinal <= 20; ordinal++) {
@@ -70,12 +79,14 @@ export function customerRepository(
       );
     },
     async read(id) {
+      const columns = await selectColumns();
       const r =
         await tx.execute(sql`select ${columns},e.notice_id as "noticeId",e.language,e.source,e.occurred_at as "occurredAt",e.recorded_at as "recordedAt",e.recorded_by as "recordedBy",e.giver_person_id as "giverPersonId",n.version as "noticeVersion"
     from customer c join customer_person p on p.shop_id=c.shop_id and p.id=c.person_id join consent_record e on e.shop_id=p.shop_id and e.person_id=p.id join privacy_notice_version n on n.shop_id=e.shop_id and n.id=e.notice_id where c.shop_id=${shopId}::uuid and c.id=${id}::uuid`);
       const r0 = r.rows[0];
       if (!r0) return undefined;
       return customerProfileSchema.parse({
+        ...(r0.mergedInto ? { mergedInto: r0.mergedInto } : {}),
         id: r0.id,
         personId: r0.personId,
         code: r0.code,
@@ -104,6 +115,7 @@ export function customerRepository(
       });
     },
     async search(input, k) {
+      const columns = await selectColumns();
       const digitsOnly = /^[\s+().\-\p{Nd}]+$/u.test(input.query);
       const named =
         !digitsOnly && !!(k.nameLatinNorm || k.nameTaNorm || k.nameSkel);
@@ -123,7 +135,10 @@ export function customerRepository(
         last = rows.at(-1);
       return customerSearchPageSchema.parse({
         customers: rows.map(
-          ({ notes: _n, personId: _p, rank: _r, ...rest }) => rest,
+          ({ notes: _n, personId: _p, rank: _r, mergedInto, ...rest }) => ({
+            ...rest,
+            ...(mergedInto ? { mergedInto } : {}),
+          }),
         ),
         next:
           r.rows.length > input.limit && last

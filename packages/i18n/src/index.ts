@@ -6,6 +6,7 @@ export { pwaMessages } from "./pwa-messages.js";
 export { wearerMessages } from "./wearer-messages.js";
 export type Locale = "en" | "ta";
 export { bookingMessages, formatBookingPaise } from "./booking-messages.js";
+export { contactMergeMessages } from "./contact-merge-messages.js";
 export { customerHistoryMessages } from "./customer-history-messages.js";
 export { documentMessages } from "./document-messages.js";
 export { groupIntakeMessages } from "./group-intake-messages.js";

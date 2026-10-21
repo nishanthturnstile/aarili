@@ -13,11 +13,13 @@ import {
 
 const operation = process.argv[2];
 const directory = resolve(
-  process.argv.includes("--identity")
-    ? ".scratch/identity-review-host"
-    : process.argv.includes("--history")
-      ? ".scratch/customer-history-review-host"
-      : ".scratch/repeat-services-review-host",
+  process.argv.includes("--merge")
+    ? ".scratch/contact-merge-review-host"
+    : process.argv.includes("--identity")
+      ? ".scratch/identity-review-host"
+      : process.argv.includes("--history")
+        ? ".scratch/customer-history-review-host"
+        : ".scratch/repeat-services-review-host",
 );
 const file = (name) => resolve(directory, name);
 await mkdir(directory, { recursive: true });
@@ -163,7 +165,10 @@ if (operation === "stop") {
             body: {},
             etag: '"v2"',
           });
-          if (process.argv.includes("--identity")) {
+          if (
+            process.argv.includes("--identity") ||
+            process.argv.includes("--merge")
+          ) {
             const c = await setup(
               `customers/${seed.seed.customer.customerId}`,
               { method: "GET" },

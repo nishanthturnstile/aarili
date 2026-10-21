@@ -257,6 +257,19 @@ No unavailable domain, merge/relink policy or live activation is added.
 
 ## History and identity outcomes
 
+C2 #138 is selected after C1 merged in PR #142. The
+[consumer inventory and implementation evidence](Contact_Merge_Implementation_Evidence.md)
+defines its release boundary. Contact aliases and per-service current attribution
+are append-only overlays. Every survivor field is chosen from the two reviewed
+contacts; existing contact correction writes material differences. Original IDs,
+person/guardian distinctions, accepted snapshots and financial references remain
+intact. Only explicitly selected wearer-free standalone services without booking,
+native source, repeat provenance or additions support new current attribution.
+A reviewed restore event corrects a mistaken merge and returns its overlays to
+original attribution, including after later activity; it does not rewrite the
+survivor's field correction history. Alias chains/cycles fail closed. Later
+measurement/media/finance integrations remain separately gated.
+
 C1 #137 was selected after B merged in PR #141. Its
 [implementation evidence](Identity_Review_Implementation_Evidence.md) records
 existing-key reasons, pair review versions, durable keep/dismiss decisions,

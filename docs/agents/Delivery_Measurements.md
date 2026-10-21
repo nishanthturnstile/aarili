@@ -1,5 +1,45 @@
 # Delivery measurements
 
+## Issue #138 - authorised contact merge / 1.2.4e
+
+- First observed task timestamp **2026-10-21T15:50:34Z** before implementation
+  edits. Updated the same checkout to development `1dc7746` after #142 merged
+  at **15:41:47Z**. Branch `codex/contact-merge`; no worktree or live activation.
+  Active coding and rework were not separately instrumented and remain unknown.
+- Baseline required checks passed in run `39624106793`. No unchanged full-suite
+  baseline rerun. Enumerated implemented identity consumers before merge writes.
+- Initial PostgreSQL migration parser failure: **3 failed, 43.46s**, corrected
+  at the observed CASE expression. Follow-up **3/3, 31.30s**; combined merge/C1/
+  history **12/12, 231.76s**; expanded SQL invariant/recovery **4/4, 40.90s**.
+  The permission concurrency assertion then found only advisory waiters and
+  missed the earlier contact-row lock: **3 passed / 1 failed, 57.53s**. Corrected
+  observation passed **4/4, 81.48s**. Final audited-version/authority/history packet passed **8/8, 141.49s**.
+- First browser **3 failed** because a test count had no shop context and forced
+  RLS returned zero. Authenticated history assertions fixed it; **3/3, 4.2m**.
+  Expanded explicit service selection/history **6/6, 5.7m**. Self-review found
+  that parent focus clearing could unmount a pending child merge; fixed frozen
+  recovery while clearing private labels. Focus/retry and C1 regression passed **6/6, 8.2m**. Final frozen-build merge packet passed **3/3, 4.6m**.
+- Focus-recovery `verify:fast`: native **exit 0, 130.368s**, **272 units / 62 files**,
+  including production build. The first fast attempt had one changed-interface
+  formatting failure. PowerShell stderr status was explicitly captured on final
+  attempts rather than interpreting wrapper errors as native command failures.
+- T3 opened ordinary sign-in but two snapshots timed out; used the prescribed
+  repository browser workflow. Loopback hosts were prepared during implementation;
+  earliest exact tryable UTC was not instrumented. Final review-ready UTC, URL,
+  native final verification, PR publication and hosted CI are recorded below.
+- Final sequential `verify:fast`: **exit 0, 166.194s**, **272 units / 62 files**,
+  unit stage **15.38s**, production graph **38.709s**. A preceding attempt hit the
+  unchanged job property test's 5s timeout while PostgreSQL ran: **271 passed /
+  1 failed, 69.937s**. Kept its timeout; sequential focused **2/2, 399ms** then
+  the complete fast gate passed. Retain the failure rather than hiding it.
+- Final ordinary sign-in/preview check **7.058s**, axe zero, English desktop and
+  Tamil phone, no business mutation. Review-ready observed **16:55:19Z** at
+  [the synthetic customer](http://127.0.0.1:65263/customers/01a15f62-2721-7f7a-82bc-ab40f80f0edf).
+  This is a recorded final-ready time; earliest tryable UTC remains unknown.
+- Human Tamil/physical Android/assistive-technology acceptance, owner review,
+  CI queue/execution and merge remain pending. Elapsed work is not active coding.
+
+
 ## Issue #137 — duplicate contact review / 1.2.4d
 
 - First observed task timestamp **2026-10-21T14:08:20Z**, before implementation

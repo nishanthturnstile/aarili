@@ -1,4 +1,5 @@
 import type { CustomerHistoryEvent } from "@aarili/contracts/customer-history";
+import { contactMergeRepository } from "./contact-merge-repository.js";
 import { identityEvidence } from "./identity-evidence.js";
 import { sql, type Transaction } from "./index.js";
 import type { CustomerHistoryRepository } from "./repositories/customer-history.js";
@@ -11,6 +12,7 @@ export function customerHistoryRepository(
   shopId: string,
 ): CustomerHistoryRepository {
   return {
+    merges: contactMergeRepository(tx, shopId),
     reviews: requestRepository(tx, shopId),
     async lockContact(id) {
       // Pair review must also pin relationship discovery: registration takes
@@ -139,7 +141,7 @@ export function customerHistoryRepository(
       const r = await tx.execute<Record<string, unknown>>(sql`
 with allowed_wearers as (select value::uuid as id from jsonb_array_elements_text(${allowed}::jsonb)),
 visible_orders as materialized (
- select o.* from garment_order o where o.shop_id=${shopId}::uuid and o.customer_id=${q.customerId}::uuid
+ select o.* from garment_order o where o.shop_id=${shopId}::uuid and (o.customer_id=${q.customerId}::uuid or (o.wearer_id is null and (select a.current_customer_id from customer_order_attribution a where (a.shop_id,a.order_id)=(o.shop_id,o.id) order by version desc limit 1)=${q.customerId}::uuid))
  and (o.wearer_id in(select id from allowed_wearers) or (o.wearer_id is null and ${q.wearerId === null} and o.intake_kind='service' and exists(select 1 from order_acceptance_snapshot snap where (snap.shop_id,snap.order_id)=(o.shop_id,o.id) and snap.content#>>'{service,profile,content,wearerRequirement}'='not-required')))
  and not exists(select 1 from service_property_subject s join garment_order parent on (parent.shop_id,parent.id)=(s.shop_id,s.source_order_id)
   where (s.shop_id,s.order_id)=(o.shop_id,o.id) and (parent.customer_id<>o.customer_id or (parent.wearer_id is not null and parent.wearer_id not in(select id from allowed_wearers))))
@@ -155,7 +157,7 @@ audits as materialized (
 ),
 events as (
  select a.*, 'customer'::text as kind, null::uuid as order_id,null::uuid as booking_id,null::uuid as wearer_id
- from audits a where a.entity_type='customer' and ${q.wearerId === null} and ((a.entity_id=${q.customerId}::uuid and a.action in('customer.create','customer.correct')) or (a.action='customer.pair-review' and exists(select 1 from customer_pair_review r where (r.shop_id,r.id)=(a.shop_id,a.id) and ${q.customerId}::uuid in(r.first_id,r.second_id))))
+ from audits a where a.entity_type='customer' and ${q.wearerId === null} and ((a.entity_id=${q.customerId}::uuid and a.action in('customer.create','customer.correct')) or (a.action='customer.pair-review' and exists(select 1 from customer_pair_review r where (r.shop_id,r.id)=(a.shop_id,a.id) and ${q.customerId}::uuid in(r.first_id,r.second_id))) or (a.action in('customer.merge','customer.restore') and exists(select 1 from customer_merge_event m where (m.shop_id,m.id)=(a.shop_id,a.id) and ${q.customerId}::uuid in(m.source_id,m.survivor_id))))
  union all
  select a.*, 'wearer',null::uuid,null::uuid,a.entity_id from audits a
  where a.entity_type='wearer' and a.entity_id in(select id from allowed_wearers) and (a.action like 'wearer.%' or a.action like 'guardian.%')
@@ -173,12 +175,12 @@ events as (
 ),
 details as (
  select e.*,to_char(e.occurred_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as sort_at,
- c.code as customer_code,cp.display_name as customer_label,wp.display_name as wearer_label,
+ c.code as customer_code,coalesce(current_cp.display_name,cp.display_name) as customer_label,wp.display_name as wearer_label,
  coalesce(o.code,b.code) as code,o.intake_kind,
  coalesce(s.content#>>'{snapshot,manifest,definition,content,labelEn}',s.content#>>'{snapshot,serviceProfile,content,labelEn}') as label_en,
  coalesce(s.content#>>'{snapshot,manifest,definition,content,labelTa}',s.content#>>'{snapshot,serviceProfile,content,labelTa}') as label_ta,
- case when e.action='customer.pair-review' then pr.first_id::text when e.kind='wearer' then (select rel.customer_id::text from wearer_relationship_event re join customer_wearer_relationship rel on (rel.shop_id,rel.id)=(re.shop_id,re.relationship_id) where re.shop_id=e.shop_id and rel.wearer_id=e.wearer_id and rel.customer_id=${q.customerId}::uuid and re.wearer_version=(e.changes->>'version')::integer limit 1) else coalesce(s.content#>>'{intake,customerId}',${q.customerId}) end as original_customer,s.content#>>'{intake,wearerId}' as original_wearer,
- coalesce(pr.first_version,br.version,cr.version,t.parent_version,ps.order_version,case when jsonb_typeof(e.changes->'version')='number' then (e.changes->>'version')::integer end,case when e.action='order.accept' then 1 end) as revision,
+ case when e.action in('customer.merge','customer.restore') then e.changes->>'sourceId' when e.action='customer.pair-review' then pr.first_id::text when e.kind='wearer' then (select rel.customer_id::text from wearer_relationship_event re join customer_wearer_relationship rel on (rel.shop_id,rel.id)=(re.shop_id,re.relationship_id) where re.shop_id=e.shop_id and rel.wearer_id=e.wearer_id and rel.customer_id=${q.customerId}::uuid and re.wearer_version=(e.changes->>'version')::integer limit 1) else coalesce(s.content#>>'{intake,customerId}',${q.customerId}) end as original_customer,s.content#>>'{intake,wearerId}' as original_wearer,
+ coalesce(case when e.action in('customer.merge','customer.restore') then (e.changes->>'sourceVersion')::integer end,pr.first_version,br.version,cr.version,t.parent_version,ps.order_version,case when jsonb_typeof(e.changes->'version')='number' then (e.changes->>'version')::integer end,case when e.action='order.accept' then 1 end) as revision,
  t.line_id,t.version as line_version,t.to_state,ev.note,(ev.redacted_at is not null) as note_redacted,
  (select jsonb_build_object('purpose',p.purpose,'decision',p.decision,'notice',p.notice_id) from wearer_purpose_event p where p.shop_id=e.shop_id and p.wearer_id=e.wearer_id and p.wearer_version=(e.changes->>'version')::integer limit 1) as purpose_fact,
  (select jsonb_build_object('verification',v.status) from guardian_verification_event v where v.shop_id=e.shop_id and v.wearer_id=e.wearer_id and v.wearer_version=(e.changes->>'version')::integer limit 1) as guardian_fact,
@@ -200,6 +202,9 @@ details as (
  left join wearer w on (w.shop_id,w.id)=(e.shop_id,e.wearer_id)
  left join customer_person wp on (wp.shop_id,wp.id)=(w.shop_id,w.person_id)
  left join visible_orders o on o.id=e.order_id
+ left join lateral(select * from customer_order_attribution x where (x.shop_id,x.order_id)=(o.shop_id,o.id) order by version desc limit 1) attribution on true
+ left join customer current_c on (current_c.shop_id,current_c.id)=(attribution.shop_id,attribution.current_customer_id)
+ left join customer_person current_cp on (current_cp.shop_id,current_cp.id)=(current_c.shop_id,current_c.person_id)
  left join order_acceptance_snapshot s on (s.shop_id,s.order_id)=(e.shop_id,e.order_id)
  left join visible_bookings b on b.id=e.booking_id
  left join booking_revision br on (br.shop_id,br.audit_id)=(e.shop_id,e.id)
@@ -289,6 +294,25 @@ select * from details e where
             : (row.identity_reason ?? row.note ?? row.reason ?? null),
           fields: row.identity_fields ?? fields[row.action as string] ?? [],
           facts: Object.entries({
+            ...(["customer.merge", "customer.restore"].includes(
+              row.action as string,
+            )
+              ? {
+                  mergeVersion: String(
+                    (row.changes as Record<string, unknown>).version,
+                  ),
+                  sourceContactVersion: String(
+                    (row.changes as Record<string, unknown>).sourceVersion,
+                  ),
+                  survivorContactVersion: String(
+                    (row.changes as Record<string, unknown>).survivorVersion,
+                  ),
+                  sourceCustomer: (row.changes as Record<string, unknown>)
+                    .sourceId,
+                  survivorCustomer: (row.changes as Record<string, unknown>)
+                    .survivorId,
+                }
+              : {}),
             ...(row.pair_version
               ? {
                   pairVersion: String(row.pair_version),
@@ -336,15 +360,25 @@ select * from details e where
           lineId: row.line_id ?? null,
           lineIds: row.line_ids,
           state: row.to_state ?? null,
-          related: row.repeat_source
+          related: ["customer.merge", "customer.restore"].includes(
+            row.action as string,
+          )
             ? [
                 {
-                  kind: row.repeat_kind === "service" ? "service" : "order",
-                  id: row.repeat_source,
-                  version: row.repeat_version ?? null,
+                  kind: "customer",
+                  id: (row.changes as Record<string, string>).survivorId,
+                  version: null,
                 },
               ]
-            : [],
+            : row.repeat_source
+              ? [
+                  {
+                    kind: row.repeat_kind === "service" ? "service" : "order",
+                    id: row.repeat_source,
+                    version: row.repeat_version ?? null,
+                  },
+                ]
+              : [],
           redacted,
         } as CustomerHistoryEvent;
       });

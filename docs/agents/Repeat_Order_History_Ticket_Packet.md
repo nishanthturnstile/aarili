@@ -11,9 +11,9 @@ read back: [A1 #134](https://github.com/nishanthturnstile/aarili/issues/134),
 [B #136](https://github.com/nishanthturnstile/aarili/issues/136),
 [C1 #137](https://github.com/nishanthturnstile/aarili/issues/137),
 [C2 #138](https://github.com/nishanthturnstile/aarili/issues/138).
-**A1 merged as #139, A2 as #140 and B as #141; owner selected C1 #137 after that merge.**
+**A1 merged as #139, A2 as #140, B as #141 and C1 as #142; owner selected C2 #138 after that merge.**
 B's native blockers #135/#78/#79/#80 are closed with merged PRs #140/#81/#82/#83.
-C1's direct blocker #136 is merged. C2 retains its dependency and selection gates.
+C2's direct blockers #136/#137 are merged. Its bounded implementation and consumer inventory are recorded in [C2 evidence](Contact_Merge_Implementation_Evidence.md); owner review/merge and sensitive-domain integration remain gated.
 [A2 evidence](Repeat_Service_Implementation_Evidence.md),
 [B implementation evidence](Customer_History_Implementation_Evidence.md).
 [C1 implementation evidence](Identity_Review_Implementation_Evidence.md).

@@ -8,6 +8,11 @@ slice **1.2.4d / C1**. Owner selected this ticket after #136 merged as
 Same checkout, latest `development` base `b3ac971`, branch
 `codex/duplicate-contact-review`. No worktree or new activation decision.
 
+Merged in PR #142 at 2026-10-21T15:41:47Z, commit `1dc7746`; required checks passed
+in [run 39624106793](https://github.com/nishanthturnstile/aarili/actions/runs/39624106793).
+The following C1 packet preserves its delivery evidence. C2 is now separately
+selected as #138; see [its consumer inventory](Contact_Merge_Implementation_Evidence.md).
+
 ## Behaviour and traceability
 
 Sources: CUS-01/02/05/06/07, TRU-03/05/06/12/13, USE-08/09;
