@@ -11,11 +11,29 @@ import type {
   ServiceOrderReview,
   ServiceProfileDraft,
   ServiceProfileRevision,
+  ServiceRepeatRef,
 } from "@aarili/contracts/small-services";
+import type { DraftRepository } from "./drafts.js";
 import type { OrderSources } from "./orders.js";
 import type { RequestRepository } from "./request.js";
 
 export interface SmallServicesRepository {
+  repeats?: {
+    drafts: DraftRepository;
+    origin(id: string): Promise<ServiceRepeatRef | undefined>;
+    insertOrigin(
+      id: string,
+      ref: ServiceRepeatRef,
+      payload: unknown,
+      key: string,
+      actor: string,
+    ): Promise<void>;
+    link(draftId: string, orderId: string): Promise<void>;
+    links(
+      id: string,
+      before?: string,
+    ): Promise<{ sourceId: string | null; children: string[] }>;
+  };
   progress: RequestRepository<ServiceLineResult> & {
     sources(orderId: string): Promise<ServiceLineSource[]>;
     current(orderId: string): Promise<

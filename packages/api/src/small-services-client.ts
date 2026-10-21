@@ -1,3 +1,5 @@
+import { draftSuccessSchema } from "@aarili/contracts/drafts";
+import { repeatLinksSchema } from "@aarili/contracts/orders";
 import {
   acceptedServiceOrderSchema,
   bookingServiceScopeSchema,
@@ -5,6 +7,7 @@ import {
   type ServiceIntakeDraft,
   type ServiceLineCommand,
   type ServiceOrderDraft,
+  type ServiceRepeatDraft,
   serviceChangeReviewSchema,
   serviceIntakeReviewSchema,
   serviceLineProgressSchema,
@@ -14,6 +17,7 @@ import {
   serviceProfileHistorySchema,
   serviceProfileListSchema,
   serviceProfileRevisionSchema,
+  serviceRepeatSourceSchema,
   serviceScopeSchema,
   smallServiceErrorSchema,
 } from "@aarili/contracts/small-services";
@@ -24,9 +28,93 @@ import {
   isOwnerGeneration,
   OwnerRequestError,
 } from "./client.js";
+import type { createServiceRepeatRoutes } from "./repeat-services.js";
 import type { createSmallServiceRoutes } from "./small-services.js";
 
 const client = () => hc<ReturnType<typeof createSmallServiceRoutes>>("/api");
+const repeats = () => hc<ReturnType<typeof createServiceRepeatRoutes>>("/api");
+export async function readServiceRepeatSource(shopId: string, id: string) {
+  return serviceRepeatSourceSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeats().shops[":shopId"]["service-repeats"][":id"].source.$post(
+          { param: { shopId, id } },
+          { init: init(s) },
+        ),
+      async (r, g) => {
+        const data = serviceRepeatSourceSchema.parse(await result(r, g));
+        if (r.headers.get("ETag") !== `"v${data.version}"`)
+          throw new OwnerRequestError("REQUEST_FAILED");
+        return data;
+      },
+    ),
+  );
+}
+export async function createServiceRepeat(
+  shopId: string,
+  id: string,
+  input: {
+    draftId: string;
+    subjectId: string;
+    snapshotDigest: string;
+    scopeDigest: string;
+    reuseInstructions: boolean;
+    profile: ServiceOrderDraft["profile"];
+    selections: { key: string; targetLineId: string; targetKey: string }[];
+  },
+  key: string,
+  version: number,
+) {
+  return draftSuccessSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeats().shops[":shopId"]["service-repeats"][":id"].create.$post(
+          { param: { shopId, id }, json: input },
+          {
+            headers: { "Idempotency-Key": key, "If-Match": `"v${version}"` },
+            init: init(s),
+          },
+        ),
+      async (r, g) => {
+        const data = draftSuccessSchema.parse(await result(r, g));
+        if (r.headers.get("ETag") !== `"v${data.draft.version}"`)
+          throw new OwnerRequestError("REQUEST_FAILED");
+        return data;
+      },
+    ),
+  );
+}
+export async function reviewServiceRepeat(
+  shopId: string,
+  input: ServiceRepeatDraft,
+) {
+  return serviceOrderReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeats().shops[":shopId"]["service-repeats"].review.$post(
+          { param: { shopId }, json: input },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
+export async function readServiceRepeatLinks(
+  shopId: string,
+  id: string,
+  before?: string,
+) {
+  return repeatLinksSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeats().shops[":shopId"]["service-repeats"][":id"].links.$post(
+          { param: { shopId, id }, json: before ? { before } : {} },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
 async function result(r: Response, generation: number) {
   if (r.status === 401) {
     if (isOwnerGeneration(generation)) clearOwnerState();

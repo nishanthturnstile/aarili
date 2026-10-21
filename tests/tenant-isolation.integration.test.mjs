@@ -38,6 +38,7 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "order.repeat-service exact selected work source/create/review/links and immutable typed service_repeat_origin/selection/target",
       "order.repeat authorised source/create/review/links; repeatOrdersRepository origin/scope/link/links; same-shop immutable order_repeat_origin/order_repeat_target",
       "order.service-change and order.services-intake draft promotion/conversion; smallServicesRepository.changes/changeOrigin/duplicateChange/change/converted/conversion/intakeOrder; supplemental demand union and scope/booking-scope/review routes",
       "smallServicesRepository.profiles/current/read/history/append/advance/origin/orders/accept/subject/lines",
@@ -580,6 +581,9 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.service_line_transition",
       "public.service_order_line",
       "public.service_property_subject",
+      "public.service_repeat_origin",
+      "public.service_repeat_selection",
+      "public.service_repeat_target",
       "public.service_template_availability",
       "public.service_template_edge",
       "public.service_template_entry",
@@ -821,6 +825,9 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.service_line_transition",
         "public.service_order_line",
         "public.service_property_subject",
+        "public.service_repeat_origin",
+        "public.service_repeat_selection",
+        "public.service_repeat_target",
         "public.service_template_availability",
         "public.service_template_edge",
         "public.service_template_entry",

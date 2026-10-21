@@ -170,6 +170,19 @@ Actor/key joins provide the ordinary draft audit trail. A2 needs a separately
 reviewed schema for selected piece/line references; those proposed future fields
 are not fabricated in A1. See implementation evidence and migration 0037.
 
+**Selected A2 allocation (#135):** `order.repeat-service` schema version 1
+extends the strict service draft through an independent adapter. Migration 0038
+adds `service_repeat_origin`, typed `service_repeat_selection` rows and
+`service_repeat_target`. Source kinds are standalone line, accepted supplemental
+line/change, or pinned original add-on. Shop/order/piece/catalogue/line composite
+references validate exact provenance. Original subject/line IDs stay in provenance;
+new subject/target line IDs are distinct. Current review may explicitly refresh
+source/scope/line versions, while source identity, digests and selection remain
+fixed. Ordinary service acceptance, numbering, commitment and audit are reused.
+Current mappings must reference the same stable catalogue entry and support the
+native source piece; production-task mappings remain blocked. A1 strict readers
+and workflow remain unchanged. See the [A2 field matrix and evidence](Repeat_Service_Implementation_Evidence.md).
+
 Names below are independent implementation proposals, not competitor schema.
 Keep an additive `order_repeat_origin` record tied to the durable draft. It stores
 shop, repeat operation ID, draft ID, source order/kind/version/snapshot digest,

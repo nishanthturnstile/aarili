@@ -5,6 +5,7 @@ import {
   serviceProfileRevisionSchema,
 } from "@aarili/contracts/small-services";
 import { sql, type Transaction } from "./index.js";
+import { repeatServicesRepository } from "./repeat-services-repository.js";
 import type { SmallServicesRepository } from "./repositories/small-services.js";
 import { serviceLineRepository } from "./service-line-repository.js";
 
@@ -44,6 +45,7 @@ export function smallServicesRepository(
     });
   };
   const repo: SmallServicesRepository = {
+    repeats: repeatServicesRepository(tx, shopId),
     progress: serviceLineRepository(tx, shopId),
     async intakeOrder(draftId, lineId) {
       return (

@@ -13,6 +13,7 @@ import { createMediaRoutes } from "./media.js";
 import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
 import { createRepeatOrderRoutes } from "./repeat-orders.js";
+import { createServiceRepeatRoutes } from "./repeat-services.js";
 import { createServiceTemplatesRoutes } from "./service-templates.js";
 import { createShopCalendarRoutes } from "./shop-calendar.js";
 import { createShopCommitmentsRoutes } from "./shop-commitments.js";
@@ -91,6 +92,7 @@ export function createApi(
     app.route("/", createOrderRoutes(owner));
     app.route("/", createRepeatOrderRoutes(owner));
     app.route("/", createSmallServiceRoutes(owner));
+    app.route("/", createServiceRepeatRoutes(owner));
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));

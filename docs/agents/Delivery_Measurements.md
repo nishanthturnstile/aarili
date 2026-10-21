@@ -1,5 +1,29 @@
 # Delivery measurements
 
+## Issue #135 — selected service repeat / 1.2.4b
+
+- Owner selected #135 after merging #139. Pulled `development` to `56b07f6` in
+  the existing clean checkout; branch `codex/repeat-service-intake`. All five
+  native blockers #134/#124/#125/#126/#118 are closed with merged feature PRs.
+- Inherited #139 Fast verification and Dependency audit passed in run
+  `39578686370`; full promotion gates remain separate.
+- Implementation start was not timestamped before editing; observed underway
+  at **2026-10-21T10:58:03Z**. Active
+  coding/rework duration remains unknown. No worktree or live-data activation.
+- Frozen core checks: **54/54 PostgreSQL, 612.24s**; expanded final A2
+  **11/11, 155.93s**; grouped acceptance **17/17 selected, 227.52s**.
+- Fast verification exit 0, **132.880s**, **266 units / 60 files, 15.76s**;
+  production task graph **20.521s**. Earlier 5s command/jobs property timeouts
+  under parallel load passed on the frozen rerun with unchanged timeouts.
+- Ordinary sign-in/source review on the running synthetic host verified by
+  **2026-10-21T11:44:07Z**, port **59586**. Earlier check expected the intermediate
+  `/owner` URL rather than final `/dashboard`; corrected diagnostic script passed.
+  Visual review led to using existing 44px form controls. Subsequent validation,
+  PR/CI/review-ready/merge observations remain separately recorded when actual.
+- Final styled controls: fast exit 0, **109.670s**, **266 units, 12.27s** and
+  production graph **15.136s**. Pinned-node A2/grouped browser checks follow;
+  final host was restarted after the build so review uses the final UI.
+
 ## Issue #134 — custom repeat-order intake / 1.2.4a
 
 - Owner approved D1–D6, publication of #134–#138 and A1 selection on 21 October

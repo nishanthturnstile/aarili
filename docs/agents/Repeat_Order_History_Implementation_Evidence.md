@@ -1,6 +1,6 @@
 # Repeat orders and history: preparation and implementation status
 
-21 October 2026. **A1 / #134 implemented in draft [PR #139](https://github.com/nishanthturnstile/aarili/pull/139); owner review and hosted CI pending. A2–C2 remain blocked.**
+21 October 2026. **A1 / #134 merged in [PR #139](https://github.com/nishanthturnstile/aarili/pull/139). Owner selected A2 / #135 after merging it; see [A2 evidence](Repeat_Service_Implementation_Evidence.md). B–C2 remain gated. The A1 evidence below records its historical handoff state.**
 The preparation record below is historical; the current implementation audit follows it.
 [Design/matrix](Repeat_Order_History_Design.md),
 [approved ticket packet](Repeat_Order_History_Ticket_Packet.md),
