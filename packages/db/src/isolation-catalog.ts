@@ -286,6 +286,8 @@ export async function assertIsolationCatalog(db: Database) {
         "public.order_service_change",
         "public.order_service_change_line",
         "public.service_intake_conversion",
+        "public.order_repeat_origin",
+        "public.order_repeat_target",
         "public.order_capacity_demand",
         "public.order_presentation_event",
         "public.shop_directory_revision",

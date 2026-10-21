@@ -6,6 +6,7 @@ import { bookingsRepository } from "./bookings-repository.js";
 import { groupIntakeRepository } from "./group-intake-repository.js";
 import { sql, type Transaction } from "./index.js";
 import { orderPiecesRepository } from "./order-pieces-repository.js";
+import { repeatOrdersRepository } from "./repeat-orders-repository.js";
 import type { OrdersRepository } from "./repositories/orders.js";
 import { requestRepository } from "./request-repository.js";
 
@@ -30,6 +31,7 @@ export function ordersRepository(
       snapshotDigest: r.digest,
     });
   const repo: OrdersRepository = {
+    repeats: repeatOrdersRepository(tx, shopId),
     ...requestRepository(tx, shopId),
     groups: groupIntakeRepository(tx, shopId),
     bookings: bookingsRepository(tx, shopId),

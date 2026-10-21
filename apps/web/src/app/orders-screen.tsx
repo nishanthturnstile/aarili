@@ -18,6 +18,8 @@ import {
   type QuickOrderDraft,
   type QuickOrderPreview,
   quickOrderDraftSchema,
+  repeatIntake,
+  repeatOrderDraftSchema,
 } from "@aarili/contracts/orders";
 import { presentServiceRequirements } from "@aarili/contracts/service-templates";
 import type { WearerProfile } from "@aarili/contracts/wearers";
@@ -44,6 +46,7 @@ import { GroupIntake } from "./group-intake";
 import { AcceptedOrderDetail, CommitmentReview } from "./order-acceptance";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { RepeatDraftContext, RepeatOrderPanel } from "./repeat-order";
 import { SmallServices } from "./small-services";
 
 type Services = Awaited<ReturnType<typeof readServiceTemplates>>;
@@ -75,7 +78,10 @@ export function QuickOrderFields({
     controller.snapshot,
     controller.snapshot,
   );
-  const v = quickOrderDraftSchema.parse(s.values);
+  const repeated = repeatOrderDraftSchema.safeParse(s.values);
+  const v = repeated.success
+    ? repeatIntake(repeated.data)
+    : quickOrderDraftSchema.parse(s.values);
   const [customers, setCustomers] = useState<CustomerSearchPage>(),
     [wearers, setWearers] = useState<WearerProfile[]>([]),
     [services, setServices] = useState<Services>();
@@ -130,9 +136,11 @@ export function QuickOrderFields({
       (r) => {
         if (!alive.current || customerGeneration.current !== expected) return;
         setWearers(r.wearers);
-        const current = quickOrderDraftSchema.parse(
-          controller.snapshot().values,
-        );
+        const values = controller.snapshot().values;
+        const repeat = repeatOrderDraftSchema.safeParse(values);
+        const current = repeat.success
+          ? repeatIntake(repeat.data)
+          : quickOrderDraftSchema.parse(values);
         if (current.customerId === v.customerId && !current.wearerId) {
           const self = r.wearers.find(
             (w) =>
@@ -227,93 +235,97 @@ export function QuickOrderFields({
   return (
     <>
       <p>{t.draftOnly}</p>
-      <Field>
-        <FieldLabel htmlFor="qo-query">{t.query}</FieldLabel>
-        <Input
-          id="qo-query"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-              e.preventDefault();
-              void findCustomer();
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          disabled={working}
-          onClick={() => void findCustomer()}
-        >
-          {t.search}
-        </Button>
-      </Field>
-      {customers && (
-        <ul className="order-choices">
-          {customers.customers.length === 0 && <li>{t.noCustomers}</li>}
-          {customers.customers.map((c) => (
-            <li key={c.id}>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  form.setValue("customerId", c.id, { shouldDirty: true });
-                  form.setValue("wearerId", null, { shouldDirty: true });
-                  setCustomers(undefined);
-                }}
-              >
-                {c.displayName} · {c.code}
-                {c.phone ? ` · ${c.phone}` : ""}
-              </Button>
-            </li>
-          ))}
-          {customers.next && (
-            <li>
-              <Button
-                type="button"
-                disabled={working}
-                onClick={() => void findCustomer(customers.next)}
-              >
-                {t.moreResults}
-              </Button>
-            </li>
-          )}
-        </ul>
-      )}
-      <p>
-        <strong>{t.customerId}:</strong>{" "}
-        {preview?.customer?.label ?? (v.customerId ? t.loading : t.none)}
-      </p>
-      <Field>
-        <FieldLabel htmlFor="qo-wearer">{t.wearerId}</FieldLabel>
-        <select
-          id="qo-wearer"
-          value={v.wearerId ?? ""}
-          onChange={(e) =>
-            form.setValue("wearerId", e.target.value || null, {
-              shouldDirty: true,
-            })
-          }
-        >
-          <option value="">{t.none}</option>
-          {wearers
-            .filter((w) => w.relationship.authorised && w.relationship.informed)
-            .map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.displayName}
-                {w.relationship.kind === "self"
-                  ? ` (${locale === "ta" ? "தானே" : "self"})`
-                  : ""}
-              </option>
+      <fieldset disabled={repeated.success}>
+        <Field>
+          <FieldLabel htmlFor="qo-query">{t.query}</FieldLabel>
+          <Input
+            id="qo-query"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                void findCustomer();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={working}
+            onClick={() => void findCustomer()}
+          >
+            {t.search}
+          </Button>
+        </Field>
+        {customers && (
+          <ul className="order-choices">
+            {customers.customers.length === 0 && <li>{t.noCustomers}</li>}
+            {customers.customers.map((c) => (
+              <li key={c.id}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    form.setValue("customerId", c.id, { shouldDirty: true });
+                    form.setValue("wearerId", null, { shouldDirty: true });
+                    setCustomers(undefined);
+                  }}
+                >
+                  {c.displayName} · {c.code}
+                  {c.phone ? ` · ${c.phone}` : ""}
+                </Button>
+              </li>
             ))}
-          {v.wearerId && !wearers.some((w) => w.id === v.wearerId) && (
-            <option value={v.wearerId}>
-              {preview?.wearer?.label ?? t.unavailable}
-            </option>
-          )}
-        </select>
-      </Field>
+            {customers.next && (
+              <li>
+                <Button
+                  type="button"
+                  disabled={working}
+                  onClick={() => void findCustomer(customers.next)}
+                >
+                  {t.moreResults}
+                </Button>
+              </li>
+            )}
+          </ul>
+        )}
+        <p>
+          <strong>{t.customerId}:</strong>{" "}
+          {preview?.customer?.label ?? (v.customerId ? t.loading : t.none)}
+        </p>
+        <Field>
+          <FieldLabel htmlFor="qo-wearer">{t.wearerId}</FieldLabel>
+          <select
+            id="qo-wearer"
+            value={v.wearerId ?? ""}
+            onChange={(e) =>
+              form.setValue("wearerId", e.target.value || null, {
+                shouldDirty: true,
+              })
+            }
+          >
+            <option value="">{t.none}</option>
+            {wearers
+              .filter(
+                (w) => w.relationship.authorised && w.relationship.informed,
+              )
+              .map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.displayName}
+                  {w.relationship.kind === "self"
+                    ? ` (${locale === "ta" ? "தானே" : "self"})`
+                    : ""}
+                </option>
+              ))}
+            {v.wearerId && !wearers.some((w) => w.id === v.wearerId) && (
+              <option value={v.wearerId}>
+                {preview?.wearer?.label ?? t.unavailable}
+              </option>
+            )}
+          </select>
+        </Field>
+      </fieldset>
       <a href={v.customerId ? `/customers/${v.customerId}` : "/customers/new"}>
         {t.registration}
       </a>
@@ -536,7 +548,10 @@ function Editor({
   useEffect(() => {
     if (s.status === "closed") close(true);
   }, [s.status, close]);
-  const initial = quickOrderDraftSchema.safeParse(s.values);
+  const repeated = repeatOrderDraftSchema.safeParse(s.values);
+  const initial = quickOrderDraftSchema.safeParse(
+    repeated.success ? repeatIntake(repeated.data) : s.values,
+  );
   if (!initial.success) return null;
   const v = initial.data;
   return (
@@ -544,49 +559,58 @@ function Editor({
       <h2 tabIndex={-1} ref={heading}>
         {t.newDraft}
       </h2>
-      <Button
-        variant="outline"
-        disabled={
-          s.work.inFlight ||
-          s.work.outcomeUnknown ||
-          s.status === "conflict" ||
-          s.status === "promoted"
-        }
-        onClick={() =>
-          void (async () => {
-            await controller.save();
-            await controller.convert();
-          })()
-        }
-      >
-        {groupIntakeMessages[locale].convert}
-      </Button>
-      <p>{serviceAdditionMessages[locale].convertNote}</p>
-      <Button
-        variant="outline"
-        disabled={
-          s.work.inFlight ||
-          s.work.outcomeUnknown ||
-          s.status === "conflict" ||
-          s.status === "promoted"
-        }
-        onClick={() =>
-          void (async () => {
-            await controller.save();
-            await controller.convert("services");
-          })()
-        }
-      >
-        {serviceAdditionMessages[locale].convert}
-      </Button>
-      <DraftForm
+      {!repeated.success && (
+        <>
+          <Button
+            variant="outline"
+            disabled={
+              s.work.inFlight ||
+              s.work.outcomeUnknown ||
+              s.status === "conflict" ||
+              s.status === "promoted"
+            }
+            onClick={() =>
+              void (async () => {
+                await controller.save();
+                await controller.convert();
+              })()
+            }
+          >
+            {groupIntakeMessages[locale].convert}
+          </Button>
+          <p>{serviceAdditionMessages[locale].convertNote}</p>
+          <Button
+            variant="outline"
+            disabled={
+              s.work.inFlight ||
+              s.work.outcomeUnknown ||
+              s.status === "conflict" ||
+              s.status === "promoted"
+            }
+            onClick={() =>
+              void (async () => {
+                await controller.save();
+                await controller.convert("services");
+              })()
+            }
+          >
+            {serviceAdditionMessages[locale].convert}
+          </Button>
+        </>
+      )}
+      <DraftForm<QuickOrderDraft>
         controller={controller}
-        schema={quickOrderDraftSchema}
+        schema={
+          repeated.success ? repeatOrderDraftSchema : quickOrderDraftSchema
+        }
         locale={locale}
         guard={guard}
         canPromote={false}
         renderConflict={(record) => {
-          const server = quickOrderDraftSchema.safeParse(record.payload);
+          const repeat = repeatOrderDraftSchema.safeParse(record.payload);
+          const server = quickOrderDraftSchema.safeParse(
+            repeat.success ? repeatIntake(repeat.data) : record.payload,
+          );
           return server.success ? (
             <>
               <h3>{t.compare}</h3>
@@ -634,13 +658,23 @@ function Editor({
         }}
       >
         {(form) => (
-          <QuickOrderFields
-            form={form}
-            controller={controller}
-            shopId={shopId}
-            t={t}
-            locale={locale}
-          />
+          <>
+            {repeated.success && (
+              <RepeatDraftContext
+                controller={controller}
+                form={form}
+                shopId={shopId}
+                locale={locale}
+              />
+            )}
+            <QuickOrderFields
+              form={form}
+              controller={controller}
+              shopId={shopId}
+              t={t}
+              locale={locale}
+            />
+          </>
         )}
       </DraftForm>
       <div className="owner-actions">
@@ -797,9 +831,9 @@ export function OrdersScreen({
     address(record?.id);
     if (selected.current) scope.release(selected.current);
     const c = scope.open({
-      workflow: "order.quick",
+      workflow: record?.workflow ?? "order.quick",
       schemaVersion: 1,
-      initial,
+      initial: record?.payload ?? initial,
       ...(record ? { record } : {}),
       committed,
     });
@@ -816,7 +850,10 @@ export function OrdersScreen({
       setRecords((rows) => {
         const map = new Map((cursor ? rows : []).map((row) => [row.id, row]));
         for (const row of r.drafts)
-          if (row.workflow === "order.quick" && row.lifecycle === "active")
+          if (
+            ["order.quick", "order.repeat"].includes(row.workflow) &&
+            row.lifecycle === "active"
+          )
             map.set(row.id, row);
         return [...map.values()];
       });
@@ -892,9 +929,12 @@ export function OrdersScreen({
         setGroupIntake(true);
         return;
       }
-      const p = quickOrderDraftSchema.safeParse(r.payload);
+      const repeat = repeatOrderDraftSchema.safeParse(r.payload);
+      const p = quickOrderDraftSchema.safeParse(
+        repeat.success ? repeatIntake(repeat.data) : r.payload,
+      );
       if (
-        r.workflow === "order.quick" &&
+        ["order.quick", "order.repeat"].includes(r.workflow) &&
         r.lifecycle === "promoted" &&
         r.result?.type === "order.accepted"
       ) {
@@ -902,7 +942,7 @@ export function OrdersScreen({
         return;
       }
       if (
-        r.workflow !== "order.quick" ||
+        !["order.quick", "order.repeat"].includes(r.workflow) ||
         r.schemaVersion !== 1 ||
         !p.success ||
         r.lifecycle !== "active"
@@ -943,6 +983,7 @@ export function OrdersScreen({
   }
   function close(force = false, refreshLists = true) {
     const c = selected.current;
+    if (!c && !guard.safe()) return;
     if (
       c &&
       !force &&
@@ -1086,14 +1127,36 @@ export function OrdersScreen({
       {failure && <p role="alert">{t.error}</p>}
       {working && <p role="status">{t.loading}</p>}
       {accepted ? (
-        <AcceptedOrderDetail
-          guard={guard}
-          key={accepted.id}
-          order={accepted}
-          shopId={shopId}
-          locale={locale}
-          back={() => close(true)}
-        />
+        <>
+          <RepeatOrderPanel
+            guard={guard}
+            key={`repeat-${accepted.id}`}
+            shopId={shopId}
+            orderId={accepted.id}
+            locale={locale}
+            disabled={working || !safe}
+            onUnavailable={() => {
+              setAccepted(undefined);
+              setOrders([]);
+              setRecords([]);
+              setFailure(true);
+              address();
+            }}
+            onOrder={(id) => void openOrder(id)}
+            onDraft={(r) => {
+              const p = repeatOrderDraftSchema.parse(r.payload);
+              open(repeatIntake(p), r);
+            }}
+          />
+          <AcceptedOrderDetail
+            guard={guard}
+            key={accepted.id}
+            order={accepted}
+            shopId={shopId}
+            locale={locale}
+            back={() => close(true)}
+          />
+        </>
       ) : controller ? (
         <Editor
           key={controller.instance}

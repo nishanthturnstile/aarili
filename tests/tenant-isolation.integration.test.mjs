@@ -38,6 +38,7 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "order.repeat authorised source/create/review/links; repeatOrdersRepository origin/scope/link/links; same-shop immutable order_repeat_origin/order_repeat_target",
       "order.service-change and order.services-intake draft promotion/conversion; smallServicesRepository.changes/changeOrigin/duplicateChange/change/converted/conversion/intakeOrder; supplemental demand union and scope/booking-scope/review routes",
       "smallServicesRepository.profiles/current/read/history/append/advance/origin/orders/accept/subject/lines",
       "shops/:shopId/small-services/profiles/list/read/history/orders/review/list/read",
@@ -556,6 +557,8 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.order_piece",
       "public.order_piece_set",
       "public.order_presentation_event",
+      "public.order_repeat_origin",
+      "public.order_repeat_target",
       "public.order_requirement",
       "public.order_requirement_scope",
       "public.order_service_capacity_contribution",
@@ -795,6 +798,8 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.order_piece",
         "public.order_piece_set",
         "public.order_presentation_event",
+        "public.order_repeat_origin",
+        "public.order_repeat_target",
         "public.order_requirement",
         "public.order_requirement_scope",
         "public.order_service_capacity_contribution",

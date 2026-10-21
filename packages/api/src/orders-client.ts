@@ -1,4 +1,4 @@
-import { draftErrorSchema } from "@aarili/contracts/drafts";
+import { draftErrorSchema, draftSuccessSchema } from "@aarili/contracts/drafts";
 import {
   acceptedOrderSchema,
   type BookingDraft,
@@ -16,6 +16,9 @@ import {
   orderReviewSchema,
   type QuickOrderDraft,
   quickOrderPreviewSchema,
+  type RepeatOrderDraft,
+  repeatLinksSchema,
+  repeatSourceSchema,
 } from "@aarili/contracts/orders";
 import { hc } from "hono/client";
 import type { createBookingRoutes } from "./bookings.js";
@@ -26,6 +29,7 @@ import {
   OwnerRequestError,
 } from "./client.js";
 import type { createOrderRoutes } from "./orders.js";
+import type { createRepeatOrderRoutes } from "./repeat-orders.js";
 
 const bookingClient = () => hc<ReturnType<typeof createBookingRoutes>>("/api");
 export async function reviewGroupIntake(
@@ -44,6 +48,87 @@ export async function reviewGroupIntake(
   );
 }
 const client = () => hc<ReturnType<typeof createOrderRoutes>>("/api");
+const repeatClient = () =>
+  hc<ReturnType<typeof createRepeatOrderRoutes>>("/api");
+export async function readRepeatSource(shopId: string, id: string) {
+  return repeatSourceSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeatClient().shops[":shopId"].orders[":id"].repeat.source.$post(
+          { param: { shopId, id } },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      async (r, generation) => {
+        const data = repeatSourceSchema.parse(await orderResult(r, generation));
+        if (r.headers.get("ETag") !== `"v${data.order.version}"`)
+          throw new OwnerRequestError("REQUEST_FAILED");
+        return data;
+      },
+    ),
+  );
+}
+export async function createRepeatOrder(
+  shopId: string,
+  id: string,
+  input: {
+    draftId: string;
+    snapshotDigest: string;
+    scopeDigest: string;
+    reuseInstructions: boolean;
+  },
+  key: string,
+  version: number,
+) {
+  return draftSuccessSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeatClient().shops[":shopId"].orders[":id"].repeat.create.$post(
+          { param: { shopId, id }, json: input },
+          {
+            headers: { "Idempotency-Key": key, "If-Match": `"v${version}"` },
+            init: { cache: "no-store", signal: s },
+          },
+        ),
+      async (r, generation) => {
+        const data = draftSuccessSchema.parse(await orderResult(r, generation));
+        if (r.headers.get("ETag") !== `"v${data.draft.version}"`)
+          throw new OwnerRequestError("REQUEST_FAILED");
+        return data;
+      },
+    ),
+  );
+}
+export async function reviewRepeatOrder(
+  shopId: string,
+  input: RepeatOrderDraft,
+) {
+  return orderReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeatClient().shops[":shopId"].orders.repeat.review.$post(
+          { param: { shopId }, json: input },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
+    ),
+  );
+}
+export async function readRepeatLinks(
+  shopId: string,
+  id: string,
+  before?: string,
+) {
+  return repeatLinksSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        repeatClient().shops[":shopId"].orders[":id"].repeat.links.$post(
+          { param: { shopId, id }, json: before ? { before } : {} },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      orderResult,
+    ),
+  );
+}
 async function piecesResult(r: Response, generation: number) {
   const result = orderPiecesSchema.parse(await orderResult(r, generation));
   if (r.headers.get("ETag") !== `"v${result.orderVersion}"`)

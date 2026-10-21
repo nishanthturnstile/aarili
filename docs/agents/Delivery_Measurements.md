@@ -1,5 +1,48 @@
 # Delivery measurements
 
+## Issue #134 — custom repeat-order intake / 1.2.4a
+
+- Owner approved D1–D6, publication of #134–#138 and A1 selection on 21 October
+  2026. Rechecked #114/#120/#125/#126 and their merged PRs. Existing checkout
+  at `bc23c0e`, branch `codex/repeat-custom-intake`; no worktree.
+- Implementation observed underway by **2026-10-21T08:58:33Z**. Exact first-edit
+  time and separate active coding/rework durations were not instrumented; unknown.
+- Initial repeat SQL **3/3, 36.57s**; expanded corrected suite **6/6, 70.13s**;
+  populated-upgrade/publisher-race follow-up **2/2, 24.54s**. Test assertion and
+  browser synchronization failures are retained in the implementation evidence.
+- Native `verify:fast` third attempt passed, **264 units / 59 files, 15.78s**;
+  production task graph **20.784s**. Whole-chain elapsed was not separately timed.
+- By **09:16:31Z**, three-screen browser workflow and affected legacy PostgreSQL
+  regressions were running. First tryable host, review-ready, PR/hosted CI and merge
+  observations follow when actual; pending phases are not counted as coding time.
+- Final current-software `verify:fast`: native **exit 0, 115.676s**, **264 units,
+  16.04s**, production graph **20.262s**. Final corrected SQL **12/12 selected,
+  148.26s**; supplemental scope **1/1 selected, 18.22s**. Legacy acceptance
+  **44/44** passed; four exact-inventory failures were corrected and rechecked.
+- Final expanded browser phone **32.4s**, tablet/desktop **1.3m**; original
+  three-size flow **1.5m**. Wrong post-acceptance test locator failed three cases
+  before correction; failures are retained. No active-rework duration is inferred.
+- First final host verified tryable by **2026-10-21T09:28:12Z**, port **64776**;
+  ordinary sign-in and synthetic source review passed. Earlier temporary host's
+  exact first-tryable timestamp is unknown. Owner/physical-device/AT/Tamil findings,
+  hosted CI, merge and deployment remain pending.
+- Lost-acceptance extension initially failed **48.0s** after the exact retry hit
+  real HTTP 429. After honoring native Retry-After, phone **1/1 passed, 1.4m**
+  (scenario **1.3m**); no new rate or admission bypass. Canonical-ID follow-up
+  verification and PR readiness are recorded below when observed.
+- Canonical-ID/populated-upgrade follow-up **2/2 selected, 31.22s**, final frozen
+  fast verification **native exit 0, 99.608s**, **264 units, 13.46s** and production
+  graph **15.490s**. Review packet and current evidence prepared by **09:37:29Z**;
+  verification exit confirmation followed immediately. PR/CI/merge observations
+  remain separate; no active coding duration is reconstructed.
+- Capability `96c10d2`, draft [PR #139](https://github.com/nishanthturnstile/aarili/pull/139)
+  opened **2026-10-21T09:38:58Z** and immediately linked to T3. At **09:39:05Z**,
+  Fast verification and Dependency audit were queued in
+  [run 39578594864](https://github.com/nishanthturnstile/aarili/actions/runs/39578594864).
+  Hosted execution, review waiting, human findings and merge remain pending.
+  Subsequent documentation-only closeout may supersede that run; no active time
+  or merge duration is inferred from these timestamps.
+
 ## Issue #124 — standalone small-service intake / 1.2.3a
 
 - Owner approved A–C/D1–D6, ticket publication and A selection on 20 October 2026.

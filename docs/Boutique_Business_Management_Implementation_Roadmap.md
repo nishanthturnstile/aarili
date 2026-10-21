@@ -653,6 +653,30 @@ and actual handover remain their named later slices.
 
 ##### Vertical Slice 1.2.4 — Reuse Orders and Maintain Customer History
 
+**REA delivery brief (21 October 2026):** the
+[Repeat Orders and Customer History prompt](agents/Repeat_Order_History_REA_Prompt.md)
+starts with reviewed duplicate-as-new intake, followed by unified history and
+authorised identity corrections. Nool repeat/clone and TailorMan customer history
+are research candidates, not proof of their internal implementation. The brief
+preserves source snapshots, wearer distinctions and later-domain dependencies;
+it changes no scope or approval gates.
+
+**Approved packet (21 October 2026; A1 selected as #134):**
+[REA evidence](agents/Repeat_Order_History_REA_Evidence.md),
+[independent design and field reuse/reset matrix](agents/Repeat_Order_History_Design.md),
+[concrete tickets](agents/Repeat_Order_History_Ticket_Packet.md) and
+[validation/selection status](agents/Repeat_Order_History_Implementation_Evidence.md)
+define A1 custom repeat intake, A2 selected service/piece-context repeat, B unified
+implemented-domain history, C1 duplicate review/corrective edits and C2 authorised
+contact merge/relink. Existing 1.2.1–1.2.3 blockers are merged through promotion
+#130. Published #134–#138 retain native blockers; only #134 is selected.
+A1 adds independent repeat drafts and authorised lineage through existing custom
+acceptance. RH-01–10/14–15 apply; A2/history/identity remain later.
+AC-58 remains its material slice; AC-59 timing is a measured design target, and
+measurement/design/fit/media/financial dependencies retain their own gates.
+A1 does not close all of 1.2.4 or authorise live data. See the evidence for
+validation results and pending human acceptance.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-03, CUS-05, CUS-06, ORD-08, ORD-12, MEA-10, TRU-06, TRU-12. Scenarios: AC-02, AC-58, AC-59.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.

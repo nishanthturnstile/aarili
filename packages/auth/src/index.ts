@@ -39,6 +39,7 @@ import {
   type QuickOrderContext,
   quickOrderConversion,
   quickOrderDraftWorkflow,
+  repeatOrderWorkflow,
 } from "@aarili/core/orders";
 import {
   type ServiceCatalogueContext,
@@ -1261,6 +1262,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
+      workflows.set(
+        "order.repeat",
+        repeatOrderWorkflow(quickOrderContext(tx, shopId, userId)),
+      );
       workflows.set(
         "service.intake-profile",
         serviceProfileDraftWorkflow(smallServiceContext(tx, shopId, userId)),
