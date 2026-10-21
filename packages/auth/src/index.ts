@@ -80,6 +80,7 @@ import {
   serviceIntakeWorkflow,
   serviceOrderDraftWorkflow,
   serviceProfileDraftWorkflow,
+  serviceRepeatWorkflow,
 } from "@aarili/core/small-services";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
@@ -1262,6 +1263,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
+      workflows.set(
+        "order.repeat-service",
+        serviceRepeatWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
       workflows.set(
         "order.repeat",
         repeatOrderWorkflow(quickOrderContext(tx, shopId, userId)),

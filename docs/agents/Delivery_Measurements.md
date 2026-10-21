@@ -1,5 +1,55 @@
 # Delivery measurements
 
+## Issue #135 — selected service repeat / 1.2.4b
+
+- Owner selected #135 after merging #139. Pulled `development` to `56b07f6` in
+  the existing clean checkout; branch `codex/repeat-service-intake`. All five
+  native blockers #134/#124/#125/#126/#118 are closed with merged feature PRs.
+- Inherited #139 Fast verification and Dependency audit passed in run
+  `39578686370`; full promotion gates remain separate.
+- Implementation start was not timestamped before editing; observed underway
+  at **2026-10-21T10:58:03Z**. Active
+  coding/rework duration remains unknown. No worktree or live-data activation.
+- Frozen core checks: **54/54 PostgreSQL, 612.24s**; expanded final A2
+  **11/11, 155.93s**; grouped acceptance **17/17 selected, 227.52s**.
+- Fast verification exit 0, **132.880s**, **266 units / 60 files, 15.76s**;
+  production task graph **20.521s**. Earlier 5s command/jobs property timeouts
+  under parallel load passed on the frozen rerun with unchanged timeouts.
+- Ordinary sign-in/source review on the running synthetic host verified by
+  **2026-10-21T11:44:07Z**, port **59586**. Earlier check expected the intermediate
+  `/owner` URL rather than final `/dashboard`; corrected diagnostic script passed.
+  Visual review led to using existing 44px form controls. Subsequent validation,
+  PR/CI/review-ready/merge observations remain separately recorded when actual.
+- Final styled controls: fast exit 0, **109.670s**, **266 units, 12.27s** and
+  production graph **15.136s**. Pinned-node A2/grouped browser checks follow;
+  final host was restarted after the build so review uses the final UI.
+- Draft [PR #140](https://github.com/nishanthturnstile/aarili/pull/140), capability
+  `f4f1cf4`, opened **2026-10-21T11:51:45Z** and immediately linked to T3.
+  Fast/audit in [run 39595111999](https://github.com/nishanthturnstile/aarili/actions/runs/39595111999)
+  started **11:51:52Z**; audit finished **11:52:12Z**, Fast **11:53:46Z**.
+- Desktop grouped read exposed a real lock cycle; an instrumented pass was not
+  treated as a fix. Corrected deterministic PostgreSQL case failed with 503
+  (**10.70s**) before the sorted page-lock change, then passed (**11.14s**).
+  Fixture setup errors and the two browser failures are retained in the evidence.
+- After the lock correction: fast exit 0 **113.895s**, **266 units, 14.43s**,
+  production graph **17.292s**; A2/order PostgreSQL **17/17, 205.61s**.
+  Final standalone/native-piece review host verified by **12:14:36Z**, port
+  **59017**, with pinned Node, axe, 44px targets and Tamil landscape/reflow.
+  Active coding/rework duration, owner waiting and merge remain unknown/pending.
+- Final source-list software: A2 browser **24.9s / 19.1s / 16.5s** at
+  phone/tablet/desktop; grouped phone **1.5m**, desktop **1.4m**. The six-case
+  run was **5 pass / 1 fail, 6.9m** because tablet received a known promotion
+  429. After adding explicit Retry-After/confirmation recovery and a deterministic
+  injected 429, tablet **1/1 passed, 1.7m**. No admission value was changed.
+  Lint/Knip passed again after that test-only change. These are separate runs,
+  not a claimed six-case clean run. Final PR head CI and human review remain pending.
+- Review packet and implementation closeout prepared by **2026-10-21T12:24:54Z**;
+  runtime correction/evidence commit `e3531f8` pushed immediately afterward.
+  In [run 39599419140](https://github.com/nishanthturnstile/aarili/actions/runs/39599419140),
+  both jobs started **12:25:07Z**; audit passed **12:25:28Z**, Fast was in progress
+  when observed. A documentation-only timing closeout supersedes that head;
+  latest-head CI, owner/device/language/AT review and merge remain pending.
+
 ## Issue #134 — custom repeat-order intake / 1.2.4a
 
 - Owner approved D1–D6, publication of #134–#138 and A1 selection on 21 October

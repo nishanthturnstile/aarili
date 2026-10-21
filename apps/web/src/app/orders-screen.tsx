@@ -47,6 +47,7 @@ import { AcceptedOrderDetail, CommitmentReview } from "./order-acceptance";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 import { RepeatDraftContext, RepeatOrderPanel } from "./repeat-order";
+import { ServiceRepeatPanel } from "./repeat-services";
 import { SmallServices } from "./small-services";
 
 type Services = Awaited<ReturnType<typeof readServiceTemplates>>;
@@ -898,6 +899,7 @@ export function OrdersScreen({
       if (!active.current) return;
       if (
         r.workflow === "order.service" ||
+        r.workflow === "order.repeat-service" ||
         r.workflow === "order.services-intake" ||
         r.workflow === "service.intake-profile"
       ) {
@@ -1128,6 +1130,29 @@ export function OrdersScreen({
       {working && <p role="status">{t.loading}</p>}
       {accepted ? (
         <>
+          <ServiceRepeatPanel
+            shopId={shopId}
+            orderId={accepted.id}
+            key={`repeat-service-${accepted.id}`}
+            guard={guard}
+            locale={locale}
+            onDraft={(r) => {
+              setServiceDraft(r.id);
+              setServices(true);
+            }}
+            onOrder={(id) => {
+              setServiceOrder(id);
+              setServiceDraft(undefined);
+              setServices(true);
+            }}
+            onUnavailable={() => {
+              setAccepted(undefined);
+              setRecords([]);
+              setOrders([]);
+              setFailure(true);
+              address();
+            }}
+          />
           <RepeatOrderPanel
             guard={guard}
             key={`repeat-${accepted.id}`}

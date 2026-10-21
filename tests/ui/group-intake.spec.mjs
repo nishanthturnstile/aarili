@@ -70,13 +70,17 @@ test("GB-C01/03/04/06/07/08/09 convert and recover multi-garment intake, accept 
         ).json(),
         shopId = entry.shop.shopId;
       const seed = await seedQuickOrder(runtime, shopId, { outfit: true });
-      let retryAfter = 0;
+      let retryAfter = 0,
+        promotionLimited = false;
       page.on("response", (r) => {
-        if (r.status() === 429)
+        if (r.status() === 429) {
+          if (new URL(r.url()).pathname.endsWith("/promote"))
+            promotionLimited = true;
           retryAfter = Math.max(
             retryAfter,
             Number(r.headers()["retry-after"] ?? 1),
           );
+        }
       });
       const cookies = (await context.cookies(origin))
         .map((c) => `${c.name}=${c.value}`)
@@ -512,6 +516,25 @@ test("GB-C01/03/04/06/07/08/09 convert and recover multi-garment intake, accept 
         await expect(
           page.getByLabel(t.packageAmount, { exact: true }),
         ).toHaveValue("2000");
+        let packageAdmissionInjected = false;
+        await page.route(
+          `**/api/shops/*/drafts/${packageId}/promote`,
+          async (route) => {
+            if (packageAdmissionInjected) return route.continue();
+            packageAdmissionInjected = true;
+            return route.fulfill({
+              status: 429,
+              contentType: "application/json",
+              headers: { "Retry-After": "0" },
+              body: JSON.stringify({
+                error: {
+                  code: "RATE_LIMITED",
+                  message: "SYNTHETIC known package admission refusal",
+                },
+              }),
+            });
+          },
+        );
         await accept();
         for (
           let i = 0;
@@ -521,14 +544,25 @@ test("GB-C01/03/04/06/07/08/09 convert and recover multi-garment intake, accept 
         ) {
           await waitAdmission();
           const completed = page.getByRole("heading", { name: /BK-000002/ }),
+            rejected = page.getByText(d.promotionFailed, { exact: true }),
             retry = page.getByRole("button", {
               name: d.retry,
               exact: true,
             });
-          await expect(completed.or(retry)).toBeVisible();
+          await expect(completed.or(retry).or(rejected)).toBeVisible();
           if (await completed.isVisible()) break;
-          await retry.click();
+          if (await retry.isVisible()) await retry.click();
+          else {
+            expect(promotionLimited).toBe(true);
+            await waitAdmission();
+            promotionLimited = false;
+            await page
+              .getByRole("button", { name: t.confirm, exact: true })
+              .click();
+          }
         }
+        expect(packageAdmissionInjected).toBe(true);
+        await page.unroute(`**/api/shops/*/drafts/${packageId}/promote`);
         await expect(
           page.getByRole("heading", { name: /BK-000002/ }),
         ).toBeVisible();
