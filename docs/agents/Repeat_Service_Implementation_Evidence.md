@@ -208,6 +208,13 @@ The later test-only correction is `tests/ui/group-intake.spec.mjs`; evidence and
 timings are committed with the closeout. The PR head is the immutable publication
 locator. Latest-head CI must pass before owner merge; earlier-head green checks
 are not represented as current-head proof.
+Runtime correction and complete review fixtures are published as
+`e3531f84e5530ed1f6dedf5094c2f29d62927ed3`. Review-ready closeout was prepared by
+**2026-10-21T12:24:54Z**. Its
+[CI run 39599419140](https://github.com/nishanthturnstile/aarili/actions/runs/39599419140)
+had audit success at **12:25:28Z** and Fast in progress when observed. This final
+documentation-only timing record supersedes that head; check the PR's latest
+required CI before merge. No source/build input changed after the recorded checks.
 
 ### Requirement check
 
