@@ -12,7 +12,11 @@ import {
 } from "./test-support/small-services.mjs";
 
 const operation = process.argv[2];
-const directory = resolve(".scratch/repeat-services-review-host");
+const directory = resolve(
+  process.argv.includes("--history")
+    ? ".scratch/customer-history-review-host"
+    : ".scratch/repeat-services-review-host",
+);
 const file = (name) => resolve(directory, name);
 await mkdir(directory, { recursive: true });
 if (operation === "stop") {
@@ -164,6 +168,9 @@ if (operation === "stop") {
               email,
               password,
               sourceId,
+              customerId: seed.seed.customer.customerId,
+              wearerId: seed.seed.wearer.wearerId,
+              historyUrl: `${origin}/customers/${seed.seed.customer.customerId}`,
               url: `${origin}/orders?services=1&serviceOrder=${sourceId}`,
               pieceSourceId: custom.customId,
               pieceUrl: `${origin}/orders?order=${custom.customId}`,
@@ -172,6 +179,9 @@ if (operation === "stop") {
               ),
             }),
             { mode: 0o600 },
+          );
+          console.info(
+            `Customer-history review ready: ${origin}/customers/${seed.seed.customer.customerId}`,
           );
           console.info(
             `Repeat-service review ready: ${origin}/orders?services=1&serviceOrder=${sourceId}`,

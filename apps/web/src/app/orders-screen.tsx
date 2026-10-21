@@ -869,6 +869,12 @@ export function OrdersScreen({
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial URL read belongs to this scope lifetime
   useEffect(() => {
     const url = new URL(window.location.href);
+    const historyBooking = url.searchParams.get("historyBooking");
+    if (historyBooking && /^[0-9a-f-]{36}$/i.test(historyBooking)) {
+      setGroupBooking(historyBooking);
+      setGrouping(true);
+      return;
+    }
     if (
       url.searchParams.has("services") ||
       url.searchParams.has("serviceOrder")
@@ -1045,10 +1051,17 @@ export function OrdersScreen({
         back={() => {
           setGrouping(false);
           setGroupBooking(undefined);
+          const url = new URL(window.location.href);
+          url.searchParams.delete("historyBooking");
+          window.history.replaceState(null, "", `${url.pathname}${url.search}`);
           void refresh();
           void refreshOrders();
         }}
         initialBookingRevision={groupBooking}
+        initialBookingIsId={
+          typeof window !== "undefined" &&
+          new URL(window.location.href).searchParams.has("historyBooking")
+        }
       />
     );
   if (groupIntake)

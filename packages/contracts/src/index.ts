@@ -15,6 +15,8 @@ export const apiErrorSchema = z.strictObject({
   error: z.strictObject({
     code: z.enum([
       "NOT_FOUND",
+      "HISTORY_CHANGED",
+      "INVALID_CURSOR",
       "INTERNAL_ERROR",
       "SETUP_CLOSED",
       "INVALID_CREDENTIALS",

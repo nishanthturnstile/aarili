@@ -91,6 +91,10 @@
     "./small-services": {
       "types": "./dist/small-services.d.ts",
       "import": "./dist/small-services.js"
+    },
+    "./customer-history": {
+      "types": "./dist/customer-history.d.ts",
+      "import": "./dist/customer-history.js"
     }
   },
   "scripts": {

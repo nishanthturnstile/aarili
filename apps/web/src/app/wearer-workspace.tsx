@@ -37,6 +37,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useForm } from "react-hook-form";
+import { CustomerHistory } from "./customer-history";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import { GuardianWorkspace } from "./guardian-workspace";
@@ -318,6 +319,25 @@ export function WearerWorkspace({
           </li>
         ))}
       </ul>
+      {!controller && (
+        <CustomerHistory
+          key={`${customer.id}:${customer.version}:${active?.id ?? "all"}:${active?.version ?? 0}`}
+          shopId={shopId}
+          customerId={customer.id}
+          wearerId={active?.id ?? null}
+          queries={queries}
+          onWearer={(id) => {
+            if (mayLeave()) {
+              setSelected(id);
+              setTimeout(
+                () =>
+                  document.getElementById("selected-wearer-heading")?.focus(),
+                0,
+              );
+            }
+          }}
+        />
+      )}
       {active && policy && !controller && (
         <WearerDetails
           key={`${active.id}:${active.version}`}
@@ -1114,7 +1134,7 @@ function WearerDetails({
       className="wearer-selected"
       aria-labelledby="selected-wearer-heading"
     >
-      <h3 id="selected-wearer-heading">
+      <h3 id="selected-wearer-heading" tabIndex={-1}>
         {t("active")}: {wearer.displayName}
       </h3>
       <p className="customer-muted">

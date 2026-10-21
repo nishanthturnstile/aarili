@@ -131,6 +131,14 @@
     "./orders-client": {
       "types": "./dist/orders-client.d.ts",
       "import": "./dist/orders-client.js"
+    },
+    "./customer-history": {
+      "types": "./dist/customer-history.d.ts",
+      "import": "./dist/customer-history.js"
+    },
+    "./customer-history-client": {
+      "types": "./dist/customer-history-client.d.ts",
+      "import": "./dist/customer-history-client.js"
     }
   },
   "scripts": {

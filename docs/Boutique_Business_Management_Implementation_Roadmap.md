@@ -672,8 +672,14 @@ contact merge/relink. Existing 1.2.1–1.2.3 blockers are merged through promoti
 #130. A1 #134 merged as PR #139; the owner selected A2 #135 after that merge.
 [A2 implementation and validation](agents/Repeat_Service_Implementation_Evidence.md)
 records selected standalone/add-on/native-piece work as new service intake.
+A2 merged as PR #140; the owner selected B #136 after that merge. Its
+[customer/wearer history implementation](agents/Customer_History_Implementation_Evidence.md)
+projects currently authorised implemented records with original identifiers,
+revision/source links and stable private pagination. This is partial CUS-03;
+C1/C2, unavailable history domains and activation gates remain open.
 A1 adds independent repeat drafts and authorised lineage through existing custom
-acceptance. RH-01–11/14–15 apply; unified history and identity corrections remain later.
+acceptance. RH-01–11/14–15 apply to A1; B adds bounded implemented-domain history,
+while identity corrections remain later.
 AC-58 remains its material slice; AC-59 timing is a measured design target, and
 measurement/design/fit/media/financial dependencies retain their own gates.
 A1 does not close all of 1.2.4 or authorise live data. See the evidence for
