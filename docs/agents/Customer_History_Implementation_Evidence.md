@@ -1,7 +1,10 @@
 # Customer and wearer history — 1.2.4c / #136
 
 21 October 2026. Owner selected #136 after merging A2 [PR #140](https://github.com/nishanthturnstile/aarili/pull/140).
-Implemented on `codex/customer-history`; owner review, hosted CI and merge remain separate gates.
+Implemented on `codex/customer-history` in draft [PR #141](https://github.com/nishanthturnstile/aarili/pull/141),
+targeting `development`. Owner review, hosted CI and merge remain separate gates.
+Tested implementation is commit `70b822e4817e51f033bd15b800ec3b46709e0f26`;
+subsequent publication metadata changes only this evidence and delivery timings.
 This is partial CUS-03 coverage; C1/C2 and future domain integrations remain gated.
 
 ## Authority and baseline
@@ -153,6 +156,13 @@ read took **129.412ms**; plan **28.415ms**, SQL execution **47.802ms**, 25 event
 These are single observed timings, not end-to-end latency, percentiles or a pass
 threshold. Raw synthetic plan and logs stay under `.scratch/customer-history/`.
 No production query-load claim or invented business performance threshold.
+
+Publication observed **2026-10-21T13:47:42Z**. The initial implementation CI
+[run 39611050600](https://github.com/nishanthturnstile/aarili/actions/runs/39611050600)
+had Fast verification and Dependency audit in progress at that observation;
+promotion jobs were skipped as intended for a feature PR. Publication metadata
+pushes receive their own head checks; the PR is the current status source.
+No CI success, owner acceptance or merge is inferred from local verification.
 
 - First integration development run: three fixture failures (wrong DB adapter
   passed to the policy inventory, reused subject/line IDs, wrong withdrawal enum).

@@ -37,7 +37,13 @@
   Ordinary UI sign-in, history/source navigation, desktop/Tamil phone inspection,
   axe/reflow/storage checks passed. Local handoff readiness observed at
   **2026-10-21T13:39:22Z** after the clean export check. Active coding time unknown.
-- CI queue/execution and owner review/merge: pending for this delivery. Human
+- Draft [PR #141](https://github.com/nishanthturnstile/aarili/pull/141) to
+  `development` observed published **2026-10-21T13:47:42Z**, implementation
+  commit `70b822e4817e51f033bd15b800ec3b46709e0f26`. T3 link registered.
+  Initial run `39611050600` Fast verification and Dependency audit started
+  **13:47:18Z** and were in progress at that observation; full promotion jobs
+  were skipped. Final execution/queue durations remain pending, not reconstructed.
+- Owner review/merge: pending for this delivery. Human
   physical-device, fluent Tamil and screen-reader observations remain pending.
   Do not sum overlapping elapsed timers or infer active coding time from commits.
 
