@@ -210,9 +210,13 @@ test("CW-01/02/07/08/11/12/13 customers save/reopen, bilingual reflow, response-
       await page
         .getByRole("button", { name: "Correct details", exact: true })
         .click();
+      await page
+        .locator("#customer-correction-reason")
+        .fill("SYNTHETIC contact correction");
       await page.locator("#customer-phone").fill("+1 (202) 555-0101");
       await page.locator("#customer-aliases").fill("Meenaa\nMeena");
       const updated = {
+        reason: "SYNTHETIC concurrent correction",
         displayName: current.displayName,
         phone: "+1 202 555 0101",
         aliases: ["Meenaa", "Meena"],
@@ -247,6 +251,9 @@ test("CW-01/02/07/08/11/12/13 customers save/reopen, bilingual reflow, response-
         "Proposed note retained",
       );
       await page.getByRole("button", { name: "Reload saved details" }).click();
+      await page
+        .locator("#customer-correction-reason")
+        .fill("SYNTHETIC final correction");
       await page.locator("#customer-notes").fill("Final private note");
       await context.setOffline(true);
       await page

@@ -5,6 +5,7 @@ import {
   customerProfileSchema,
   customerSearchPageSchema,
 } from "@aarili/contracts/customers";
+import { identityEvidence } from "./identity-evidence.js";
 import { sql, type Transaction } from "./index.js";
 import type {
   CustomerRepository,
@@ -158,6 +159,8 @@ export function customerRepository(
     async audit(w, action, version) {
       await tx.execute(sql`insert into audit_event(shop_id,id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,changes)
    values(${shopId}::uuid,${w.eventId}::uuid,'user',${w.actorId}::uuid,${action},'customer',${w.id}::uuid,${w.requestId}::uuid,${w.key}::uuid,${JSON.stringify({ version, synthetic: w.synthetic, fields: ["displayName", "phone", "email", "aliases", "notes"] })}::jsonb)`);
+      if (w.revision)
+        await identityEvidence(tx, shopId, w.eventId, w.id, null, w.revision);
     },
   };
 }

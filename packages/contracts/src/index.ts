@@ -16,6 +16,10 @@ export const apiErrorSchema = z.strictObject({
     code: z.enum([
       "NOT_FOUND",
       "HISTORY_CHANGED",
+      "PAIR_CHANGED",
+      "CUSTOMER_POLICY_PENDING",
+      "VERSION_EXHAUSTED",
+      "DATABASE_UNAVAILABLE",
       "INVALID_CURSOR",
       "INTERNAL_ERROR",
       "SETUP_CLOSED",

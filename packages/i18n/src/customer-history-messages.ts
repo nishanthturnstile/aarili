@@ -1,6 +1,8 @@
 export const customerHistoryMessages = {
   en: {
     values: {
+      "keep-separate": "Keep separate",
+      dismiss: "Dismiss suggestion",
       grant: "Granted",
       refusal: "Refused",
       withdrawal: "Withdrawn",
@@ -29,6 +31,11 @@ export const customerHistoryMessages = {
     imported: "Import",
     support: "Support",
     fieldLabels: {
+      pairVersion: "Pair review version",
+      firstCustomer: "First contact ID",
+      secondCustomer: "Second contact ID",
+      pairDecision: "Contact pair decision",
+      previousVersion: "Previous version",
       lineVersion: "Line version",
       displayName: "Name",
       phone: "Phone",
@@ -105,6 +112,7 @@ export const customerHistoryMessages = {
     wearer: "Wearer",
     reference: "Event reference",
     actions: {
+      "customer.pair-review": "Contact pair reviewed",
       "customer.create": "Customer registered",
       "customer.correct": "Customer corrected",
       "wearer.create": "Wearer registered",
@@ -126,6 +134,8 @@ export const customerHistoryMessages = {
   },
   ta: {
     values: {
+      "keep-separate": "தனித்தனியாக வைத்திரு",
+      dismiss: "பரிந்துரையை விலக்கு",
       grant: "வழங்கப்பட்டது",
       refusal: "மறுக்கப்பட்டது",
       withdrawal: "திரும்பப் பெறப்பட்டது",
@@ -154,6 +164,11 @@ export const customerHistoryMessages = {
     imported: "இறக்குமதி",
     support: "ஆதரவு",
     fieldLabels: {
+      pairVersion: "இணை ஆய்வுப் பதிப்பு",
+      firstCustomer: "முதல் தொடர்பு அடையாளம்",
+      secondCustomer: "இரண்டாம் தொடர்பு அடையாளம்",
+      pairDecision: "தொடர்பு இணை குறித்த முடிவு",
+      previousVersion: "முந்தைய பதிப்பு",
       lineVersion: "சேவை வரியின் பதிப்பு",
       displayName: "பெயர்",
       phone: "தொலைபேசி",
@@ -230,6 +245,7 @@ export const customerHistoryMessages = {
     wearer: "அணிபவர்",
     reference: "நிகழ்வு அடையாளம்",
     actions: {
+      "customer.pair-review": "இரு தொடர்புகளும் ஆய்வு செய்யப்பட்டன",
       "customer.create": "வாடிக்கையாளர் பதிவு",
       "customer.correct": "வாடிக்கையாளர் திருத்தம்",
       "wearer.create": "அணிபவர் பதிவு",

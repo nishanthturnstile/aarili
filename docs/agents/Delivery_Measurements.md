@@ -1,8 +1,58 @@
 # Delivery measurements
 
+## Issue #137 — duplicate contact review / 1.2.4d
+
+- First observed task timestamp **2026-10-21T14:08:20Z**, before implementation
+  edits. Updated the same checkout to `b3ac971` after #141 merged at
+  **14:07:44Z**; branch `codex/duplicate-contact-review`. Active coding/rework
+  time was not separately instrumented and is unknown.
+- Inherited #141 Fast verification and Dependency audit passed in run
+  `39611266705`. No worktree, full-suite baseline rerun or live activation.
+- PG packets: customer/wearer/history/review **12/12, 124.79s**;
+  guardian/order/review **13/13, 122.91s**; expanded review/history
+  **8/8, 127.40s**. The latter includes observed registration lock waiting,
+  same-shop composite FK rejection, populated upgrade and write-disable reads.
+- Intermediate fast check passed **266 unit tests / 60 files**, unit stage
+  **13.11s**, production graph **22.214s**. Final affected validation pending.
+- Expanded final PG inputs passed **8/8, 120.95s**, including expired-key
+  cross-action replay, source/pair version evidence, and ordinary privacy denial.
+- The broader browser packet was **9 passed / 6 failed, 13.1m**; customer,
+  draft-refresh and wearer-registration checks passed at all sizes. The affected
+  follow-up was **6 passed / 3 failed, 9.5m**; history and wearer correction passed,
+  while the real admission limit exposed the need for explicit wait/retry in the
+  duplicate-review flow. Preserve these as rework evidence, not a single clean
+  browser pass. Final duplicate review passed **3/3, 4.2m**, each device **1.3m**,
+  including the actual admission wait and explicit same-request retry.
+- Final `verify:fast`: **111.851s**, **271 unit passes / 61 files**, unit stage
+  **14.97s**, production graph **17.575s**. Before the last client copy/error-code
+  changes, another fast pass took **97.991s**; new inputs justified the last run.
+  Five existing Biome informational suggestions remain in an unchanged script.
+- Final ordinary review host refreshed and observed ready **15:08:12Z**:
+  `http://127.0.0.1:55961/customers/01a15f01-3b49-77a5-9fb4-308f354e1cea`.
+  Its owner sign-in, pair review, bilingual axe/reflow/storage and final visual
+  captures passed. Local review-ready observed **15:13:41Z**. CI queue/execution,
+  owner review/merge time remain pending; active coding time remains unknown.
+- Initial desktop browser test found heading focus missing. A three-size rerun
+  used the old production bundle and failed the same check; rebuilt before the
+  next browser run. These are rework, not clean-pass timing.
+- Synthetic ordinary review host first ready **2026-10-21T14:38:42Z** by observed
+  readiness output, URL `http://127.0.0.1:57817/customers/01a15ee5-afed-7a60-8854-44ddde5f0c46`.
+  Credentials remain in its ignored private access file. Final refresh time,
+  final refresh supersedes this first host. CI/merge/human acceptance remain pending.
+- [Requirement evidence and manual packet](Identity_Review_Implementation_Evidence.md).
+- Draft [PR #142](https://github.com/nishanthturnstile/aarili/pull/142) opened
+  **15:15:23Z**, registered with T3, implementation `d9844be`. Initial Fast
+  verification and Dependency audit started **15:15:29Z** in run `39623983204`.
+  Queue time was not separately instrumented; this is an observed six-second
+  PR-open-to-first-check-start interval. Execution remained in progress at
+  inspection and may be superseded by the documentation-only publication update.
+  Owner review/merge and the latest-head CI outcome remain pending.
+
 ## Issue #136 — customer / wearer history / 1.2.4c
 
 - Owner selected #136 after merging #140 at **2026-10-21T12:30:48Z**.
+  Subsequently merged as #141 at **14:07:44Z**; required checks passed in
+  [run 39611266705](https://github.com/nishanthturnstile/aarili/actions/runs/39611266705).
   Updated the same checkout to `9ee0e0c`; branch `codex/customer-history`.
   All direct blockers #135/#78/#79/#80 merged. No worktree or live activation.
 - First observed task timestamp **2026-10-21T12:34:14Z**, before implementation

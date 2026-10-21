@@ -1163,6 +1163,45 @@
     display: grid;
     gap: var(--space-control);
   }
+  .identity-review {
+    overflow-wrap: anywhere;
+  }
+  .identity-pair {
+    display: grid;
+    gap: var(--space-page);
+  }
+  .identity-pair section {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: var(--space-control);
+  }
+  .identity-candidates {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-page);
+  }
+  .identity-candidates > li {
+    border-block-end: 1px solid var(--border);
+    padding-block-end: var(--space-page);
+    display: grid;
+    gap: var(--space-control);
+  }
+  .identity-review form {
+    display: grid;
+    gap: var(--space-control);
+  }
+  .identity-review a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-height);
+  }
+  @media (min-width: 1024px) {
+    .identity-pair {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
   .customer-notice-text p,
   .customer-preserve {
     white-space: pre-wrap;

@@ -1,4 +1,63 @@
 import { z } from "zod";
+import { customerSummarySchema } from "./customers.js";
+
+export const duplicateCandidatesQuerySchema = z.strictObject({
+  customerId: z.uuid(),
+  after: z.uuid().optional(),
+});
+export const duplicateCandidatesSchema = z.strictObject({
+  candidates: z.array(
+    z.strictObject({
+      customer: customerSummarySchema,
+      reasons: z.array(z.enum(["phone", "name", "skeleton"])),
+      decision: z.enum(["keep-separate", "dismiss"]).nullable(),
+    }),
+  ),
+  next: z.uuid().nullable(),
+});
+export const customerPairQuerySchema = z.strictObject({
+  firstId: z.uuid(),
+  secondId: z.uuid(),
+});
+const pairContact = z.strictObject({
+  customer: customerSummarySchema,
+  wearers: z.array(
+    z.strictObject({
+      id: z.uuid(),
+      version: z.number().int().positive(),
+      displayName: z.string().nullable(),
+      age: z.enum(["adult", "minor", "unknown"]),
+      eligible: z.boolean(),
+      relationship: z.enum(["self", "family", "other"]),
+      guardianVerified: z.boolean(),
+    }),
+  ),
+});
+export const customerPairSchema = z.strictObject({
+  contacts: z.array(pairContact).length(2),
+  version: z.number().int().positive(),
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  decisions: z.array(
+    z.strictObject({
+      id: z.uuid(),
+      version: z.number().int().positive(),
+      decision: z.enum(["keep-separate", "dismiss"]),
+      actorId: z.uuid(),
+      recordedAt: z.iso.datetime(),
+      reason: z.string().nullable(),
+      redacted: z.boolean(),
+    }),
+  ),
+});
+export const customerPairDecisionSchema = customerPairQuerySchema.extend({
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  decision: z.enum(["keep-separate", "dismiss"]),
+  reason: z.string().trim().min(1).max(1000),
+});
+export const customerPairResultSchema = z.strictObject({
+  id: z.uuid(),
+  version: z.number().int().positive(),
+});
 
 export const customerHistoryQuerySchema = z.strictObject({
   customerId: z.uuid(),
@@ -58,3 +117,8 @@ export const customerHistoryPageSchema = z.strictObject({
 export type CustomerHistoryQuery = z.infer<typeof customerHistoryQuerySchema>;
 export type CustomerHistoryEvent = z.infer<typeof customerHistoryEventSchema>;
 export type CustomerHistoryPage = z.infer<typeof customerHistoryPageSchema>;
+
+export type DuplicateCandidates = z.infer<typeof duplicateCandidatesSchema>;
+export type CustomerPair = z.infer<typeof customerPairSchema>;
+export type CustomerPairResult = z.infer<typeof customerPairResultSchema>;
+export type CustomerPairDecision = z.infer<typeof customerPairDecisionSchema>;

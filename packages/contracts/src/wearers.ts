@@ -40,7 +40,11 @@ export const wearerCreateSchema = z.discriminatedUnion("mode", [
     relationship: wearerRelationshipSchema,
   }),
 ]);
-export const wearerUpdateSchema = z.strictObject(common);
+export const wearerUpdateSchema = z.strictObject({
+  ...common,
+  reason: z.string().trim().min(1).max(1000),
+  displayName: z.string().trim().min(1).max(120).optional(),
+});
 export const wearerPurposeEventSchema = z.strictObject({
   purpose: z.enum(["service", "marketing", "publication", "private-media"]),
   decision: z.enum(["grant", "refusal", "withdrawal"]),

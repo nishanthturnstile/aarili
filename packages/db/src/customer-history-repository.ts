@@ -1,6 +1,8 @@
 import type { CustomerHistoryEvent } from "@aarili/contracts/customer-history";
+import { identityEvidence } from "./identity-evidence.js";
 import { sql, type Transaction } from "./index.js";
 import type { CustomerHistoryRepository } from "./repositories/customer-history.js";
+import { requestRepository } from "./request-repository.js";
 
 // Audit IDs are the canonical event identity. Domain rows enrich the event;
 // they never become a second copy of acceptance/revision/progress in the feed.
@@ -9,6 +11,100 @@ export function customerHistoryRepository(
   shopId: string,
 ): CustomerHistoryRepository {
   return {
+    reviews: requestRepository(tx, shopId),
+    async lockContact(id) {
+      // Pair review must also pin relationship discovery: registration takes
+      // FOR SHARE on this same row before inserting a new wearer/link.
+      await tx.execute(
+        sql`select p.id from customer c join customer_person p on (p.shop_id,p.id)=(c.shop_id,c.person_id) where c.shop_id=${shopId}::uuid and c.id=${id}::uuid for update of p`,
+      );
+    },
+    async candidates(customerId, after) {
+      const rows = (
+        await tx.execute<{
+          id: string;
+          reasons: ("phone" | "name" | "skeleton")[];
+          decision: "keep-separate" | "dismiss" | null;
+          customer: never;
+        }>(sql`
+        select c.id,jsonb_build_object('id',c.id,'code',c.code,'version',p.version,'synthetic',p.synthetic,'displayName',p.display_name,'phone',p.phone,'email',p.email,'aliases',p.aliases) as customer,
+        array_remove(array[case when bool_or(a.phone_digits<>'' and a.phone_digits=b.phone_digits) then 'phone' end,
+        case when bool_or((a.name_ta_norm<>'' and a.name_ta_norm=b.name_ta_norm) or (a.name_latin_norm<>'' and a.name_latin_norm=b.name_latin_norm)) then 'name' end,
+        case when bool_or(a.name_skel<>'' and a.name_skel=b.name_skel) then 'skeleton' end],null) as reasons,
+        (select decision from customer_pair_review r where r.shop_id=c.shop_id and r.first_id=least(c.id,${customerId}::uuid) and r.second_id=greatest(c.id,${customerId}::uuid) order by version desc limit 1) as decision
+        from customer base join customer_search_key a on (a.shop_id,a.person_id)=(base.shop_id,base.person_id)
+        join customer_search_key b on b.shop_id=a.shop_id and b.person_id<>a.person_id and b.algorithm_version=1 and ((a.phone_digits<>'' and a.phone_digits=b.phone_digits) or (a.name_ta_norm<>'' and a.name_ta_norm=b.name_ta_norm) or (a.name_latin_norm<>'' and a.name_latin_norm=b.name_latin_norm) or (a.name_skel<>'' and a.name_skel=b.name_skel))
+        join customer c on (c.shop_id,c.person_id)=(b.shop_id,b.person_id) join customer_person p on (p.shop_id,p.id)=(c.shop_id,c.person_id)
+        where base.shop_id=${shopId}::uuid and base.id=${customerId}::uuid and a.algorithm_version=1 and (${after ?? null}::uuid is null or c.id>${after ?? null}::uuid)
+        group by c.shop_id,c.id,c.code,p.id,p.version,p.synthetic,p.display_name,p.phone,p.email,p.aliases order by c.id limit 26`)
+      ).rows;
+      return {
+        candidates: rows
+          .slice(0, 25)
+          .map(({ customer, reasons, decision }) => ({
+            customer,
+            reasons,
+            decision,
+          })),
+        next: rows.length > 25 ? (rows[24]?.id ?? null) : null,
+      };
+    },
+    async lockPair(first, second) {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended('aarili:pair:'||${shopId}::text||':'||${first}::text||':'||${second}::text,0))`,
+      );
+    },
+    async decisions(first, second) {
+      return (
+        await tx.execute<{
+          id: string;
+          version: number;
+          decision: "keep-separate" | "dismiss";
+          actorId: string;
+          recordedAt: string;
+          reason: string | null;
+          redacted: boolean;
+        }>(
+          sql`select r.id,r.version,r.decision,r.actor_id as "actorId",to_char(r.recorded_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as "recordedAt",e.reason,(e.redacted_at is not null) as redacted from customer_pair_review r join identity_revision_evidence e on (e.shop_id,e.audit_id)=(r.shop_id,r.id) where r.shop_id=${shopId}::uuid and r.first_id=${first}::uuid and r.second_id=${second}::uuid order by r.version desc limit 25`,
+        )
+      ).rows;
+    },
+    async reviewReplay(key) {
+      const r = (
+        await tx.execute<{
+          id: string;
+          version: number;
+          actorId: string;
+          hash: string;
+        }>(
+          sql`select id,version,actor_id as "actorId",request_hash as hash from customer_pair_review where shop_id=${shopId}::uuid and command_key=${key}::uuid`,
+        )
+      ).rows[0];
+      return r
+        ? {
+            actorId: r.actorId,
+            hash: r.hash,
+            result: { id: r.id, version: r.version },
+          }
+        : undefined;
+    },
+    async decide(v) {
+      const id = (await tx.execute<{ id: string }>(sql`select uuidv7() as id`))
+        .rows[0]?.id;
+      if (!id) throw Error("Review identifier unavailable");
+      await tx.execute(
+        sql`insert into audit_event(shop_id,id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,changes) values(${shopId}::uuid,${id}::uuid,'user',${v.actorId}::uuid,'customer.pair-review','customer',${v.first}::uuid,${v.requestId}::uuid,${v.key}::uuid,${JSON.stringify({ version: v.version, decision: v.decision, fields: ["pairDecision"] })}::jsonb)`,
+      );
+      await tx.execute(
+        sql`insert into customer_pair_review(shop_id,id,first_id,second_id,first_version,second_version,version,decision,actor_id,command_key,request_hash) values(${shopId}::uuid,${id}::uuid,${v.first}::uuid,${v.second}::uuid,${v.firstVersion},${v.secondVersion},${v.version},${v.decision},${v.actorId}::uuid,${v.key}::uuid,${v.hash})`,
+      );
+      await identityEvidence(tx, shopId, id, v.first, null, {
+        reason: v.reason,
+        previousVersion: v.version - 1,
+        fields: ["pairDecision"],
+      });
+      return { id, version: v.version };
+    },
     async privacyVersion() {
       return (
         (
@@ -59,7 +155,7 @@ audits as materialized (
 ),
 events as (
  select a.*, 'customer'::text as kind, null::uuid as order_id,null::uuid as booking_id,null::uuid as wearer_id
- from audits a where a.entity_type='customer' and a.entity_id=${q.customerId}::uuid and ${q.wearerId === null} and a.action in('customer.create','customer.correct')
+ from audits a where a.entity_type='customer' and ${q.wearerId === null} and ((a.entity_id=${q.customerId}::uuid and a.action in('customer.create','customer.correct')) or (a.action='customer.pair-review' and exists(select 1 from customer_pair_review r where (r.shop_id,r.id)=(a.shop_id,a.id) and ${q.customerId}::uuid in(r.first_id,r.second_id))))
  union all
  select a.*, 'wearer',null::uuid,null::uuid,a.entity_id from audits a
  where a.entity_type='wearer' and a.entity_id in(select id from allowed_wearers) and (a.action like 'wearer.%' or a.action like 'guardian.%')
@@ -81,14 +177,14 @@ details as (
  coalesce(o.code,b.code) as code,o.intake_kind,
  coalesce(s.content#>>'{snapshot,manifest,definition,content,labelEn}',s.content#>>'{snapshot,serviceProfile,content,labelEn}') as label_en,
  coalesce(s.content#>>'{snapshot,manifest,definition,content,labelTa}',s.content#>>'{snapshot,serviceProfile,content,labelTa}') as label_ta,
- case when e.kind='wearer' then (select rel.customer_id::text from wearer_relationship_event re join customer_wearer_relationship rel on (rel.shop_id,rel.id)=(re.shop_id,re.relationship_id) where re.shop_id=e.shop_id and rel.wearer_id=e.wearer_id and rel.customer_id=${q.customerId}::uuid and re.wearer_version=(e.changes->>'version')::integer limit 1) else coalesce(s.content#>>'{intake,customerId}',${q.customerId}) end as original_customer,s.content#>>'{intake,wearerId}' as original_wearer,
- coalesce(br.version,cr.version,t.parent_version,ps.order_version,case when jsonb_typeof(e.changes->'version')='number' then (e.changes->>'version')::integer end,case when e.action='order.accept' then 1 end) as revision,
+ case when e.action='customer.pair-review' then pr.first_id::text when e.kind='wearer' then (select rel.customer_id::text from wearer_relationship_event re join customer_wearer_relationship rel on (rel.shop_id,rel.id)=(re.shop_id,re.relationship_id) where re.shop_id=e.shop_id and rel.wearer_id=e.wearer_id and rel.customer_id=${q.customerId}::uuid and re.wearer_version=(e.changes->>'version')::integer limit 1) else coalesce(s.content#>>'{intake,customerId}',${q.customerId}) end as original_customer,s.content#>>'{intake,wearerId}' as original_wearer,
+ coalesce(pr.first_version,br.version,cr.version,t.parent_version,ps.order_version,case when jsonb_typeof(e.changes->'version')='number' then (e.changes->>'version')::integer end,case when e.action='order.accept' then 1 end) as revision,
  t.line_id,t.version as line_version,t.to_state,ev.note,(ev.redacted_at is not null) as note_redacted,
  (select jsonb_build_object('purpose',p.purpose,'decision',p.decision,'notice',p.notice_id) from wearer_purpose_event p where p.shop_id=e.shop_id and p.wearer_id=e.wearer_id and p.wearer_version=(e.changes->>'version')::integer limit 1) as purpose_fact,
  (select jsonb_build_object('verification',v.status) from guardian_verification_event v where v.shop_id=e.shop_id and v.wearer_id=e.wearer_id and v.wearer_version=(e.changes->>'version')::integer limit 1) as guardian_fact,
  (select jsonb_build_object('purpose',p.purpose,'decision',p.decision,'notice',p.notice_id) from guardian_purpose_event p where p.shop_id=e.shop_id and p.wearer_id=e.wearer_id and p.wearer_version=(e.changes->>'version')::integer limit 1) as guardian_purpose_fact,
  (select jsonb_build_object('age',v.age) from wearer_age_event v where v.shop_id=e.shop_id and v.wearer_id=e.wearer_id and v.wearer_version=(e.changes->>'version')::integer limit 1) as age_fact,
- cr.basis as commercial_basis,
+ cr.basis as commercial_basis,ie.reason as identity_reason,ie.fields as identity_fields,ie.previous_version as identity_previous,(ie.redacted_at is not null) as identity_redacted,pr.version as pair_version,pr.first_id as pair_first,pr.second_id as pair_second,
  case when e.action='order.service-change' then array(select distinct l.piece_id::text from order_service_change_line l join order_service_change ch on (ch.shop_id,ch.id)=(l.shop_id,l.change_id) where ch.shop_id=e.shop_id and ch.audit_id=e.id and l.piece_id is not null order by l.piece_id::text)
  else array(select p.id::text from order_piece p where p.shop_id=e.shop_id and p.order_id=e.order_id order by p.id) end as piece_ids,
  case when e.action='order.service-change' then array(select l.id::text from order_service_change_line l join order_service_change ch on (ch.shop_id,ch.id)=(l.shop_id,l.change_id) where ch.shop_id=e.shop_id and ch.audit_id=e.id order by l.id)
@@ -98,6 +194,8 @@ details as (
  (select source_order.intake_kind from visible_orders source_order where source_order.id=coalesce(ro.source_order_id,so.source_order_id)) as repeat_kind,
  coalesce((s.content#>>'{snapshot,repeat,sourceVersion}')::integer,(s.content#>>'{snapshot,repeatService,sourceVersion}')::integer,(ro.source->>'sourceVersion')::integer,(so.source->>'sourceVersion')::integer) as repeat_version
  from events e join customer c on c.shop_id=e.shop_id and c.id=${q.customerId}::uuid
+ left join identity_revision_evidence ie on (ie.shop_id,ie.audit_id)=(e.shop_id,e.id)
+ left join customer_pair_review pr on (pr.shop_id,pr.id)=(e.shop_id,e.id)
  join customer_person cp on (cp.shop_id,cp.id)=(c.shop_id,c.person_id)
  left join wearer w on (w.shop_id,w.id)=(e.shop_id,e.wearer_id)
  left join customer_person wp on (wp.shop_id,wp.id)=(w.shop_id,w.person_id)
@@ -176,6 +274,7 @@ select * from details e where
           "service.line.correct": ["lineProgress"],
         };
         const redacted =
+          row.identity_redacted === true ||
           row.note_redacted === true ||
           (row.changes as Record<string, unknown>)?.redacted === true;
         return {
@@ -185,9 +284,24 @@ select * from details e where
           recordedAt: new Date(row.occurred_at as string).toISOString(),
           actorId: row.actor_id,
           actorType: row.actor_type,
-          reason: redacted ? null : (row.note ?? row.reason ?? null),
-          fields: fields[row.action as string] ?? [],
+          reason: redacted
+            ? null
+            : (row.identity_reason ?? row.note ?? row.reason ?? null),
+          fields: row.identity_fields ?? fields[row.action as string] ?? [],
           facts: Object.entries({
+            ...(row.pair_version
+              ? {
+                  pairVersion: String(row.pair_version),
+                  firstCustomer: row.pair_first,
+                  secondCustomer: row.pair_second,
+                }
+              : {}),
+            ...(row.action === "customer.pair-review"
+              ? { decision: (row.changes as Record<string, unknown>).decision }
+              : {}),
+            ...(row.identity_previous
+              ? { previousVersion: String(row.identity_previous) }
+              : {}),
             ...((row.purpose_fact as object) ?? {}),
             ...((row.guardian_fact as object) ?? {}),
             ...((row.guardian_purpose_fact as object) ?? {}),

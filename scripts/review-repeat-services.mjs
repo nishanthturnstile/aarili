@@ -13,9 +13,11 @@ import {
 
 const operation = process.argv[2];
 const directory = resolve(
-  process.argv.includes("--history")
-    ? ".scratch/customer-history-review-host"
-    : ".scratch/repeat-services-review-host",
+  process.argv.includes("--identity")
+    ? ".scratch/identity-review-host"
+    : process.argv.includes("--history")
+      ? ".scratch/customer-history-review-host"
+      : ".scratch/repeat-services-review-host",
 );
 const file = (name) => resolve(directory, name);
 await mkdir(directory, { recursive: true });
@@ -161,6 +163,41 @@ if (operation === "stop") {
             body: {},
             etag: '"v2"',
           });
+          if (process.argv.includes("--identity")) {
+            const c = await setup(
+              `customers/${seed.seed.customer.customerId}`,
+              { method: "GET" },
+            );
+            const policy = await setup("customers/policy", { method: "GET" });
+            await setup(`customers/${c.id}`, {
+              method: "PATCH",
+              etag: `"v${c.version}"`,
+              body: {
+                displayName: c.displayName,
+                phone: "9000000737",
+                email: c.email,
+                aliases: c.aliases,
+                notes: c.notes,
+                reason: "SYNTHETIC shared household phone review",
+              },
+            });
+            await setup("customers", {
+              body: {
+                displayName: "SYNTHETIC separate contact",
+                phone: "9000000737",
+                aliases: [c.displayName],
+                serviceEvidence: {
+                  noticeId: policy.notice.id,
+                  language: "en",
+                  decision: "grant",
+                  giver: "self",
+                  noticeExplained: true,
+                  source: "in-person",
+                  occurredAt: new Date().toISOString(),
+                },
+              },
+            });
+          }
           await writeFile(
             file("private.json"),
             JSON.stringify({

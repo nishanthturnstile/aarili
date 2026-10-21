@@ -210,6 +210,7 @@ test("CW-01/02/06/08/11/13 real owner API, synthetic policy, shared phones, repl
     );
     assert.notEqual(page.customers[0].id, page2.customers[0].id);
     const correction = {
+      reason: "SYNTHETIC contact correction",
       displayName: "Corrected private canary",
       phone: a.phone,
       email: "",

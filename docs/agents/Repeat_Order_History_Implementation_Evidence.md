@@ -1,6 +1,6 @@
 # Repeat orders and history: preparation and implementation status
 
-21 October 2026. **A1 / #134 merged in [PR #139](https://github.com/nishanthturnstile/aarili/pull/139); A2 / #135 merged in [PR #140](https://github.com/nishanthturnstile/aarili/pull/140). Owner selected B / #136 after that merge; see [customer-history implementation evidence](Customer_History_Implementation_Evidence.md). C1/C2 retain their dependency and selection gates. The A1 evidence below records its historical handoff state.**
+21 October 2026. **A1 / #134 merged in [PR #139](https://github.com/nishanthturnstile/aarili/pull/139); A2 / #135 merged in [PR #140](https://github.com/nishanthturnstile/aarili/pull/140). B / #136 merged in [PR #141](https://github.com/nishanthturnstile/aarili/pull/141). Owner selected C1 / #137 after that merge; see [identity-review implementation evidence](Identity_Review_Implementation_Evidence.md). C2 retains its dependency and selection gates. The A1 evidence below records its historical handoff state.**
 [A2 evidence](Repeat_Service_Implementation_Evidence.md).
 
 The preparation record below is historical; the current implementation audit follows it.
