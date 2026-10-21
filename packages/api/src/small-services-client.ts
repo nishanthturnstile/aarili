@@ -3,9 +3,12 @@ import {
   bookingServiceScopeSchema,
   type ServiceChangeDraft,
   type ServiceIntakeDraft,
+  type ServiceLineCommand,
   type ServiceOrderDraft,
   serviceChangeReviewSchema,
   serviceIntakeReviewSchema,
+  serviceLineProgressSchema,
+  serviceLineResultSchema,
   serviceOrderListSchema,
   serviceOrderReviewSchema,
   serviceProfileHistorySchema,
@@ -51,6 +54,47 @@ const init = (s: AbortSignal, signal?: AbortSignal) => ({
   cache: "no-store" as const,
   signal: signal ? AbortSignal.any([s, signal]) : s,
 });
+export async function readServiceLineProgress(
+  shopId: string,
+  id: string,
+  signal?: AbortSignal,
+) {
+  return serviceLineProgressSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["small-services"].progress[":id"].$get(
+          { param: { shopId, id } },
+          { init: init(s, signal) },
+        ),
+      result,
+    ),
+  );
+}
+export async function commandServiceLine(
+  shopId: string,
+  id: string,
+  lineId: string,
+  command: ServiceLineCommand,
+  version: number,
+  key: string,
+) {
+  return serviceLineResultSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["small-services"].progress[":id"].lines[
+          ":lineId"
+        ].$post(
+          { param: { shopId, id, lineId }, json: command },
+          {
+            // init.headers would replace Hono's JSON Content-Type header.
+            headers: { "Idempotency-Key": key, "If-Match": `"v${version}"` },
+            init: init(s),
+          },
+        ),
+      result,
+    ),
+  );
+}
 export async function readBookingServiceScope(
   shopId: string,
   id: string,

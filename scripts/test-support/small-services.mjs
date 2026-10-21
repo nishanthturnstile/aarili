@@ -23,6 +23,7 @@ export async function seedSmallServices({
   shopId,
   seed: existingSeed,
   configuration,
+  taskLinked = false,
 }) {
   const seed = existingSeed ?? (await seedQuickOrder(runtime, shopId));
   try {
@@ -127,6 +128,27 @@ export async function seedSmallServices({
           reason:
             "SYNTHETIC intake only: execution, material receipt, quality and body capture remain later slices",
         };
+      if (taskLinked && kind === "alteration") {
+        content.sections.tasks = { decision: "applicable", reason: "" };
+        content.tasks = [
+          {
+            key: "alteration-work",
+            labelEn: "SYNTHETIC alteration task",
+            labelTa: "செயற்கை திருத்தப் பணி",
+            required: true,
+            applicability: "applicable",
+            applicabilityReason: "",
+            scope: { pieceKey: "garment", addonKey: null },
+            instructionEn:
+              "SYNTHETIC execution evidence belongs to its later slice",
+            instructionTa: "செயற்கை பணி ஆதாரம் பின்னர் பதிவு செய்யப்படும்",
+            milestone: "work",
+            assignee: "owner",
+            predecessors: [],
+            prerequisites: [],
+          },
+        ];
+      }
       const manifest = await command("service.templates", {
         entryId: randomUUID(),
         baseVersion: 0,
@@ -171,7 +193,8 @@ export async function seedSmallServices({
             key,
             addonKey: extra.length ? key : null,
             optional: extra.length > 0,
-            taskKey: null,
+            taskKey:
+              taskLinked && kind === "alteration" ? "alteration-work" : null,
             coverageKey: "one-physical-garment",
             quantity: 1,
           })),

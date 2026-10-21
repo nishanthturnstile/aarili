@@ -1,10 +1,10 @@
 # Alteration and small-service intake: approved vertical tickets
 
 20 October 2026. **A–C and D1–D6 approved; published as #124–#126. A (#124)
-merged through #127. The owner selected B (#125) after its blockers merged;
-[B verification and owner review](Service_Additions_Implementation_Evidence.md)
-record the locally verified implementation; owner acceptance and merge remain
-pending. C retains its prerequisite merge and selection gates.**
+merged through #127; B (#125) merged through #128. The owner selected C (#126)
+after its direct blocker merged. [C implementation and owner review](Service_Line_Completion_Implementation_Evidence.md)
+record the bounded completion outcome; C owner acceptance and merge remain
+pending. Production values and activation remain gated.**
 Roadmap **1.2.3**, ORD-14, JOB-08/JOB-09 intake contribution; **AC-50 partial**.
 Cross-cutting scenarios: **AC-40, AC-53, AC-55 and AC-60**; SS rows state the
 applicable ticket proof and remaining full-scenario integrations.
@@ -35,8 +35,8 @@ Recheck direct blockers and their merge ancestry when each selected ticket start
 | Candidate | Complete owner outcome | Direct blockers / selection gate |
 | --- | --- | --- |
 | A / 1.2.3a / #124 | Save, recover, accept and reopen a standalone kurti alteration or saree service order with independent priced lines | #114, #99, #101, #118, #80, #56; all merged. A selected; D1/D2/D5/D6 implementation conventions approved. |
-| B / 1.2.3b / #125 | Add independent services during supported custom/group intake and through governed accepted-order additions | #124/#120 merged; B explicitly selected on 20 October. D2/D4/D6 reused. [Implementation evidence](Service_Additions_Implementation_Evidence.md); owner review/merge pending. |
-| C / 1.2.3c / #126 | Record and correct one eligible service line's completion with attributable evidence and sibling independence | #125 must merge (therefore A integrated). C selection remains pending; D3 convention approved. |
+| B / 1.2.3b / #125 | Add independent services during supported custom/group intake and through governed accepted-order additions | Merged through #128 on 20 October. D2/D4/D6 reused. [Implementation evidence](Service_Additions_Implementation_Evidence.md) records the delivery. |
+| C / 1.2.3c / #126 | Record and correct one eligible service line's completion with attributable evidence and sibling independence | #125 merged; C explicitly selected on 20 October. D3 approval reused. [Implementation evidence and owner packet](Service_Line_Completion_Implementation_Evidence.md); C owner review/merge pending. |
 
 These are sequential vertical outcomes spanning contracts/core/DB/API/typed
 clients/UI/tests. Each gets its own branch/PR to `development` after publication

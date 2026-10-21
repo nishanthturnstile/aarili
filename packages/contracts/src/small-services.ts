@@ -359,6 +359,81 @@ export const serviceOrderListSchema = z.strictObject({
   next: z.uuid().nullable(),
 });
 export const smallServiceErrorSchema = apiErrorSchema;
+export const serviceLineCommandSchema = z.discriminatedUnion("action", [
+  z.strictObject({
+    commandId: z.uuid(),
+    action: z.literal("complete"),
+    orderVersion: z.number().int().positive(),
+    scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+    sourceId: z.uuid(),
+    sourceDigest: z.string().regex(/^[a-f0-9]{64}$/),
+    attested: z.literal(true),
+    note: z.string().trim().min(1).max(2000),
+  }),
+  z.strictObject({
+    commandId: z.uuid(),
+    action: z.literal("correct"),
+    orderVersion: z.number().int().positive(),
+    scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+    sourceId: z.uuid(),
+    sourceDigest: z.string().regex(/^[a-f0-9]{64}$/),
+    correctionOf: z.uuid(),
+    reason: z.string().trim().min(1).max(1000),
+  }),
+]);
+export type ServiceLineCommand = z.infer<typeof serviceLineCommandSchema>;
+export const serviceLineSourceSchema = z.strictObject({
+  line: acceptedServiceLineSchema,
+  sourceId: z.uuid(),
+  sourceDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  pieceId: z.uuid().nullable(),
+  kind: z.enum(["standalone", "addition"]),
+  reviewed: z.boolean(),
+});
+export type ServiceLineSource = z.infer<typeof serviceLineSourceSchema>;
+export const serviceLineResultSchema = z.strictObject({
+  transitionId: z.uuid(),
+  lineId: z.uuid(),
+  version: z.number().int().positive(),
+});
+export type ServiceLineResult = z.infer<typeof serviceLineResultSchema>;
+export const serviceLineTransitionSchema = z.strictObject({
+  id: z.uuid(),
+  lineId: z.uuid(),
+  version: z.number().int().positive(),
+  from: z.enum(["pending", "completed"]),
+  to: z.enum(["pending", "completed"]),
+  correctionOf: z.uuid().nullable(),
+  actorId: z.uuid(),
+  recordedAt: z.iso.datetime(),
+  note: z.string().nullable(),
+  redacted: z.boolean(),
+});
+export const serviceLineProgressSchema = z.strictObject({
+  schemaVersion: z.literal(1),
+  orderId: z.uuid(),
+  orderVersion: z.number().int().positive(),
+  scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  lines: z.array(
+    z.strictObject({
+      line: acceptedServiceLineSchema,
+      sourceId: z.uuid(),
+      sourceDigest: z.string(),
+      pieceId: z.uuid().nullable(),
+      state: z.enum(["pending", "not-required", "completed"]),
+      version: z.number().int().positive(),
+      eligible: z.boolean(),
+      blocked: z.enum(["not-required", "task-linked", "unreviewed"]).nullable(),
+      history: z.array(serviceLineTransitionSchema),
+    }),
+  ),
+  summary: z.strictObject({
+    pending: z.number().int().nonnegative(),
+    completed: z.number().int().nonnegative(),
+    notRequired: z.number().int().nonnegative(),
+  }),
+});
+export type ServiceLineProgress = z.infer<typeof serviceLineProgressSchema>;
 export const serviceChangeContentSchema = z.strictObject({
   input: serviceChangeDraftSchema,
   profile: serviceProfileRevisionSchema,

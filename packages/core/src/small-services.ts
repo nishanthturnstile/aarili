@@ -42,6 +42,10 @@ export {
   serviceIntakeConversion,
   serviceIntakeWorkflow,
 } from "./service-intake-addons.js";
+export {
+  commandServiceLine,
+  readServiceLineProgress,
+} from "./service-line-completion.js";
 
 export type SmallServiceContext = {
   orders: QuickOrderContext;

@@ -17,6 +17,7 @@ export {
 } from "./order-messages.js";
 export { orderPieceMessages } from "./order-piece-messages.js";
 export { serviceCatalogueMessages } from "./service-catalogue-messages.js";
+export { serviceLineMessages } from "./service-line-messages.js";
 export { serviceTemplatesMessages } from "./service-templates-messages.js";
 export { sharingMessages } from "./sharing-messages.js";
 export { shopCalendarMessages } from "./shop-calendar-messages.js";

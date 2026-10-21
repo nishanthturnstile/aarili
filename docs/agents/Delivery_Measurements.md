@@ -1183,3 +1183,56 @@ further process change separately; retain the required verification and review.
   [run 39460838234](https://github.com/nishanthturnstile/aarili/actions/runs/39460838234).
   Queue/execution, human review and merge durations remain pending. This metadata
   closeout is documentation-only; capability source hashes remain unchanged.
+
+## Issue #126 / 1.2.3c — independent service-line completion
+
+- Selected by owner 20 October 2026. Direct #125 blocker merged through #128
+  at **17:03:54 UTC**, commit `8e708e8`; required prerequisite fast/audit CI passed.
+  Existing checkout updated development and created `codex/service-line-completion`.
+- Inspection/first-edit stopwatch timestamps were not captured; active
+  implementation time is **unknown**, rather than reconstructed from Git or
+  process timestamps. First recorded focused C PostgreSQL verification began
+  **17:15:31 UTC** (22:45:31 IST); one test passed in **11.12s**.
+- The first complete C browser workflow passed in **1.1m**. Finish review found
+  two copy defects (excluded work appearing to need a quote, inherited intake-only
+  completion disclaimer). Both were corrected; 48 final bilingual/theme/device
+  captures and the corrected workflow passed in **1.4m**. Fresh reviewer returned
+  **ship** for those scored corrections; documenter preserved the incumbent system.
+- C/A/B PostgreSQL suite: **18 passed, 268.79s**; isolation suite: **6 passed,
+  62.44s** after sorting its newly expanded exact table inventory. Parent-write
+  lock race/populated-upgrade follow-up passed in **18.07s**. Verification overlaps
+  are not added to active implementation time.
+- Fast verification passed earlier in **131.758s**; a later run hit the unchanged
+  jobs seeded-property test's five-second timeout during concurrent heavy checks.
+  Final isolated rerun, current source/build verification and regression results
+  are recorded below when observed. Dependency audit passed in **0.941s**.
+- Owner-ready surface, PR/CI and human-review timestamps remain pending until
+  observed. Production activation, real-device/fluent-Tamil/AT acceptance,
+  owner merge review and deployment remain separate.
+- Final isolated `verify:fast`: **exit 0, 87.147s**, 260 units in **11.94s**,
+  production build **13.661s**. Final SQL privacy/shadowing follow-up passed in
+  **18.98s**; expanded custom/package/sibling/parent-lock follow-up **19.01s**.
+  Quick/custom/grouped regression run: **47 passed / 2 BOM setup failures,
+  508.51s**; after plain-UTF-8 correction the two cases passed in **19.29s**.
+  Current C browser workflow passed in **1.2m**, including access-denial cleanup
+  and the exact task reference; existing A/B browser run remains in progress.
+- First running owner host observed **17:44:41 UTC**, port **51241**. Ordinary
+  owner sign-in and all five pending/task/minor/custom/package scenarios checked
+  through T3 by **17:48:48 UTC**. At 200% English/Tamil text, open-form reflow
+  remained 360px wide; this does not replace human device/AT acceptance.
+- Frozen-source `verify:fast`: **exit 0, 158.968s**, 260 units in **15.31s**,
+  production build **23.004s**. Final C browser process: **exit 0, 168.249s**
+  (Playwright **1 passed, 2.6m**), including committed-write/failed-refresh
+  recovery while preserving the exact body/key and honoring native Retry-After.
+  A/B browser checks passed **2.6m / 5.0m**, conflict workflow **22.8s**;
+  broad history/source locators were scoped to their intended immutable view.
+- Final host **62316** and review packet ready by **18:35:36 UTC**, after normal
+  owner Detailed completion/correction, Simple action opening and **32/32**
+  custom/package bilingual/theme/screen reflow checks. First tryable time remains
+  17:44:41 UTC; intervening verification/rework is not counted as active coding.
+- Draft [PR #129](https://github.com/nishanthturnstile/aarili/pull/129) opened
+  **18:37:00 UTC**, capability `2a78de7`. Initial required Fast verification and
+  Dependency audit were running at **18:37:15 UTC** in
+  [run 39476312243](https://github.com/nishanthturnstile/aarili/actions/runs/39476312243),
+  created **18:37:03 UTC**. Queue/execution, human review and merge durations remain
+  separately pending. This closeout adds metadata only; capability code is unchanged.

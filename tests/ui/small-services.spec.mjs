@@ -5,6 +5,7 @@ import {
   draftMessages,
   orderAcceptanceMessages,
   orderMessages,
+  serviceLineMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
 import AxeBuilder from "@axe-core/playwright";
@@ -395,12 +396,24 @@ test("SS-01/02/03/05/06/07/09/10/12 service drafts, independent prices, exact bo
           page.getByText(smallServiceMessages.en.unknownTotal, { exact: true }),
         ).toBeVisible();
         await expect(
-          page.getByRole("button", { name: /complete|handover|payment/i }),
+          page.getByRole("button", { name: /handover|payment/i }),
         ).toHaveCount(0);
+        await expect(
+          page
+            .getByRole("region", {
+              name: serviceLineMessages.en.title,
+              exact: true,
+            })
+            .getByRole("button", { name: /^Record completion/ }),
+        ).toHaveCount(2);
         await page
           .getByText(smallServiceMessages.en.source, { exact: true })
           .click();
         const excluded = page
+          .getByRole("region", {
+            name: smallServiceMessages.en.lines,
+            exact: true,
+          })
           .getByRole("listitem")
           .filter({ has: page.getByText(prePleatingLabel, { exact: true }) });
         await expect(

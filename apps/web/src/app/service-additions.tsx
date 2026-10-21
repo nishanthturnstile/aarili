@@ -46,6 +46,7 @@ import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import type { OwnerGuard } from "./owner-feedback";
 import { ServiceDraftConflict } from "./service-draft-conflict";
+import { ServiceLineCompletion } from "./service-line-completion";
 import { serviceIssue } from "./small-service-intake";
 
 export function formatServicePrice(
@@ -421,6 +422,12 @@ export function ServiceScopeSummary({
   if (!scope?.changes.length) return null;
   return (
     <section className="order-editor service-additions" aria-label={t.current}>
+      <ServiceLineCompletion
+        key={`${shopId}:${orderId}:${scope.version}`}
+        shopId={shopId}
+        orderId={orderId}
+        locale={locale}
+      />
       <h4>{t.current}</h4>
       <p>
         {scope.package ? t.outside : t.extras}:{" "}
@@ -939,6 +946,12 @@ export function OrderServiceAdditions({
   return (
     <section className="order-editor service-additions" aria-label={t.title}>
       <h2>{t.title}</h2>
+      <ServiceLineCompletion
+        key={`${shopId}:${order.id}:${current?.version ?? order.version}`}
+        shopId={shopId}
+        orderId={order.id}
+        locale={locale}
+      />
       {failed && <p role="alert">{t.error}</p>}
       {current && (
         <>

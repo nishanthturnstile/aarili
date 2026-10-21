@@ -4,7 +4,7 @@ import { seedSmallServices, serviceDraftId } from "./small-services.mjs";
 // Synthetic-only review/browser setup through real registered commands.
 export async function seedServiceAdditions(options) {
   const { setup } = options,
-    services = await seedSmallServices(options),
+    services = options.services ?? (await seedSmallServices(options)),
     { saree, seed } = services;
   try {
     const base = {

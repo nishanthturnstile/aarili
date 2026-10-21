@@ -628,8 +628,10 @@ publication as [#124](https://github.com/nishanthturnstile/aarili/issues/124),
 [#126](https://github.com/nishanthturnstile/aarili/issues/126), selecting A (#124).
 A merged through #127. The owner subsequently selected B (#125), based on
 development `21a5e79`; [B verification and owner review](agents/Service_Additions_Implementation_Evidence.md)
-record the locally verified implementation awaiting owner acceptance/merge.
-C retains its direct merge and selection gates; production values remain pending.
+record its implementation. B merged through #128. The owner selected C (#126)
+on updated development `8e708e8`; [C implementation and owner review](agents/Service_Line_Completion_Implementation_Evidence.md)
+record independent taskless-line completion/correction and its remaining review
+gates. Production values and live activation remain pending.
 [Implementation/check status](agents/Small_Service_Implementation_Evidence.md)
 records A's historical development `63d5123`, merged prerequisites and remaining
 decisions. This adds traceability without changing scope/dependencies, approving
