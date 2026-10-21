@@ -126,6 +126,28 @@ export async function putDraft(
     ),
   );
 }
+export async function convertDraft(
+  shopId: string,
+  id: string,
+  key: string,
+  etag: string,
+  target?: "services",
+) {
+  return draftSuccessSchema.parse(
+    await authenticatedResult(
+      (signal) =>
+        createDraftClient().shops[":shopId"].drafts[":id"].convert.$post(
+          {
+            param: { shopId, id },
+            json: target ? { target } : {},
+            header: { "idempotency-key": key, "if-match": etag },
+          },
+          { init: { cache: "no-store", signal } },
+        ),
+      draftResult,
+    ),
+  );
+}
 export async function promoteDraft(
   shopId: string,
   id: string,

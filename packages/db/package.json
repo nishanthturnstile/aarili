@@ -251,6 +251,30 @@
     "./service-templates-schema": {
       "types": "./dist/service-templates-schema.d.ts",
       "import": "./dist/service-templates-schema.js"
+    },
+    "./orders-repository": {
+      "types": "./dist/orders-repository.d.ts",
+      "import": "./dist/orders-repository.js"
+    },
+    "./repositories/orders": {
+      "types": "./dist/repositories/orders.d.ts",
+      "import": "./dist/repositories/orders.js"
+    },
+    "./orders-schema": {
+      "types": "./dist/orders-schema.d.ts",
+      "import": "./dist/orders-schema.js"
+    },
+    "./small-services-repository": {
+      "types": "./dist/small-services-repository.d.ts",
+      "import": "./dist/small-services-repository.js"
+    },
+    "./small-services-schema": {
+      "types": "./dist/small-services-schema.d.ts",
+      "import": "./dist/small-services-schema.js"
+    },
+    "./repositories/small-services": {
+      "types": "./dist/repositories/small-services.d.ts",
+      "import": "./dist/repositories/small-services.js"
     }
   },
   "scripts": {

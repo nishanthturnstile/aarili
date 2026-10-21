@@ -8,6 +8,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Sole visual authority; generator snapshots are provenance only. */
+.pwa-notice {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
 .pwa-notice:empty {
   display: none;
 }
@@ -1448,4 +1452,119 @@
 .commitment-editor legend {
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.order-intake,
+.order-editor {
+  display: grid;
+  gap: var(--space-page);
+  min-width: 0;
+}
+.order-editor dd {
+  overflow-wrap: anywhere;
+}
+.service-additions {
+  overflow-wrap: anywhere;
+}
+.service-additions fieldset {
+  min-inline-size: 0;
+}
+.service-additions button {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+}
+.order-choices {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-control);
+}
+.order-choices button {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  justify-content: start;
+  text-align: start;
+}
+.order-editor select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--space-control);
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+}
+.order-editor select:focus-visible,
+.order-intake summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.order-intake summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-block: var(--space-control);
+}
+.order-related-fields {
+  display: grid;
+  gap: var(--space-page);
+}
+.booking-editor {
+  container-type: inline-size;
+}
+.booking-editor textarea,
+.service-additions textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 6rem;
+  padding: var(--space-control);
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+.booking-editor textarea:focus-visible,
+.service-additions textarea:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.booking-garments {
+  display: grid;
+  gap: var(--space-page);
+  min-width: 0;
+}
+.booking-garments > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@container (min-width: 50rem) {
+  .booking-garments {
+    grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+.order-intake .order-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-control);
+  min-height: 44px;
+  padding-block: var(--space-control);
+  cursor: pointer;
+}
+.order-intake .order-check input {
+  flex: none;
+  accent-color: var(--primary);
+}
+.order-intake .order-check input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+@media (min-width: 768px) {
+  .order-related-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }

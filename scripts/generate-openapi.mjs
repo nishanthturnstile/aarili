@@ -6,15 +6,46 @@ import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
+import { createBookingRoutes, createOrderRoutes } from "@aarili/api/orders";
 import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
 import { createServiceTemplatesRoutes } from "@aarili/api/service-templates";
 import { createShopCommitmentsRoutes } from "@aarili/api/shop-commitments";
 import { createShopDirectoryRoutes } from "@aarili/api/shop-directory";
 import { createShopProfileRoutes } from "@aarili/api/shop-profile";
+import { createSmallServiceRoutes } from "@aarili/api/small-services";
 import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createSmallServiceRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerSmallServices: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createBookingRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => 0,
+    withOwnerQuickOrder: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+api.route(
+  "/",
+  createOrderRoutes({
+    commandLimit: async () => 0,
+    origin: "http://127.0.0.1:3103",
+    withOwnerQuickOrder: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createShopPoliciesRoutes({
@@ -171,6 +202,26 @@ const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
 });
+for (const path of [
+  "review",
+  "list",
+  "{id}/read",
+  "{id}/history",
+  "{id}/presentation",
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/orders/${path}`]?.post,
+    `Missing accepted order contract ${path}`,
+  );
+assert(
+  document.paths["/api/shops/{shopId}/orders/intake-preview"]?.post,
+  "Missing Quick Order intake preview contract",
+);
+for (const path of ["candidates", "review", "read", "list", "history"])
+  assert(
+    document.paths[`/api/shops/{shopId}/orders/bookings/${path}`]?.post,
+    `Missing booking contract ${path}`,
+  );
 for (const [path, method] of [
   ["", "get"],
   ["/history", "post"],
@@ -206,6 +257,18 @@ for (const [path, method] of [
   );
 
 await mkdir("test-results", { recursive: true });
+for (const [path, method] of [
+  ["profiles/list", "post"],
+  ["profiles/history", "post"],
+  ["profiles/{id}", "get"],
+  ["orders/review", "post"],
+  ["orders/list", "post"],
+  ["orders/{id}", "get"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/small-services/${path}`]?.[method],
+    `Missing small-service contract ${method} ${path}`,
+  );
 for (const [path, method] of [
   ["list", "post"],
   ["entries/{id}", "get"],

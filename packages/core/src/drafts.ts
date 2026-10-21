@@ -4,6 +4,7 @@ import {
   type DraftRecord,
   type DraftResult,
   type DraftSuccess,
+  draftConversionSchema,
   draftCursorSchema,
   draftIdSchema,
   draftPromotionSchema,
@@ -29,6 +30,16 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  validateEdit?(
+    previous: Record<string, unknown>,
+    next: Record<string, unknown>,
+  ): void;
+  convert?(
+    payload: Record<string, unknown>,
+    draftId: string,
+    request: { key: string; requestId: string; target?: "services" },
+  ): Promise<DraftResult>;
+  authorizeDraft?(payload: Record<string, unknown>): Promise<void>;
   authorizePublication?(command: Record<string, unknown>): Promise<void>;
   schemaVersion: number;
   draftSchema: DraftSchema;
@@ -62,6 +73,7 @@ export type DraftContext = {
   repository: DraftRepository;
   workflows: DraftRegistry;
   instrumentation?: DraftInstrumentation;
+  prepareRead?: (records: DraftRecord[]) => Promise<void>;
 };
 export type DraftHeaders = {
   key?: string | undefined;
@@ -101,6 +113,7 @@ export async function readDraft(ctx: DraftContext, id: string) {
   if (!draftIdSchema.safeParse(id).success) fail(422, "VALIDATION_FAILED");
   const draft = await ctx.repository.read(id.toLowerCase());
   if (!draft) fail(404, "NOT_FOUND");
+  await ctx.workflows.get(draft.workflow)?.authorizeDraft?.(draft.payload);
   return draft;
 }
 export async function listDrafts(
@@ -113,8 +126,18 @@ export async function listDrafts(
   if (cursor && !draftCursorSchema.safeParse(cursor).success)
     fail(422, "VALIDATION_FAILED");
   const { rows, before } = await ctx.repository.list(limit + 1, cursor);
-  const drafts = rows.slice(0, limit);
-  const last = drafts.at(-1);
+  const window = rows.slice(0, limit);
+  await ctx.prepareRead?.(window);
+  const drafts: DraftRecord[] = [];
+  for (const row of window) {
+    try {
+      await ctx.workflows.get(row.workflow)?.authorizeDraft?.(row.payload);
+      drafts.push(row);
+    } catch (e) {
+      if (!(e instanceof DraftFailure) || e.status !== 404) throw e;
+    }
+  }
+  const last = window.at(-1);
   return {
     drafts,
     next:
@@ -126,7 +149,7 @@ export async function listDrafts(
 export async function mutateDraft(
   ctx: DraftContext,
   id: string,
-  action: "save" | "promote" | "abandon",
+  action: "save" | "promote" | "abandon" | "convert",
   input: unknown,
   headers: DraftHeaders,
 ): Promise<DraftSuccess> {
@@ -147,7 +170,12 @@ export async function mutateDraft(
   const expected =
     headers.ifMatch === undefined ? null : version(headers.ifMatch);
   const save = action === "save" ? draftSaveSchema.safeParse(input) : undefined;
-  if (action !== "save" && !draftPromotionSchema.safeParse(input).success)
+  if (
+    action !== "save" &&
+    !(
+      action === "convert" ? draftConversionSchema : draftPromotionSchema
+    ).safeParse(input).success
+  )
     fail(422, "VALIDATION_FAILED");
   if (action === "save" && !save?.success) fail(422, "VALIDATION_FAILED");
   // Only JSON is bindable; undefined/nonfinite/nonplain values must not coerce.
@@ -181,6 +209,9 @@ export async function mutateDraft(
     )
       fail(422, "IDEMPOTENCY_MISMATCH");
     const replay = draftSuccessSchema.parse(prior.response);
+    await ctx.workflows
+      .get(replay.draft.workflow)
+      ?.authorizeDraft?.(replay.draft.payload);
     if (action === "promote")
       await ctx.workflows
         .get(replay.draft.workflow)
@@ -191,6 +222,10 @@ export async function mutateDraft(
   // never replace a committed draft while racing a different idempotency key.
   await repo.lockDraft(id);
   const current = await repo.read(id);
+  if (current)
+    await ctx.workflows
+      .get(current.workflow)
+      ?.authorizeDraft?.(current.payload);
   if (current) {
     if (expected === null) fail(428, "PRECONDITION_REQUIRED");
     if (current.version !== expected) fail(412, "VERSION_STALE", current);
@@ -215,6 +250,8 @@ export async function mutateDraft(
     const adapter = workflow(ctx, data.workflow, data.schemaVersion);
     const parsed = adapter.draftSchema.safeParse(data.payload);
     if (!parsed.success) fail(422, "VALIDATION_FAILED");
+    if (current) adapter.validateEdit?.(current.payload, parsed.data);
+    await adapter.authorizeDraft?.(parsed.data);
     draft = {
       ...data,
       payload: parsed.data,
@@ -230,6 +267,20 @@ export async function mutateDraft(
   } else {
     if (!current) fail(404, "NOT_FOUND");
     let result: DraftResult | null = null;
+    if (action === "convert") {
+      const adapter = workflow(ctx, current.workflow, current.schemaVersion);
+      if (!adapter.convert) fail(409, "REQUEST_CONFLICT");
+      result = draftResultSchema.parse(
+        await adapter.convert(current.payload, id, {
+          key,
+          requestId: headers.requestId,
+          ...(draftConversionSchema.parse(input).target
+            ? { target: "services" as const }
+            : {}),
+        }),
+      );
+      await adapter.verifyResult(result, id);
+    }
     if (action === "promote") {
       const adapter = workflow(ctx, current.workflow, current.schemaVersion);
       const complete = adapter.commandSchema.safeParse(current.payload);
@@ -246,7 +297,8 @@ export async function mutateDraft(
     }
     draft = {
       ...current,
-      lifecycle: action === "promote" ? "promoted" : "abandoned",
+      lifecycle:
+        action === "promote" || action === "convert" ? "promoted" : "abandoned",
       version: current.version + 1,
       updatedAt: now,
       stale: false,
@@ -277,7 +329,7 @@ export async function mutateDraft(
       event:
         action === "save"
           ? "saved"
-          : action === "promote"
+          : action === "promote" || action === "convert"
             ? "promoted"
             : "abandoned",
       schemaVersion: draft.schemaVersion,

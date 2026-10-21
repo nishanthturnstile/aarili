@@ -1,5 +1,260 @@
 # Delivery measurements
 
+## Issue #124 — standalone small-service intake / 1.2.3a
+
+- Owner approved A–C/D1–D6, ticket publication and A selection on 20 October 2026.
+  Published #124/#125/#126 with native blockers; A's six prerequisites were
+  rechecked closed and merged. Current checkout updated from origin/development
+  `63d5123`, branch `codex/standalone-service-intake`; no worktree.
+- Implementation observed underway by **2026-10-20T16:09:30+05:30**. Exact first-edit time
+  and active coding/rework durations were not separately instrumented. Existing
+  research documents/owner prompt/roadmap edits and old branches are preserved.
+- First usable service host, local verification, review readiness, hosted CI,
+  owner acceptance and merge timestamps follow actual observation. Production
+  service-capacity values/rates/privacy/live gates remain separate.
+- Focused verification began by **2026-10-20T16:19:23+05:30**. Initial nine-case PostgreSQL
+  run failed at migration parsing and the pre-upgrade fixture adapter; the next
+  run passed the populated custom/grouped upgrade but exposed the explicit
+  alteration no-measurement-form policy seam. Narrow diagnosis then found a SQL
+  variable/column ambiguity. These failures and corrections are retained in the
+  implementation evidence rather than counted as successful runs.
+- First genuine kurti+saree acceptance test passed **1/1, 10.54s**, observed by
+  **2026-10-20T16:27:12+05:30**; eight other tests were deliberately skipped for diagnosis.
+  This is a software checkpoint, not first owner-usable host or human acceptance.
+- Focused PostgreSQL **9/9, 74.84s**, observed by **2026-10-20T16:28:53+05:30**. Subsequent
+  review found duplicate garment/line identities needed a recoverable domain
+  conflict instead of the database's generic error. Affected real-PostgreSQL
+  cases then passed **2/2, 26.93s**, with seven deliberately skipped; no duplicate
+  demand and independent-customer capacity racing are asserted.
+- Pinned legacy browser workflows passed **2/2, 2.8m**. The new workflow passed
+  **1/1, 2.8m** before independent finish review identified two material UI fixes.
+  One batch replaced clipped work inputs with multiline controls and raw mapping
+  legends with exact bilingual labels. Fresh pinned build/types and the new
+  workflow passed **1/1, 3.5m**, observed by **2026-10-20T17:14:42+05:30**; all
+  40 captures were refreshed. Actual active rework time remains unknown.
+- Frozen native `pnpm.cmd verify:clean` was observed running by
+  **2026-10-20T17:14:42+05:30**, after browser fixtures were cleaned. Package-export
+  changes require this additional clean-install/native-portability proof.
+  Final result/timing, review verdict, first usable owner host and PR/CI follow
+  actual observation. Overlapping review/check elapsed times are not added to
+  active implementation time.
+- First frozen clean attempt: **2026-10-20T17:14:12.7750336+05:30 →
+  17:19:32.6182486+05:30**, **319.828s, exit 1**. Install/lint/Knip/types passed;
+  unit result **254 passed / 1 timeout** in the combined retired-route environment
+  matrix. Split it into three independent environment cases with every assertion
+  and the original timeout preserved. Focused follow-up **5/5, 14.24s**; second
+  frozen clean attempt is running. This is verification rework, not a hidden
+  successful run or measured active coding duration.
+- Finish review returned **ship** for its two scored fixes, both **resolved**;
+  the fresh documenter preserved the incumbent system and reported its evidence.
+  Physical Android, fluent-Tamil and AT acceptance remain pending.
+- Second frozen clean attempt: **2026-10-20T17:20:35.6141805+05:30 →
+  17:49:03.8157583+05:30**, **1708.192s, exit 1**. Frozen install, lint/Knip/types,
+  **257 units, 35.52s**, negative types, OpenAPI and Linux sandbox PDF goldens
+  passed. Broad integration **199 passed / 8 failed, 1233.47s**: four exact
+  registry-inventory fixtures and four historical schema/downgrade fixtures.
+  Application rules/assertions remain intact; affected reruns and remaining
+  build/smoke/artifact stages are separate actual checkpoints. Do not add this
+  elapsed duration to active coding or concurrent review time.
+- Corrected historical upgrade selection **4/4, 39.67s**, 40 unchanged cases
+  deliberately skipped; command **2026-10-20T17:52:39.328+05:30 →
+  17:53:19.946+05:30**, exit 0. First canonical draft/service follow-up passed
+  11/15 but exposed two older missing grouped registry entries in the same
+  fixture. After completing the exact inventory, follow-up **15/15, 85.94s**
+  passed, observed by **2026-10-20T17:58:05+05:30**. The 19 follow-up cases
+  include eight previously failing cases, not 19 additional unique cases.
+- Final fast gate **2026-10-20T17:57:42.776+05:30 → 17:59:58.167+05:30**,
+  **135.391s, exit 0**: 257 units/58 files in 21.31s; lint/Knip/types/negative/
+  OpenAPI and production build12/12 in23.699s. Production smoke then passed in
+  13.079s, repeat web build in12.839s and29-artifact private-canary scan passed;
+  this sequential tail completed **2026-10-20T18:00:24.260+05:30**.
+- First usable synthetic host observed by **2026-10-20T18:01:17+05:30** at
+  `http://127.0.0.1:49812/orders`; three saved named scenarios and private sign-in
+  file ready. Collaborative browser reached ordinary sign-in; health/sign-in200.
+  This is software readiness, not an owner/device/language acceptance report.
+  Review-ready packet and PR/CI timestamps follow publication/QA below; active
+  implementation/rework duration remains unknown and merge remains pending.
+- Review-ready packet observed **2026-10-20T18:03:45+05:30**, with actual running
+  host, six SS-linked human journeys and cleanup. Final document QA passed eight
+  documents/130 links/14 real Evidence IDs; all44 verified code/test hashes stayed
+  unchanged. Hosted publication timestamps follow actual creation.
+- Draft [PR #127](https://github.com/nishanthturnstile/aarili/pull/127) created
+  **2026-10-20T18:05:52+05:30**, capability commit `9cd6b79`, target development;
+  registered with T3 immediately. Initial CI created **18:05:55 IST**, jobs
+  started **18:05:58 IST**, Dependency audit finished **18:06:23 IST** SUCCESS.
+  At **18:06:24 IST**, Fast verification remained in progress in
+  [run 39423501477](https://github.com/nishanthturnstile/aarili/actions/runs/39423501477).
+  Full scaffold/browser correctly skipped on this feature PR. Later doc-only
+  publication retains all44 code/test hashes; final CI/review/merge durations
+  remain pending rather than inferred from elapsed local verification.
+
+## Small services 1.2.3 preparation, 20 October 2026
+
+- Research/design/ticket preparation only, integrated development `63d5123`,
+  existing checkout `codex/small-service-design`. Prior roadmap/prompt edits and
+  local grouped-intake planning branch were preserved. No selected approved
+  1.2.3 issue, implementation PR or new usable service host exists; this does
+  **not** consume an implementation-delivery measurement slot.
+- Current access/evidence was observed by **15:35 IST**; document preparation
+  and independent source-seam review were underway by **15:42 IST**. These are
+  observation checkpoints, not reconstructed active research/coding durations.
+  Exact first research/edit time and active research/design time remain unknown.
+- Actual pinned-runtime fast verification was observed running by **15:40:43 IST**, following
+  a PowerShell launcher refusal that ran no checks. Results and document QA are
+  recorded in [preparation evidence](Small_Service_Implementation_Evidence.md).
+  Implementation, first usable service, hosted CI, owner acceptance, review/rework
+  durations and merge time remain pending/not applicable to this preparation.
+- Fast verification completion observed by **15:49:38 IST**, exit 0: **243/243
+  tests, 46.08s**, lint/Knip/types/negative/OpenAPI and **12/12 production build,
+  28.482s** (11 cached prerequisites; fresh web build). Observation times do not
+  establish exact suite finish or active research/implementation duration.
+- Start implementation timing when the owner selects a published approved ticket.
+  Retain production-policy, live-data, physical-device/Tamil/AT and recovery gates;
+  research/design review is not software acceptance or AC-50 closure.
+
+## Issue #120 — atomic grouped intake / 1.2.2c
+
+- Owner selected #120 on 20 October after B merged at **12:03:15 IST**. Direct
+  blockers #119/#114/#101 were verified merged; branch
+  `codex/multi-garment-acceptance` starts at integrated development `7b1ca94`.
+  Implementation was underway by **12:06:06 IST**; the exact first-edit time,
+  active coding and rework durations were not separately instrumented.
+- Initial C PostgreSQL **2/2, 22.15s** after correcting SQL BOM/alias errors.
+  C scope **12 passed / 1 fixture failure, 103.05s**; corrected salwar/blouse
+  fixture follow-up **1/1, 12.73s**. Full affected four-file PostgreSQL
+  regression **63/63, 406.17s**. Logs and unaffected-evidence reuse are recorded
+  in [intake evidence](Grouped_Bookings_Intake_Implementation_Evidence.md).
+- Initial unit/recovery selection **23/23, 1.08s**. Final C PostgreSQL after the
+  exact pre-acceptance piece projection **16/16, 140.12s**; Tamil bounds follow-up
+  **1/1, 11.52s**. Sequential `verify:fast` finished **13:39:06 IST**, native exit
+  0: **243/243 tests, 15.78s**, all fast gates and production build **13.07s**.
+- First usable disposable owner host observed by **13:28:24 IST**; actual packet,
+  browser recovery/failure honesty and source hashes are in the intake evidence.
+  B browser confirmation passed at all three sizes. Final C browser **3/3, 3.3m**
+  completed by **13:46:22 IST**; all 18 scoped workflows have passing evidence
+  through explicit unchanged-path reuse and targeted confirmations. Independent
+  review found two UI gaps; one batch reused existing columns and added row cues.
+  Post-fix fast gate finished **13:52:40 IST**, **243/243, 20.12s**, production
+  build **21.975s**. Post-fix browser **6/6, 4.7m**, observed by **13:57:54 IST**.
+  Reviewer scored both fixes resolved, ship at that scope. The fresh documenter
+  preserved the incumbent system; software/packet review-ready observed
+  **13:59:25 IST**. Draft [PR #123](https://github.com/nishanthturnstile/aarili/pull/123)
+  opened **14:00:27 IST**; initial-head CI observed **14:00:39 IST** with fast
+  queued/dependency audit running. Documentation-only follow-up retains all
+  verified source hashes; no latest-head CI pass is claimed. Human acceptance remains
+  pending. Overlapping commands are not added to active implementation time.
+
+## Grouped bookings 1.2.2 preparation, 19 October 2026
+
+Research/design/ticket preparation only, based on integrated development
+`68d07ed`, branch `codex/grouped-bookings-design`. No selected approved 1.2.2
+implementation ticket, implementation PR or first usable grouped-booking host
+exists yet. This does **not** consume an implementation-delivery measurement
+slot. Research evidence, fresh fast-check results and pending scope decisions
+are in [Grouped_Bookings_Implementation_Evidence.md](Grouped_Bookings_Implementation_Evidence.md).
+Active research/design duration was not instrumented and remains unknown.
+Start delivery timing when the owner selects an approved published ticket;
+implementation, local verification, CI, review waiting and rework remain pending.
+
+## Quick Order B (#114 / 1.2.1b), 19 October 2026
+
+- Owner selected B after #115 merged; all direct blockers rechecked. Existing
+  checkout, `codex/quick-order-acceptance`, from development `c6ab32d`; no worktree.
+  Pre-implementation seam-audit checkpoint observed **19:12:07 IST**. Exact first
+  capability-edit timestamp and active coding duration were not instrumented and
+  remain unknown. The owner separately approved count/week/retained-demand/QO-code
+  conventions during this session; exact reply time was not recorded.
+- Implementation/verification observed underway **19:55:14 IST**. Initial focused
+  PostgreSQL 2/2, expanded 10/10 (104.44s). Superseded migration/inventory assertions
+  and actual price/time/conflict refinements are recorded in the
+  [B evidence](Quick_Order_Acceptance_Implementation_Evidence.md).
+- Default fast suite hit existing five-second command/jobs property deadlines
+  under 54 workers. Bounded unchanged assertions/timeouts passed 235/235 (31.75s).
+  A complete fast command with VITEST_MAX_WORKERS=4 passed, including 70-path OpenAPI
+  and production build (38.12s); later conflict/UI changes trigger affected checks.
+  This records resource-concurrency diagnosis, not a weakened acceptance gate.
+- First usable B host observed ready **20:17:32 IST**,
+  http://127.0.0.1:50577/orders; privately signed-in T3 reopen confirmed afterward.
+  This is a synthetic software review surface, not human acceptance.
+- Full integration completed: 170/170 in 2464.74s; final B focused 17/17 in
+  345.67s plus the added binding race 1/1 in 29.35s. B/A browser regressions
+  6/6 in 12.6m; final UI navigation refinement reruns only affected checks.
+- Final build 12/12 in 22.493s; refreshed host ready **20:32:18 IST**,
+  http://127.0.0.1:54496/orders. Original B host retired for this rebuild.
+- Final B/access-loss checks **6/6 passed in 2.7m**, including new-draft protection
+  during unknown mode outcome and exact recovery. Local review-ready observed
+  **20:35:19 IST**. PR/CI and owner waiting/merge phases remain pending.
+  Overlapping test/docs/rework time is not summed or represented as active
+  implementation time.
+- Draft [PR #116](https://github.com/nishanthturnstile/aarili/pull/116) created
+  **20:35:58 IST**, verified implementation `61314d6`, registered with T3.
+  Local review-ready to PR: **39s**. Initial fast/audit queued **20:36:10 IST**,
+  12s after creation, run 39274946591; execution/final-head result pending.
+  Publication follow-up is documentation only. Owner review/merge waiting and
+  active rework durations remain pending/unknown, respectively.
+
+
+## Quick Order A (#113 / 1.2.1a), 19 October 2026
+
+- Owner approved A–B/publication and selected A. Existing checkout,
+  `codex/quick-order-drafts` from development `ca6aad0`; no worktree, direct
+  blockers merged. Branch selection observed **16:40:52 IST**; implementation
+  observed underway **16:48:52 IST**. First edit/active coding time were not
+  separately measured and remain unknown.
+- Resumed REA saved/reopened one synthetic Nool blouse order and cancelled an
+  unsaved edit. Actual IDs/limits are in the [ledger](Quick_Order_REA_Evidence.md).
+- Verification/rework includes compilation/export, privacy/fixture, incomplete
+  promotion expectation, prefix-search fixture and baseline jobs-timeout
+  diagnoses. [Implementation evidence](Quick_Order_Implementation_Evidence.md)
+  records commands/elapsed checks; overlapping research/docs/test time is not
+  summed as active implementation time.
+- First usable synthetic host observed ready by **17:23:56 IST**,
+  http://127.0.0.1:57474/orders. Stopped to rebuild final fixes.
+- Final host observed ready **17:50:48 IST**, http://127.0.0.1:52751/orders;
+  one real incomplete intake saved through the UI and closed into Resume drafts.
+  Six functional/access browser cases passed in 3.5m; visual review then found
+  reconnect-notice grid placement. Old/new geometry was demonstrated, the CSS
+  corrected, lint/build passed (18.087s) and all three recovery journeys recaptured
+  in 2.8m with column-width assertions. These are verification/rework intervals,
+  not active coding time or human acceptance. PR/CI, owner review and merge remain
+  pending. Local review-ready observed **17:55:47 IST**, after final visual/source
+  and focused-staging checks. First-edit/active durations remain unknown; no
+  elapsed interval is relabelled coding time.
+- Draft [PR #115](https://github.com/nishanthturnstile/aarili/pull/115) created
+  **17:56:44 IST**, implementation commit `f2eebbc`, registered with T3. Local
+  review-ready → PR elapsed **57s**. Initial fast/audit jobs started **17:56:50
+  IST** (6s after PR creation); execution/final-head results remain pending.
+  Publication-record follow-up is documentation only. CI/owner waiting, active
+  rework duration and merge time remain pending/unknown as applicable.
+
+- Subsequent readback: #115 merged **19:06:15 IST**, `c6ab32d`; final-head fast/audit
+  passed in run 39252227034. PR-to-merge elapsed **1h 9m 31s**, not coding time.
+  Feature full/browser jobs were skipped as designed. B was selected afterward.
+
+## Quick Order preparation (1.2.1), 19 October 2026
+
+- Research/design/ticket preparation only; no selected approved issue and no
+  application implementation start. This does not consume one of the five
+  implementation-delivery entries. Active research/design duration is unknown;
+  do not reconstruct it from file timestamps.
+- Five REA records and the proposed A–B packet are recorded in
+  [Quick Order evidence](Quick_Order_REA_Evidence.md) and the
+  [ticket packet](Quick_Order_Ticket_Packet.md). Authenticated Nool intake remains
+  pending restoration of the dedicated research browser connection.
+- Initial fetched development was `9759cbe`; independent promotion correction
+  #111 subsequently merged as `c985ce6`. No branch/commit/PR was made by this
+  task. #110 moved to `f03780a`; fresh full CI run `39226379586` was running
+  at the closeout inspection, with dependency audit successful.
+- Implementation, first usable Quick Order host, software review-ready, feature
+  CI, review waiting/rework and merge timings remain pending. Preparation
+  verification is recorded in [delivery status](Quick_Order_Implementation_Evidence.md).
+- Preparation verification observed **14:30:39–14:33:38 IST**: fast gate failed
+  at the unchanged jobs-property timeout; isolated jobs and the full 230-test
+  suite with four workers passed, as did negative types, OpenAPI and production
+  build. Earlier lint/Knip/strict types passed. This interval includes diagnostic
+  verification and overlapping documentation work, not active implementation
+  time. Document links/traceability and desktop/phone planning preview passed.
+
 ## Service catalogue (#97 / 1.1.2a), 18 October 2026
 
 - Implementation session observed starting **16:37:04 IST** during initial
@@ -825,3 +1080,190 @@ further process change separately; retain the required verification and review.
   focus build verified separately. Human Tamil/device/AT acceptance is pending;
   active coding/wait/rework durations remain unknown. Local commit preparation
   follows; no publication, hosted CI, merge or deployment is claimed.
+
+## Issue #118 ? outfit pieces / 1.2.2a
+
+- Owner approved the A?C packet and publication, with initial payments manual-only
+  in their later slice. A selected **19 October 2026, 22:05:08 IST**; base
+  `68d07ed`, existing checkout `codex/outfit-pieces`. First edit and active coding/
+  rework time were not separately instrumented and remain unknown.
+- First usable synthetic host observed **22:28:05 IST**, loopback orders route,
+  with a historical salwar and incomplete intake. Owner review packet ready
+  **22:34:08 IST**; human review/merge remain pending.
+- Full affected PostgreSQL **44/44, 381.28s**; after final scope/client refinement,
+  affected PostgreSQL **5/5, 61.02s**. Final fast gate: **238 tests, 18.75s**,
+  lint/Knip/types/negative/OpenAPI checks and production build **15.769s**.
+- New and existing Quick Order browser flows **6/6, 2.6m** across three sizes;
+  exact desktop 1440 ? 900 follow-up **1/1, 28.5s**. No reconstructed active
+  implementation duration or aggregate overlapping-test duration is claimed.
+- [Implementation/review evidence](Grouped_Bookings_Pieces_Implementation_Evidence.md)
+  records commands, tested-source hashes, recovery and pending human acceptance.
+  PR/CI timestamps follow publication; no merge or deployment occurred.
+- Draft [PR #121](https://github.com/nishanthturnstile/aarili/pull/121) created
+  **22:35:04 IST**; capability commit `cd15d4d`. At **22:35:12 IST**, Fast
+  verification/Dependency audit queued; CI execution/review/merge times pending.
+  [Hosted run](https://github.com/nishanthturnstile/aarili/actions/runs/39291091095).
+
+## Issue #119 — grouping accepted garments / 1.2.2b
+
+- Owner selected #119 on 20 October 2026 after #121 merged at **09:22:18 IST**.
+  Existing checkout updated to `80b339f`, branch `codex/accepted-booking-groups`.
+  First edit time and active coding/rework time were not separately instrumented.
+  First new integration command started **09:28:00 IST**; this is a verification
+  timestamp, not a reconstructed implementation start.
+- Initial focused PostgreSQL **4/4, 42.20s**; exact money/strict-contract unit
+  selection **2/2, 1.57s**. Broad integration **45 passed / 4 failed, 479.77s**:
+  Docker stopped one fixture during startup; three exact inventory assertions
+  placed the new tables out of alphabetical order. No assertion was weakened.
+- Corrected inventory/real new grouping/upgrade tests and failed publisher fixture
+  follow-up **9/9, 75.87s**. The broader successful unchanged cases are reused;
+  this is not a second full run. Subsequent bounded version validation retains
+  affected checks before publication.
+- Browser failures exposed corrupted Unicode test literals, actual 429 admission
+  and duplicate piece landmarks across garments. Exact UTF-8 and unique garment
+  region labels were restored; tests respect returned Retry-After. Final results,
+  first usable host, review readiness and PR/CI timestamps follow when observed.
+- [Linking evidence](Grouped_Bookings_Linking_Implementation_Evidence.md) records
+  source hashes, recovery boundaries and pending human language/device/AT review.
+  Merge, deployment and active review duration remain pending/unknown.
+- Final finish-review fixes re-ran fast verification: **240 tests, 19.19s**,
+  lint/Knip/types/negative/OpenAPI and **12/12 build, 19.233s**; affected
+  PostgreSQL **6/6, 90.67s**. Final new browser workflows **6/6, 2.7m**, observed
+  complete **10:23:50 IST**, following independent finish-review corrections.
+  Existing six Quick Order/piece browser results remain applicable; failures and
+  corrected reruns are retained in the evidence ledger, not hidden.
+- First synthetic host observed usable **09:59:01 IST**, then stopped for fixes.
+  Final host observed ready **10:22:06 IST** at port 49680; ordinary sign-in and
+  draft resume verified in the collaborative browser. Final review-ready/PR/CI
+  timestamps follow actual publication; no active coding duration is inferred.
+- Review packet ready **10:24 IST** after finish reviewer returned **ship** on
+  all four scored fixes and 24 refreshed captures. Documenter retained the
+  incumbent system. Owner acceptance and merge remain pending.
+- Draft [PR #122](https://github.com/nishanthturnstile/aarili/pull/122) created
+  **10:25:02 IST**, capability commit `c700673`. At **10:25:11 IST** Fast
+  verification/Dependency audit queued in
+  [run 39372097381](https://github.com/nishanthturnstile/aarili/actions/runs/39372097381).
+  Hosted queue/execution duration and human review duration remain pending;
+  overlapping local checks are not added to active coding time.
+
+## Issue #125 / 1.2.3b — accepted service additions
+
+- Selected by owner 20 October 2026. Blockers #124/#120 merged; branch
+  `codex/service-order-addons` from development `21a5e79`.
+- Inspection observed 14:17:13 UTC; first implementation edit observed
+  14:22:35 UTC. These are wall-clock observations, not active-time estimates.
+- Baseline: #127 Fast verification and Dependency audit successful on the merged
+  prerequisite. Fresh implementation results, review readiness and publication
+  timestamps will be recorded when observed.
+- First running synthetic owner surface checked at **16:12:34 UTC**: normal
+  sign-in and custom scope; explicit grouped conversion checked by 16:13:47 UTC.
+  Final host readiness follows the final UI build. Active implementation time
+  is unknown; elapsed wall time is not represented as active time.
+- Final backend B/guardian/populated-upgrade verification: 6 passed, **200.24s**.
+  Custom/group and tenant regressions: 48 passed / 2 historical-fixture failures
+  in **782.57s**, followed by the corrected 2 tests passing in **37.94s**.
+  Isolation inventory passed in **17.53s**. Fast verification before the last
+  UI copy/conflict refinement passed in **83.11s** (260 unit tests); dependency
+  audit passed in **1.32s**. Final affected UI/check evidence follows.
+- Final capability checks after the finish correction: `verify:fast` exit 0 in
+  **89.971s**, 260 units in **11.81s**, production build **15.916s**. Main browser
+  workflow **3 passed / 14.5m**; focused conflict follow-up desktop **42.3s** and
+  phone/tablet **1.1m**. The independent-state follow-up passed in **13.53s**.
+- Fresh finish reviewer returned **fix** for textarea affordances, then **ship**
+  on that scored correction after **36** refreshed axe/overflow captures. Fresh
+  documenter preserved the incumbent system. Final clean synthetic host and
+  ordinary sign-in observed ready **16:48:14 UTC**, port **63238**.
+- Owner packet review-ready observed **16:48:14 UTC**. Human Tamil, physical
+  device/AT, policy acceptance and merge remain pending. First tryable surface
+  was earlier (16:12:34 UTC); active time remains unknown. PR/CI observations
+  follow publication; overlapping check durations are not added together.
+- Draft [PR #128](https://github.com/nishanthturnstile/aarili/pull/128) created
+  **16:49:36 UTC**, capability `0c9e0f1`. At **16:49:41 UTC**, Fast verification
+  and Dependency audit queued in
+  [run 39460838234](https://github.com/nishanthturnstile/aarili/actions/runs/39460838234).
+  Queue/execution, human review and merge durations remain pending. This metadata
+  closeout is documentation-only; capability source hashes remain unchanged.
+
+## Issue #126 / 1.2.3c — independent service-line completion
+
+- Selected by owner 20 October 2026. Direct #125 blocker merged through #128
+  at **17:03:54 UTC**, commit `8e708e8`; required prerequisite fast/audit CI passed.
+  Existing checkout updated development and created `codex/service-line-completion`.
+- Inspection/first-edit stopwatch timestamps were not captured; active
+  implementation time is **unknown**, rather than reconstructed from Git or
+  process timestamps. First recorded focused C PostgreSQL verification began
+  **17:15:31 UTC** (22:45:31 IST); one test passed in **11.12s**.
+- The first complete C browser workflow passed in **1.1m**. Finish review found
+  two copy defects (excluded work appearing to need a quote, inherited intake-only
+  completion disclaimer). Both were corrected; 48 final bilingual/theme/device
+  captures and the corrected workflow passed in **1.4m**. Fresh reviewer returned
+  **ship** for those scored corrections; documenter preserved the incumbent system.
+- C/A/B PostgreSQL suite: **18 passed, 268.79s**; isolation suite: **6 passed,
+  62.44s** after sorting its newly expanded exact table inventory. Parent-write
+  lock race/populated-upgrade follow-up passed in **18.07s**. Verification overlaps
+  are not added to active implementation time.
+- Fast verification passed earlier in **131.758s**; a later run hit the unchanged
+  jobs seeded-property test's five-second timeout during concurrent heavy checks.
+  Final isolated rerun, current source/build verification and regression results
+  are recorded below when observed. Dependency audit passed in **0.941s**.
+- Owner-ready surface, PR/CI and human-review timestamps remain pending until
+  observed. Production activation, real-device/fluent-Tamil/AT acceptance,
+  owner merge review and deployment remain separate.
+- Final isolated `verify:fast`: **exit 0, 87.147s**, 260 units in **11.94s**,
+  production build **13.661s**. Final SQL privacy/shadowing follow-up passed in
+  **18.98s**; expanded custom/package/sibling/parent-lock follow-up **19.01s**.
+  Quick/custom/grouped regression run: **47 passed / 2 BOM setup failures,
+  508.51s**; after plain-UTF-8 correction the two cases passed in **19.29s**.
+  Current C browser workflow passed in **1.2m**, including access-denial cleanup
+  and the exact task reference; existing A/B browser run remains in progress.
+- First running owner host observed **17:44:41 UTC**, port **51241**. Ordinary
+  owner sign-in and all five pending/task/minor/custom/package scenarios checked
+  through T3 by **17:48:48 UTC**. At 200% English/Tamil text, open-form reflow
+  remained 360px wide; this does not replace human device/AT acceptance.
+- Frozen-source `verify:fast`: **exit 0, 158.968s**, 260 units in **15.31s**,
+  production build **23.004s**. Final C browser process: **exit 0, 168.249s**
+  (Playwright **1 passed, 2.6m**), including committed-write/failed-refresh
+  recovery while preserving the exact body/key and honoring native Retry-After.
+  A/B browser checks passed **2.6m / 5.0m**, conflict workflow **22.8s**;
+  broad history/source locators were scoped to their intended immutable view.
+- Final host **62316** and review packet ready by **18:35:36 UTC**, after normal
+  owner Detailed completion/correction, Simple action opening and **32/32**
+  custom/package bilingual/theme/screen reflow checks. First tryable time remains
+  17:44:41 UTC; intervening verification/rework is not counted as active coding.
+- Draft [PR #129](https://github.com/nishanthturnstile/aarili/pull/129) opened
+  **18:37:00 UTC**, capability `2a78de7`. Initial required Fast verification and
+  Dependency audit were running at **18:37:15 UTC** in
+  [run 39476312243](https://github.com/nishanthturnstile/aarili/actions/runs/39476312243),
+  created **18:37:03 UTC**. Queue/execution, human review and merge durations remain
+  separately pending. This closeout adds metadata only; capability code is unchanged.
+
+### Promotion #130 correction, 21 October 2026
+
+- Candidate `8070349`: hosted PostgreSQL **215 passed / 1 failed**, **769.33s**;
+  bootstrap's exact inventory omitted the three service-completion tenant tables.
+- Narrow test-only correction: native `verify:fast` **exit 0, 149.278s**, including
+  **260 unit passes** and production build. Real PostgreSQL bootstrap A5
+  **1 passed / 11 filtered, 13.06s**; whole bootstrap file **12 passed, 128.61s**.
+- Initial native attempt had **12 fixture setup failures** because the Docker
+  engine was stopped after restart; this is retained as infrastructure failure.
+  Docker startup preceded the successful checks. Active coding time was not
+  instrumented. Hosted correction and final promotion timing remain pending.
+
+### Promotion #130 browser follow-up, 21 October 2026
+
+- On `9caf9eb`, Scaffold and audit passed, but all three device jobs reached
+  their **40-minute** limit before finishing 70 cases. The aggregate failed;
+  incomplete browser execution is not a pass. Shell navigation and presentation
+  comparison also failed before cancellation.
+- Native reproduction: **3 failed / 1 passed, 5.1m** across the two affected
+  files on desktop. The new ST-06 comparison unit regression reproduced Saved
+  instead of Conflict before correction. A mistaken controller-edit assumption
+  in the new test was corrected without changing existing editing semantics.
+- Finalized `verify:fast`: **exit 0, 81.552s**, **262 unit passes** and production
+  build. Focused draft recovery: **23 passed, 1.10s**. Three shards enumerate
+  **25/23/22 tests per device**, exactly covering all 70, without duplicates.
+  Affected navigation/presentation browser workflows: **12 passed, 5.9m**,
+  all three screen classes in English/Tamil. Supplemental service-addition
+  regression: **1 passed, 5.0m** (workflow **4.8m**). Hosted follow-up durations
+  remain pending. Active coding
+  time is unknown; elapsed CI time is not counted as implementation time.

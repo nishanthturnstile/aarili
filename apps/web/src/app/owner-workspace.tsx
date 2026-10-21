@@ -1,10 +1,12 @@
 import type { OwnerEntry } from "@aarili/contracts";
+import { type Locale, smallServiceMessages } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
 import { MeasurementFormsScreen } from "./measurement-forms-screen";
+import { OrdersScreen } from "./orders-screen";
 import { OwnerConnections } from "./owner-connections";
 import {
   OwnerFeedback,
@@ -19,6 +21,7 @@ import { ShopCommitmentsScreen } from "./shop-commitments-screen";
 import { ShopDirectoryScreen } from "./shop-directory-screen";
 import { ShopPoliciesScreen } from "./shop-policies-screen";
 import { ShopProfileScreen } from "./shop-profile-screen";
+import { SmallServices } from "./small-services";
 export function OwnerWorkspace({
   mode,
   entry,
@@ -34,6 +37,7 @@ export function OwnerWorkspace({
     | "dashboard"
     | "connections"
     | "settings"
+    | "orders"
     | "customers"
     | "customer-new"
     | "customer-profile";
@@ -47,6 +51,7 @@ export function OwnerWorkspace({
   onShopNameChanged: (name: string) => void;
 }) {
   const t = useTranslations();
+  const locale = useLocale() as Locale;
   const [section, setSection] = useState<
     | "profile"
     | "calendar"
@@ -54,6 +59,7 @@ export function OwnerWorkspace({
     | "directory"
     | "commitments"
     | "serviceTemplates"
+    | "serviceProfiles"
     | "measurementForms"
     | "catalogue"
   >(() => {
@@ -63,6 +69,7 @@ export function OwnerWorkspace({
     if (
       selected === "commitments" ||
       selected === "serviceTemplates" ||
+      selected === "serviceProfiles" ||
       selected === "measurementForms" ||
       selected === "catalogue" ||
       selected === "directory" ||
@@ -81,6 +88,7 @@ export function OwnerWorkspace({
       | "directory"
       | "commitments"
       | "serviceTemplates"
+      | "serviceProfiles"
       | "measurementForms"
       | "catalogue",
   ) {
@@ -105,7 +113,9 @@ export function OwnerWorkspace({
               ? "connections"
               : mode === "settings"
                 ? "settings"
-                : "customers"
+                : mode === "orders"
+                  ? "orders"
+                  : "customers"
         }
         shopName={entry.shop.name}
         labels={{
@@ -116,6 +126,7 @@ export function OwnerWorkspace({
           settingsShort: t("settingsShort"),
           connections: t("connections"),
           customers: t("customers.title"),
+          orders: t("orders.title"),
           settings: t("settings.title"),
           currentShop: t("currentShop"),
           expandNavigation: t("expandNavigation"),
@@ -130,17 +141,26 @@ export function OwnerWorkspace({
               ? t("settings.title")
               : mode === "dashboard"
                 ? entry.shop.name
-                : t(
-                    mode === "customer-new"
-                      ? "customers.newTitle"
-                      : mode === "customer-profile"
-                        ? "customers.profileTitle"
-                        : "customers.title",
-                  )}
+                : mode === "orders"
+                  ? t("orders.title")
+                  : t(
+                      mode === "customer-new"
+                        ? "customers.newTitle"
+                        : mode === "customer-profile"
+                          ? "customers.profileTitle"
+                          : "customers.title",
+                    )}
         </h1>
         {mode === "settings" ? (
           <>
             <nav className="calendar-actions" aria-label={t("settings.title")}>
+              <Button
+                variant="outline"
+                aria-pressed={section === "serviceProfiles"}
+                onClick={() => selectSection("serviceProfiles")}
+              >
+                {smallServiceMessages[locale].profiles}
+              </Button>
               {(
                 [
                   "profile",
@@ -179,7 +199,23 @@ export function OwnerWorkspace({
                 </Button>
               ))}
             </nav>
-            {section === "serviceTemplates" ? (
+            {section === "serviceProfiles" ? (
+              <SmallServices
+                key={entry.shop.shopId}
+                shopId={entry.shop.shopId}
+                guard={guard}
+                locale={locale}
+                profilesOnly
+                initialDraftId={
+                  typeof window === "undefined"
+                    ? undefined
+                    : (new URL(window.location.href).searchParams.get(
+                        "draft",
+                      ) ?? undefined)
+                }
+                back={() => selectSection("serviceTemplates")}
+              />
+            ) : section === "serviceTemplates" ? (
               <ServiceTemplatesScreen
                 shopId={entry.shop.shopId}
                 queries={queries}
@@ -230,6 +266,13 @@ export function OwnerWorkspace({
               />
             )}
           </>
+        ) : mode === "orders" ? (
+          <OrdersScreen
+            key={entry.shop.shopId}
+            shopId={entry.shop.shopId}
+            queries={queries}
+            guard={guard}
+          />
         ) : mode === "customers" ||
           mode === "customer-new" ||
           mode === "customer-profile" ? (
@@ -246,6 +289,7 @@ export function OwnerWorkspace({
         ) : (
           <>
             <p className="entry-intro">{t("dashboardWelcome")}</p>
+            <a href="/orders">{t("orders.resume")}</a>
             <OwnerFeedback request={request} />
             <section
               className="entry-business-status"

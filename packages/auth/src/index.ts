@@ -34,6 +34,13 @@ import {
 } from "@aarili/core/measurement-forms";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
+  bookingDraftWorkflow,
+  groupIntakeWorkflow,
+  type QuickOrderContext,
+  quickOrderConversion,
+  quickOrderDraftWorkflow,
+} from "@aarili/core/orders";
+import {
   type ServiceCatalogueContext,
   serviceCatalogueDraftWorkflow,
 } from "@aarili/core/service-catalogue";
@@ -64,6 +71,15 @@ import {
   type ShopProfileContext,
   shopBrandingPolicy,
 } from "@aarili/core/shop-profile";
+import {
+  prepareServiceDraftReads,
+  type SmallServiceContext,
+  serviceChangeDraftWorkflow,
+  serviceIntakeConversion,
+  serviceIntakeWorkflow,
+  serviceOrderDraftWorkflow,
+  serviceProfileDraftWorkflow,
+} from "@aarili/core/small-services";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
   syntheticGuardianPolicy,
@@ -91,6 +107,7 @@ import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
+import { ordersRepository } from "@aarili/db/orders-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
 import {
@@ -107,6 +124,7 @@ import { shopDirectoryRepository } from "@aarili/db/shop-directory-repository";
 import { shopPoliciesRepository } from "@aarili/db/shop-policies-repository";
 import { shopProfileRepository } from "@aarili/db/shop-profile-repository";
 import { shopRepository } from "@aarili/db/shop-repository";
+import { smallServicesRepository } from "@aarili/db/small-services-repository";
 import { usageRepository } from "@aarili/db/usage-repository";
 import {
   guardianRepository,
@@ -232,6 +250,16 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerSmallServices: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: SmallServiceContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerQuickOrder: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuickOrderContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerShopCommitments: <T>(
     headers: Headers,
     shopId: string,
@@ -1234,6 +1262,65 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "service.intake-profile",
+        serviceProfileDraftWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.service",
+        serviceOrderDraftWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.service-change",
+        serviceChangeDraftWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.services-intake",
+        serviceIntakeWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "booking.group",
+        bookingDraftWorkflow(quickOrderContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.quick",
+        quickOrderDraftWorkflow(
+          quickOrderContext(tx, shopId, userId),
+          quickOrderConversion(
+            quickOrderContext(tx, shopId, userId),
+            draftRepository(tx, shopId),
+          ),
+        ),
+      );
+      workflows.set(
+        "order.group",
+        groupIntakeWorkflow(quickOrderContext(tx, shopId, userId)),
+      );
+      for (const [name, kind] of [
+        ["order.quick", "custom"],
+        ["order.group", "group"],
+      ] as const) {
+        const base = workflows.get(name);
+        if (!base) throw Error("Intake workflow unavailable");
+        const conversion = serviceIntakeConversion(
+          smallServiceContext(tx, shopId, userId),
+          draftRepository(tx, shopId),
+          kind,
+        );
+        workflows.set(name, {
+          ...base,
+          convert: (input, id, request) =>
+            request.target === "services"
+              ? conversion.convert(input, id, request)
+              : base.convert
+                ? base.convert(input, id, request)
+                : Promise.reject(new Error("Conversion target required")),
+          async verifyResult(result, id) {
+            if (await conversion.verify(result, id)) return;
+            await base.verifyResult(result, id);
+          },
+        });
+      }
+      workflows.set(
         "shop.presentation",
         presentationDraftWorkflow(serviceTemplatesContext(tx, shopId, userId)),
       );
@@ -1309,11 +1396,73 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         actor: { type: "user", id: userId },
         repository: draftRepository(tx, shopId),
         workflows,
+        prepareRead: (records) =>
+          prepareServiceDraftReads(
+            smallServiceContext(tx, shopId, userId),
+            records,
+          ),
         ...(configuration.draftInstrumentation
           ? { instrumentation: configuration.draftInstrumentation(tx, shopId) }
           : {}),
       });
     });
+  }
+  function quickOrderContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): QuickOrderContext {
+    const actor = { type: "user" as const, id: actorId };
+    return {
+      customers: {
+        shopId,
+        actor,
+        repository: customerRepository(tx, shopId),
+        policy: configuration.customerPolicy ?? blockedCustomerPolicy,
+      },
+      wearers: {
+        shopId,
+        actor,
+        repository: wearerRepository(tx, shopId, wearerPolicy().notice?.id),
+        policy: wearerPolicy(),
+      },
+      guardians: guardianContext(tx, shopId, actorId),
+      templates: serviceTemplatesContext(tx, shopId, actorId),
+      acceptance: {
+        repository: ordersRepository(tx, shopId),
+        commitments: commitmentContext(tx, shopId, actorId),
+        profile: shopProfileRepository(tx, shopId),
+        policies: shopPoliciesRepository(tx, shopId),
+      },
+    };
+  }
+  async function withOwnerQuickOrder<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuickOrderContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(quickOrderContext(tx, shopId, actorId)),
+    );
+  }
+  function smallServiceContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): SmallServiceContext {
+    return {
+      orders: quickOrderContext(tx, shopId, actorId),
+      repository: smallServicesRepository(tx, shopId),
+    };
+  }
+  async function withOwnerSmallServices<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: SmallServiceContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(smallServiceContext(tx, shopId, actorId)),
+    );
   }
   function guardianContext(
     tx: Transaction,
@@ -1892,6 +2041,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerServiceCatalogue,
     withOwnerMeasurementForms,
     withOwnerServiceTemplates,
+    withOwnerQuickOrder,
+    withOwnerSmallServices,
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,

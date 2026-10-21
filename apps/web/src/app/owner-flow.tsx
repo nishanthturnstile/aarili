@@ -8,6 +8,7 @@ import {
   guardianMessages,
   type Locale,
   measurementFormsMessages,
+  orderMessages,
   ownerMessages,
   serviceCatalogueMessages,
   serviceTemplatesMessages,
@@ -36,6 +37,7 @@ type Mode =
   | "connections"
   | "settings"
   | "dashboard"
+  | "orders"
   | "customers"
   | "customer-new"
   | "customer-profile"
@@ -84,6 +86,7 @@ export function OwnerFlow({
         messages={{
           ...ownerMessages[locale],
           customers: customerMessages[locale],
+          orders: orderMessages[locale],
           wearers: wearerMessages[locale],
           guardians: guardianMessages[locale],
           settings: shopSettingsMessages[locale],
@@ -135,6 +138,7 @@ export function OwnerFlow({
             mode === "connections" ||
             mode === "settings" ||
             mode === "onboarding" ||
+            mode === "orders" ||
             mode === "customers" ||
             mode === "customer-new" ||
             mode === "customer-profile" ||

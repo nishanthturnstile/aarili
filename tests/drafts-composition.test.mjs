@@ -32,7 +32,7 @@ test("0.4.2a E6/E8 production API composition admits draft limit/cursor while pr
     commandLimit: async () => 0,
     withOwnerShop,
     withOwnerDraft: async (_headers, _shop, run) => ({
-      data: await run({ repository: { list } }),
+      data: await run({ repository: { list }, workflows: new Map() }),
       headers: new Headers(),
     }),
   };

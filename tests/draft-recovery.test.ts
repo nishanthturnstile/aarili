@@ -5,6 +5,42 @@ import { createDraftRecovery } from "../apps/web/src/app/draft-recovery.js";
 import { createWorkGuard } from "../apps/web/src/app/pwa-runtime.js";
 
 const id = "019a5e55-2222-7000-8000-000000000001";
+
+test("QO-04/05 abandonment freezes its exact envelope across lost response and blocks edits/double clicks", async () => {
+  let count = 0;
+  const initial = record({ instructions: "செயற்கை" });
+  const abandon = vi.fn(async (_id: string, _key: string, _etag: string) => {
+    if (++count === 1) throw Error("Lost response after commit");
+    return {
+      draft: { ...initial, version: 2, lifecycle: "abandoned" as const },
+    };
+  });
+  const promote = vi.fn();
+  const controller = createDraftRecovery({
+    id,
+    workflow: initial.workflow,
+    schemaVersion: 1,
+    initial: initial.payload,
+    record: initial,
+    key: () => "frozen-abandon-key",
+    transport: { save: vi.fn(), promote, abandon, read: async () => initial },
+  });
+  await controller.abandon();
+  expect(controller.snapshot().pendingPromotion).toBe(true);
+  expect(controller.snapshot().status).toBe("checking");
+  controller.edit({ instructions: "must not replace uncertain command" });
+  expect(controller.snapshot().values).toEqual(initial.payload);
+  await controller.abandon();
+  expect(abandon).toHaveBeenCalledTimes(1);
+  await controller.retry();
+  expect(abandon.mock.calls).toEqual([
+    [id, "frozen-abandon-key", '"v1"'],
+    [id, "frozen-abandon-key", '"v1"'],
+  ]);
+  expect(controller.snapshot().status).toBe("closed");
+  expect(promote).not.toHaveBeenCalled();
+  controller.dispose();
+});
 function record(payload: Record<string, unknown>, version = 1): DraftRecord {
   return {
     id,
@@ -20,7 +56,52 @@ function record(payload: Record<string, unknown>, version = 1): DraftRecord {
     result: null,
   };
 }
-function fixture() {
+test("SS-B D6 uncertain service conversion freezes the explicit target across retries and blocks duplicate conversions", async () => {
+  const initial = record({ instructions: "exact raw intake" });
+  let tries = 0;
+  const convert = vi.fn(
+    async (_id: string, _key: string, _etag: string, _target?: "services") => {
+      if (++tries === 1) throw Error("Lost committed response");
+      return {
+        draft: {
+          ...initial,
+          version: 2,
+          lifecycle: "promoted" as const,
+          result: { type: "order.services-intake-draft", id },
+        },
+      };
+    },
+  );
+  const controller = createDraftRecovery({
+    id,
+    workflow: initial.workflow,
+    schemaVersion: 1,
+    initial: initial.payload,
+    record: initial,
+    key: () => "service-conversion-key",
+    transport: {
+      read: async () => initial,
+      save: vi.fn(),
+      promote: vi.fn(),
+      convert,
+    },
+  });
+  await controller.convert("services");
+  await controller.convert();
+  controller.edit({ instructions: "must not replace frozen input" });
+  expect(convert).toHaveBeenCalledOnce();
+  expect(controller.snapshot().values).toEqual(initial.payload);
+  await controller.retry();
+  expect(convert.mock.calls).toEqual([
+    [id, "service-conversion-key", '"v1"', "services"],
+    [id, "service-conversion-key", '"v1"', "services"],
+  ]);
+  expect(controller.snapshot().committed?.result?.type).toBe(
+    "order.services-intake-draft",
+  );
+  controller.dispose();
+});
+function fixture(editableTargetConflict = false) {
   let key = 0;
   const save = vi.fn(
     async (_id: string, input: DraftSave, _key: string, _etag?: string) => ({
@@ -34,6 +115,7 @@ function fixture() {
   const controller = createDraftRecovery({
     id,
     workflow: "fixture.intake",
+    editableTargetConflict,
     schemaVersion: 1,
     initial: { value: "" },
     key: () => `key-${++key}`,
@@ -129,6 +211,86 @@ test("0.4.2b F4 stale response without current has explicit reload/review recove
   expect(controller.snapshot().conflict?.version).toBe(2);
   controller.resolveConflict("server");
   expect(controller.snapshot().values).toEqual({ value: "other" });
+  controller.dispose();
+});
+test("ST-06 AC-55 stale preference promotion stays locked until explicit comparison", async () => {
+  const { controller, promote } = fixture();
+  controller.edit({ value: "exact preference", baseVersion: 1 });
+  await controller.save();
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      412,
+      { error: { code: "VERSION_STALE", message: "Preference changed" } },
+      null,
+    ),
+  );
+  await controller.promote();
+  expect(controller.snapshot().status).toBe("conflict");
+  expect(controller.snapshot().values).toEqual({
+    value: "exact preference",
+    baseVersion: 1,
+  });
+  await controller.promote();
+  expect(promote).toHaveBeenCalledOnce();
+  await controller.refreshConflict();
+  expect(controller.snapshot().conflict?.version).toBe(2);
+  controller.dispose();
+});
+
+test("SS-B AC-55 editable target policy still locks a competing draft revision", async () => {
+  const { controller, promote } = fixture(true);
+  controller.edit({ value: "exact added work", targetVersion: 1 });
+  await controller.save();
+  const current = record({ value: "other saved draft" }, 3);
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      412,
+      { error: { code: "VERSION_STALE", message: "Draft changed" }, current },
+      '"v3"',
+    ),
+  );
+  await controller.promote();
+  expect(controller.snapshot().status).toBe("conflict");
+  expect(controller.snapshot().values).toEqual({
+    value: "exact added work",
+    targetVersion: 1,
+  });
+  await controller.promote();
+  expect(promote).toHaveBeenCalledOnce();
+  expect(controller.snapshot().conflict).toEqual(current);
+  controller.dispose();
+});
+
+test("SS-B AC-55 stale target promotion keeps its current saved draft editable without merging a competing draft", async () => {
+  const { controller, save, promote } = fixture(true);
+  controller.edit({ value: "exact added work", targetVersion: 1 });
+  await controller.save();
+  promote.mockRejectedValueOnce(
+    new DraftRequestError(
+      412,
+      { error: { code: "VERSION_STALE", message: "Target order changed" } },
+      null,
+    ),
+  );
+  await controller.promote();
+  expect(controller.snapshot().status).toBe("saved");
+  expect(controller.snapshot().values).toEqual({
+    value: "exact added work",
+    targetVersion: 1,
+  });
+  expect(controller.snapshot().work).toMatchObject({
+    dirty: false,
+    inFlight: false,
+    outcomeUnknown: false,
+  });
+  controller.edit({
+    value: "exact added work",
+    targetVersion: 2,
+    review: null,
+  });
+  await controller.save();
+  expect(save).toHaveBeenCalledTimes(2);
+  expect(promote).toHaveBeenCalledOnce();
   controller.dispose();
 });
 test("0.4.2b F5 rejected promotion keeps acknowledged values Saved and a deliberate new attempt gets a new key", async () => {

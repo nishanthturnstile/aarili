@@ -12,6 +12,22 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "order.service-change and order.services-intake draft promotion/conversion; smallServicesRepository.changes/changeOrigin/duplicateChange/change/converted/conversion/intakeOrder; supplemental demand union and scope/booking-scope/review routes",
+  "smallServicesRepository.profiles/current/read/history/append/advance/origin/orders/accept/subject/lines",
+  "shops/:shopId/small-services/profiles/list/read/history/orders/review/list/read",
+  "service.intake-profile and order.service durable draft save/read/replay/promotion",
+  "ordersRepository.groups.commercial/writeCommercial/convert/conversionOrigin",
+  "order.group atomic promotion and order.quick conversion",
+  "ordersRepository.bookings.read/list/history/membership/write/origin",
+  "shops/:shopId/orders/bookings/candidates/review/read/list/history",
+  "booking.group draft promotion",
+  "ordersRepository.accept/read/list/demand/mode/history/origin",
+  "ordersRepository.pieces.read/write and exact-key materialisation",
+  "shops/:shopId/orders/:id/pieces/read/materialize",
+  "shops/:shopId/orders/review/list/:id/read/history/presentation",
+  "order.quick atomic promotion",
+  "shops/:shopId/orders/intake-preview",
+  "order.quick draft save/read/list/replay/abandon",
   "serviceTemplatesRepository.current/read/definition/list/history/append/advance/origin",
   "shops/:shopId/settings/service-templates/list/entries/history/revisions/definitions/preview",
   "service.templates draft promotion",

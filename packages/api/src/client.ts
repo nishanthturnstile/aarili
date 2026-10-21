@@ -364,6 +364,7 @@ export async function readHealth(
 
 export {
   abandonDraft,
+  convertDraft,
   createDraftClient,
   DraftRequestError,
   getDraft,

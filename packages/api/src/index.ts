@@ -5,15 +5,18 @@ import {
   healthUnavailableSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createBookingRoutes } from "./bookings.js";
 import { createCustomerRoutes } from "./customers.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
+import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
 import { createServiceTemplatesRoutes } from "./service-templates.js";
 import { createShopCalendarRoutes } from "./shop-calendar.js";
 import { createShopCommitmentsRoutes } from "./shop-commitments.js";
 import { createShopPoliciesRoutes } from "./shop-policies.js";
+import { createSmallServiceRoutes } from "./small-services.js";
 
 export { createShopPoliciesRoutes };
 
@@ -83,6 +86,9 @@ export function createApi(
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));
+    app.route("/", createBookingRoutes(owner));
+    app.route("/", createOrderRoutes(owner));
+    app.route("/", createSmallServiceRoutes(owner));
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));

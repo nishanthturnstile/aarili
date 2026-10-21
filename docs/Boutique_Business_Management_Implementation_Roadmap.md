@@ -514,6 +514,42 @@ unchanged; registration evidence alone does not close those gates.
 
 ##### Vertical Slice 1.2.1 — Create and Recover a Quick Order
 
+**Next-slice review (19 October 2026):**
+[Order intake readiness and REA sources](agents/Order_Intake_Readiness_REA_Review.md)
+records merged setup/configuration prerequisites, scoped verification evidence
+and the then-pending #108 promotion. It selects Nool live order intake and
+TailorMan's public New Bill demo for bounded research, with explicit later-slice
+sources for grouping, alterations and repeat work. This is a research/validation
+snapshot, not implementation/ticket approval or a change to the dependencies.
+
+The [Quick Order REA prompt](agents/Quick_Order_REA_Prompt.md) turns this selected
+research target into a reusable evidence, design and approved-ticket delivery
+brief. It retains exact configuration pinning, server drafts and atomic capacity
+acceptance, with payments and later booking/service lifecycles kept in their
+existing slices.
+
+**Approved delivery packet (19 October 2026):**
+[REA evidence](agents/Quick_Order_REA_Evidence.md),
+[independent design and QO acceptance matrix](agents/Quick_Order_Design.md),
+[approved A–B breakdown](agents/Quick_Order_Ticket_Packet.md) and
+[delivery/verification status](agents/Quick_Order_Implementation_Evidence.md)
+track **#113 (1.2.1a)** recoverable intake drafts and **#114 (1.2.1b)** atomic
+accepted orders/snapshots/capacity/detail. The owner selected A; B waits for A’s
+merge. A reuses existing drafts/identity/templates and cannot book a commitment.
+AC-40/55 cover draft portions; AC-59 stays partial, SET-11/AC-60 need B’s atomic
+acceptance, and AC-58 costing/AC-61 payments are not closed here. #110 was
+rechecked and merged with successful full CI. Human/policy/promotion/live gates
+remain separate; no merge or deployment is implicit.
+
+**B implementation selection (19 October 2026):** A merged through #115 at
+`c6ab32d`; every #114 direct blocker is merged. The owner selected B and approved
+one accepted garment in its promised-delivery week, retained booked demand,
+shop-scoped QO numbering and blocked effort acceptance until reviewed mapping.
+[Acceptance implementation and QO evidence](agents/Quick_Order_Acceptance_Implementation_Evidence.md)
+records current-rule locking, atomic order/demand/snapshots, durable reopen and
+attributable presentation changes. This contributes SET-11/AC-60; physical-device,
+fluent-Tamil, policy, owner acceptance and promotion gates remain separate.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-01, ORD-04, ORD-05, ORD-06, ORD-11, USE-03, USE-04, USE-08. Scenarios: AC-40, AC-55, AC-58, AC-59.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.
@@ -529,6 +565,33 @@ unchanged; registration evidence alone does not close those gates.
 
 ##### Vertical Slice 1.2.2 — Group Garments and Track Outfit Pieces
 
+**REA delivery brief (19 October 2026):** the
+[Grouped Bookings and Outfit Pieces prompt](agents/Grouped_Bookings_REA_Prompt.md)
+uses Nool's multi-garment order workflow, TailorMan's public multi-row/package
+layout and TailorMate only as a reserve. It preserves independent garment orders,
+piece-scoped identity, existing capacity accounting and later payment/fulfilment
+boundaries. This brief does not publish tickets or change scope/dependencies.
+
+**Research/design packet (19 October 2026):**
+[bounded REA evidence](agents/Grouped_Bookings_REA_Evidence.md) records a live
+Nool two-garment save/reopen and TailorMan's unchanged Package-click result.
+[Independent design](agents/Grouped_Bookings_Design.md) maps GB-01–GB-10 to
+ORD-02/03/13/14, AC-01 and AC-63's structural contribution.
+[Proposed vertical tickets](agents/Grouped_Bookings_Ticket_Packet.md) sequence
+piece-aware Quick Orders → grouping accepted orders → atomic grouped intake.
+The owner approved the concrete breakdown and publication as #118–#120, selecting
+A (#118), now merged in #121. B (#119) merged in #122;
+[linking implementation/review evidence](agents/Grouped_Bookings_Linking_Implementation_Evidence.md)
+tracks its bounded verification. The owner selected C (#120) on 20 October;
+[atomic intake implementation/review evidence](agents/Grouped_Bookings_Intake_Implementation_Evidence.md)
+tracks its scoped validation and separate activation gates; its implementation
+is in draft [PR #123](https://github.com/nishanthturnstile/aarili/pull/123) for owner review.
+[Delivery evidence](agents/Grouped_Bookings_Implementation_Evidence.md)
+records verification limits. Initial payments are manual in their later slice;
+payment gateways/automated UPI/bank integrations are deferred. Actual payments,
+measurements, production, custody
+and partial handover remain their later slices; this does not close AC-63.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-02, ORD-03, ORD-13, ORD-14. Scenarios: AC-01, AC-63.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.
@@ -541,6 +604,39 @@ unchanged; registration evidence alone does not close those gates.
 - **Deliverable:** Multi-garment bookings and piece-aware outfit orders.
 
 ##### Vertical Slice 1.2.3 — Create Alteration and Small-Service Orders
+
+**REA delivery brief (20 October 2026):** the
+[Alteration and Small-Service prompt](agents/Small_Service_REA_Prompt.md) scopes
+standalone lightweight intake and independent add-on lines, using TailorMan's
+alteration surface and Nool's linked-alteration flow as research candidates.
+It preserves customer-property identity, reviewed service-capacity mapping and
+later custody/payment/production/fulfilment integration. It changes no scope or
+dependencies and does not approve issue publication or claim full AC-50 closure.
+
+**Research/design packet (20 October 2026):**
+[actual REA evidence](agents/Small_Service_REA_Evidence.md) records the accessible
+TailorMan alteration sample and unchanged New click; Nool's delivered-order
+reopening remains a documented, unexecuted flow because our synthetic orders are
+Pending. [Independent design](agents/Small_Service_Design.md) maps SS-01–SS-14
+to lightweight intake, exact priced lines, customer-property identity, guardian
+applicability, supplemental history and reviewed capacity coverage.
+[Approved vertical tickets](agents/Small_Service_Ticket_Packet.md) sequence
+standalone acceptance → governed custom/grouped add-ons → independent bounded
+completion. The owner approved A–C and D1–D6 implementation conventions and
+publication as [#124](https://github.com/nishanthturnstile/aarili/issues/124),
+[#125](https://github.com/nishanthturnstile/aarili/issues/125) and
+[#126](https://github.com/nishanthturnstile/aarili/issues/126), selecting A (#124).
+A merged through #127. The owner subsequently selected B (#125), based on
+development `21a5e79`; [B verification and owner review](agents/Service_Additions_Implementation_Evidence.md)
+record its implementation. B merged through #128. The owner selected C (#126)
+on updated development `8e708e8`; [C implementation and owner review](agents/Service_Line_Completion_Implementation_Evidence.md)
+record independent taskless-line completion/correction and its remaining review
+gates. Production values and live activation remain pending.
+[Implementation/check status](agents/Small_Service_Implementation_Evidence.md)
+records A's historical development `63d5123`, merged prerequisites and remaining
+decisions. This adds traceability without changing scope/dependencies, approving
+production values or closing AC-50. Full money, custody, execution, trials/quality
+and actual handover remain their named later slices.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-14, JOB-08, JOB-09. Scenarios: AC-50.

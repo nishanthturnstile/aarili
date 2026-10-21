@@ -10,6 +10,7 @@ import { pathToFileURL } from "node:url";
 import { ownerAuthFromEnvironment } from "@aarili/auth";
 import pg from "pg";
 import { migrateDatabase } from "../migrate.mjs";
+import { seedHistoricalPieceOrder } from "./historical-pieces.mjs";
 import { createOwnerVerificationApi } from "./owner-api.mjs";
 import { withPostgres } from "./postgres.mjs";
 
@@ -174,6 +175,26 @@ export async function withOwnerWeb(
           setupToken,
           code,
           runtime,
+          seedHistoricalPieces: async (orderId) => {
+            const admin = new pg.Client({
+              connectionString: adminConnectionString,
+            });
+            await admin.connect();
+            try {
+              await seedHistoricalPieceOrder(admin, orderId);
+            } finally {
+              await admin.end();
+            }
+          },
+          // In-process fixture setup only: real auth/commands, without consuming
+          // interactive admission. No HTTP route or environment bypass is added.
+          seedCommand: async (request) => {
+            probeOwner ??= ownerAuthFromEnvironment(webEnv);
+            return createOwnerVerificationApi(async () => true, {
+              ...probeOwner,
+              commandLimit: async () => 0,
+            }).fetch(request);
+          },
           probeRecent,
           stopDatabase: stop,
           expireAuthentication: async () => {
