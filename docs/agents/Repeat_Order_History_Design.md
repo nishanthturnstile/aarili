@@ -257,6 +257,14 @@ No unavailable domain, merge/relink policy or live activation is added.
 
 ## History and identity outcomes
 
+C1 #137 was selected after B merged in PR #141. Its
+[implementation evidence](Identity_Review_Implementation_Evidence.md) records
+existing-key reasons, pair review versions, durable keep/dismiss decisions,
+reasoned existing correction commands and migration 0040. Personal reasons are
+redactable; audit/replay retain minimal metadata. Contact-backed wearer names use
+contact correction; separate wearer names use wearer update. Both preserve
+original accepted IDs/snapshot bytes. C2 remains a separate selection and gate.
+
 **B — unified customer/wearer history:** a paginated projection over implemented
 customer/wearer corrections and authority events, accepted custom/service orders,
 booking membership/commercial revisions, native pieces, service additions/progress

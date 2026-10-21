@@ -1,8 +1,8 @@
 import {
-  type CustomerContact,
+  type CustomerCorrection,
   type CustomerCreate,
   type CustomerProfile,
-  customerContactSchema,
+  customerCorrectionSchema,
   customerCreateSchema,
   customerErrorSchema,
   customerMutationSchema,
@@ -139,7 +139,7 @@ export async function registerCustomer(
 export async function correctCustomer(
   shopId: string,
   id: string,
-  input: CustomerContact,
+  input: CustomerCorrection,
   key: string,
   etag: string,
   signal?: AbortSignal,
@@ -149,7 +149,7 @@ export async function correctCustomer(
       client().shops[":shopId"].customers[":id"].$patch(
         {
           param: { shopId, id },
-          json: customerContactSchema.parse(input),
+          json: customerCorrectionSchema.parse(input),
           header: { "idempotency-key": key, "if-match": etag },
         },
         { init: init(s, signal) },

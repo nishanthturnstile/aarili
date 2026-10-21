@@ -346,6 +346,7 @@ test("QO-02/09 real PostgreSQL foreign/missing context and revoked wearer deny d
         etag: `"v${profile.version}"`,
         body: {
           age: profile.age,
+          reason: "SYNTHETIC relationship correction",
           preferences: profile.preferences,
           relationship: {
             ...profile.relationship,

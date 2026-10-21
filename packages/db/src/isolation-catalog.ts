@@ -278,6 +278,8 @@ export async function assertIsolationCatalog(db: Database) {
         "public.service_order_line",
         "public.service_line_transition",
         "public.service_line_evidence",
+        "public.identity_revision_evidence",
+        "public.customer_pair_review",
         "public.booking_member",
         "public.booking_membership_history",
         "public.order_piece",

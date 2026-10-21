@@ -17,6 +17,7 @@ export type CustomerWrite = {
   requestId: string;
   contact: CustomerContact;
   synthetic: boolean;
+  revision?: { reason: string; previousVersion: number; fields: string[] };
   keys: {
     algorithmVersion: 1;
     nameTaNorm: string;

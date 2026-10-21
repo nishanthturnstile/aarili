@@ -115,6 +115,7 @@ async function read(f, c, id) {
 }
 async function update(f, c, p, changes = {}, key = randomUUID()) {
   const body = {
+    reason: "SYNTHETIC wearer correction",
     age: p.age,
     preferences: p.preferences,
     relationship: {
@@ -375,6 +376,7 @@ test(
       assert.equal(age.source, "in-person");
       const latest = await read(f, c, p.id);
       const editBody = {
+        reason: "SYNTHETIC wearer correction",
         age: latest.age,
         preferences: { ...latest.preferences, style: "Original new style" },
         relationship: relationship(c),
@@ -636,7 +638,11 @@ test(
           f,
           `/customers/${c.id}`,
           "PATCH",
-          { displayName: "Synthetic payer corrected", aliases: [] },
+          {
+            displayName: "Synthetic payer corrected",
+            aliases: [],
+            reason: "SYNTHETIC payer correction",
+          },
           { "Idempotency-Key": randomUUID(), "If-Match": `"v${c.version}"` },
         ),
       );

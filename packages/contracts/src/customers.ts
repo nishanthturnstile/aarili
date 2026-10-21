@@ -21,6 +21,10 @@ export const customerServiceEvidenceSchema = z.strictObject({
 export const customerCreateSchema = customerContactSchema.extend({
   serviceEvidence: customerServiceEvidenceSchema,
 });
+export const customerCorrectionSchema = customerContactSchema.extend({
+  reason: z.string().trim().min(1).max(1000),
+});
+export type CustomerCorrection = z.infer<typeof customerCorrectionSchema>;
 export const customerMutationSchema = z.strictObject({
   customerId: z.uuid(),
   personId: z.uuid(),

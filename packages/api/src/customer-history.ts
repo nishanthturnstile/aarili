@@ -3,8 +3,21 @@ import { apiErrorSchema } from "@aarili/contracts";
 import {
   customerHistoryPageSchema,
   customerHistoryQuerySchema,
+  customerPairDecisionSchema,
+  customerPairQuerySchema,
+  customerPairResultSchema,
+  customerPairSchema,
+  duplicateCandidatesQuerySchema,
+  duplicateCandidatesSchema,
 } from "@aarili/contracts/customer-history";
-import { customerHistory, HistoryFailure } from "@aarili/core/customer-history";
+import { etagSchema, idempotencyHeaderSchema } from "@aarili/contracts/request";
+import {
+  customerHistory,
+  decideCustomerPair,
+  duplicateCandidates,
+  HistoryFailure,
+  previewCustomerPair,
+} from "@aarili/core/customer-history";
 import { CustomerFailure } from "@aarili/core/customers";
 import { GuardianFailure, WearerFailure } from "@aarili/core/wearers";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -12,7 +25,7 @@ import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 
 export function createCustomerHistoryRoutes(
-  owner: Pick<OwnerAuth, "origin" | "withOwnerHistory">,
+  owner: Pick<OwnerAuth, "origin" | "withOwnerHistory" | "commandLimit">,
 ) {
   const error = {
     description: "Private history unavailable",
@@ -32,7 +45,7 @@ export function createCustomerHistoryRoutes(
         );
     },
   });
-  app.use("/shops/:shopId/customer-history", async (c, next) => {
+  app.use("/shops/:shopId/customer-history*", async (c, next) => {
     c.header("Cache-Control", "private, no-store");
     c.header("Referrer-Policy", "no-referrer");
     c.header("X-Request-Id", crypto.randomUUID());
@@ -51,20 +64,170 @@ export function createCustomerHistoryRoutes(
         { error: { code: "UNSAFE_ORIGIN", message: "Request denied" } },
         403,
       );
+    if (c.req.path.endsWith("/decision")) {
+      const retry = await owner.commandLimit();
+      if (retry) {
+        c.header("Retry-After", String(retry));
+        return c.json(
+          {
+            error: {
+              code: "RATE_LIMITED",
+              message: "Wait before trying again",
+            },
+          },
+          429,
+        );
+      }
+    }
     return next();
   });
   app.use(
-    "/shops/:shopId/customer-history",
+    "/shops/:shopId/customer-history*",
     bodyLimit({
       maxSize: 16384,
       onError: (c) =>
         c.json(
-          { error: { code: "INVALID_REQUEST", message: "Request too large" } },
+          {
+            error: { code: "INVALID_REQUEST", message: "Request too large" },
+          },
           413,
         ),
     }),
   );
-  const routes = app.openapi(
+  const reviewRoutes = app
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/customer-history/candidates",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: duplicateCandidatesQuerySchema },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Manual duplicate candidates",
+            content: {
+              "application/json": { schema: duplicateCandidatesSchema },
+            },
+          },
+          401: error,
+          403: error,
+          404: error,
+          413: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerHistory(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => duplicateCandidates(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/customer-history/pair",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: customerPairQuerySchema },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Distinct contact pair preview",
+            content: { "application/json": { schema: customerPairSchema } },
+          },
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          413: error,
+          422: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerHistory(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => previewCustomerPair(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/customer-history/decision",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          headers: z.object({
+            "idempotency-key": idempotencyHeaderSchema.optional(),
+            "if-match": etagSchema.optional(),
+          }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: customerPairDecisionSchema },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Pair review recorded",
+            content: {
+              "application/json": { schema: customerPairResultSchema },
+            },
+          },
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          412: error,
+          413: error,
+          422: error,
+          428: error,
+          429: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerHistory(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) =>
+            decideCustomerPair(ctx, c.req.valid("json"), {
+              key: c.req.header("Idempotency-Key"),
+              ifMatch: c.req.header("If-Match"),
+              requestId:
+                c.res.headers.get("X-Request-Id") ?? crypto.randomUUID(),
+            }),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    );
+  const routes = reviewRoutes.openapi(
     createRoute({
       method: "post",
       path: "/shops/{shopId}/customer-history",

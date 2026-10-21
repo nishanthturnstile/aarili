@@ -6,6 +6,7 @@ import {
   type WearerRelationship,
   wearerProfileSchema,
 } from "@aarili/contracts/wearers";
+import { identityEvidence } from "./identity-evidence.js";
 import { sql, type Transaction } from "./index.js";
 import type { WearerRepository, WearerWrite } from "./repositories/wearers.js";
 import { requestRepository } from "./request-repository.js";
@@ -125,6 +126,13 @@ export function wearerRepository(
     });
   }
   return {
+    async isContactPerson(personId) {
+      return !!(
+        await tx.execute(
+          sql`select id from customer where shop_id=${shopId}::uuid and person_id=${personId}::uuid`,
+        )
+      ).rowCount;
+    },
     ...requestRepository<WearerMutation>(tx, shopId),
     ensureNotice,
     async ids() {
@@ -238,6 +246,20 @@ export function wearerRepository(
       return true;
     },
     async update(w, input, expected) {
+      if (input.displayName) {
+        // A contact-backed identity must use the contact correction command so
+        // phone/alias keys and its independent customer version stay consistent.
+        const changed = await tx.execute(
+          sql`update customer_person p set display_name=${input.displayName},version=version+1,updated_by=${w.actorId}::uuid where p.shop_id=${shopId}::uuid and p.id=${w.personId}::uuid and not exists(select 1 from customer c where (c.shop_id,c.person_id)=(p.shop_id,p.id)) returning id`,
+        );
+        if (!changed.rowCount)
+          throw Error("Contact-backed name requires contact correction");
+        const k = w.searchKey;
+        if (!k) throw Error("Name search keys unavailable");
+        await tx.execute(
+          sql`update customer_search_key set name_ta_norm=${k.nameTaNorm},name_latin_norm=${k.nameLatinNorm},name_skel=${k.nameSkel} where shop_id=${shopId}::uuid and person_id=${w.personId}::uuid and ordinal=0`,
+        );
+      }
       const r = await tx.execute(
         sql`update wearer set age=${input.age},authority_epoch=case when ${w.invalidateAuthority ?? false} then authority_epoch+1 else authority_epoch end,version=version+1,updated_by=${w.actorId}::uuid where shop_id=${shopId}::uuid and id=${w.id}::uuid and version=${expected} returning id`,
       );
@@ -264,6 +286,15 @@ export function wearerRepository(
       await tx.execute(
         sql`insert into audit_event(shop_id,id,actor_type,actor_id,action,entity_type,entity_id,request_id,idempotency_key,changes) values(${shopId}::uuid,${w.eventId}::uuid,'user',${w.actorId}::uuid,${action},'wearer',${w.id}::uuid,${w.requestId}::uuid,${w.key}::uuid,${JSON.stringify({ version, synthetic: true })}::jsonb)`,
       );
+      if (w.revision)
+        await identityEvidence(
+          tx,
+          shopId,
+          w.eventId,
+          w.customerId,
+          w.id,
+          w.revision,
+        );
     },
     async origin(id, draftId) {
       return !!(

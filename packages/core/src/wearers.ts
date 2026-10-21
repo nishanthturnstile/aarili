@@ -270,6 +270,42 @@ export async function mutateWearer(
     };
     if (action === "update") {
       const update = wearerUpdateSchema.parse(input);
+      if (
+        update.displayName &&
+        (current.personId === c.personId ||
+          (await ctx.repository.isContactPerson(current.personId))) &&
+        update.displayName !== current.displayName
+      )
+        throw new WearerFailure(
+          409,
+          "CONTACT_NAME_REQUIRES_CONTACT_CORRECTION",
+        );
+      if (update.displayName === current.displayName) delete update.displayName;
+      w.revision = {
+        reason: update.reason,
+        previousVersion: current.version,
+        fields: [
+          ...(current.age !== update.age ? ["age"] : []),
+          ...(Object.keys(update.preferences).some(
+            (k) =>
+              current.preferences[k as keyof typeof update.preferences] !==
+              update.preferences[k as keyof typeof update.preferences],
+          )
+            ? ["preferences"]
+            : []),
+          ...(Object.keys(update.relationship).some(
+            (k) =>
+              current.relationship[k as keyof typeof update.relationship] !==
+              update.relationship[k as keyof typeof update.relationship],
+          )
+            ? ["relationship"]
+            : []),
+        ],
+      };
+      if (update.displayName) {
+        w.revision.fields.push("displayName");
+        w.searchKey = searchKeysV1(update.displayName);
+      }
       preferences(update.preferences);
       relationship(c, current.personId, update.relationship);
       w.invalidateAuthority =

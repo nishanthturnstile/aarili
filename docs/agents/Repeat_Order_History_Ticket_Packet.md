@@ -11,11 +11,12 @@ read back: [A1 #134](https://github.com/nishanthturnstile/aarili/issues/134),
 [B #136](https://github.com/nishanthturnstile/aarili/issues/136),
 [C1 #137](https://github.com/nishanthturnstile/aarili/issues/137),
 [C2 #138](https://github.com/nishanthturnstile/aarili/issues/138).
-**A1 merged as #139 and A2 as #140; owner selected B #136 after that merge.**
+**A1 merged as #139, A2 as #140 and B as #141; owner selected C1 #137 after that merge.**
 B's native blockers #135/#78/#79/#80 are closed with merged PRs #140/#81/#82/#83.
-C1/C2 retain their dependency and selection gates.
+C1's direct blocker #136 is merged. C2 retains its dependency and selection gates.
 [A2 evidence](Repeat_Service_Implementation_Evidence.md),
 [B implementation evidence](Customer_History_Implementation_Evidence.md).
+[C1 implementation evidence](Identity_Review_Implementation_Evidence.md).
 Approval covers a focused branch and draft PR to development; owner merge,
 deployment and production activation remain separate.
 

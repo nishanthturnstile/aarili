@@ -22,7 +22,11 @@ import {
   wearerPurposeEventSchema,
   wearerUpdateSchema,
 } from "@aarili/contracts/wearers";
-import { draftMessages, type Locale } from "@aarili/i18n";
+import {
+  draftMessages,
+  identityReviewMessages,
+  type Locale,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
@@ -1642,8 +1646,11 @@ function WearerCorrection({
   updated: () => void;
 }) {
   const t = useTranslations("wearers");
+  const correctionText = identityReviewMessages[useLocale() as Locale];
   const { register, getValues, reset, setValue } = useForm<WearerUpdate>({
     defaultValues: {
+      reason: "",
+      displayName: wearer.displayName,
       age: wearer.age,
       preferences: wearer.preferences,
       relationship: wearer.relationship,
@@ -1669,6 +1676,10 @@ function WearerCorrection({
   async function save() {
     const raw = getValues();
     const input = wearerUpdateSchema.safeParse({
+      reason: raw.reason,
+      ...(wearer.personId !== customer.personId
+        ? { displayName: raw.displayName }
+        : {}),
       age: raw.age,
       preferences: raw.preferences,
       relationship: {
@@ -1696,6 +1707,8 @@ function WearerCorrection({
   }
   useEffect(() => {
     reset({
+      reason: "",
+      displayName: wearer.displayName,
       age: wearer.age,
       preferences: wearer.preferences,
       relationship: {
@@ -1738,6 +1751,26 @@ function WearerCorrection({
         disabled={mutation.busy || !!mutation.attempt || mutation.stale}
       >
         <legend className="sr-only">{t("edit")}</legend>
+        <Labeled id="wearer-correct-reason" label={correctionText.reason}>
+          <textarea
+            id="wearer-correct-reason"
+            className="ui-input"
+            required
+            maxLength={1000}
+            {...register("reason")}
+          />
+        </Labeled>
+        {wearer.personId !== customer.personId ? (
+          <Labeled id="wearer-correct-name" label={correctionText.displayName}>
+            <Input
+              id="wearer-correct-name"
+              maxLength={120}
+              {...register("displayName")}
+            />
+          </Labeled>
+        ) : (
+          <p>{correctionText.selfName}</p>
+        )}
         <Labeled id="wearer-correct-age" label={t("age")}>
           <select
             id="wearer-correct-age"

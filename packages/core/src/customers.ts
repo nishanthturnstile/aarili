@@ -4,6 +4,7 @@ import {
   type CustomerPolicy,
   type CustomerProfile,
   customerContactSchema,
+  customerCorrectionSchema,
   customerCreateSchema,
   customerMutationSchema,
   customerSearchSchema,
@@ -79,7 +80,7 @@ export async function mutateCustomer(
   const parsed =
     action === "create"
       ? customerCreateSchema.safeParse(input)
-      : customerContactSchema.safeParse(input);
+      : customerCorrectionSchema.safeParse(input);
   const actor = actorSchema.safeParse(ctx.actor);
   if (
     !parsed.success ||
@@ -98,14 +99,22 @@ export async function mutateCustomer(
   }
   if (action === "create" && expected !== null)
     throw new CustomerFailure(422, "VALIDATION_FAILED");
-  const normalized = contact(parsed.data);
+  const normalized = contact(
+    customerContactSchema.parse({
+      displayName: parsed.data.displayName,
+      phone: parsed.data.phone,
+      email: parsed.data.email,
+      notes: parsed.data.notes,
+      aliases: parsed.data.aliases,
+    }),
+  );
   const command =
     action === "create"
       ? {
           ...normalized,
           serviceEvidence: customerCreateSchema.parse(input).serviceEvidence,
         }
-      : normalized;
+      : { ...normalized, reason: customerCorrectionSchema.parse(input).reason };
   const key = (headers.key as string).toLowerCase(),
     target = id?.toLowerCase() ?? null;
   const binding = {
@@ -156,6 +165,21 @@ export async function mutateCustomer(
     requestId: headers.requestId.toLowerCase(),
     contact: normalized,
     synthetic: true,
+    ...(prior
+      ? {
+          revision: {
+            reason: customerCorrectionSchema.parse(input).reason,
+            previousVersion: prior.version,
+            fields: (
+              ["displayName", "phone", "email", "aliases", "notes"] as const
+            ).filter(
+              (field) =>
+                JSON.stringify(prior[field] ?? "") !==
+                JSON.stringify(normalized[field] ?? ""),
+            ),
+          },
+        }
+      : {}),
     keys: [normalized.displayName, ...normalized.aliases].map((name, index) =>
       searchKeysV1(name, index === 0 ? normalized.phone : ""),
     ),

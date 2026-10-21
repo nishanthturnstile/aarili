@@ -643,6 +643,7 @@ test(
         etag: `"v${c.version}"`,
         body: {
           displayName: "SYNTHETIC Corrected",
+          reason: "SYNTHETIC correction",
           phone: c.phone,
           email: c.email,
           aliases: c.aliases,
@@ -680,6 +681,7 @@ test(
         etag: `"v${contact.version}"`,
         body: {
           displayName: contact.displayName,
+          reason: "SYNTHETIC shared phone",
           phone: "9000000707",
           email: contact.email,
           aliases: contact.aliases,

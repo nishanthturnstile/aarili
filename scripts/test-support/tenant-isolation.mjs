@@ -12,6 +12,7 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "customerHistoryRepository.candidates/decisions/decide/reviewReplay; same-shop customer_pair_review and redactable identity_revision_evidence",
   "customerHistoryRepository.wearers/window/page and private customer-history search/cursor projection with current wearer/guardian authority",
   "order.repeat-service exact selected work source/create/review/links and immutable typed service_repeat_origin/selection/target",
   "order.repeat authorised source/create/review/links; repeatOrdersRepository origin/scope/link/links; same-shop immutable order_repeat_origin/order_repeat_target",
