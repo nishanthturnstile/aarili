@@ -242,6 +242,7 @@ export function checkBoundaries(sources) {
           [
             "/client",
             "/customer-client",
+            "/customer-history-client",
             "/wearer-client",
             "/shop-profile-client",
             "/shop-calendar-client",

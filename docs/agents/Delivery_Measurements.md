@@ -1,5 +1,52 @@
 # Delivery measurements
 
+## Issue #136 — customer / wearer history / 1.2.4c
+
+- Owner selected #136 after merging #140 at **2026-10-21T12:30:48Z**.
+  Updated the same checkout to `9ee0e0c`; branch `codex/customer-history`.
+  All direct blockers #135/#78/#79/#80 merged. No worktree or live activation.
+- First observed task timestamp **2026-10-21T12:34:14Z**, before implementation
+  edits. Active coding/rework time was not separately instrumented and is unknown.
+- Inherited #140 Fast verification and Dependency audit passed in run
+  `39599571515`. Promotion gates remain separate.
+- Intermediate implementation: three PostgreSQL scenarios passed in **108.53s**.
+  A later expanded identity/guardian packet had **13 passing / 1 failing**; the
+  new same-phone/name fixture found missing phone-query keys and inner-name recall.
+  Four history scenarios then passed in **65.40s**, before the final privacy-cursor
+  and exact-source-version additions. Earlier fixture/setup failures are recorded
+  in the [implementation evidence](Customer_History_Implementation_Evidence.md).
+- First three-size browser packet passed **3/3, 2.0m** (phone **32.6s**, tablet
+  **36.0s**, desktop **33.2s**), English/light and Tamil/dark, including tablet
+  landscape with 200% text. Final packet passed **3/3, 1.7m**: **29.0s / 29.8s /
+  27.1s** after changed privacy/source metadata and Tamil copy.
+- First full fast packet passed **266 units / 60 files**; a later passing frozen
+  packet took **16.09s** for units and **16.852s** for the production task graph.
+  Final full-fast exit 0 in **150.297s**, units **21.08s**, production task graph
+  **19.608s**. After a Tamil-copy correction, affected lint, types (**21.138s**)
+  and build (**16.740s**) passed. Handoff lint and Knip passed.
+- Final PostgreSQL **4/4, 82.72s** includes A1/A2 accepted lineage, exact parent/
+  line versions and privacy cursor invalidation. Ten existing wearer/guardian
+  regressions passed in the earlier combined packet, whose history recall failure
+  was fixed and independently rerun; not claimed as one 14-case clean run.
+- New exports required a disposable space-path clean check: offline frozen install,
+  ten package builds (**20.558s**) and five compiled export imports passed without
+  lockfile change. Full promotion verification remains separate.
+- Review host observed ready **2026-10-21T13:30:56Z**:
+  `http://127.0.0.1:51490/customers/01a15ea7-d14e-7767-9b7a-89169fd654fd`.
+  Private synthetic access uses `.scratch/customer-history-review-host/private.json`.
+  Ordinary UI sign-in, history/source navigation, desktop/Tamil phone inspection,
+  axe/reflow/storage checks passed. Local handoff readiness observed at
+  **2026-10-21T13:39:22Z** after the clean export check. Active coding time unknown.
+- Draft [PR #141](https://github.com/nishanthturnstile/aarili/pull/141) to
+  `development` observed published **2026-10-21T13:47:42Z**, implementation
+  commit `70b822e4817e51f033bd15b800ec3b46709e0f26`. T3 link registered.
+  Initial run `39611050600` Fast verification and Dependency audit started
+  **13:47:18Z** and were in progress at that observation; full promotion jobs
+  were skipped. Final execution/queue durations remain pending, not reconstructed.
+- Owner review/merge: pending for this delivery. Human
+  physical-device, fluent Tamil and screen-reader observations remain pending.
+  Do not sum overlapping elapsed timers or infer active coding time from commits.
+
 ## Issue #135 — selected service repeat / 1.2.4b
 
 - Owner selected #135 after merging #139. Pulled `development` to `56b07f6` in

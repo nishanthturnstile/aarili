@@ -243,6 +243,18 @@ Multiple intentional repeat orders from one source are allowed under distinct
 operations; do not impose global source uniqueness. Unknown-outcome recovery
 freezes request/preconditions; new typing waits in memory until outcome resolution.
 
+## B implementation allocation (#136)
+
+[Implementation and validation](Customer_History_Implementation_Evidence.md) records
+its direct audit/domain projection, no-backfill index migration 0039, original-ID /
+current-label contract and private cursor. The first page uses a conservative
+committed transaction prefix (oldest active transaction high-water) with precise
+timestamp/kind/ID ordering. Later commits wait until refresh; authority/identity
+changes invalidate cursors. Historical personal names and before/after correction
+values were not stored by earlier slices and are explicitly unavailable rather
+than reconstructed. Booking events require every member in the authorised scope.
+No unavailable domain, merge/relink policy or live activation is added.
+
 ## History and identity outcomes
 
 **B — unified customer/wearer history:** a paginated projection over implemented
