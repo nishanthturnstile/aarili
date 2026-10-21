@@ -40,6 +40,13 @@
   Credentials remain in its ignored private access file. Final refresh time,
   final refresh supersedes this first host. CI/merge/human acceptance remain pending.
 - [Requirement evidence and manual packet](Identity_Review_Implementation_Evidence.md).
+- Draft [PR #142](https://github.com/nishanthturnstile/aarili/pull/142) opened
+  **15:15:23Z**, registered with T3, implementation `d9844be`. Initial Fast
+  verification and Dependency audit started **15:15:29Z** in run `39623983204`.
+  Queue time was not separately instrumented; this is an observed six-second
+  PR-open-to-first-check-start interval. Execution remained in progress at
+  inspection and may be superseded by the documentation-only publication update.
+  Owner review/merge and the latest-head CI outcome remain pending.
 
 ## Issue #136 — customer / wearer history / 1.2.4c
 

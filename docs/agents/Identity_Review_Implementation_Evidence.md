@@ -194,6 +194,16 @@ package export maps, install/build scripts, toolchain and runtime packaging did
 not change, so an additional clean-install/Linux-image check was not triggered.
 Hosted feature Fast verification remains the Linux portability check.
 
+Published as draft [PR #142](https://github.com/nishanthturnstile/aarili/pull/142)
+to `development` at **15:15:23 UTC** and registered with the T3 thread.
+Implementation commit `d9844be64b96ec7ff048ce97ce82e6eec27eb08f` seals the tested
+runtime/test patch. The following documentation-only publication update does
+not change those inputs. Initial hosted Fast verification and Dependency audit
+started **15:15:29 UTC** in
+[run 39623983204](https://github.com/nishanthturnstile/aarili/actions/runs/39623983204);
+they were still in progress when inspected. The documentation push may supersede
+that run; current-head CI and owner review remain required before merge.
+
 Final running review URL:
 **http://127.0.0.1:55961/customers/01a15f01-3b49-77a5-9fb4-308f354e1cea**.
 Observed ready at **15:08:12 UTC** after the final bundle refresh. Ordinary sign-in
