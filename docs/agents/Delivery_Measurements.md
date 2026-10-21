@@ -23,6 +23,26 @@
 - Final styled controls: fast exit 0, **109.670s**, **266 units, 12.27s** and
   production graph **15.136s**. Pinned-node A2/grouped browser checks follow;
   final host was restarted after the build so review uses the final UI.
+- Draft [PR #140](https://github.com/nishanthturnstile/aarili/pull/140), capability
+  `f4f1cf4`, opened **2026-10-21T11:51:45Z** and immediately linked to T3.
+  Fast/audit in [run 39595111999](https://github.com/nishanthturnstile/aarili/actions/runs/39595111999)
+  started **11:51:52Z**; audit finished **11:52:12Z**, Fast **11:53:46Z**.
+- Desktop grouped read exposed a real lock cycle; an instrumented pass was not
+  treated as a fix. Corrected deterministic PostgreSQL case failed with 503
+  (**10.70s**) before the sorted page-lock change, then passed (**11.14s**).
+  Fixture setup errors and the two browser failures are retained in the evidence.
+- After the lock correction: fast exit 0 **113.895s**, **266 units, 14.43s**,
+  production graph **17.292s**; A2/order PostgreSQL **17/17, 205.61s**.
+  Final standalone/native-piece review host verified by **12:14:36Z**, port
+  **59017**, with pinned Node, axe, 44px targets and Tamil landscape/reflow.
+  Active coding/rework duration, owner waiting and merge remain unknown/pending.
+- Final source-list software: A2 browser **24.9s / 19.1s / 16.5s** at
+  phone/tablet/desktop; grouped phone **1.5m**, desktop **1.4m**. The six-case
+  run was **5 pass / 1 fail, 6.9m** because tablet received a known promotion
+  429. After adding explicit Retry-After/confirmation recovery and a deterministic
+  injected 429, tablet **1/1 passed, 1.7m**. No admission value was changed.
+  Lint/Knip passed again after that test-only change. These are separate runs,
+  not a claimed six-case clean run. Final PR head CI and human review remain pending.
 
 ## Issue #134 — custom repeat-order intake / 1.2.4a
 

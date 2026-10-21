@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createApi } from "@aarili/api";
+import { emptyQuickOrder } from "@aarili/contracts/orders";
 import { syntheticCustomerPolicy } from "@aarili/core/customer-policy";
 import { mutateDraft } from "@aarili/core/drafts";
+import { listAcceptedOrders } from "@aarili/core/orders";
+import { syntheticWearerPolicy } from "@aarili/core/wearer-policy";
 import { sql, withShop } from "@aarili/db";
 import { assertIsolationCatalog } from "@aarili/db/isolation-catalog";
 import { test } from "vitest";
@@ -13,6 +16,156 @@ import {
   serviceDraftId,
 } from "../scripts/test-support/small-services.mjs";
 import { withTenantFixture } from "../scripts/test-support/tenant-isolation.mjs";
+
+test(
+  "RH-07/08 repeat-source discovery and grouping lists serialize opposite display order without deadlock",
+  { timeout: 180000 },
+  () =>
+    fixture(async (f) => {
+      const c = await f.ok(`customers/${f.services.seed.customer.customerId}`, {
+          method: "GET",
+        }),
+        at = new Date().toISOString();
+      const second = await f.ok(`customers/${c.id}/wearers`, {
+        body: {
+          mode: "new",
+          displayName: "SYNTHETIC Kavya காவ்யா",
+          age: "adult",
+          preferences: {
+            language: "",
+            channel: "",
+            fit: "",
+            style: "",
+            delivery: "",
+            source: "",
+          },
+          relationship: {
+            kind: "family",
+            statementByPersonId: c.personId,
+            authorised: true,
+            informed: true,
+            source: "in-person",
+            occurredAt: at,
+            interaction: "SYNTHETIC authorised second adult",
+          },
+        },
+      });
+      const wearer = await f.ok(
+        `customers/${c.id}/wearers/${second.wearerId}`,
+        {
+          method: "GET",
+        },
+      );
+      await f.ok(
+        `customers/${c.id}/wearers/${second.wearerId}/consent-events`,
+        {
+          etag: `"v${second.version}"`,
+          body: {
+            purpose: "service",
+            decision: "grant",
+            noticeId: syntheticWearerPolicy.notice.id,
+            noticeExplained: true,
+            language: "en",
+            giverPersonId: wearer.personId,
+            source: "in-person",
+            occurredAt: at,
+          },
+        },
+      );
+      for (const wearerId of [
+        f.services.seed.wearer.wearerId,
+        second.wearerId,
+      ]) {
+        const value = {
+          ...emptyQuickOrder(),
+          customerId: c.id,
+          wearerId,
+          manifest: f.services.saree.profile.content.manifest,
+          deliveryDate: f.services.saree.intake.deliveryDate,
+          priceState: "quoted",
+          priceText: "0",
+        };
+        const review = await f.ok("orders/review", { body: value });
+        await f.services.config.publish("order.quick", {
+          ...value,
+          commitmentReview: {
+            fingerprint: review.fingerprint,
+            acknowledged: true,
+            exceptionReason: "SYNTHETIC opposite-display-order fixture",
+            waiveRush: false,
+            waiverReason: "",
+          },
+        });
+      }
+      let entered, release;
+      const reached = new Promise((r) => {
+          entered = r;
+        }),
+        gate = new Promise((r) => {
+          release = r;
+        });
+      let first = true;
+      const listing = f.owner.withOwnerQuickOrder(
+        new Headers({ Cookie: f.a.cookie }),
+        f.a.shop,
+        (ctx) =>
+          listAcceptedOrders(
+            {
+              ...ctx,
+              wearers: {
+                ...ctx.wearers,
+                repository: {
+                  ...ctx.wearers.repository,
+                  async lockWearer(id) {
+                    await ctx.wearers.repository.lockWearer(id);
+                    if (first) {
+                      first = false;
+                      entered();
+                      await gate;
+                    }
+                  },
+                },
+              },
+            },
+            {},
+          ),
+      );
+      void listing.catch(() => {});
+      let candidates;
+      try {
+        await Promise.race([
+          reached,
+          listing.then(() => assert.fail("Missing source-list barrier")),
+        ]);
+        candidates = f.request("orders/bookings/candidates", { body: {} });
+        let blocked = false;
+        for (let i = 0; i < 100; i++) {
+          blocked = (
+            await f.admin.query(
+              "select exists(select 1 from pg_stat_activity where datname=current_database() and usename='app_user' and wait_event='advisory') waiting",
+            )
+          ).rows[0].waiting;
+          if (blocked) break;
+          await new Promise((r) => setTimeout(r, 20));
+        }
+        assert(
+          blocked,
+          "concurrent grouping candidate read reaches authority lock",
+        );
+      } finally {
+        release();
+      }
+      try {
+        const result = await listing;
+        assert.equal(result.data.orders.length, 2);
+        const other = await candidates;
+        assert.equal(other.status, 200, await other.clone().text());
+        assert.equal((await other.json()).orders.length, 2);
+      } finally {
+        await Promise.allSettled([listing, candidates]);
+      }
+    }),
+);
 
 test(
   "RH-11/14 task-only mapping stays blocked and write-disable recovery keeps A1/service readers",

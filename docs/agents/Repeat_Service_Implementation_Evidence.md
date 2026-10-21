@@ -40,6 +40,9 @@ New profile revisions require deliberate selection and current review. Booking,
 source order and identity locks follow the established order, including ancestor
 service references, before revalidation. Current capacity fingerprints serialize
 competing acceptance. A draft/review adds no demand; acceptance adds demand once.
+Accepted custom-order discovery acquires each page's customer/wearer locks in
+sorted identity order before hydration. Display order and per-record access
+checks remain unchanged. This prevents an opposite-order cycle with grouping.
 
 ### Serialized field reuse/reset matrix
 
@@ -125,11 +128,13 @@ Fresh frozen-software results:
 | --- | --- |
 | `pnpm verify:fast` | Exit 0, **132.880s**; lint/boundaries/tokens, Knip, types, **266 units / 60 files, 15.76s**, negative types, OpenAPI and production build (**20.521s** task graph). |
 | `pnpm verify:fast` after final form-control styling | Exit 0, **109.670s**, **266 units / 60 files, 12.27s**, production graph **15.136s**; all other fast stages passed. |
+| `pnpm verify:fast` after source-list lock correction | Exit 0, **113.895s**, **266 units / 60 files, 14.43s**, production graph **17.292s**; all fast stages passed. |
+| `pnpm exec vitest run --config vitest.integration.config.ts tests/repeat-services.integration.test.mjs tests/orders.integration.test.mjs` after lock correction | **17/17, 205.61s**: all 12 A2/race cases and five existing order tests. |
 | `pnpm exec vitest run --config vitest.integration.config.ts tests/repeat-services.integration.test.mjs tests/repeat-orders.integration.test.mjs tests/small-services.integration.test.mjs tests/tenant-isolation.integration.test.mjs tests/owner-bootstrap.integration.test.mjs` | **54/54, 612.24s**, before final canonical-ID change. |
 | `pnpm exec vitest run --config vitest.integration.config.ts tests/repeat-services.integration.test.mjs` | Final **11/11, 155.93s**, including native scope, uppercase identifiers, publisher/completion races, write-disable recovery, populated A1 upgrade and fault rollback. |
 | `pnpm exec vitest run --config vitest.integration.config.ts tests/order-acceptance.integration.test.mjs -t 'GB-C'` | **17/17 selected, 227.52s**; grouped atomic acceptance and current-source publisher regressions. |
 
-Final browser regression and pinned-node results are recorded below when finished.
+Final browser regression and pinned-node results are recorded below.
 Corrected phone regressions passed booking history (**1.5m**), A2 (**22.8s**),
 accepted additions/conversion (**4.9m**), completion (**1.7m**) and standalone
 intake (**2.6m**). That broad run was deliberately stopped after phone coverage;
@@ -147,6 +152,62 @@ frozen fast verification passed without changing those tests or timeouts.
 An expanded uppercase-ID test exposed case-sensitive scope hashing: canonicalise
 UUIDs before source hashing/command binding; corrected selected test passed
 **1/1, 19.05s**, then the complete final 11-case suite above passed.
+
+### Grouped discovery deadlock follow-up
+
+The pinned-node six-case run passed A2 on all three viewports (**17.5s, 18.4s,
+17.3s**) and grouped phone/tablet, but desktop grouping's background booking-list
+read returned 503. An isolated run reproduced it; PostgreSQL reported `deadlock
+detected`. A later instrumented pass did not establish a fix. Static tracing found
+accepted-order lists acquiring wearer locks in descending display order while
+booking queries acquire sorted wearer IDs.
+
+A real PostgreSQL barrier test holds source discovery after its first wearer
+lock, starts grouping discovery, observes the advisory wait, releases the source
+list, and requires both return their two unchanged records. Old code returned
+**503** (**10.70s** run); page-wide sorted authority locking passed **1/1, 11.14s**.
+No timeout, retry, assertion or domain policy was weakened. Initial test-fixture
+setup errors (reusing published settings/catalogue, then omitting a candidate POST
+body) were corrected before the actual red/green proof. The final 17-case
+PostgreSQL rerun above includes this regression.
+
+### Final browser closeout
+
+`pnpm exec node scripts/test-ui.mjs repeat-services.spec.mjs group-intake.spec.mjs`
+after the lock fix passed A2 on **phone 24.9s, tablet 19.1s, desktop 16.5s**,
+and grouped intake on phone (**1.5m**) and desktop (**1.4m**). The run reported
+**5 passed / 1 failed, 6.9m**: tablet package promotion received a real 429. Trace
+inspection showed a saved draft and the enabled explicit confirmation button;
+the old test expected only completed or unknown-outcome retry UI.
+
+Updated that test to distinguish known admission refusal from unknown outcome,
+honor Retry-After, and explicitly confirm the retained reviewed draft again.
+Injected a first package-promotion 429 to ensure this branch executes; acceptance,
+package/history/privacy assertions and admission limits remain intact.
+`pnpm exec node scripts/test-ui.mjs group-intake.spec.mjs --project=tablet`
+then passed **1/1, 1.7m** (scenario **1.5m**). This completes all three A2 and
+grouped viewport outcomes; no single six-case clean run is claimed. Full `pnpm
+lint` and `pnpm knip` passed after the test-only admission correction. Runtime
+types/unit/negative/OpenAPI/build inputs had not changed since the final fast run.
+No PDF or runtime packaging change required additional PDF/Linux-image checks;
+full promotion, physical Android, fluent Tamil and screen-reader gates remain.
+
+### Revision and hosted checks
+
+Capability `f4f1cf4c939558e6098b69787403898a025724f4` was published in draft
+[PR #140](https://github.com/nishanthturnstile/aarili/pull/140), targeting
+`development`, at **2026-10-21T11:51:45Z**, and immediately linked to T3.
+Its Fast verification and Dependency audit passed in
+[run 39595111999](https://github.com/nishanthturnstile/aarili/actions/runs/39595111999)
+at **11:53:46Z** and **11:52:12Z** respectively. Full scaffold/browser jobs are
+skipped for feature PRs by the existing workflow, not waived promotion checks.
+The subsequent lock correction, regression and richer review fixtures were
+tested against `f4f1cf4` plus dirty `packages/core/src/orders.ts`,
+`tests/repeat-services.integration.test.mjs` and `scripts/review-repeat-services.mjs`.
+The later test-only correction is `tests/ui/group-intake.spec.mjs`; evidence and
+timings are committed with the closeout. The PR head is the immutable publication
+locator. Latest-head CI must pass before owner merge; earlier-head green checks
+are not represented as current-head proof.
 
 ### Requirement check
 
@@ -171,6 +232,11 @@ or Git. The synthetic source has two saree-finishing lines, distinct prices
 (zero/unknown) and a descriptive garment reference. Running host URL and first
 tryable time are recorded below after startup verification.
 
+The final host also seeds a custom garment with original add-ons and an accepted
+native-piece supplemental change, plus garment-price and package-proposal booking
+members. Their URLs are in the same private access file. All fixture writes use
+existing synthetic commands, without production configuration approvals.
+
 At **2026-10-21T11:44:07Z**, ordinary sign-in and source review were verified at
 `http://127.0.0.1:59586/orders?services=1&serviceOrder=01a15e42-5eee-74cf-a564-e38b04f4794c`.
 The first diagnostic expected `/owner` rather than the final `/dashboard` after
@@ -179,6 +245,17 @@ returned `Preview automation snapshot timed out after 15000ms.` Used the
 repository's Playwright workflow with pinned Node for sign-in/source verification;
 no auth traces, credential screenshots or business mutation. Screenshot inspection
 then applied existing field/select/check styles and 44px label targets.
+
+**Current final host**, verified by **2026-10-21T12:14:36Z**:
+
+- Standalone: `http://127.0.0.1:59017/orders?services=1&serviceOrder=01a15e61-ff7d-7a17-ad57-a02abeb79068`.
+- Original add-ons / accepted native-piece addition: `http://127.0.0.1:59017/orders?order=01a15e62-015f-746c-9e28-7180f229c643`.
+- Pinned-Node ordinary sign-in, both source types, 44px targets, axe zero,
+  Tamil/dark landscape and 200% text reflow verified without business mutation.
+  The ignored diagnostic initially used `browser.newPage`; axe requires an
+  explicit context. Context7 current Playwright docs confirmed
+  `browser.newContext` / `context.newPage`; corrected diagnostic passed. Product
+  code and the repository's browser test context setup were unaffected.
 
 1. **RH-01/02/11:** Open the source, review previous service work, select one line
    and a current compatible profile/mapping. Create the draft. Only selected work

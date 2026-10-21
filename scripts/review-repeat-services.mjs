@@ -5,6 +5,7 @@ import { mkdir, open, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { withOwnerWeb } from "./test-support/owner-web.mjs";
+import { seedServiceAdditions } from "./test-support/service-additions.mjs";
 import {
   seedSmallServices,
   serviceDraftId,
@@ -119,6 +120,43 @@ if (operation === "stop") {
               etag: '"v1"',
             }),
             sourceId = result.draft.result.id;
+          const custom = await seedServiceAdditions({
+            setup,
+            runtime,
+            shopId: shop.shopId,
+            services: seed,
+          });
+          const native = await setup(
+            `service-repeats/${custom.customId}/source`,
+          );
+          if (!native.pieces[0])
+            throw Error("Synthetic native piece was not prepared");
+          const change = { ...custom.change, pieceId: native.pieces[0].id };
+          const current = await setup("small-services/changes/review", {
+            body: change,
+          });
+          await setup(`drafts/${custom.changeDraftId}`, {
+            method: "PUT",
+            etag: '"v1"',
+            body: {
+              workflow: "order.service-change",
+              schemaVersion: 1,
+              payload: {
+                ...change,
+                review: {
+                  fingerprint: current.fingerprint,
+                  acknowledged: true,
+                  exceptionReason: "SYNTHETIC native-piece review",
+                  waiveRush: false,
+                  waiverReason: "",
+                },
+              },
+            },
+          });
+          await setup(`drafts/${custom.changeDraftId}/promote`, {
+            body: {},
+            etag: '"v2"',
+          });
           await writeFile(
             file("private.json"),
             JSON.stringify({
@@ -127,11 +165,19 @@ if (operation === "stop") {
               password,
               sourceId,
               url: `${origin}/orders?services=1&serviceOrder=${sourceId}`,
+              pieceSourceId: custom.customId,
+              pieceUrl: `${origin}/orders?order=${custom.customId}`,
+              groupedUrls: custom.groups.map(
+                (g) => `${origin}/orders?order=${g.orderIds[0]}`,
+              ),
             }),
             { mode: 0o600 },
           );
           console.info(
             `Repeat-service review ready: ${origin}/orders?services=1&serviceOrder=${sourceId}`,
+          );
+          console.info(
+            `Native-piece/add-on review: ${origin}/orders?order=${custom.customId}`,
           );
           console.info(
             `Private sign-in: ${directory}/private.json (never publish).`,
