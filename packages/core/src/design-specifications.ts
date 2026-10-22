@@ -22,6 +22,14 @@ export type DesignSpecificationsContext = {
   orders: QuickOrderContext;
   choices: DesignChoicesContext;
   repository: DesignSpecificationsRepository;
+  allowReferenceEdit?: boolean;
+  validateReferences?: (version: DesignSpecificationVersion) => Promise<void>;
+  prepareReferenceScopes?: (
+    scopes: { orderId: string; pieceId: string | null }[],
+  ) => Promise<void>;
+  sanitizeReferenceVersion?: (
+    version: DesignSpecificationVersion,
+  ) => Promise<DesignSpecificationVersion>;
 };
 function fail(status: 404 | 409 | 412 | 422 = 409): never {
   throw new DraftFailure(status, {
@@ -100,6 +108,7 @@ async function authority(
   }
   return result;
 }
+
 async function configLocks(ctx: DesignSpecificationsContext) {
   await ctx.choices.catalogue.repository.lock();
   await ctx.choices.templates.forms.repository.lock();
@@ -121,6 +130,7 @@ async function authorised(
 ) {
   const reused = await source(ctx, v);
   const scopes = [v, ...(reused ? [reused] : [])];
+  await ctx.prepareReferenceScopes?.(scopes);
   const a = await authority(ctx, scopes);
   const target = a[0];
   if (!target) fail(404);
@@ -169,6 +179,12 @@ async function resolve(
     : undefined;
   if (base && (base.orderId !== v.orderId || base.pieceId !== v.pieceId))
     fail(404);
+  if (
+    v.operation === "save" &&
+    base?.referenceItems.length &&
+    !ctx.allowReferenceEdit
+  )
+    fail();
   if (v.operation === "select") {
     const selected = v.selectedId
       ? await ctx.repository.read(v.selectedId)
@@ -181,6 +197,7 @@ async function resolve(
     )
       fail(404);
     if (await ctx.repository.governed(v.orderId)) fail();
+    await ctx.validateReferences?.(selected);
     for (const choice of selected.choices) {
       const current = await ctx.choices.repository.current(choice.entryId);
       if (!current?.available || current.definition.id !== choice.id) fail();
@@ -430,13 +447,18 @@ export async function readDesignSpecifications(
 ) {
   const q = designSpecificationQuerySchema.safeParse(input);
   if (!q.success) fail(422);
+  await ctx.prepareReferenceScopes?.([q.data]);
   await authority(ctx, [q.data]);
-  return ctx.repository.state(
+  const state = await ctx.repository.state(
     q.data.orderId,
     q.data.pieceId,
     q.data.beforeVersion,
     q.data.beforeSelectionVersion,
   );
+  const sanitize = ctx.sanitizeReferenceVersion;
+  if (sanitize)
+    state.versions = await Promise.all(state.versions.map((v) => sanitize(v)));
+  return state;
 }
 export async function readDesignSpecification(
   ctx: DesignSpecificationsContext,
@@ -444,10 +466,13 @@ export async function readDesignSpecification(
 ) {
   const r = await ctx.repository.read(id);
   if (!r) fail(404);
+  await ctx.prepareReferenceScopes?.([r]);
   await authority(ctx, [r]);
   const current = await ctx.repository.read(id);
   if (!current) fail(404);
-  return current;
+  return ctx.sanitizeReferenceVersion
+    ? ctx.sanitizeReferenceVersion(current)
+    : current;
 }
 export async function previewDesignReuse(
   ctx: DesignSpecificationsContext,

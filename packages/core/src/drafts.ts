@@ -30,6 +30,7 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  prepareDraftRead?(record: DraftRecord): Promise<void>;
   // Private workflows cache only operation metadata; hydrate content under current
   // authority, including privacy redaction, rather than replaying personal values.
   minimalReplay?: boolean;
@@ -115,18 +116,35 @@ function version(header: string | undefined) {
   if (!v.ok) fail(v.status, v.code);
   return v.version;
 }
+function adapter(ctx: DraftContext, name: string, schemaVersion: number) {
+  return (
+    ctx.workflows.get(`${name}@${schemaVersion}`) ?? ctx.workflows.get(name)
+  );
+}
 function workflow(ctx: DraftContext, name: string, schemaVersion: number) {
-  const found = ctx.workflows.get(name);
+  const found = adapter(ctx, name, schemaVersion);
   if (!found || found.schemaVersion !== schemaVersion)
     fail(422, "VALIDATION_FAILED");
   return found;
 }
 export async function readDraft(ctx: DraftContext, id: string) {
   if (!draftIdSchema.safeParse(id).success) fail(422, "VALIDATION_FAILED");
-  const draft = await ctx.repository.read(id.toLowerCase());
+  let draft = await ctx.repository.read(id.toLowerCase());
   if (!draft) fail(404, "NOT_FOUND");
-  await ctx.workflows.get(draft.workflow)?.authorizeDraft?.(draft.payload);
-  if (ctx.workflows.get(draft.workflow)?.minimalReplay) {
+  const prepare = adapter(
+    ctx,
+    draft.workflow,
+    draft.schemaVersion,
+  )?.prepareDraftRead;
+  if (prepare) {
+    await prepare(draft);
+    draft = await ctx.repository.read(id.toLowerCase());
+    if (!draft) fail(404, "NOT_FOUND");
+  }
+  await adapter(ctx, draft.workflow, draft.schemaVersion)?.authorizeDraft?.(
+    draft.payload,
+  );
+  if (adapter(ctx, draft.workflow, draft.schemaVersion)?.minimalReplay) {
     const current = await ctx.repository.read(id.toLowerCase());
     if (!current) fail(404, "NOT_FOUND");
     return current;
@@ -148,10 +166,16 @@ export async function listDrafts(
   const drafts: DraftRecord[] = [];
   for (const row of window) {
     try {
-      await ctx.workflows.get(row.workflow)?.authorizeDraft?.(row.payload);
-      const current = ctx.workflows.get(row.workflow)?.minimalReplay
-        ? await readDraft(ctx, row.id)
-        : row;
+      const privateWorkflow = adapter(
+        ctx,
+        row.workflow,
+        row.schemaVersion,
+      )?.minimalReplay;
+      if (!privateWorkflow)
+        await adapter(ctx, row.workflow, row.schemaVersion)?.authorizeDraft?.(
+          row.payload,
+        );
+      const current = privateWorkflow ? await readDraft(ctx, row.id) : row;
       if (current.lifecycle === "active") drafts.push(current);
     } catch (e) {
       if (!(e instanceof DraftFailure) || e.status !== 404) throw e;
@@ -229,7 +253,11 @@ export async function mutateDraft(
     )
       fail(422, "IDEMPOTENCY_MISMATCH");
     let replay = draftSuccessSchema.parse(prior.response);
-    const privateWorkflow = ctx.workflows.get(replay.draft.workflow);
+    const privateWorkflow = adapter(
+      ctx,
+      replay.draft.workflow,
+      replay.draft.schemaVersion,
+    );
     if (privateWorkflow?.minimalReplay) {
       if (!privateWorkflow.replayPayload) fail(409, "REQUEST_CONFLICT");
       replay = {
@@ -242,13 +270,17 @@ export async function mutateDraft(
         },
       };
     }
-    await ctx.workflows
-      .get(replay.draft.workflow)
-      ?.authorizeDraft?.(replay.draft.payload);
+    await adapter(
+      ctx,
+      replay.draft.workflow,
+      replay.draft.schemaVersion,
+    )?.authorizeDraft?.(replay.draft.payload);
     if (action === "promote")
-      await ctx.workflows
-        .get(replay.draft.workflow)
-        ?.authorizePublication?.(replay.draft.payload);
+      await adapter(
+        ctx,
+        replay.draft.workflow,
+        replay.draft.schemaVersion,
+      )?.authorizePublication?.(replay.draft.payload);
     return replay;
   }
   // Advisory lock covers absent rows as well as existing IDs: an initial PUT can
@@ -256,9 +288,11 @@ export async function mutateDraft(
   await repo.lockDraft(id);
   const current = await repo.read(id);
   if (current)
-    await ctx.workflows
-      .get(current.workflow)
-      ?.authorizeDraft?.(current.payload);
+    await adapter(
+      ctx,
+      current.workflow,
+      current.schemaVersion,
+    )?.authorizeDraft?.(current.payload);
   if (current) {
     if (expected === null) fail(428, "PRECONDITION_REQUIRED");
     if (current.version !== expected) fail(412, "VERSION_STALE", current);
@@ -368,13 +402,15 @@ export async function mutateDraft(
       schemaVersion: draft.schemaVersion,
     });
   const response = draftSuccessSchema.parse({ draft });
-  await ctx.workflows
-    .get(draft.workflow)
-    ?.retainPrivateResponse?.(draft, actionId, key);
+  await adapter(
+    ctx,
+    draft.workflow,
+    draft.schemaVersion,
+  )?.retainPrivateResponse?.(draft, actionId, key);
   await repo.persist(
     key,
     binding,
-    ctx.workflows.get(draft.workflow)?.minimalReplay
+    adapter(ctx, draft.workflow, draft.schemaVersion)?.minimalReplay
       ? { draft: { ...draft, payload: {} } }
       : response,
   );

@@ -19,6 +19,7 @@
       "entry": [
         "test-support/draft-host-app.tsx",
         "test-support/media-host-app.tsx",
+        "test-support/design-reference-host.tsx",
         "test-support/document-status-host.tsx",
         "test-support/document-sharing-host.tsx"
       ],

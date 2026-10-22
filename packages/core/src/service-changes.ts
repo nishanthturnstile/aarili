@@ -12,6 +12,7 @@ import {
   serviceChangeDraftSchema,
   serviceIntakeDraftSchema,
 } from "@aarili/contracts/small-services";
+import type { DesignReferencesRepository } from "@aarili/db/repositories/design-references";
 import type { DesignSpecificationsRepository } from "@aarili/db/repositories/design-specifications";
 import { readBooking } from "./bookings.js";
 import { DraftFailure, type DraftWorkflow } from "./drafts.js";
@@ -49,7 +50,17 @@ export async function prepareServiceDraftReads(
   ctx: SmallServiceContext,
   records: Pick<DraftRecord, "workflow" | "payload">[],
   designs?: DesignSpecificationsRepository,
+  references?: DesignReferencesRepository,
 ) {
+  if (
+    references &&
+    records.some(
+      (r) =>
+        r.workflow === "design.specification" ||
+        r.workflow === "design.reference",
+    )
+  )
+    await references.lockSubject("");
   const repo = orders(ctx),
     orderIds = new Set<string>(),
     bookingIds = new Set<string>(),
@@ -64,12 +75,43 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
-    if (record.workflow === "design.specification") {
+    if (
+      record.workflow === "design.specification" ||
+      record.workflow === "design.reference"
+    ) {
       if (typeof p.orderId === "string") orderIds.add(p.orderId);
+      if (references && typeof p.orderId === "string")
+        for (const id of await references.referenceOrderIds(
+          p.orderId,
+          typeof p.pieceId === "string" ? p.pieceId : null,
+        ))
+          orderIds.add(id);
+      if (references && Array.isArray(p.referenceItems))
+        for (const item of p.referenceItems) {
+          if (item && typeof item.assetId === "string") {
+            const s = await references.subjectForAsset(item.assetId);
+            if (s?.orderId) {
+              orderIds.add(s.orderId);
+              for (const id of await references.referenceOrderIds(
+                s.orderId,
+                s.pieceId,
+              ))
+                orderIds.add(id);
+            }
+          }
+        }
       const reuse = p.reuse as { versionId?: string } | null;
       if (reuse?.versionId && designs) {
         const source = await designs.read(reuse.versionId);
-        if (source) orderIds.add(source.orderId);
+        if (source) {
+          orderIds.add(source.orderId);
+          if (references)
+            for (const id of await references.referenceOrderIds(
+              source.orderId,
+              source.pieceId,
+            ))
+              orderIds.add(id);
+        }
       }
     }
     if (

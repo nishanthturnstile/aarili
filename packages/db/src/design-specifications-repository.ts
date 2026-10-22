@@ -1,3 +1,4 @@
+import type { DesignReferenceSnapshot } from "@aarili/contracts/design-references";
 import {
   designSpecificationStateSchema,
   designSpecificationVersionSchema,
@@ -8,17 +9,22 @@ import type { DesignSpecificationsRepository } from "./repositories/design-speci
 export function designSpecificationsRepository(
   tx: Transaction,
   shopId: string,
+  referenceReader?: (id: string) => Promise<DesignReferenceSnapshot[]>,
 ): DesignSpecificationsRepository {
   shopId = shopId.toLowerCase();
   const fields = sql`v.id,v.order_id as "orderId",s.piece_id as "pieceId",s.customer_id as "customerId",s.wearer_id as "wearerId",v.version,v.previous_id as "previousId",v.snapshot_digest as "snapshotDigest",v.frozen->'profile' as profile,v.frozen->'choices' as choices,coalesce(x.answers,'[]'::jsonb) as answers,e.actor_id as "actorId",e.recorded_at as "recordedAt",coalesce(x.reason,'') as reason,e.origin_draft_id as "originDraftId",v.digest,v.reuse,(x.redacted_at is not null) as redacted`;
   const from = sql`design_spec_version v join design_spec_scope s on (s.shop_id,s.order_id,s.scope_key)=(v.shop_id,v.order_id,v.scope_key) join design_spec_event e on (e.shop_id,e.id)=(v.shop_id,v.event_id) join design_spec_value x on (x.shop_id,x.event_id)=(e.shop_id,e.id)`;
-  const row = (r: Record<string, unknown>) =>
+  const row = async (r: Record<string, unknown>) =>
     designSpecificationVersionSchema.parse({
       ...r,
       ...(r.redacted === true ? { choices: [], reuse: null } : {}),
       recordedAt: new Date(r.recordedAt as string).toISOString(),
       approval: "not-recorded",
-      references: "unavailable",
+      references: referenceReader ? "available" : "unavailable",
+      referenceItems:
+        referenceReader && r.redacted !== true
+          ? await referenceReader(String(r.id))
+          : [],
     });
   const repo: DesignSpecificationsRepository = {
     async orderKind(orderId) {
@@ -62,11 +68,13 @@ export function designSpecificationsRepository(
           sql`select version,latest_saved_id as "latestSavedId",current_id as "currentId" from design_spec_scope where shop_id=${shopId}::uuid and order_id=${orderId}::uuid and scope_key=${key}::uuid`,
         )
       ).rows[0];
-      const versions = (
-        await tx.execute(
-          sql`select ${fields} from ${from} where v.shop_id=${shopId}::uuid and v.order_id=${orderId}::uuid and v.scope_key=${key}::uuid and (${before ?? null}::integer is null or v.version<${before ?? null}::integer) order by v.version desc limit 25`,
-        )
-      ).rows.map(row);
+      const versions = await Promise.all(
+        (
+          await tx.execute(
+            sql`select ${fields} from ${from} where v.shop_id=${shopId}::uuid and v.order_id=${orderId}::uuid and v.scope_key=${key}::uuid and (${before ?? null}::integer is null or v.version<${before ?? null}::integer) order by v.version desc limit 25`,
+          )
+        ).rows.map(row),
+      );
       const selections = (
         await tx.execute(
           sql`select e.id,e.current_id as "versionId",e.scope_version as "scopeVersion",e.actor_id as "actorId",e.recorded_at as "recordedAt",coalesce(x.reason,'') as reason,(x.redacted_at is not null) as redacted from design_spec_event e join design_spec_value x on (x.shop_id,x.event_id)=(e.shop_id,e.id) where e.shop_id=${shopId}::uuid and e.order_id=${orderId}::uuid and e.scope_key=${key}::uuid and (e.operation='select' or e.current_id is distinct from e.previous_current_id) and (${beforeSelection ?? null}::integer is null or e.scope_version<${beforeSelection ?? null}::integer) order by e.scope_version desc limit 25`,

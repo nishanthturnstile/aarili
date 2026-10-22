@@ -152,9 +152,17 @@
       "types": "./dist/design-specifications.d.ts",
       "import": "./dist/design-specifications.js"
     },
+    "./design-references": {
+      "types": "./dist/design-references.d.ts",
+      "import": "./dist/design-references.js"
+    },
     "./design-specifications-client": {
       "types": "./dist/design-specifications-client.d.ts",
       "import": "./dist/design-specifications-client.js"
+    },
+    "./design-references-client": {
+      "types": "./dist/design-references-client.d.ts",
+      "import": "./dist/design-references-client.js"
     }
   },
   "scripts": {

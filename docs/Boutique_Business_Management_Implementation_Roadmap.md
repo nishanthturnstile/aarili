@@ -731,11 +731,10 @@ exact garment/piece specification versions and governs repeat/current selection;
 B adds private component references in all required asset classes with captions,
 annotations and version-preserving replacement. The owner approved publication
 as A1 #146 → A2 #147 → B #148 with native blockers. A1 merged in PR #149;
-  the owner then selected A2 #147 after all its blockers merged. Its implementation
-  is in [draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), awaiting
-  owner review/merge. A2 adds exact
+  A2 #147 merged in [PR #150](https://github.com/nishanthturnstile/aarili/pull/150).
+  The owner selected B #148 after all six direct blockers merged. A2 adds exact
 scope/version/answer/selection records, reasoned inactive retention and explicit
-field reuse into a fresh accepted target. B awaits selection and the A2 merge.
+field reuse into a fresh accepted target. B implementation and fresh verification are underway.
 A1/A2 alone do not close ORD-07/DES-05/10 or full 1.3.1;
 AC-08 and later approval/measurement/pattern/slip gates remain open.
 

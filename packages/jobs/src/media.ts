@@ -1,11 +1,19 @@
 import { authorizeJobPrincipal } from "@aarili/auth/job-principal";
+import type { CustomerPolicy } from "@aarili/contracts/customers";
+import { designMediaPolicy } from "@aarili/core/design-media-policy";
 import { type MediaContext, MediaFailure } from "@aarili/core/media";
 import { shopBrandingPolicy } from "@aarili/core/shop-profile";
 import { createUsageWriter } from "@aarili/core/usage";
 import { type Database, sql, type Transaction, withShop } from "@aarili/db";
+import { designReferencesRepository } from "@aarili/db/design-references-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
+import { ordersRepository } from "@aarili/db/orders-repository";
 import type { MediaAttempt } from "@aarili/db/repositories/media";
 import { usageRepository } from "@aarili/db/usage-repository";
+import {
+  guardianRepository,
+  wearerRepository,
+} from "@aarili/db/wearer-repository";
 import { fromDrizzle, type PgBoss } from "pg-boss";
 // Composed only inside the verified media transaction. No queue start/provision
 // or provider activation. The production registry composes the reviewed handler.
@@ -57,9 +65,13 @@ export function mediaProcessingHost(
   db: Database,
   shopId: string,
   userId: string,
-  adapters: (
-    tx: Transaction,
-  ) => Pick<MediaContext, "policy" | "storage" | "jobs">,
+  adapters: (tx: Transaction) => Pick<
+    MediaContext,
+    "policy" | "storage" | "jobs"
+  > & {
+    wearerPolicy?: CustomerPolicy;
+    guardianPolicy?: CustomerPolicy;
+  },
 ) {
   return {
     transaction<T>(run: (ctx: MediaContext) => Promise<T>) {
@@ -68,12 +80,30 @@ export function mediaProcessingHost(
           throw new MediaFailure(403, "MEDIA_ACCESS_DENIED");
         const writer = createUsageWriter(usageRepository(tx, shopId));
         const resolved = adapters(tx);
+        const p = resolved.wearerPolicy,
+          noticeId = p?.notice?.id;
+        const designPolicy = designMediaPolicy(
+          {
+            repository: designReferencesRepository(tx, shopId),
+            orders: ordersRepository(tx, shopId),
+            wearers: wearerRepository(tx, shopId, noticeId),
+            guardians: guardianRepository(
+              tx,
+              shopId,
+              resolved.guardianPolicy?.enabled
+                ? resolved.guardianPolicy.notice?.id
+                : undefined,
+            ),
+            enabled: !!p?.enabled && !!p.synthetic && !!noticeId,
+          },
+          resolved.policy,
+        );
         return run({
           shopId,
           actor: { type: "user", id: userId },
           repository: mediaRepository(tx, shopId),
           ...resolved,
-          policy: shopBrandingPolicy(shopId, resolved.policy),
+          policy: shopBrandingPolicy(shopId, designPolicy),
           instrumentation: {
             stored: async (actionId, assetId, bytes) =>
               writer.record({

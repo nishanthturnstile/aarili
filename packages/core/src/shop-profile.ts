@@ -163,6 +163,7 @@ export function shopBrandingPolicy(
   fallback: MediaPolicy,
 ): MediaPolicy {
   return {
+    ...fallback,
     authorize: (input) =>
       input.purpose === "shop-branding"
         ? Promise.resolve(

@@ -1,3 +1,4 @@
+import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { documentLocatorSchema } from "@aarili/contracts/documents";
 import { mediaJobLocatorSchema } from "@aarili/contracts/media";
 import { type DocumentRenderer, processDocument } from "@aarili/core/documents";
@@ -20,7 +21,10 @@ export type PrivateMediaAdapters = (
   tx: Transaction,
   shopId: string,
   userId: string,
-) => Pick<MediaContext, "policy" | "storage" | "jobs">;
+) => Pick<MediaContext, "policy" | "storage" | "jobs"> & {
+  wearerPolicy?: CustomerPolicy;
+  guardianPolicy?: CustomerPolicy;
+};
 // Same factory in both runtime modes. No synthetic queue, ambient storage,
 // environment consent claim, or provider activation. Integrators must supply
 // the reviewed current subject-policy and private storage adapters explicitly.

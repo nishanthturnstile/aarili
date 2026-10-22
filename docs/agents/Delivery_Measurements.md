@@ -1,5 +1,72 @@
 # Delivery measurements
 
+## Issue #148 / 1.3.1c — private versioned design references
+
+- Owner selected B after A2 PR #150 merged **22 October 2026, 10:13:32 UTC**.
+  Updated the clean existing checkout's development branch to `25f7f9f`, verified
+  all six direct blocker merge commits as ancestors and created
+  `codex/design-references-b`. No worktree. Stopped the A2 disposable review host.
+- Implementation clock **10:18:22 UTC**, before first schema edit. Active coding/
+  rework stopwatch time is **unknown**; elapsed tests/waits are not coding time.
+- Package builds exposed a denial-helper narrowing error and an incorrect import
+  path for the existing guardian repository; corrected, then **10/10 packages
+  built, 14.695s**. The additive PG migration applies.
+- First end-to-end workflow fixture used the wrong notice family and correctly
+  failed consent authority. Corrected wearer notice and worker policy composition.
+  Second focused attempt **exit 1, 17.093s**,
+  **10:44:05.562–10:44:22.655 UTC**, failed at source publication. Fixed explicit
+  v2 event provenance, a trigger OLD-alias collision and privacy SELECT policy.
+  Raw logs remain private outside Git. No acceptance/complete claim.
+- First completed three-size bilingual/theme browser command:
+  **11:39:39.424–11:43:32.251 UTC**, **232.827s**, exit 0. A synthetic review host
+  was observed running before 11:43:39 UTC (exact ready instant not logged).
+  The finish reviewer requested four operational-clarity fixes; these now include
+  authorised active-draft inspection. Fresh PG proof **55.956s**, exit 0, ended
+  **11:54:31.655 UTC**. A 320px Tamil source/IME/keyboard/media-outage scenario
+  passed **39.777s**, ending **11:59:48.690 UTC**.
+- Expanded focused browser suite **6/6**, **270.970s**,
+  **12:00:36.605–12:05:07.575 UTC**. Actual guardian/age worker race **1/1**,
+  **16.610s**, **12:07:52.717–12:08:09.327 UTC**. Review round two requested
+  corrected tablet/desktop outage dimensions; capture-only rerun **3/3**,
+  **102.728s**, **12:13:12.631–12:14:55.359 UTC**. Round three still returned
+  **recapture**: image failure was visible but PDF/voice controls had not been
+  exercised. Added assertions for all three failed reads; recapture pending.
+  These are evidence corrections, not a ship verdict. Final full `pnpm verify`
+  began **12:15:30.356 UTC**; broad browser run follows sequentially.
+- Broad `pnpm verify` ended **12:59:04.455 UTC**, **2614.099s**, exit 1:
+  **261 passed / 1 failed PG tests**, **48 passed / 1 failed files (49)**.
+  Lint/Knip/types, 288 units, negatives/OpenAPI and Linux PDF goldens passed
+  before PG. The sole failure was a real 503/404 unsupported-service error-mapping
+  regression. Focused diagnostic **23.227s**, **12:31:51.430–12:32:14.657 UTC**
+  reproduced it. Corrected source without changing the running compiled inputs;
+  current rebuild/affected retests and remaining checks are pending. No broad
+  green claim or weakened assertion. Active rework time remains unknown.
+- Current corrected `verify:fast` **exit 0**, **114.790s**,
+  **12:59:34.927–13:01:29.717 UTC**; 288 units and production build included.
+  Five affected PG files **10/10, exit 0, 150.607s**,
+  **13:01:29.777–13:04:00.384 UTC**, including the original failing scenario.
+  Broad PG is retained as 261/1 rather than relabelled or rerun for a replacement
+  total. Native portability, remaining smoke/artifacts and full UI follow.
+- Scoped current clean-native frozen install/export/web-build/canary check
+  **exit 0, 101.732s**, **13:04:00.454–13:05:42.186 UTC**; disposable copy
+  removed and lockfile unchanged. Production smoke **exit 0, 11.883s**,
+  **13:05:42.243–13:05:54.126 UTC**. Root artifact scan **29, exit 0, 0.294s**.
+  Full `test:ui` began **13:05:54 UTC**, sequentially after those checks.
+- Refreshed current synthetic review host observed ready **13:11:18 UTC**,
+  loopback **56339**; normal sign-in and authenticated history both 200, one
+  version/three references. T3 is on its normal sign-in page. Earlier first
+  tryable time remains the pre-review observation above; this is fresh current
+  access, not a reconstructed original ready instant. Human acceptance pending.
+- Clean-native attempts **156.544s** and **158.969s** stopped on the old unit stub
+  and a jobs property timeout under concurrent browser startup respectively.
+  Frozen installs/package-export builds/types passed; neither command is claimed
+  green. Sequential root verification passed 288 units and negative/OpenAPI checks
+  before being interrupted for the finish-review changes. Preserve raw failures;
+  no weakened tests. Heavy final commands will run sequentially.
+- Final review-ready, PR, hosted checks and human review/merge times are
+  pending. Full verification and the refreshed synthetic manual packet remain in progress;
+  no deployment or live-data activation is authorized.
+
 ## Issue #147 / 1.3.1b — garment specification versions
 
 - Owner selected A2 after A1 PR #149 merged **22 October 2026, 07:42:23 UTC**.

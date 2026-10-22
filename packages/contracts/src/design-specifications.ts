@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { designChoicesDefinitionSchema } from "./design-choices.js";
+import {
+  designReferenceDraftSchema,
+  designReferenceSnapshotSchema,
+} from "./design-references.js";
 import { catalogueRefSchema } from "./service-catalogue.js";
 
 export const designScopeSchema = z.strictObject({
@@ -93,7 +97,8 @@ export const designSpecificationVersionSchema = designScopeSchema.extend({
   redacted: z.boolean(),
   reuse: designReuseSchema.nullable(),
   approval: z.literal("not-recorded"),
-  references: z.literal("unavailable"),
+  references: z.enum(["unavailable", "available"]),
+  referenceItems: z.array(designReferenceSnapshotSchema).max(20).default([]),
 });
 export type DesignSpecificationVersion = z.infer<
   typeof designSpecificationVersionSchema
@@ -137,3 +142,32 @@ export type DesignSpecificationQuery = z.infer<
   typeof designSpecificationQuerySchema
 >;
 export type DesignReuseRequest = z.infer<typeof designReuseRequestSchema>;
+
+// Existing version-one draft/command schemas remain strict. Media editing has
+// its own explicit draft schema version, including an exact complete child set.
+export const designSpecificationMediaDraftSchema =
+  designSpecificationDraftSchema.extend({
+    referenceItems: z.array(designReferenceDraftSchema).max(20),
+  });
+export const designSpecificationMediaCommandSchema =
+  designSpecificationMediaDraftSchema.superRefine((v, c) => {
+    const { referenceItems, ...base } = v;
+    const parsed = designSpecificationCommandSchema.safeParse(base);
+    if (!parsed.success)
+      for (const issue of parsed.error.issues) c.addIssue({ ...issue });
+    if (new Set(referenceItems.map((r) => r.id)).size !== referenceItems.length)
+      c.addIssue({
+        code: "custom",
+        path: ["referenceItems"],
+        message: "Duplicate reference identity",
+      });
+    if (v.operation === "select" && referenceItems.length)
+      c.addIssue({
+        code: "custom",
+        path: ["referenceItems"],
+        message: "Select the saved exact version without editing references",
+      });
+  });
+export type DesignSpecificationMediaDraft = z.infer<
+  typeof designSpecificationMediaDraftSchema
+>;

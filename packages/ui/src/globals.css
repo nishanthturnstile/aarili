@@ -1669,3 +1669,11 @@
   min-height: 2.75rem;
   cursor: pointer;
 }
+
+.reference-preview {
+  max-width: min(100%, 320px);
+  height: auto;
+}
+.reference-hash {
+  overflow-wrap: anywhere;
+}
