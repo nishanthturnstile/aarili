@@ -44,9 +44,16 @@ export const customerPolicySchema = z.strictObject({
   synthetic: z.boolean(),
   notice: customerNoticeSchema.nullable(),
 });
+const contactResolutionSchema = z.strictObject({
+  id: z.uuid(),
+  code: z.string(),
+  displayName: z.string(),
+  eventId: z.uuid(),
+});
 export const customerProfileSchema = customerContactSchema.extend({
   id: z.uuid(),
   personId: z.uuid(),
+  mergedInto: contactResolutionSchema.optional(),
   code: z.string(),
   version: z.number().int().min(1),
   synthetic: z.boolean(),
@@ -66,6 +73,7 @@ export const customerSummarySchema = customerContactSchema
     code: z.string(),
     version: z.number().int().min(1),
     synthetic: z.boolean(),
+    mergedInto: contactResolutionSchema.optional(),
   });
 export const customerCursorSchema = z.strictObject({
   rank: z.number().int().min(0).max(4),

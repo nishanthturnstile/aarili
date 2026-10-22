@@ -1,6 +1,10 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import { apiErrorSchema } from "@aarili/contracts";
 import {
+  contactMergeCommandSchema,
+  contactMergePreviewSchema,
+  contactMergeQuerySchema,
+  contactMergeResultSchema,
   customerHistoryPageSchema,
   customerHistoryQuerySchema,
   customerPairDecisionSchema,
@@ -12,10 +16,12 @@ import {
 } from "@aarili/contracts/customer-history";
 import { etagSchema, idempotencyHeaderSchema } from "@aarili/contracts/request";
 import {
+  applyContactMerge,
   customerHistory,
   decideCustomerPair,
   duplicateCandidates,
   HistoryFailure,
+  previewContactMerge,
   previewCustomerPair,
 } from "@aarili/core/customer-history";
 import { CustomerFailure } from "@aarili/core/customers";
@@ -64,7 +70,7 @@ export function createCustomerHistoryRoutes(
         { error: { code: "UNSAFE_ORIGIN", message: "Request denied" } },
         403,
       );
-    if (c.req.path.endsWith("/decision")) {
+    if (["/decision", "/merge"].some((path) => c.req.path.endsWith(path))) {
       const retry = await owner.commandLimit();
       if (retry) {
         c.header("Retry-After", String(retry));
@@ -227,7 +233,106 @@ export function createCustomerHistoryRoutes(
         return c.json(r.data, 200);
       },
     );
-  const routes = reviewRoutes.openapi(
+  const mergeRoutes = reviewRoutes
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/customer-history/merge-preview",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: contactMergeQuerySchema },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Reviewed contact merge",
+            content: {
+              "application/json": { schema: contactMergePreviewSchema },
+            },
+          },
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          412: error,
+          413: error,
+          422: error,
+          428: error,
+          429: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerHistory(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => previewContactMerge(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/customer-history/merge",
+        request: {
+          params: z.object({ shopId: z.uuid() }),
+          headers: z.object({
+            "idempotency-key": idempotencyHeaderSchema.optional(),
+            "if-match": etagSchema.optional(),
+          }),
+          body: {
+            required: true,
+            content: {
+              "application/json": { schema: contactMergeCommandSchema },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Reviewed contact merge",
+            content: {
+              "application/json": { schema: contactMergeResultSchema },
+            },
+          },
+          401: error,
+          403: error,
+          404: error,
+          409: error,
+          412: error,
+          413: error,
+          422: error,
+          428: error,
+          429: error,
+          503: error,
+        },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerHistory(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) =>
+            applyContactMerge(ctx, c.req.valid("json"), {
+              key: c.req.header("Idempotency-Key"),
+              ifMatch: c.req.header("If-Match"),
+              requestId:
+                c.res.headers.get("X-Request-Id") ?? crypto.randomUUID(),
+            }),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        c.header("ETag", `"v${r.data.version}"`);
+        return c.json(r.data, 200);
+      },
+    );
+  const routes = mergeRoutes.openapi(
     createRoute({
       method: "post",
       path: "/shops/{shopId}/customer-history",

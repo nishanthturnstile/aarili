@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { customerSummarySchema } from "./customers.js";
+import { customerContactSchema, customerSummarySchema } from "./customers.js";
 
 export const duplicateCandidatesQuerySchema = z.strictObject({
   customerId: z.uuid(),
@@ -122,3 +122,94 @@ export type DuplicateCandidates = z.infer<typeof duplicateCandidatesSchema>;
 export type CustomerPair = z.infer<typeof customerPairSchema>;
 export type CustomerPairResult = z.infer<typeof customerPairResultSchema>;
 export type CustomerPairDecision = z.infer<typeof customerPairDecisionSchema>;
+
+export const contactMergeQuerySchema = z.strictObject({
+  sourceId: z.uuid(),
+  survivorId: z.uuid(),
+  mode: z.enum(["merge", "restore"]),
+});
+export const contactMergeFieldsSchema = z.strictObject({
+  displayName: z.enum(["source", "survivor"]),
+  phone: z.enum(["source", "survivor"]),
+  email: z.enum(["source", "survivor"]),
+  aliases: z.enum(["source", "survivor"]),
+  notes: z.enum(["source", "survivor"]),
+});
+export const contactMergeAssociationSchema = z.strictObject({
+  id: z.uuid(),
+  code: z.string(),
+  version: z.number().int().positive(),
+  originalCustomerId: z.uuid(),
+  currentCustomerId: z.uuid(),
+  wearerId: z.uuid().nullable(),
+  digest: z.string(),
+  eligible: z.boolean(),
+  exclusion: z
+    .enum([
+      "wearer",
+      "booking",
+      "source",
+      "repeat",
+      "additions",
+      "profile",
+      "other-contact",
+    ])
+    .nullable(),
+  attributionVersion: z.number().int().nonnegative(),
+});
+export const contactMergePreviewSchema = z.strictObject({
+  pair: customerPairSchema,
+  source: customerContactSchema,
+  survivor: customerContactSchema,
+  version: z.number().int().positive(),
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  associations: z.array(contactMergeAssociationSchema),
+  blocked: z.array(
+    z.enum([
+      "alias-conflict",
+      "wearer-conflict",
+      "too-many-records",
+      "not-merged",
+    ]),
+  ),
+  unavailable: z.array(
+    z.enum([
+      "measurements",
+      "private-media",
+      "issued-finance",
+      "bookings",
+      "wearer-authority",
+      "drafts",
+    ]),
+  ),
+  events: z.array(
+    z.strictObject({
+      id: z.uuid(),
+      version: z.number().int().positive(),
+      mode: z.enum(["merge", "restore"]),
+      sourceId: z.uuid(),
+      survivorId: z.uuid(),
+      actorId: z.uuid(),
+      recordedAt: z.iso.datetime(),
+      reason: z.string().nullable(),
+      redacted: z.boolean(),
+    }),
+  ),
+});
+export const contactMergeCommandSchema = contactMergeQuerySchema.extend({
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  fields: contactMergeFieldsSchema,
+  orderIds: z.array(z.uuid()).max(100),
+  reason: z.string().trim().min(1).max(1000),
+  confirmed: z.literal(true),
+});
+export const contactMergeResultSchema = z.strictObject({
+  id: z.uuid(),
+  sourceId: z.uuid(),
+  survivorId: z.uuid(),
+  version: z.number().int().positive(),
+});
+export type ContactMergeQuery = z.infer<typeof contactMergeQuerySchema>;
+export type ContactMergeCommand = z.infer<typeof contactMergeCommandSchema>;
+export type ContactMergePreview = z.infer<typeof contactMergePreviewSchema>;
+export type ContactMergeResult = z.infer<typeof contactMergeResultSchema>;

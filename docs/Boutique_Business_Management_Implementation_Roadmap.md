@@ -679,11 +679,15 @@ revision/source links and stable private pagination. This is partial CUS-03;
 B merged as PR #141; the owner selected C1 #137 after that merge. Its
 [duplicate review and correction evidence](agents/Identity_Review_Implementation_Evidence.md)
 records manual same-key candidate review, distinct identities, keep/dismiss
-history and reasoned existing corrections. C2, unavailable history domains and
+history and reasoned existing corrections. C1 merged as PR #142; the owner selected
+C2 #138 after that merge. Its [contact merge evidence](agents/Contact_Merge_Implementation_Evidence.md)
+records the identity-consumer gate, reviewed aliases, selected wearer-free service
+attribution and reasoned restore events. Unavailable/sensitive history domains and
 activation gates remain open; this does not close all CUS-05/06.
 A1 adds independent repeat drafts and authorised lineage through existing custom
 acceptance. RH-01–11/14–15 apply to A1; B adds bounded implemented-domain history,
-while C1 adds bounded identity review/corrections and C2 remains later.
+while C1 adds bounded identity review/corrections and C2 adds bounded contact
+aliases/current service attribution with preserved original references.
 AC-58 remains its material slice; AC-59 timing is a measured design target, and
 measurement/design/fit/media/financial dependencies retain their own gates.
 A1 does not close all of 1.2.4 or authorise live data. See the evidence for

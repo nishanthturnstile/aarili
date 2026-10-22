@@ -26,6 +26,7 @@ import {
 } from "@aarili/contracts/small-services";
 import type { WearerProfile } from "@aarili/contracts/wearers";
 import {
+  contactMergeMessages,
   formatOrderPaise,
   type Locale,
   orderAcceptanceMessages,
@@ -1276,6 +1277,18 @@ export function ServiceOrderDetail({
         {order.customer?.label}
         {order.wearer ? ` · ${order.wearer.label}` : ""}
       </p>
+      {order.currentAttribution && (
+        <p>
+          {contactMergeMessages[locale].current}:{" "}
+          <a href={`/customers/${order.currentAttribution.customerId}`}>
+            {order.currentAttribution.code} · {order.currentAttribution.label}
+          </a>{" "}
+          ·{" "}
+          <a href={`/customers/${order.currentAttribution.originalCustomerId}`}>
+            {contactMergeMessages[locale].original}
+          </a>
+        </p>
+      )}
       <h3>{t.property}</h3>
       <p>{order.intake.subjectDescription}</p>
       {order.intake.propertyReference && (

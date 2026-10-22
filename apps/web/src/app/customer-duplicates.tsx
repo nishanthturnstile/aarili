@@ -14,6 +14,7 @@ import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Status } from "@aarili/ui/components/status";
 import { useLocale } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { ContactMerge } from "./contact-merge";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 
@@ -33,11 +34,13 @@ type Attempt = {
 export function CustomerDuplicates({
   shopId,
   customerId,
+  mergedIntoId,
   queries,
   guard,
 }: {
   shopId: string;
   customerId: string;
+  mergedIntoId?: string | undefined;
   queries: ReturnType<typeof createOwnerQueries>;
   guard: OwnerGuard;
 }) {
@@ -46,6 +49,7 @@ export function CustomerDuplicates({
     id = useId();
   const [page, setPage] = useState<Page>(),
     [pair, setPair] = useState<Pair>(),
+    [mergePair, setMergePair] = useState<Pair>(),
     [reason, setReason] = useState(""),
     [decision, setDecision] = useState<"keep-separate" | "dismiss">(
       "keep-separate",
@@ -59,7 +63,8 @@ export function CustomerDuplicates({
     abort = useRef<AbortController | null>(null),
     locked = useRef(false),
     heading = useRef<HTMLHeadingElement>(null),
-    pending = useRef<Attempt | undefined>(undefined);
+    pending = useRef<Attempt | undefined>(undefined),
+    mergePending = useRef(false);
   pending.current = attempt;
   const [work] = useState(() => guard.track());
   useEffect(() => () => work.dispose(), [work]);
@@ -79,6 +84,8 @@ export function CustomerDuplicates({
       abort.current?.abort();
       setPage(undefined);
       setPair(undefined);
+      setMergePair(undefined);
+      mergePending.current = false;
       setReason("");
       setDecision("keep-separate");
       setAttempt(undefined);
@@ -88,7 +95,7 @@ export function CustomerDuplicates({
     };
     const un = queries.onInvalidate(clear);
     const focus = () => {
-      if (!pending.current) clear();
+      if (!pending.current && !mergePending.current) clear();
       else {
         seq.current++;
         abort.current?.abort();
@@ -99,7 +106,7 @@ export function CustomerDuplicates({
       }
     };
     const leave = (e: BeforeUnloadEvent) => {
-      if (pending.current) {
+      if (pending.current || mergePending.current) {
         e.preventDefault();
         e.returnValue = "";
       }
@@ -148,8 +155,14 @@ export function CustomerDuplicates({
       if (n === seq.current && queries.isCurrent(epoch)) setBusy(false);
     }
   }
-  const load = (after?: string) =>
-    run(async (signal) => {
+  const canReplaceMerge = () =>
+    !mergePending.current &&
+    (!mergePair || guard.safe() || window.confirm(t.discardEdits));
+  const load = (after?: string) => {
+    if (!canReplaceMerge()) return;
+    return run(async (signal) => {
+      if (mergePending.current) return;
+      setMergePair(undefined);
       setPair(undefined);
       setAttempt(undefined);
       setReason("");
@@ -163,8 +176,12 @@ export function CustomerDuplicates({
       );
       if (!signal.aborted) setPage(result);
     });
-  const preview = (other: string) =>
-    run(async (signal) => {
+  };
+  const preview = (other: string) => {
+    if (!canReplaceMerge()) return;
+    return run(async (signal) => {
+      if (mergePending.current) return;
+      setMergePair(undefined);
       setDecision("keep-separate");
       setPair(undefined);
       setAttempt(undefined);
@@ -173,9 +190,12 @@ export function CustomerDuplicates({
       const result = await readCustomerPair(shopId, customerId, other, signal);
       if (!signal.aborted) {
         setPair(result);
+        setMergePair(result);
       }
     });
+  };
   function save() {
+    if (mergePending.current) return;
     if (locked.current) return;
     if (!attempt && (!pair || !reason.trim())) return;
     const next = attempt ?? {
@@ -208,6 +228,17 @@ export function CustomerDuplicates({
     >
       <h2 id={`${id}-title`}>{t.title}</h2>
       <p>{t.intro}</p>
+      {mergedIntoId && (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy || !!attempt || !!reason.trim()}
+          onClick={() => void preview(mergedIntoId)}
+        >
+          {t.review}
+        </Button>
+      )}
+
       <Button
         type="button"
         variant="outline"
@@ -343,6 +374,7 @@ export function CustomerDuplicates({
               {attempt ? t.retry : t.save}
             </Button>
           </form>
+
           <h4>{t.history}</h4>
           <ol>
             {pair.decisions.map((d) => (
@@ -359,6 +391,17 @@ export function CustomerDuplicates({
           </ol>
         </>
       )}
+      {mergePair && (
+        <ContactMerge
+          shopId={shopId}
+          pair={mergePair}
+          queries={queries}
+          guard={guard}
+          onPendingChange={(value) => {
+            mergePending.current = value;
+          }}
+        />
+      )}
       {attempt && !pair && (
         <Button type="button" disabled={busy} onClick={save}>
           {t.retry}
@@ -371,14 +414,18 @@ export function CustomerDuplicates({
           disabled={busy}
           onClick={() => {
             if (
-              (attempt || reason.trim()) &&
-              !window.confirm(attempt ? t.discard : t.discardEdits)
+              (!guard.safe() || attempt || reason.trim()) &&
+              !window.confirm(
+                attempt || mergePending.current ? t.discard : t.discardEdits,
+              )
             )
               return;
             seq.current++;
             abort.current?.abort();
             setAttempt(undefined);
             setPair(undefined);
+            setMergePair(undefined);
+            mergePending.current = false;
             setPage(undefined);
             setReason("");
             setFailure("");

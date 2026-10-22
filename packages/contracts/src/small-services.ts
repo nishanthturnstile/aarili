@@ -420,6 +420,16 @@ export const serviceOrderReviewSchema = z.strictObject({
 });
 export type ServiceOrderReview = z.infer<typeof serviceOrderReviewSchema>;
 export const acceptedServiceOrderSchema = z.strictObject({
+  currentAttribution: z
+    .strictObject({
+      customerId: z.uuid(),
+      originalCustomerId: z.uuid(),
+      code: z.string(),
+      label: z.string(),
+      eventId: z.uuid(),
+      version: z.number().int().positive(),
+    })
+    .optional(),
   kind: z.literal("service"),
   id: z.uuid(),
   code: z.string(),
