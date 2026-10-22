@@ -1,6 +1,6 @@
 # Measurement sessions, immutable versions and garment selection
 
-22 October 2026. Roadmap **1.3.2**. **Software packet approved 22 October 2026. Tickets [#153](https://github.com/nishanthturnstile/aarili/issues/153), [#154](https://github.com/nishanthturnstile/aarili/issues/154), [#155](https://github.com/nishanthturnstile/aarili/issues/155) published; A / #153 selected. Implementation in progress.** [Research](Measurement_Versions_REA_Evidence.md),
+22 October 2026. Roadmap **1.3.2**. **Software packet approved. Tickets [#153](https://github.com/nishanthturnstile/aarili/issues/153), [#154](https://github.com/nishanthturnstile/aarili/issues/154), [#155](https://github.com/nishanthturnstile/aarili/issues/155) published; selected A implemented in [draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156). Audit, full browser and human/merge gates remain open.** [Research](Measurement_Versions_REA_Evidence.md),
 [concrete tickets](Measurement_Versions_Ticket_Packet.md),
 [baseline and validation](Measurement_Versions_Implementation_Evidence.md).
 

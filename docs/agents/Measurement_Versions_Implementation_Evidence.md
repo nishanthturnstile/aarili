@@ -1,6 +1,6 @@
 # Measurement versions: preparation, validation and implementation authority
 
-22 October 2026. Roadmap **1.3.2**. **A / #153 selected and implementation in progress; no completion claim.** [Design](Measurement_Versions_Design.md),
+22–23 October 2026. Roadmap **1.3.2**. **A / #153 implemented in [draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156); audit/full-browser/human/merge gates remain open. No feature-complete claim.** [Design](Measurement_Versions_Design.md),
 [ticket packet](Measurement_Versions_Ticket_Packet.md),
 [REA evidence](Measurement_Versions_REA_Evidence.md),
 [requested brief](Measurement_Versions_REA_Prompt.md).
@@ -289,11 +289,11 @@ derived measurement, fit photograph, repeat adapter or correction is added.
   lint/Knip passed. The next broad run started **18:49:29.764 UTC**, with **806
   source files**, fingerprint
   `18e9e51634399ed1fc5a4c9fa13267c9801db73159721c332a4c21f72cca516b`.
-  Its final outcome remains pending until observed. Raw logs/results are retained
+  Its observed final outcome is retained in the later ledger. Raw logs/results are retained
   in `%TEMP%/aarili-measurement-validation-20261023`; private fixture material
   and browser captures remain outside Git.
 
-### A acceptance review map (final command results still pending)
+### A acceptance review map (full browser/audit and human gates remain open)
 
 | Acceptance | Concrete implementation/check | Remaining qualification |
 | --- | --- | --- |
@@ -322,7 +322,8 @@ The fixture is intended to include two independent adult wearers sharing a
 synthetic contact phone, an unconsented synthetic minor, two native-piece forms
 with an optional unknown field, an unselected saved fraction observation, a
 second adult's independent order and a no-measurement small-service profile.
-Setup/tryability remains unclaimed until the script and exact route are checked.
+At that preparation checkpoint, setup/tryability was unclaimed. The later running
+surface and private API check below supersede that checkpoint.
 
 ### Final-review refinements and retry ledger
 
@@ -416,10 +417,95 @@ documentation is excluded from this application fingerprint.
 | `pnpm verify:fast` | **Exit 0**, **19:44:39.482–19:46:38.747**, **119.265s**: lint/boundaries/tokens, Knip, all strict types, **311/311 tests in 67 files**, negative declarations, OpenAPI and all production builds. Five existing informational Biome findings remain. |
 | `pnpm smoke` | **Exit 0**, **19:46:31.943–19:46:45.866**, **13.923s**; production health/web/worker shutdown smoke. |
 | `pnpm exec node scripts/check-artifacts.mjs` | **Exit 0**, **19:46:57.798–19:46:58.298**, **0.500s**. |
-| `pnpm test:ui` | The **19:47:06.615** attempt stopped at the build reminder after **13.537s**. Retry **19:48:23.485** reached the test stage despite its dev-start warning. A mistaken duplicate direct runner was started at **19:49:12.986**; both were stopped at **19:50 UTC**, their results discarded. All owned process trees, temporary host and disposable containers were confirmed stopped and port 3103 free before the sole fresh run below. Full browser result remains **pending**. |
+| `pnpm test:ui` | The **19:47:06.615** attempt stopped at the build reminder after **13.537s**. Retry **19:48:23.485** reached the test stage despite its dev-start warning. A mistaken duplicate direct runner was started at **19:49:12.986**; both were stopped at **19:50 UTC**, their results discarded. All owned process trees, temporary host and disposable containers were confirmed stopped and port 3103 free before the sole fresh run below. A further **19:50:57.942** root attempt stopped at its build reminder after **13.005s**. Full browser validation is **blocked/incomplete**, with the later interruption and baseline cause below. |
 
 The original full `verify` result remains exit 1; the corrected, affected PG
 files and final fast/build/smoke/artifact stages above are fresh follow-up evidence.
 No second full-green `verify` claim is made. The unchanged existing PDF/remaining
 PG evidence comes from the broad run; physical-device/fluent-Tamil/AT, production
 policy/precision/privacy decisions, CI and owner merge review remain separate.
+
+### PR and baseline gate
+
+[Draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156) opened on
+commit `369419a46bfcd0240f57a74f0763042e133b6756`, targeting development, and was
+immediately linked to the T3 thread. [Run 39844058655](https://github.com/nishanthturnstile/aarili/actions/runs/39844058655)
+has **Fast verification passed** and **Dependency audit failed**. Audit reports
+two critical and one high `next@16.4.0` advisory with 16.4.1 patched. Dependencies
+and lockfile are unchanged by A. See the concrete, unadopted
+[baseline correction proposal](Next_16_4_1_Baseline_Correction_Proposal.md).
+
+The sole broad browser continuation at **19:51:44.113 UTC** was stopped at
+**19:58 UTC** after discovering that the shared dev process exited after readiness.
+It is **interrupted/invalid**, not full-suite evidence. Its first booking-recovery
+case failed a missing resume locator; isolated booking groups/contact merge/history
+and grouped recovery cases passed, while PDF component hosts exited. The original
+artifacts are retained. No conclusion that these are all product or fixture defects
+is asserted without a stable host and fresh affected run.
+
+Current official Next documentation and the installed CLI show a single-use retry
+receipt with a five-minute TTL. Fresh component-host directories cannot reuse it.
+No config/environment suppression or installed-package patch was applied. The
+unused shared dev host is omitted only for a fresh **measurement-only** production
+fixture run, using ignored local config
+`.scratch/measurement-validation/production-measurements.config.mjs`; all three
+incumbent viewports, one worker/zero retries and the unchanged measurement test
+body remain. Each case still starts its own production web process and real PG via
+`withOwnerWeb`. This does not validate the full shared-dev/component browser suite.
+Its exact result is pending below. The broad suite and audit remain activation/
+merge qualifications until a separately approved baseline can be integrated.
+
+### Final measurement-only browser refinements
+
+The production-fixture attempt at **20:01:20.451–20:02:54.643 UTC** failed all
+three cases (**94.192s**): reconnect was already retrying the frozen request,
+while the added test tried to click its temporarily disabled Retry button. The
+next attempt **20:03:02.974–20:04:39.523 UTC**, **96.549s**, also failed all three:
+the promotion waiter preceded a rate-limited autosave in phone/desktop; tablet's
+immediate bounded draft-list assertion returned no new measurement row. The
+earlier full run's booking-list omission is retained separately, not declared fixed.
+
+The test now waits for incumbent reconnect recovery, retains/compares invalid text,
+honours real Retry-After for draft saves before waiting on promotion and synchronises
+the disposable DB statement clock with the committed row before opening its
+time-bounded list. No application, API limit, retry key, precision/validation rule,
+  overall test timeout or business clock policy was changed. Phone verification then passed
+**1/1**, **20:05:50.973–20:07:17.920 UTC**, **86.947s**, unchanged **806-file**
+source fingerprint `f12b4bd0cf58d1f37482fb0db7f6fab3e455e6878ccdb05cac1967d96b413188`.
+Only the measurement browser fixture changed from the prior frozen static/PG build.
+Fresh root lint after those test changes passed (the same five existing infos).
+The final three-size run passed **3/3**, **20:07:52.924–20:12:07.463 UTC**,
+**254.539s**, with the same fingerprint and unchanged source. English/Tamil,
+light/dark, axe/reflow, optional unknown values, exact conversion, offline invalid
+entry retention/reconnect, lost-response retry/reload, independent save/first
+selection and held-response access loss passed at phone/tablet/desktop. This is
+production-fixture measurement evidence; the shared-dev/full component suite
+remains unverified on a corrected baseline. No application source changed after
+the frozen static/PG/build evidence; later source edits are only the explained
+measurement browser fixture. No full-green root verify/browser claim is made.
+
+### Running owner review surface
+
+The final synthetic host is running from the unchanged production application:
+
+- Open [prepared adult garment](http://127.0.0.1:51165/orders?order=01a16536-7f06-7619-9e4d-341645293833).
+  The collaborative browser checked the protected route redirect to Sign in.
+- Private email/password: `.scratch/measurement-sessions-review-host/private.json`;
+  generated ready file **20:03:54.770 UTC**. Credentials are excluded from Git/chat.
+- The second same-contact adult's independent order is
+  `01a16536-7cc7-72a4-986b-e19e9635a055`; use the same origin and `/orders?order=`.
+  The file also names both wearers, the unconsented minor, exact forms/version/
+  piece and no-measurement service profile. The original observation is saved
+  without target selection; start with the manual sequence above.
+- At **20:11:16.243 UTC**, a private-file-driven loopback API check signed in
+  successfully, read exactly one saved `12 1/4` observation and its unselected
+  native-piece target, verified the second adult's empty measurement list and
+  the unconsented minor's 404. Credentials/cookies and private response bodies
+  were kept in process memory and not printed or added to Git.
+- Startup: `pnpm exec node scripts/review-measurement-sessions.mjs` after the current
+  build. Stop: `pnpm exec node scripts/review-measurement-sessions.mjs stop`.
+  Stop removes the disposable database, process and private file. Restart creates
+  a fresh scenario/port/credentials; record that new URL rather than reusing this one.
+
+Human acceptance, baseline correction/audit, full browser and owner merge remain
+pending. No merge, deploy or live-data activation; #154/#155 are unstarted.

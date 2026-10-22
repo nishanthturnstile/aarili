@@ -4,7 +4,8 @@
 A [#153](https://github.com/nishanthturnstile/aarili/issues/153),
 B [#154](https://github.com/nishanthturnstile/aarili/issues/154),
 C [#155](https://github.com/nishanthturnstile/aarili/issues/155).
-A selected and in progress. B/C require merged predecessors and selection.**
+A selected and implemented in [draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156),
+with audit/full-browser/human/merge gates open. B/C require merged predecessors and selection.**
 [Design](Measurement_Versions_Design.md), [REA evidence](Measurement_Versions_REA_Evidence.md),
 [validation and baseline](Measurement_Versions_Implementation_Evidence.md).
 

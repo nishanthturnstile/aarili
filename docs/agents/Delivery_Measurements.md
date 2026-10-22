@@ -44,6 +44,29 @@
   not application coding time or valid full-suite results. Final browser, PR/CI,
   human review and merge remain pending until observed.
 
+- Draft [PR #156](https://github.com/nishanthturnstile/aarili/pull/156) opened
+  **19:53:36 UTC** on `369419a`, targeting development and linked to this thread.
+  Hosted Fast verification passed in run `39844058655`; Dependency audit failed
+  on two critical/one high Next.js 16.4.0 advisories. A separate, concrete
+  [16.4.1 baseline correction](Next_16_4_1_Baseline_Correction_Proposal.md) is
+  proposed, not adopted; owner approval is pending. No merge/deploy.
+- Final production-host measurement browser run: **3/3 passed**, **254.539s**,
+  **20:07:52.924–20:12:07.463 UTC**, unchanged 806-file source fingerprint
+  `f12b4bd0cf58d1f37482fb0db7f6fab3e455e6878ccdb05cac1967d96b413188`.
+  Only the test fixture changed after the prior static/PG/build result; reconnect,
+  autosave admission and disposable clock synchronisation corrections and their
+  original failures are retained in the evidence ledger. Fresh root lint passed.
+- Final running review host ready file: **20:03:54.770 UTC**. Exact URL/private
+  sign-in and cleanup are in the evidence packet. A private loopback API check
+  at **20:11:16.243 UTC** verified sign-in, saved-but-unselected observation,
+  independent second adult and unconsented-minor denial. Human findings remain
+  pending; emulation is not physical-device/fluent-Tamil/AT acceptance.
+- Full root-browser attempts were interrupted when the pinned CLI exited after
+  readiness and disposable component hosts could not reuse its one-time retry.
+  No valid completed 240-case result is claimed. Audit/full-browser integration
+  and human/owner merge review remain open. Active coding/rework time is unknown;
+  the recorded waits/reruns are not reconstructed as coding time.
+
 ## 1.3.2 preparation — measurement versions design and ticket review
 
 - **22 October 2026; preparation only, no implementation delivery/PR.** Existing

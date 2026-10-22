@@ -777,7 +777,8 @@ edit, and earlier-order structured-value stability remains unproven. TailorMan
 public form observations are separated from vendor claims. Direct
 1.1.3/1.3.1 and technical prerequisites are merged. The owner approved the software
 packet and proceeding on 22 October: A [#153](https://github.com/nishanthturnstile/aarili/issues/153)
-is selected and in implementation; B [#154](https://github.com/nishanthturnstile/aarili/issues/154)
+is implemented in [draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156),
+with dependency-audit, full-browser, human and merge gates still open; B [#154](https://github.com/nishanthturnstile/aarili/issues/154)
 and C [#155](https://github.com/nishanthturnstile/aarili/issues/155) are published
 with native blockers and require merged predecessors and selection. Production
 policy/activation, merge and full 1.3.2/AC-06 completion remain open.

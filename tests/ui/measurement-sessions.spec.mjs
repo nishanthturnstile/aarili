@@ -97,15 +97,29 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
         };
         const continueAdmitted = async (name) => {
           for (let attempt = 0; attempt < 3; attempt++) {
+            const scope = region().locator(".directory-editor"),
+              button = scope.getByRole("button", { name, exact: true }),
+              deadline = Date.now() + 180000;
+            // A partial-draft autosave can itself hit admission before promotion.
+            // Wait for its real Retry-After, retry the frozen request, then promote.
+            while (!(await button.isEnabled())) {
+              if (Date.now() >= deadline)
+                throw Error("Measurement draft did not settle");
+              await admission();
+              const retry = scope.getByRole("button", {
+                name: draftMessages.en.retry,
+                exact: true,
+              });
+              if ((await retry.isVisible()) && (await retry.isEnabled()))
+                await retry.click();
+              else await page.waitForTimeout(100);
+            }
             await admission();
             const response = page.waitForResponse(
               (r) =>
                 r.url().endsWith("/promote") && r.request().method() === "POST",
             );
-            await region()
-              .locator(".directory-editor")
-              .getByRole("button", { name, exact: true })
-              .click();
+            await button.click();
             const r = await response;
             if (r.status() === 429) continue;
             expect(r.status(), await r.text()).toBe(200);
@@ -197,12 +211,13 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
         ).toHaveValue("1/0");
         await page.context().setOffline(false);
         await admission();
-        await editor()
-          .getByRole("button", { name: draftMessages.en.retry, exact: true })
-          .click();
+        // Reconnect resumes the frozen request through the incumbent recovery.
         await expect(
           editor().getByText(draftMessages.en.saved, { exact: true }),
         ).toBeVisible();
+        await expect(
+          editor().locator(`#measurement-${field.id}-raw`),
+        ).toHaveValue("1/0");
         await editor().locator(`#measurement-${field.id}-raw`).fill("12 1/4");
         await editor()
           .locator(`#measurement-${field.id}-unit`)
@@ -226,7 +241,8 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
           .getByLabel(en.reason, { exact: true })
           .fill("SYNTHETIC reviewed observation");
         // A lost response commits once, then incumbent recovery retries the frozen key.
-        let lost = false;
+        let lost = false,
+          committedCreatedAt;
         const lose = async (route) => {
           if (!lost && route.request().method() === "PUT") {
             const req = route.request(),
@@ -238,6 +254,7 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
                 }),
               );
             if (r.status === 200) {
+              committedCreatedAt = (await r.clone().json()).draft.createdAt;
               lost = true;
               await route.abort("failed");
               return;
@@ -262,6 +279,20 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
         await expect(
           editor().getByText(draftMessages.en.saved, { exact: true }),
         ).toBeVisible();
+        // Disposable DB clock catch-up, as in the incumbent pagination fixture.
+        // Do not open a time-bounded list while its clock precedes the saved row.
+        await expect
+          .poll(
+            async () =>
+              (
+                await runtime.query(
+                  "select statement_timestamp() >= $1::timestamptz + interval '1 second' ready",
+                  [committedCreatedAt],
+                )
+              ).rows[0].ready,
+            { timeout: 10000 },
+          )
+          .toBe(true);
         const activeDraftResponse = await page.request.get(
           `${origin}/api/shops/${shopId}/drafts`,
         );
