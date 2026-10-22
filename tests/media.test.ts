@@ -10,7 +10,7 @@ import {
   processMedia,
 } from "@aarili/core/media";
 import { createMediaStorage } from "@aarili/platform/media-storage";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 
 const id = "019a5e57-1111-7000-8000-000000000001";
 test("0.4.3a G1/G2 production unknown authority and unregistered validation fail closed", async () => {
@@ -47,9 +47,17 @@ test("0.4.3a G1/G2 production unknown authority and unregistered validation fail
   expect(mediaTechnicalLimits.documentAudioBytes).toBe(26214400);
 });
 test("0.4.3a G1 AC-53 trusted minor photo still requires recorded guardian authority", async () => {
+  const insert = vi.fn(() => {
+    throw Error("Denied photo must never create an asset");
+  });
   const ctx = {
     shopId: id,
     actor: { type: "user", id },
+    repository: {
+      lockKey: async () => {},
+      replay: async () => undefined,
+      insert,
+    },
     policy: {
       authorize: async () => ({ minor: true, guardianConsent: false }),
     },
@@ -90,6 +98,7 @@ test("0.4.3a G1 AC-53 trusted minor photo still requires recorded guardian autho
       { key: id, requestId: id },
     ),
   ).rejects.toMatchObject({ status: 422 });
+  expect(insert).not.toHaveBeenCalled();
 });
 test("0.4.3a G2/G5/G6 storage key namespace and capability bounds reject before I/O", async () => {
   const storage = createMediaStorage({

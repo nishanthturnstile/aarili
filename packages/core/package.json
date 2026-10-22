@@ -131,6 +131,14 @@
     "./design-specifications": {
       "types": "./dist/design-specifications.d.ts",
       "import": "./dist/design-specifications.js"
+    },
+    "./design-references": {
+      "types": "./dist/design-references.d.ts",
+      "import": "./dist/design-references.js"
+    },
+    "./design-media-policy": {
+      "types": "./dist/design-media-policy.d.ts",
+      "import": "./dist/design-media-policy.js"
     }
   },
   "scripts": {

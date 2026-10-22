@@ -12,10 +12,13 @@ import { listAcceptedOrders, readOrderPieces } from "@aarili/api/orders-client";
 import type { DesignChoicesRevision } from "@aarili/contracts/design-choices";
 import {
   type DesignSpecificationDraft,
+  type DesignSpecificationMediaDraft,
   type DesignSpecificationState,
   type DesignSpecificationVersion,
   designSpecificationCommandSchema,
   designSpecificationDraftSchema,
+  designSpecificationMediaCommandSchema,
+  designSpecificationMediaDraftSchema,
 } from "@aarili/contracts/design-specifications";
 import type { DraftCursor, DraftRecord } from "@aarili/contracts/drafts";
 import type { AcceptedOrder, OrderPieces } from "@aarili/contracts/orders";
@@ -24,7 +27,13 @@ import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import {
+  type ReferenceCandidate,
+  ReferenceComparison,
+  ReferenceFields,
+  ReferenceWorkbench,
+  SavedReferences,
+} from "./design-references";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
@@ -46,21 +55,22 @@ function emptyAnswer(questionId: string) {
   };
 }
 function DraftFields({
-  form,
+  v,
+  changeValues,
   profile,
   choices,
   historical,
   locale,
   t,
 }: {
-  form: UseFormReturn<DesignSpecificationDraft>;
+  v: DesignSpecificationDraft;
+  changeValues: (patch: Partial<DesignSpecificationDraft>) => void;
   profile: DesignChoicesDefinition | undefined;
   choices: DesignChoicesRevision[];
   historical: DesignChoicesDefinition[];
   locale: Locale;
   t: T;
 }) {
-  const v = form.watch();
   const p = profile?.content.kind === "profile" ? profile.content : null;
   const change = (
     i: number,
@@ -68,11 +78,11 @@ function DraftFields({
   ) => {
     const previous = v.answers[i];
     if (!previous) return;
-    form.setValue(
-      `answers.${i}`,
-      { ...previous, ...value },
-      { shouldDirty: true },
-    );
+    changeValues({
+      answers: v.answers.map((a, index) =>
+        index === i ? { ...previous, ...value } : a,
+      ),
+    });
   };
   const states = new Map<
     string,
@@ -118,7 +128,6 @@ function DraftFields({
   return (
     <>
       <p>{t.approval}</p>
-      <p>{t.media}</p>
       {v.operation === "save" &&
         p?.questions.map((q, i) => {
           const a = v.answers.find((a) => a.questionId === q.id);
@@ -327,7 +336,8 @@ function DraftFields({
         <Input
           id="design-reason"
           maxLength={1000}
-          {...form.register("reason")}
+          value={v.reason}
+          onChange={(e) => changeValues({ reason: e.target.value })}
           aria-invalid={!v.reason.trim()}
           aria-describedby={
             !v.reason.trim() ? "design-reason-error" : undefined
@@ -341,11 +351,7 @@ function DraftFields({
           <select
             id="design-save-mode"
             value={v.use ? "use" : "save"}
-            onChange={(e) =>
-              form.setValue("use", e.target.value === "use", {
-                shouldDirty: true,
-              })
-            }
+            onChange={(e) => changeValues({ use: e.target.value === "use" })}
           >
             <option value="save">{t.saveOnly}</option>
             <option value="use">{t.use}</option>
@@ -358,6 +364,7 @@ function DraftFields({
 }
 function Editor({
   controller,
+  current,
   savedVersions,
   profile,
   choices,
@@ -365,8 +372,13 @@ function Editor({
   locale,
   guard,
   t,
+  schemaVersion,
+  shopId,
+  orderId,
+  pieceId,
 }: {
   controller: DraftRecovery;
+  current: DesignSpecificationVersion | undefined;
   savedVersions: DesignSpecificationVersion[];
   profile: DesignChoicesDefinition | undefined;
   choices: DesignChoicesRevision[];
@@ -374,13 +386,24 @@ function Editor({
   locale: Locale;
   guard: OwnerGuard;
   t: T;
+  schemaVersion: number;
+  shopId: string;
+  orderId: string;
+  pieceId: string | null;
 }) {
+  const [candidate, setCandidate] = useState<ReferenceCandidate>();
+  const [draftImages, setDraftImages] = useState<string[]>([]);
   const s = useSyncExternalStore(
       controller.subscribe,
       controller.snapshot,
       controller.snapshot,
     ),
-    v = designSpecificationDraftSchema.safeParse(s.values);
+    v = (
+      schemaVersion === 2
+        ? designSpecificationMediaDraftSchema
+        : designSpecificationDraftSchema
+    ).safeParse(s.values);
+  const reviewing = s.status !== "promoted";
   return (
     <div className="directory-editor">
       <h3>{t.draft}</h3>
@@ -395,34 +418,162 @@ function Editor({
           · {t.scopeRevision} {v.data.baseVersion}
         </p>
       )}
-      <DraftForm
-        controller={controller}
-        schema={designSpecificationDraftSchema}
-        locale={locale}
-        guard={guard}
-        canPromote={
-          designSpecificationCommandSchema.safeParse(s.values).success
-        }
-        promotionLabel={
-          v.success && v.data.operation === "select"
-            ? t.select
-            : v.success && v.data.use
-              ? t.use
-              : t.saveOnly
-        }
-        renderConflict={() => <p>{t.conflict}</p>}
-      >
-        {(form) => (
-          <DraftFields
-            form={form}
-            profile={profile}
-            choices={choices}
-            historical={historical}
+      {schemaVersion === 2 ? (
+        <>
+          <DraftForm
+            controller={controller}
+            schema={designSpecificationMediaDraftSchema}
             locale={locale}
-            t={t}
+            guard={guard}
+            canPromote={
+              designSpecificationMediaCommandSchema.safeParse(s.values).success
+            }
+            promotionLabel={
+              v.success && v.data.operation === "select"
+                ? t.select
+                : v.success && v.data.use
+                  ? t.use
+                  : t.saveOnly
+            }
+            renderConflict={() => <p>{t.conflict}</p>}
+          >
+            {(form) => (
+              <div
+                className={
+                  form.watch("operation") === "save" && reviewing
+                    ? "design-reference-edit-layout"
+                    : "owner-form"
+                }
+              >
+                <div className="owner-form design-reference-fields">
+                  <DraftFields
+                    v={form.watch()}
+                    changeValues={(patch) => {
+                      for (const [key, value] of Object.entries(patch)) {
+                        if (key === "answers")
+                          form.setValue(
+                            "answers",
+                            value as DesignSpecificationDraft["answers"],
+                            { shouldDirty: true },
+                          );
+                        else if (key === "reason")
+                          form.setValue("reason", String(value), {
+                            shouldDirty: true,
+                          });
+                        else if (key === "use")
+                          form.setValue("use", Boolean(value), {
+                            shouldDirty: true,
+                          });
+                      }
+                    }}
+                    profile={profile}
+                    choices={choices}
+                    historical={historical}
+                    locale={locale}
+                    t={t}
+                  />
+                  {form.watch("operation") === "save" && (
+                    <ReferenceFields
+                      values={form.watch("referenceItems")}
+                      change={(items) =>
+                        form.setValue("referenceItems", items, {
+                          shouldDirty: true,
+                        })
+                      }
+                      profile={profile}
+                      locale={locale}
+                      candidate={candidate}
+                      shopId={shopId}
+                      draftId={s.id}
+                      savedItems={
+                        designSpecificationMediaDraftSchema.safeParse(
+                          s.committed?.payload,
+                        ).data?.referenceItems ?? []
+                      }
+                      knownReferences={savedVersions.flatMap(
+                        (v) => v.referenceItems,
+                      )}
+                      images={
+                        new Set([
+                          ...draftImages,
+                          ...savedVersions.flatMap((v) =>
+                            v.referenceItems
+                              .filter((r) => r.display)
+                              .map((r) => r.assetId),
+                          ),
+                          ...(candidate?.asset.contentType.startsWith("image/")
+                            ? [candidate.asset.id]
+                            : []),
+                        ])
+                      }
+                    />
+                  )}
+                </div>
+                {form.watch("operation") === "save" && reviewing && (
+                  <ReferenceComparison
+                    current={current}
+                    proposed={form.watch("referenceItems")}
+                    profile={profile}
+                    locale={locale}
+                  />
+                )}
+              </div>
+            )}
+          </DraftForm>
+          <ReferenceWorkbench
+            shopId={shopId}
+            orderId={orderId}
+            pieceId={pieceId}
+            locale={locale}
+            guard={guard}
+            profile={profile}
+            onCandidate={(c) => {
+              setCandidate(c);
+              if (c?.asset.contentType.startsWith("image/"))
+                setDraftImages((ids) => [...new Set([...ids, c.asset.id])]);
+            }}
           />
-        )}
-      </DraftForm>
+        </>
+      ) : (
+        <DraftForm
+          controller={controller}
+          schema={designSpecificationDraftSchema}
+          locale={locale}
+          guard={guard}
+          canPromote={
+            designSpecificationCommandSchema.safeParse(s.values).success
+          }
+          promotionLabel={
+            v.success && v.data.operation === "select"
+              ? t.select
+              : v.success && v.data.use
+                ? t.use
+                : t.saveOnly
+          }
+          renderConflict={() => <p>{t.conflict}</p>}
+        >
+          {(form) => (
+            <DraftFields
+              v={form.watch()}
+              changeValues={(patch) => {
+                if (patch.answers)
+                  form.setValue("answers", patch.answers, {
+                    shouldDirty: true,
+                  });
+                if (patch.reason !== undefined)
+                  form.setValue("reason", patch.reason, { shouldDirty: true });
+                if (patch.use !== undefined)
+                  form.setValue("use", patch.use, { shouldDirty: true });
+              }}
+              profile={profile}
+              choices={choices}
+              historical={historical}
+              locale={locale}
+              t={t}
+            />
+          )}
+        </DraftForm>
+      )}
     </div>
   );
 }
@@ -430,10 +581,12 @@ function Saved({
   v,
   t,
   locale,
+  shopId,
 }: {
   v: DesignSpecificationVersion;
   t: T;
   locale: Locale;
+  shopId: string;
 }) {
   return (
     <>
@@ -473,6 +626,7 @@ function Saved({
           );
         })}
       </dl>
+      <SavedReferences version={v} shopId={shopId} locale={locale} />
     </>
   );
 }
@@ -499,6 +653,7 @@ export function DesignSpecifications({
     [choices, setChoices] = useState<DesignChoicesRevision[]>([]),
     [profileId, setProfileId] = useState(""),
     [controller, setController] = useState<DraftRecovery>(),
+    [draftSchemaVersion, setDraftSchemaVersion] = useState(2),
     [draftProfile, setDraftProfile] = useState<DesignChoicesDefinition>(),
     [draftHistorical, setDraftHistorical] = useState<DesignChoicesDefinition[]>(
       [],
@@ -637,7 +792,7 @@ export function DesignSpecifications({
     void load();
   }, [shopId, order.id, pieceId]);
   function open(
-    v: DesignSpecificationDraft,
+    v: DesignSpecificationDraft | DesignSpecificationMediaDraft,
     profile: DesignChoicesDefinition | undefined,
     record?: DraftRecord,
     exactChoices: DesignChoicesDefinition[] = [],
@@ -648,8 +803,14 @@ export function DesignSpecifications({
     if (!mountedScope) return;
     const c = mountedScope.open({
       workflow: "design.specification",
-      schemaVersion: 1,
-      initial: v,
+      schemaVersion: record?.schemaVersion ?? 2,
+      initial:
+        record?.schemaVersion === 1
+          ? v
+          : {
+              ...v,
+              referenceItems: "referenceItems" in v ? v.referenceItems : [],
+            },
       ...(record ? { record } : {}),
       editableTargetConflict: true,
       committed: (r) => {
@@ -658,6 +819,7 @@ export function DesignSpecifications({
     });
     currentController.current = c;
     setController(c);
+    setDraftSchemaVersion(record?.schemaVersion ?? 2);
     setDraftProfile(profile);
     setDraftHistorical(exactChoices);
   }
@@ -683,6 +845,20 @@ export function DesignSpecifications({
         reason: "",
         use: select,
         reuse: null,
+        referenceItems: select
+          ? []
+          : (saved?.referenceItems
+              .filter((r) => !r.redacted)
+              .map((r) => ({
+                id: crypto.randomUUID(),
+                assetId: r.assetId,
+                questionId: r.questionId,
+                intent: r.intent,
+                caption: r.caption,
+                annotations: r.annotations,
+                replacesId: saved.id === state.latestSavedId ? r.id : null,
+                geometryReviewed: false,
+              })) ?? []),
       },
       profile,
       undefined,
@@ -718,7 +894,6 @@ export function DesignSpecifications({
     >
       <h2>{t.title}</h2>
       <p>{t.approval}</p>
-      <p>{t.media}</p>
       <Field>
         <FieldLabel htmlFor="design-scope">{t.scope}</FieldLabel>
         <select
@@ -781,7 +956,11 @@ export function DesignSpecifications({
                   variant="outline"
                   key={d.id}
                   onClick={() => {
-                    const v = designSpecificationDraftSchema.parse(d.payload),
+                    const v = (
+                        d.schemaVersion === 2
+                          ? designSpecificationMediaDraftSchema
+                          : designSpecificationDraftSchema
+                      ).parse(d.payload),
                       gen = ++generation.current;
                     setBusy(true);
                     void Promise.all([
@@ -822,6 +1001,7 @@ export function DesignSpecifications({
             <>
               <Editor
                 controller={controller}
+                current={currentSaved}
                 savedVersions={state.versions}
                 profile={draftProfile}
                 choices={choices}
@@ -829,6 +1009,10 @@ export function DesignSpecifications({
                 locale={locale}
                 guard={guard}
                 t={t}
+                schemaVersion={draftSchemaVersion}
+                shopId={shopId}
+                orderId={order.id}
+                pieceId={pieceId}
               />
               <Button variant="outline" onClick={close}>
                 {t.close}
@@ -851,7 +1035,7 @@ export function DesignSpecifications({
                 v{v.version}
                 {state.currentId === v.id ? ` · ${t.current}` : ""}
               </summary>
-              <Saved v={v} t={t} locale={locale} />
+              <Saved v={v} t={t} locale={locale} shopId={shopId} />
               <div className="owner-actions">
                 <Button
                   variant="outline"
@@ -903,7 +1087,7 @@ export function DesignSpecifications({
                 <summary>
                   v{currentSaved.version} / {t.current}
                 </summary>
-                <Saved v={currentSaved} t={t} locale={locale} />
+                <Saved v={currentSaved} t={t} locale={locale} shopId={shopId} />
               </details>
             )}
           <details>

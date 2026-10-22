@@ -1,5 +1,140 @@
 # Delivery measurements
 
+## Issue #148 / 1.3.1c — private versioned design references
+
+- Owner selected B after A2 PR #150 merged **22 October 2026, 10:13:32 UTC**.
+  Updated the clean existing checkout's development branch to `25f7f9f`, verified
+  all six direct blocker merge commits as ancestors and created
+  `codex/design-references-b`. No worktree. Stopped the A2 disposable review host.
+- Implementation clock **10:18:22 UTC**, before first schema edit. Active coding/
+  rework stopwatch time is **unknown**; elapsed tests/waits are not coding time.
+- Package builds exposed a denial-helper narrowing error and an incorrect import
+  path for the existing guardian repository; corrected, then **10/10 packages
+  built, 14.695s**. The additive PG migration applies.
+- First end-to-end workflow fixture used the wrong notice family and correctly
+  failed consent authority. Corrected wearer notice and worker policy composition.
+  Second focused attempt **exit 1, 17.093s**,
+  **10:44:05.562–10:44:22.655 UTC**, failed at source publication. Fixed explicit
+  v2 event provenance, a trigger OLD-alias collision and privacy SELECT policy.
+  Raw logs remain private outside Git. No acceptance/complete claim.
+- First completed three-size bilingual/theme browser command:
+  **11:39:39.424–11:43:32.251 UTC**, **232.827s**, exit 0. A synthetic review host
+  was observed running before 11:43:39 UTC (exact ready instant not logged).
+  The finish reviewer requested four operational-clarity fixes; these now include
+  authorised active-draft inspection. Fresh PG proof **55.956s**, exit 0, ended
+  **11:54:31.655 UTC**. A 320px Tamil source/IME/keyboard/media-outage scenario
+  passed **39.777s**, ending **11:59:48.690 UTC**.
+- Expanded focused browser suite **6/6**, **270.970s**,
+  **12:00:36.605–12:05:07.575 UTC**. Actual guardian/age worker race **1/1**,
+  **16.610s**, **12:07:52.717–12:08:09.327 UTC**. Review round two requested
+  corrected tablet/desktop outage dimensions; capture-only rerun **3/3**,
+  **102.728s**, **12:13:12.631–12:14:55.359 UTC**. Round three still returned
+  **recapture**: image failure was visible but PDF/voice controls had not been
+  exercised. Added assertions for all three failed reads; the full run then
+  passed all six new cases and refreshed all 30 captures at their declared widths.
+  These are evidence corrections, not a ship verdict. Final full `pnpm verify`
+  began **12:15:30.356 UTC**; broad browser run follows sequentially.
+- Broad `pnpm verify` ended **12:59:04.455 UTC**, **2614.099s**, exit 1:
+  **261 passed / 1 failed PG tests**, **48 passed / 1 failed files (49)**.
+  Lint/Knip/types, 288 units, negatives/OpenAPI and Linux PDF goldens passed
+  before PG. The sole failure was a real 503/404 unsupported-service error-mapping
+  regression. Focused diagnostic **23.227s**, **12:31:51.430–12:32:14.657 UTC**
+  reproduced it. Corrected source without changing the running compiled inputs;
+  current rebuild/affected retests and remaining checks are pending. No broad
+  green claim or weakened assertion. Active rework time remains unknown.
+- Current corrected `verify:fast` **exit 0**, **114.790s**,
+  **12:59:34.927–13:01:29.717 UTC**; 288 units and production build included.
+  Five affected PG files **10/10, exit 0, 150.607s**,
+  **13:01:29.777–13:04:00.384 UTC**, including the original failing scenario.
+  Broad PG is retained as 261/1 rather than relabelled or rerun for a replacement
+  total. Native portability, remaining smoke/artifacts and full UI follow.
+- Scoped current clean-native frozen install/export/web-build/canary check
+  **exit 0, 101.732s**, **13:04:00.454–13:05:42.186 UTC**; disposable copy
+  removed and lockfile unchanged. Production smoke **exit 0, 11.883s**,
+  **13:05:42.243–13:05:54.126 UTC**. Root artifact scan **29, exit 0, 0.294s**.
+  Full `test:ui` began **13:05:54 UTC**, sequentially after those checks.
+- Refreshed current synthetic review host observed ready **13:11:18 UTC**,
+  loopback **56339**; normal sign-in and authenticated history both 200, one
+  version/three references. T3 is on its normal sign-in page. Earlier first
+  tryable time remains the pre-review observation above; this is fresh current
+  access, not a reconstructed original ready instant. Human acceptance pending.
+- Stable capability **00cb356** pushed; draft
+  [PR #151](https://github.com/nishanthturnstile/aarili/pull/151) created
+  **13:21:30 UTC**, immediately linked to T3. Opened while full UI/finish-review
+  evidence is explicitly pending so hosted Linux fast/audit can run independently.
+  This is not final review-ready/owner acceptance. Hosted results pending.
+- Capability-head hosted [run 39786125693](https://github.com/nishanthturnstile/aarili/actions/runs/39786125693)
+  passed: Fast **13:21:37–13:24:01 UTC (144s)**, audit
+  **13:21:37–13:21:54 UTC (17s)**. Queue about two seconds from first scheduled
+  check at 13:21:35 UTC. Final evidence-head hosted status remains pending.
+- Full UI's first A2 phone case stopped on its obsolete "private references not
+  available" placeholder assertion (**28.3s**). Updated only that expectation to
+  the bilingual source/rights region; product unchanged. Retain the original
+  failure and continue all devices. Tablet repeated the cached old test body
+  (**32.1s**), so run the corrected affected file fresh at all three sizes afterward.
+- Tablet Tamil/dark generic draft-recovery first-page assertion failed
+  **28.2s**: 27 seeded rows, only20 before the database cutoff; latest creation
+  14:34:29.143 UTC exceeded cutoff14:34:28.649 UTC. Added bounded fixture-only
+  database-clock settling before list open; production/assertions/timeouts
+  unchanged. Fresh 12-case recovery matrix is pending after the full invocation.
+- Finish review round four accepted all 30 captures and all four original fixes;
+  **fix** for the remaining D16 desktop current-versus-proposed comparison.
+  The second material batch adds exact current/draft component, asset, caption,
+  intent, annotations and removal review alongside desktop editing, stacked on
+  narrow layouts. Fresh build/captures, affected browser cases and scored verdict
+  remain pending. A standalone web typecheck found a union narrowing error
+  (corrected) and stale pre-rebuild i18n declarations; this is not passing evidence.
+- Full `test:ui` ended **15:55:06.426 UTC**, **10151.886s**, exit 1:
+  **233 passed / 4 failed (237)**, one worker and zero retries. Failures: all
+  three cached obsolete A2 assertions plus one tablet fixture clock race; all
+  six new reference cases passed. Preserved original failure artifacts outside
+  Git before fresh affected verification. No broad green claim.
+- Post-D16 `verify:fast` **exit 0, 126.851s**,
+  **15:55:17.329–15:57:24.180 UTC**; all lint/Knip/types, 288 units, negative
+  declarations, 112 OpenAPI paths and production build (**19.216s**) passed.
+  Fresh smoke/artifact and 21-case affected browser checks follow sequentially.
+- Current production smoke **exit 0, 12.591s**,
+  **15:57:36.831–15:57:49.422 UTC**; artifact scan **29, exit 0, 0.292s**,
+  **15:57:49.482–15:57:49.774 UTC**. The whole three affected browser files
+  started afterward, 21 cases, one worker, zero retries.
+- First expanded phone outage/comparison case failed **22.3s** on an ambiguous
+  note selector (seeded note plus new note). Scoped it to the newly added note;
+  no product/assertion changes. Fresh three-project outage rerun required.
+- Affected three-file run **15:57:49.842–16:10:39.525 UTC**, **769.683s**, exit 1:
+  **18 passed / 3 failed**. All A2 (3), recovery (12) and main reference (3) cases
+  passed; only the cached note-selector failed on all three outage projects.
+  Preserved artifacts; corrected outage scenario rerun separately.
+- First outage-only rerun **16:10:55.919–16:13:24.615 UTC**, **148.696s**,
+  exit 1, **0/3**: new comparison assertions reached, but test checked submission
+  before filling its required revision reason. Corrected setup; no product or
+  assertion weakening. Preserved artifacts; fresh three-project rerun follows.
+- Next outage-only attempt **16:14:14.346–16:17:59.000 UTC**, **224.654s**,
+  exit 1, **0/3**: captures and comparison assertions passed; later source reload
+  was ambiguous after selecting a replacement source. Scoped the source-list
+  action; application unchanged. Original artifacts retained; rerun follows.
+- Clean-native attempts **156.544s** and **158.969s** stopped on the old unit stub
+  and a jobs property timeout under concurrent browser startup respectively.
+  Frozen installs/package-export builds/types passed; neither command is claimed
+  green. Sequential root verification passed 288 units and negative/OpenAPI checks
+  before being interrupted for the finish-review changes. Preserve raw failures;
+  no weakened tests. Heavy final commands will run sequentially.
+- Final outage-only rerun **exit 0, 3/3, 156.572s**,
+  **16:18:36.278–16:21:12.850 UTC**. Together with the eighteen passes above,
+  latest focused evidence covers all21 cases; no single green21-case/broad claim.
+  All31 current captures validated, including supplemental desktop comparison
+  viewport; fresh D16 verdict **ship**, scored fix resolved, prior four fixes
+  retained, no material batch regressions observed. This is scoped visual
+  acceptance only. Documenter returned No changes.
+- Final root lint **exit 0, 3.885s**, **16:23:53.805–16:23:57.690 UTC** after
+  test-only corrections. Current synthetic host **49677** observed ready
+  **16:23:57 UTC**; normal sign-in/history200, one version/three references;
+  T3 own tab navigated to ordinary sign-in without session injection.
+- Final pushed-revision hosted checks are recorded on PR #151. Human acceptance,
+  owner merge and live activation remain pending; no deployment authorized.
+- Local review packet ready observed **16:26:14 UTC** after scored D16 ship,
+  current host/sign-in checks and final focused evidence. Active coding/rework
+  stopwatch remains unknown; browser waits are not counted as coding time.
+
 ## Issue #147 / 1.3.1b — garment specification versions
 
 - Owner selected A2 after A1 PR #149 merged **22 October 2026, 07:42:23 UTC**.

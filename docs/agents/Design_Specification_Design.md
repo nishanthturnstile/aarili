@@ -1,8 +1,8 @@
 # Versioned garment design specifications: independent design
 
 22 October 2026. Roadmap **1.3.1**. **Owner-approved software design and packet;
-A1 [#146](https://github.com/nishanthturnstile/aarili/issues/146) merged; selected A2 #147 implemented in
-[draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), awaiting owner review/merge.** [Research](Design_Specification_REA_Evidence.md),
+A1 #146 / PR #149 and A2 #147 / PR #150 merged; owner selected
+[B #148](https://github.com/nishanthturnstile/aarili/issues/148), implementation and verification underway.** [Research](Design_Specification_REA_Evidence.md),
 [concrete packet](Design_Specification_Ticket_Packet.md),
 [verification and delivery status](Design_Specification_Implementation_Evidence.md).
 
@@ -30,7 +30,7 @@ published as #146/#147/#148 with native dependency links; only A1 is selected.
 #147. Its seven direct blocker merge commits are verified in the updated
 development ancestry, now `3459ec4`. Implementation uses the same checkout on
 `codex/design-specifications-a2`. The original preparation baseline above remains
-dated evidence. B #148 is unselected; the approved decisions below are unchanged.
+dated evidence. The owner selected B #148 after the A2 merge; all six direct blockers are merged. The approved decisions below are unchanged.
 
 The existing roadmap edit and untracked REA prompt predate this work. They are
 preserved. Preparation used `codex/design-specification-packet`; approved A1 work

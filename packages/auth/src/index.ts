@@ -30,6 +30,15 @@ import {
   type DesignChoicesContext,
   designChoicesDraftWorkflow,
 } from "@aarili/core/design-choices";
+import { designMediaPolicy } from "@aarili/core/design-media-policy";
+import {
+  type DesignReferencesContext,
+  designMediaSubjectWorkflow,
+  designSpecificationMediaWorkflow,
+  prepareDesignReferenceScopes,
+  sanitizeDesignReferenceVersion,
+  validateSelectedDesignReferences,
+} from "@aarili/core/design-references";
 import {
   type DesignSpecificationsContext,
   designSpecificationWorkflow,
@@ -116,6 +125,7 @@ import { commandRepository } from "@aarili/db/command-repository";
 import { customerHistoryRepository } from "@aarili/db/customer-history-repository";
 import { customerRepository } from "@aarili/db/customer-repository";
 import { designChoicesRepository } from "@aarili/db/design-choices-repository";
+import { designReferencesRepository } from "@aarili/db/design-references-repository";
 import { designSpecificationsRepository } from "@aarili/db/design-specifications-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
@@ -294,6 +304,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: DesignSpecificationsContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
+  withOwnerDesignReferences: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DesignReferencesContext, media: MediaContext) => Promise<T>,
   ) => Promise<{ data: T; headers: Headers }>;
   withOwnerDesignChoices: <T>(
     headers: Headers,
@@ -1381,6 +1396,16 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         ),
       );
       workflows.set(
+        "design.specification@2",
+        designSpecificationMediaWorkflow(
+          designReferencesContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
+        "design.reference",
+        designMediaSubjectWorkflow(designReferencesContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "design.choices",
         designChoicesDraftWorkflow(designChoicesContext(tx, shopId, userId)),
       );
@@ -1449,6 +1474,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
             smallServiceContext(tx, shopId, userId),
             records,
             designSpecificationsRepository(tx, shopId),
+            designReferencesRepository(tx, shopId),
           ),
         ...(configuration.draftInstrumentation
           ? { instrumentation: configuration.draftInstrumentation(tx, shopId) }
@@ -1556,11 +1582,60 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     shopId: string,
     actorId: string,
   ): DesignSpecificationsContext {
-    return {
-      orders: quickOrderContext(tx, shopId, actorId),
+    return designReferencesContext(tx, shopId, actorId).specifications;
+  }
+  function designReferencesContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): DesignReferencesContext {
+    const repository = designReferencesRepository(tx, shopId),
+      orders = quickOrderContext(tx, shopId, actorId);
+    if (!orders.acceptance)
+      throw Error("Accepted garment repository unavailable");
+    const specifications: DesignSpecificationsContext = {
+      orders,
       choices: designChoicesContext(tx, shopId, actorId),
-      repository: designSpecificationsRepository(tx, shopId),
+      repository: designSpecificationsRepository(tx, shopId, (id) =>
+        repository.references(id),
+      ),
     };
+    const ctx: DesignReferencesContext = {
+      specifications,
+      repository,
+      actorId,
+      drafts: draftRepository(tx, shopId),
+      media: mediaRepository(tx, shopId),
+      authority: {
+        repository,
+        orders: orders.acceptance.repository,
+        wearers: orders.wearers.repository,
+        guardians: orders.guardians.repository,
+        enabled:
+          orders.wearers.policy.enabled &&
+          orders.wearers.policy.synthetic &&
+          !!orders.wearers.policy.notice,
+      },
+    };
+    specifications.prepareReferenceScopes = (scopes) =>
+      prepareDesignReferenceScopes(ctx, scopes);
+    specifications.sanitizeReferenceVersion = (v) =>
+      sanitizeDesignReferenceVersion(ctx, v);
+    specifications.validateReferences = (v) =>
+      validateSelectedDesignReferences(ctx, v);
+    return ctx;
+  }
+  async function withOwnerDesignReferences<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DesignReferencesContext, media: MediaContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(
+        designReferencesContext(tx, shopId, actorId),
+        ownerMediaContext(tx, shopId, actorId),
+      ),
+    );
   }
   async function withOwnerDesignSpecifications<T>(
     headers: Headers,
@@ -1771,40 +1846,53 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     run: (ctx: MediaContext) => Promise<T>,
   ) {
     shopId = shopId.toLowerCase();
-    return withOwnerTransaction(headers, shopId, (tx, userId) => {
-      const unavailable = async (): Promise<never> => {
-        throw Error("Private media adapter unavailable");
-      };
-      const adapters = configuration.mediaAdapters?.(tx, shopId, userId) ?? {
-        policy: deniedMediaPolicy,
-        storage: {
-          signPut: unavailable,
-          signGet: unavailable,
-          snapshot: unavailable,
-          seal: unavailable,
-          removeStaging: unavailable,
-        },
-        jobs: { enqueue: unavailable },
-      };
-      const writer = createUsageWriter(usageRepository(tx, shopId));
-      return run({
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run(ownerMediaContext(tx, shopId, userId)),
+    );
+  }
+  function ownerMediaContext(
+    tx: Transaction,
+    shopId: string,
+    userId: string,
+  ): MediaContext {
+    const unavailable = async (): Promise<never> => {
+      throw Error("Private media adapter unavailable");
+    };
+    const adapters = configuration.mediaAdapters?.(tx, shopId, userId) ?? {
+      policy: deniedMediaPolicy,
+      storage: {
+        signPut: unavailable,
+        signGet: unavailable,
+        snapshot: unavailable,
+        seal: unavailable,
+        removeStaging: unavailable,
+      },
+      jobs: { enqueue: unavailable },
+    };
+    const writer = createUsageWriter(usageRepository(tx, shopId));
+    return {
+      shopId,
+      actor: { type: "user", id: userId },
+      repository: mediaRepository(tx, shopId),
+      ...adapters,
+      policy: shopBrandingPolicy(
         shopId,
-        actor: { type: "user", id: userId },
-        repository: mediaRepository(tx, shopId),
-        ...adapters,
-        policy: shopBrandingPolicy(shopId, adapters.policy),
-        instrumentation: {
-          stored: async (actionId, assetId, bytes) => {
-            await writer.record({
-              actionId,
-              subjectId: assetId,
-              name: "media.stored",
-              bytes,
-            });
-          },
+        designMediaPolicy(
+          designReferencesContext(tx, shopId, userId).authority,
+          adapters.policy,
+        ),
+      ),
+      instrumentation: {
+        stored: async (actionId, assetId, bytes) => {
+          await writer.record({
+            actionId,
+            subjectId: assetId,
+            name: "media.stored",
+            bytes,
+          });
         },
-      });
-    });
+      },
+    };
   }
   async function withOwnerDocument<T>(
     headers: Headers,
@@ -2144,6 +2232,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopPolicies,
     withOwnerShopDirectory,
     withOwnerDesignSpecifications,
+    withOwnerDesignReferences,
     withOwnerDesignChoices,
     withOwnerServiceCatalogue,
     withOwnerMeasurementForms,

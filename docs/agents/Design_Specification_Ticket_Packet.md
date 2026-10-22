@@ -1,7 +1,8 @@
 # Design specifications: concrete ticket packet
 
-22 October 2026. **Software packet approved; A1 merged; selected A2 #147 implemented in
-[draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), awaiting owner review/merge.** Roadmap 1.3.1;
+22 October 2026. **Software packet approved; A1 and A2 merged; owner selected
+[B #148](https://github.com/nishanthturnstile/aarili/issues/148), implemented in draft
+[PR #151](https://github.com/nishanthturnstile/aarili/pull/151) for owner review.** Roadmap 1.3.1;
 [design](Design_Specification_Design.md), [research](Design_Specification_REA_Evidence.md),
 [baseline/checks](Design_Specification_Implementation_Evidence.md).
 
@@ -16,7 +17,7 @@ behaviour remain in B. Approved publication created
 [A2 #147](https://github.com/nishanthturnstile/aarili/issues/147) and
 [B #148](https://github.com/nishanthturnstile/aarili/issues/148). A1 #146 merged in
 PR #149. The owner then selected A2 #147; all seven direct blockers are merged.
-B remains unselected. This approval
+B was selected after A2 / PR #150 merged at 10:13:32 UTC. All six B direct blockers are merged. This approval
 does not authorise merge, deployment, production policy or live data.
 
 | Published ticket | Reviewable owner outcome | Native direct dependencies |
@@ -332,5 +333,5 @@ named synthetic shop/order/pieces, device/browser/language and these steps:
 Record observed implementation start/review-ready/first-tryable/PR/merge times
 and separate coding/verification/CI/wait/rework in [Delivery_Measurements.md](Delivery_Measurements.md)
 for each selected delivery. The implementation evidence contains dated A1 results
-and the A2 review instructions and verification ledger. B remains unselected;
+and the A2 review instructions and verification ledger. B is now selected and in verification;
 software approval, publication, selection, owner merge and live activation are distinct.

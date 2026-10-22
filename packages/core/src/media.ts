@@ -22,6 +22,8 @@ import type {
 import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
 export type MediaPolicy = {
+  prepare?(subjectId: string): Promise<void>;
+  authorizeRead?(assetId: string): Promise<void>;
   authorize(input: {
     action: "upload" | "complete" | "read" | "process";
     subjectId: string;
@@ -30,6 +32,13 @@ export type MediaPolicy = {
   }): Promise<{ minor: boolean; guardianConsent: boolean } | null>;
 };
 export const deniedMediaPolicy: MediaPolicy = { authorize: async () => null };
+async function lockAsset(ctx: MediaContext, id: string) {
+  if (ctx.policy.prepare) {
+    const a = await ctx.repository.read(id);
+    if (a) await ctx.policy.prepare(a.subjectId);
+  }
+  await ctx.repository.lock(id);
+}
 export type MediaStorage = {
   signPut(
     key: string,
@@ -169,14 +178,15 @@ export async function admitMedia(
       p.contentType !== "application/pdf")
   )
     fail(422, "VALIDATION_FAILED");
-  const permitted = await authority(ctx, p, "upload");
   const { b, old } = await binding(ctx, "media.admit", p, headers.key);
+  await ctx.policy.prepare?.(p.subjectId);
+  const permitted = await authority(ctx, p, "upload");
   // Request-key responses contain no signed secrets. Replay may renew only an
   // unexpired existing staging grant; accepted/expired history is never reopened.
   let a: MediaAsset;
   if (old) {
     const response = mediaSuccessSchema.parse(old.response);
-    await ctx.repository.lock(response.asset.id);
+    await lockAsset(ctx, response.asset.id);
     const found = await ctx.repository.read(response.asset.id);
     if (!found) fail(404, "NOT_FOUND");
     a = found;
@@ -240,7 +250,7 @@ export async function completeMedia(
     { id, input, version: expected.version },
     headers.key,
   );
-  await ctx.repository.lock(id);
+  await lockAsset(ctx, id);
   const a = await ctx.repository.read(id);
   if (!a) fail(404, "NOT_FOUND");
   await authority(ctx, a, "complete");
@@ -320,6 +330,7 @@ export async function readMedia(
   if (a?.status !== "ready" || !a.acceptedKey) fail(404, "NOT_FOUND");
   await authority(ctx, a, "read");
   const now = await ctx.repository.now();
+  await ctx.policy.authorizeRead?.(id);
   const derivative = variant
     ? (await ctx.repository.derivatives(id)).find((d) => d.variant === variant)
     : undefined;
@@ -375,7 +386,7 @@ export async function inspectMediaProcessing(
   attemptId: string,
   epoch: string,
 ) {
-  await ctx.repository.lock(assetId);
+  await lockAsset(ctx, assetId);
   const asset = await ctx.repository.read(assetId),
     attempt = await ctx.repository.attempt(assetId),
     control = await ctx.repository.control();
@@ -408,7 +419,7 @@ export async function processMedia(
   assetId = assetId.toLowerCase();
   attemptId = attemptId.toLowerCase();
   const claim = await host.transaction(async (ctx) => {
-    await ctx.repository.lock(assetId);
+    await lockAsset(ctx, assetId);
     const a = await ctx.repository.read(assetId);
     const attempt = await ctx.repository.attempt(assetId);
     const control = await ctx.repository.control();
@@ -490,7 +501,7 @@ export async function processMedia(
     } catch (error) {
       if (!(error instanceof MediaValidationFailure)) throw error;
       return await host.transaction(async (ctx) => {
-        await ctx.repository.lock(assetId);
+        await lockAsset(ctx, assetId);
         const a = await ctx.repository.read(assetId);
         const attempt = await ctx.repository.attempt(assetId);
         const control = await ctx.repository.control();
@@ -563,7 +574,7 @@ export async function processMedia(
       });
     }
     return await host.transaction(async (ctx) => {
-      await ctx.repository.lock(assetId);
+      await lockAsset(ctx, assetId);
       const a = await ctx.repository.read(assetId);
       const attempt = await ctx.repository.attempt(assetId);
       const control = await ctx.repository.control();
@@ -614,7 +625,7 @@ export async function processMedia(
     // still-owned fence; crashes retain the lease until queue expiry/recovery.
     try {
       await host.transaction(async (ctx) => {
-        await ctx.repository.lock(assetId);
+        await lockAsset(ctx, assetId);
         const a = await ctx.repository.read(assetId);
         const attempt = await ctx.repository.attempt(assetId);
         if (
@@ -697,7 +708,7 @@ export async function reconcileMediaOutputs(
     );
   };
   await host.transaction(async (ctx) => {
-    await ctx.repository.lock(id);
+    await lockAsset(ctx, id);
     const a = await ctx.repository.read(id),
       control = await ctx.repository.control();
     if (!a || !control?.outbound) return;
@@ -751,7 +762,7 @@ export async function reconcileMediaOutputs(
   // The first transaction (including deletion intent+audit) has committed.
   // Each bounded deletion re-locks/rechecks current authority and restore state.
   const intents = await host.transaction(async (ctx) => {
-    await ctx.repository.lock(id);
+    await lockAsset(ctx, id);
     const a = await ctx.repository.read(id);
     const control = await ctx.repository.control();
     if (!a || !control?.outbound) return [];
@@ -761,7 +772,7 @@ export async function reconcileMediaOutputs(
   let removed = 0;
   for (const intent of intents)
     await host.transaction(async (ctx) => {
-      await ctx.repository.lock(id);
+      await lockAsset(ctx, id);
       const a = await ctx.repository.read(id),
         control = await ctx.repository.control(),
         now = await ctx.repository.now();

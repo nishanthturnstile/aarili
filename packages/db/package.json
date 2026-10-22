@@ -303,6 +303,14 @@
     "./repositories/design-specifications": {
       "types": "./dist/repositories/design-specifications.d.ts",
       "import": "./dist/repositories/design-specifications.js"
+    },
+    "./design-references-repository": {
+      "types": "./dist/design-references-repository.d.ts",
+      "import": "./dist/design-references-repository.js"
+    },
+    "./repositories/design-references": {
+      "types": "./dist/repositories/design-references.d.ts",
+      "import": "./dist/repositories/design-references.js"
     }
   },
   "scripts": {

@@ -9,7 +9,7 @@ import { productionJobComposition } from "@aarili/jobs/production";
 import { createMediaStorage } from "@aarili/platform/media-storage";
 import { withPrivateS3 } from "./private-s3.mjs";
 import { withTenantFixture } from "./tenant-isolation.mjs";
-export async function withMediaProcessing(run) {
+export async function withMediaProcessing(run, options = {}) {
   await withPrivateS3(async (config) => {
     const actualStorage = createMediaStorage(config);
     let boss,
@@ -30,6 +30,10 @@ export async function withMediaProcessing(run) {
       },
     };
     const adapters = (tx, shopId) => ({
+      ...(options.wearerPolicy ? { wearerPolicy: options.wearerPolicy } : {}),
+      ...(options.guardianPolicy
+        ? { guardianPolicy: options.guardianPolicy }
+        : {}),
       policy: {
         async authorize({ subjectId }) {
           const result = await tx.execute(
@@ -196,7 +200,7 @@ export async function withMediaProcessing(run) {
             },
           });
         },
-        { mediaAdapters: adapters },
+        { ...options, mediaAdapters: adapters },
       );
     } finally {
       if (boss) await boss.stop();

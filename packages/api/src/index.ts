@@ -9,6 +9,7 @@ import { createBookingRoutes } from "./bookings.js";
 import { createCustomerHistoryRoutes } from "./customer-history.js";
 import { createCustomerRoutes } from "./customers.js";
 import { createDesignChoicesRoutes } from "./design-choices.js";
+import { createDesignReferencesRoutes } from "./design-references.js";
 import { createDesignSpecificationsRoutes } from "./design-specifications.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
@@ -105,6 +106,7 @@ export function createApi(
     app.route("/", createServiceCatalogueRoutes(owner));
     app.route("/", createDesignChoicesRoutes(owner));
     app.route("/", createDesignSpecificationsRoutes(owner));
+    app.route("/", createDesignReferencesRoutes(owner));
     app.route("/", createMeasurementFormsRoutes(owner));
     app.route("/", createServiceTemplatesRoutes(owner));
 

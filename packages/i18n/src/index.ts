@@ -9,6 +9,7 @@ export { bookingMessages, formatBookingPaise } from "./booking-messages.js";
 export { contactMergeMessages } from "./contact-merge-messages.js";
 export { customerHistoryMessages } from "./customer-history-messages.js";
 export { designChoicesMessages } from "./design-choices-messages.js";
+export { designReferenceMessages } from "./design-reference-messages.js";
 export { designSpecificationMessages } from "./design-specification-messages.js";
 export { documentMessages } from "./document-messages.js";
 export { groupIntakeMessages } from "./group-intake-messages.js";

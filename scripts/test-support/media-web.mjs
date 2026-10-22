@@ -8,13 +8,16 @@ import { setTimeout as delay } from "node:timers/promises";
 import { startJobRuntime } from "@aarili/jobs/runtime";
 import { PutBucketCorsCommand, S3Client } from "@aws-sdk/client-s3";
 import { withMediaProcessing } from "./media-processing.mjs";
-export async function withMediaWeb(run, { surface = "media" } = {}) {
+export async function withMediaWeb(
+  run,
+  { surface = "media", fixture = withMediaProcessing } = {},
+) {
   const reservation = createServer();
   await new Promise((r) => reservation.listen(0, "127.0.0.1", r));
   const port = reservation.address().port;
   await new Promise((r) => reservation.close(r));
   const origin = `http://127.0.0.1:${port}`;
-  await withMediaProcessing(async (f) => {
+  await fixture(async (f) => {
     const client = new S3Client({
       ...f.config,
       credentials: {
@@ -151,9 +154,11 @@ export async function withMediaWeb(run, { surface = "media" } = {}) {
     );
     await writeFile(
       join(directory, "app/page.tsx"),
-      surface === "shop-profile"
-        ? 'import {OwnerFlow} from "../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}'
-        : `import Host from "../../../apps/web/test-support/media-host-app";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} subjectId=${JSON.stringify(f.subjectId)}/>}`,
+      surface === "design-references"
+        ? `import Host from "../../../apps/web/test-support/design-reference-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
+        : surface === "shop-profile"
+          ? 'import {OwnerFlow} from "../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}'
+          : `import Host from "../../../apps/web/test-support/media-host-app";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} subjectId=${JSON.stringify(f.subjectId)}/>}`,
     );
     if (surface === "shop-profile") {
       await mkdir(join(directory, "app/settings"), { recursive: true });
@@ -161,6 +166,20 @@ export async function withMediaWeb(run, { surface = "media" } = {}) {
         join(directory, "app/settings/page.tsx"),
         'import {OwnerFlow} from "../../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}',
       );
+    }
+    if (surface === "design-references") {
+      await mkdir(join(directory, "app/sign-in"), { recursive: true });
+      await writeFile(
+        join(directory, "app/sign-in/page.tsx"),
+        'import {OwnerFlow} from "../../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="sign-in"/>}',
+      );
+      for (const route of ["owner", "dashboard"]) {
+        await mkdir(join(directory, `app/${route}`), { recursive: true });
+        await writeFile(
+          join(directory, `app/${route}/page.tsx`),
+          `import Host from "../../../../apps/web/test-support/design-reference-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`,
+        );
+      }
     }
     await writeFile(
       join(directory, "app/api/[...path]/route.ts"),
