@@ -219,6 +219,93 @@ export const serviceOrderDraftSchema = z.strictObject({
   commitmentReview: orderDecisionSchema.nullable(),
 });
 export type ServiceOrderDraft = z.infer<typeof serviceOrderDraftSchema>;
+export const serviceRepeatSelectionSchema = z.strictObject({
+  key: z.string().min(1).max(240),
+  kind: z.enum(["standalone", "addition", "original-addon"]),
+  sourceId: z.uuid(),
+  sourceDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  lineId: z.uuid().nullable(),
+  addonKey: z.string().max(80).nullable(),
+  pieceId: z.uuid().nullable(),
+  lineVersion: z.number().int().positive(),
+  catalogueEntryId: z.uuid(),
+  catalogueRevisionId: z.uuid(),
+  targetLineId: z.uuid(),
+});
+export const serviceRepeatRefSchema = z.strictObject({
+  sourceId: z.uuid(),
+  sourceVersion: z.number().int().positive(),
+  snapshotDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  subjectId: z.uuid().nullable(),
+  reuseInstructions: z.boolean(),
+  selections: z.array(serviceRepeatSelectionSchema).min(1).max(32),
+});
+export type ServiceRepeatRef = z.infer<typeof serviceRepeatRefSchema>;
+export const serviceRepeatDraftSchema = serviceOrderDraftSchema.extend({
+  repeat: serviceRepeatRefSchema,
+});
+export type ServiceRepeatDraft = z.infer<typeof serviceRepeatDraftSchema>;
+export function serviceRepeatIntake(
+  value: ServiceRepeatDraft,
+): ServiceOrderDraft {
+  const { repeat: _repeat, ...intake } = value;
+  return serviceOrderDraftSchema.parse(intake);
+}
+export function serviceFormValue(value: unknown): ServiceOrderDraft {
+  const repeat = serviceRepeatDraftSchema.safeParse(value);
+  return repeat.success ? repeat.data : serviceOrderDraftSchema.parse(value);
+}
+export const createServiceRepeatSchema = z.strictObject({
+  draftId: z.uuid(),
+  subjectId: z.uuid(),
+  snapshotDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  reuseInstructions: z.boolean(),
+  profile: serviceOrderDraftSchema.shape.profile,
+  selections: z
+    .array(
+      z.strictObject({
+        key: z.string().min(1).max(240),
+        targetLineId: z.uuid(),
+        targetKey: z.string().max(80),
+      }),
+    )
+    .min(1)
+    .max(32),
+});
+export const serviceRepeatSourceSchema = z.strictObject({
+  pieces: z.array(
+    z.strictObject({
+      id: z.uuid(),
+      entryId: z.uuid(),
+      labelEn: z.string(),
+      labelTa: z.string(),
+    }),
+  ),
+  id: z.uuid(),
+  code: z.string(),
+  version: z.number().int().positive(),
+  kind: z.enum(["custom", "service"]),
+  snapshotDigest: z.string(),
+  scopeDigest: z.string(),
+  customer: quickOrderPreviewSchema.shape.customer,
+  wearer: quickOrderPreviewSchema.shape.wearer,
+  subjectDescription: z.string(),
+  subjectId: z.uuid().nullable(),
+  instructions: z.string(),
+  originalPromise: z.strictObject({ date: z.string(), time: z.string() }),
+  candidates: z.array(
+    serviceRepeatSelectionSchema.omit({ targetLineId: true }).extend({
+      labelEn: z.string(),
+      labelTa: z.string(),
+      requestedWork: z.string(),
+      state: z.enum(["pending", "completed", "not-required", "unresolved"]),
+      previousPaise: z.number().int().nonnegative().nullable(),
+    }),
+  ),
+});
+export type ServiceRepeatSource = z.infer<typeof serviceRepeatSourceSchema>;
 export const serviceOrderCommandSchema = serviceOrderDraftSchema.superRefine(
   (v, c) => {
     const issue = (field: string) =>
@@ -333,6 +420,16 @@ export const serviceOrderReviewSchema = z.strictObject({
 });
 export type ServiceOrderReview = z.infer<typeof serviceOrderReviewSchema>;
 export const acceptedServiceOrderSchema = z.strictObject({
+  currentAttribution: z
+    .strictObject({
+      customerId: z.uuid(),
+      originalCustomerId: z.uuid(),
+      code: z.string(),
+      label: z.string(),
+      eventId: z.uuid(),
+      version: z.number().int().positive(),
+    })
+    .optional(),
   kind: z.literal("service"),
   id: z.uuid(),
   code: z.string(),

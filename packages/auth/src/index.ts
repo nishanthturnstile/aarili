@@ -20,6 +20,7 @@ import {
 import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { readShop } from "@aarili/core";
 import type { CommandContext } from "@aarili/core/commands";
+import type { CustomerHistoryContext } from "@aarili/core/customer-history";
 import {
   blockedCustomerPolicy,
   syntheticCustomerPolicy,
@@ -39,6 +40,7 @@ import {
   type QuickOrderContext,
   quickOrderConversion,
   quickOrderDraftWorkflow,
+  repeatOrderWorkflow,
 } from "@aarili/core/orders";
 import {
   type ServiceCatalogueContext,
@@ -79,6 +81,7 @@ import {
   serviceIntakeWorkflow,
   serviceOrderDraftWorkflow,
   serviceProfileDraftWorkflow,
+  serviceRepeatWorkflow,
 } from "@aarili/core/small-services";
 import { createUsageWriter } from "@aarili/core/usage";
 import {
@@ -102,6 +105,7 @@ import {
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
 import { commandRepository } from "@aarili/db/command-repository";
+import { customerHistoryRepository } from "@aarili/db/customer-history-repository";
 import { customerRepository } from "@aarili/db/customer-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
@@ -144,6 +148,7 @@ import {
   googleFromEnvironment,
   validateGoogle,
 } from "./google.js";
+import { historyCursorCodec } from "./history-cursor.js";
 
 export { googleFromEnvironment } from "./google.js";
 
@@ -250,6 +255,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerHistory: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: CustomerHistoryContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerSmallServices: <T>(
     headers: Headers,
     shopId: string,
@@ -1262,6 +1272,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "order.repeat-service",
+        serviceRepeatWorkflow(smallServiceContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "order.repeat",
+        repeatOrderWorkflow(quickOrderContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "service.intake-profile",
         serviceProfileDraftWorkflow(smallServiceContext(tx, shopId, userId)),
       );
@@ -1454,6 +1472,19 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       orders: quickOrderContext(tx, shopId, actorId),
       repository: smallServicesRepository(tx, shopId),
     };
+  }
+  async function withOwnerHistory<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: CustomerHistoryContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run({
+        identities: quickOrderContext(tx, shopId, actorId),
+        repository: customerHistoryRepository(tx, shopId),
+        cursor: historyCursorCodec(configuration.secret),
+      }),
+    );
   }
   async function withOwnerSmallServices<T>(
     headers: Headers,
@@ -2042,6 +2073,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerMeasurementForms,
     withOwnerServiceTemplates,
     withOwnerQuickOrder,
+    withOwnerHistory,
     withOwnerSmallServices,
     withOwnerShopCalendar,
     withOwnerMedia,

@@ -238,6 +238,54 @@
 }
 
 @layer components {
+  .customer-history {
+    margin-block: var(--space-page);
+    padding-block: var(--space-page);
+    border-block: 1px solid var(--border);
+  }
+  .customer-history-events {
+    list-style: none;
+    padding: 0;
+  }
+  .customer-history-events > li {
+    border-block-start: 1px solid var(--border);
+    padding-block: var(--space-page);
+  }
+  .customer-history dl {
+    display: grid;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    margin-block: calc(var(--spacing) * 4);
+  }
+  .customer-history dt {
+    font-weight: 600;
+  }
+  .customer-history summary {
+    min-height: 44px;
+    padding-block: calc(var(--spacing) * 2);
+    cursor: pointer;
+  }
+  .customer-history summary:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .customer-history dl > div {
+    display: contents;
+  }
+  .customer-history dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .customer-history-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-underline-offset: 0.2em;
+  }
+  @media (min-width: 768px) {
+    .customer-history dl {
+      grid-template-columns: minmax(8rem, 1fr) minmax(0, 3fr);
+    }
+  }
   .owner-skip-link {
     position: fixed;
     inset-block-start: var(--space-control);
@@ -1115,6 +1163,45 @@
     display: grid;
     gap: var(--space-control);
   }
+  .identity-review {
+    overflow-wrap: anywhere;
+  }
+  .identity-pair {
+    display: grid;
+    gap: var(--space-page);
+  }
+  .identity-pair section {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: var(--space-control);
+  }
+  .identity-candidates {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-page);
+  }
+  .identity-candidates > li {
+    border-block-end: 1px solid var(--border);
+    padding-block-end: var(--space-page);
+    display: grid;
+    gap: var(--space-control);
+  }
+  .identity-review form {
+    display: grid;
+    gap: var(--space-control);
+  }
+  .identity-review a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-height);
+  }
+  @media (min-width: 1024px) {
+    .identity-pair {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
   .customer-notice-text p,
   .customer-preserve {
     white-space: pre-wrap;
@@ -1555,6 +1642,12 @@
   padding-block: var(--space-control);
   cursor: pointer;
 }
+.identity-select input {
+  accent-color: var(--primary);
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
 .order-intake .order-check input {
   flex: none;
   accent-color: var(--primary);
@@ -1567,4 +1660,12 @@
   .order-related-fields {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
+}
+
+.identity-select {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);
+  min-height: 2.75rem;
+  cursor: pointer;
 }

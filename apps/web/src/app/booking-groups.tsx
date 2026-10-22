@@ -613,12 +613,14 @@ export function BookingGroups({
   locale,
   back,
   initialBookingRevision,
+  initialBookingIsId = false,
 }: {
   shopId: string;
   guard: OwnerGuard;
   locale: Locale;
   back: () => void;
   initialBookingRevision?: string | undefined;
+  initialBookingIsId?: boolean;
 }) {
   const t = bookingMessages[locale],
     [scope] = useState(() => createDraftScope(shopId, guard));
@@ -644,7 +646,7 @@ export function BookingGroups({
     if (!initialBookingRevision) return;
     let active = true;
     setBusy(true);
-    void readBooking(shopId, initialBookingRevision, true).then(
+    void readBooking(shopId, initialBookingRevision, !initialBookingIsId).then(
       (r) => {
         if (active) {
           setDetail(r);
@@ -662,7 +664,7 @@ export function BookingGroups({
     return () => {
       active = false;
     };
-  }, [initialBookingRevision, shopId]);
+  }, [initialBookingRevision, initialBookingIsId, shopId]);
   useEffect(() => {
     alive.current = true;
     const stop = onOwnerInvalidation(() => {

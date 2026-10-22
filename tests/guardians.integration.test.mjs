@@ -200,7 +200,12 @@ async function age(f, c, id, value) {
       f,
       base(c, id),
       "PATCH",
-      { age: value, preferences: w.preferences, relationship },
+      {
+        age: value,
+        preferences: w.preferences,
+        relationship,
+        reason: "SYNTHETIC age correction",
+      },
       headers(w.version),
     ),
   );
@@ -689,7 +694,12 @@ test(
             c.id,
             "update",
             w.id,
-            { age: "unknown", preferences: current.preferences, relationship },
+            {
+              age: "unknown",
+              preferences: current.preferences,
+              relationship,
+              reason: "SYNTHETIC age correction",
+            },
             {
               key: randomUUID(),
               requestId: randomUUID(),

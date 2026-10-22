@@ -1,6 +1,6 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import {
-  customerContactSchema,
+  customerCorrectionSchema,
   customerCreateSchema,
   customerErrorSchema,
   customerMutationSchema,
@@ -231,7 +231,9 @@ export function createCustomerRoutes(
           headers,
           body: {
             required: true,
-            content: { "application/json": { schema: customerContactSchema } },
+            content: {
+              "application/json": { schema: customerCorrectionSchema },
+            },
           },
         },
         responses: { 200: response(customerMutationSchema), ...failures },

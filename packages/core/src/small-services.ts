@@ -51,6 +51,14 @@ export type SmallServiceContext = {
   orders: QuickOrderContext;
   repository: SmallServicesRepository;
 };
+export {
+  createServiceRepeat,
+  readServiceRepeatLinks,
+  readServiceRepeatSource,
+  reviewServiceRepeat,
+  serviceRepeatWorkflow,
+} from "./repeat-services.js";
+
 function fail(status: 404 | 409 | 412 | 422 = 409): never {
   throw new DraftFailure(status, {
     error: {
@@ -620,6 +628,8 @@ export async function reviewServiceOrder(
 }
 export function serviceOrderDraftWorkflow(
   ctx: SmallServiceContext,
+  snapshotExtension: Record<string, unknown> = {},
+  reviewFingerprint?: string,
 ): DraftWorkflow {
   let resolved: Awaited<ReturnType<typeof resolveServiceSelection>> | undefined;
   return {
@@ -686,7 +696,9 @@ export function serviceOrderDraftWorkflow(
       )
         fail();
       const v = serviceOrderCommandSchema.parse(input);
+      if (reviewFingerprint) resolved.review.fingerprint = reviewFingerprint;
       const snapshot = {
+        ...snapshotExtension,
         ...resolved.shared.snapshot,
         intake: v,
         serviceProfile: resolved.profile,

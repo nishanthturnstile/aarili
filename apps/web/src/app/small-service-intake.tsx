@@ -1,3 +1,4 @@
+import { OwnerRequestError } from "@aarili/api/client";
 import { readCustomer, searchCustomers } from "@aarili/api/customer-client";
 import {
   listAcceptedOrders,
@@ -10,6 +11,7 @@ import {
   readServiceProfile,
   readServiceProfiles,
   reviewServiceOrder,
+  reviewServiceRepeat,
 } from "@aarili/api/small-services-client";
 import { listWearers } from "@aarili/api/wearer-client";
 import type { CustomerSearchPage } from "@aarili/contracts/customers";
@@ -18,14 +20,18 @@ import {
   type ServiceOrderDraft,
   type ServiceOrderReview,
   type ServiceProfileRevision,
+  serviceFormValue,
   serviceOrderDraftSchema,
+  serviceRepeatDraftSchema,
 } from "@aarili/contracts/small-services";
 import type { WearerProfile } from "@aarili/contracts/wearers";
 import {
+  contactMergeMessages,
   formatOrderPaise,
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
+  repeatServiceMessages,
   serviceAdditionMessages,
   serviceLineMessages,
   smallServiceMessages,
@@ -39,6 +45,7 @@ import { v7 } from "uuid";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import type { OwnerGuard } from "./owner-feedback";
+import { ServiceRepeatContext } from "./repeat-services";
 import { ServiceLineCompletion } from "./service-line-completion";
 
 function SourceOrder({
@@ -230,7 +237,7 @@ function ServiceCommitment({
     controller.snapshot,
     controller.snapshot,
   );
-  const v = serviceOrderDraftSchema.parse(s.values);
+  const v = serviceFormValue(s.values);
   const [review, setReview] = useState<ServiceOrderReview>(),
     [reviewed, setReviewed] = useState(""),
     [busy, setBusy] = useState(false),
@@ -270,14 +277,17 @@ function ServiceCommitment({
       const s = controller.snapshot();
       if (s.status !== "saved" || s.work.dirty || s.work.outcomeUnknown)
         throw Error("Save unresolved");
-      const input = serviceOrderDraftSchema.parse(s.values),
+      const input = serviceFormValue(s.values),
         m = material(input),
-        r = await reviewServiceOrder(shopId, input);
+        r = serviceRepeatDraftSchema.safeParse(s.values).success
+          ? await reviewServiceRepeat(
+              shopId,
+              serviceRepeatDraftSchema.parse(s.values),
+            )
+          : await reviewServiceOrder(shopId, input);
       if (
         alive.current &&
-        material(
-          serviceOrderDraftSchema.parse(controller.snapshot().values),
-        ) === m
+        material(serviceFormValue(controller.snapshot().values)) === m
       ) {
         setReview(r);
         setReviewed(m);
@@ -293,8 +303,19 @@ function ServiceCommitment({
           { shouldDirty: true },
         );
       }
-    } catch {
-      if (alive.current) setFailed(true);
+    } catch (e) {
+      if (alive.current) {
+        setFailed(true);
+        if (
+          serviceRepeatDraftSchema.safeParse(controller.snapshot().values)
+            .success &&
+          e instanceof OwnerRequestError &&
+          ["NOT_FOUND", "SHOP_ACCESS_DENIED", "UNAUTHENTICATED"].includes(
+            e.code,
+          )
+        )
+          controller.invalidate();
+      }
     } finally {
       if (alive.current) setBusy(false);
     }
@@ -309,7 +330,7 @@ function ServiceCommitment({
       if (
         s.status === "saved" &&
         !s.work.dirty &&
-        material(serviceOrderDraftSchema.parse(s.values)) === reviewed
+        material(serviceFormValue(s.values)) === reviewed
       ) {
         await controller.promote();
         if (alive.current && controller.snapshot().status === "saved") {
@@ -504,6 +525,8 @@ function ServiceCommitment({
 }
 
 export function serviceIssue(key: string, locale: Locale) {
+  if (key === "repeatMapping" || key === "repeatPieceMapping")
+    return repeatServiceMessages[locale][key];
   const t = smallServiceMessages[locale],
     o = orderMessages[locale];
   const addition = serviceAdditionMessages[locale];
@@ -535,7 +558,8 @@ function Fields({
       controller.snapshot,
       controller.snapshot,
     ),
-    v = serviceOrderDraftSchema.parse(s.values),
+    v = serviceFormValue(s.values),
+    repeated = serviceRepeatDraftSchema.safeParse(s.values).success,
     t = smallServiceMessages[locale],
     o = orderMessages[locale],
     a = orderAcceptanceMessages[locale];
@@ -723,61 +747,67 @@ function Fields({
           {o.customerId}: {customer.displayName} · {customer.code}
         </p>
       )}
-      <Field>
-        <FieldLabel htmlFor="ss-query">{o.query}</FieldLabel>
-        <Input
-          id="ss-query"
-          value={query}
-          maxLength={160}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-              e.preventDefault();
-              void find();
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          disabled={busy}
-          onClick={() => void find()}
-        >
-          {o.search}
-        </Button>
-      </Field>
-      {customers && (
-        <>
-          <ul className="order-choices">
-            {customers.customers.map((c) => (
-              <li key={c.id}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  aria-pressed={v.customerId === c.id}
-                  onClick={() => {
-                    form.setValue("customerId", c.id, { shouldDirty: true });
-                    form.setValue("wearerId", null, { shouldDirty: true });
-                    form.setValue("sourceOrderId", null, { shouldDirty: true });
-                    form.setValue("sourcePieceId", null, { shouldDirty: true });
-                  }}
-                >
-                  {c.displayName}
-                </Button>
-              </li>
-            ))}
-          </ul>
-          {customers.next && (
-            <Button
-              type="button"
-              disabled={busy}
-              onClick={() => void find(customers.next)}
-            >
-              {t.more}
-            </Button>
-          )}
-        </>
-      )}
+      <fieldset disabled={repeated}>
+        <Field>
+          <FieldLabel htmlFor="ss-query">{o.query}</FieldLabel>
+          <Input
+            id="ss-query"
+            value={query}
+            maxLength={160}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                void find();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void find()}
+          >
+            {o.search}
+          </Button>
+        </Field>
+        {customers && (
+          <>
+            <ul className="order-choices">
+              {customers.customers.map((c) => (
+                <li key={c.id}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    aria-pressed={v.customerId === c.id}
+                    onClick={() => {
+                      form.setValue("customerId", c.id, { shouldDirty: true });
+                      form.setValue("wearerId", null, { shouldDirty: true });
+                      form.setValue("sourceOrderId", null, {
+                        shouldDirty: true,
+                      });
+                      form.setValue("sourcePieceId", null, {
+                        shouldDirty: true,
+                      });
+                    }}
+                  >
+                    {c.displayName}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {customers.next && (
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={() => void find(customers.next)}
+              >
+                {t.more}
+              </Button>
+            )}
+          </>
+        )}
+      </fieldset>
       <Field>
         <FieldLabel htmlFor="ss-profile">{t.profile}</FieldLabel>
         <select
@@ -798,6 +828,15 @@ function Fields({
               { entryId: p.entryId, revisionId: p.id },
               { shouldDirty: true },
             );
+            if (repeated) {
+              form.setValue(
+                "lines",
+                v.lines.map((l) => ({ ...l, key: "" })),
+                { shouldDirty: true },
+              );
+              form.setValue("commitmentReview", null, { shouldDirty: true });
+              return;
+            }
             form.setValue(
               "lines",
               p.content.lines.map((spec) => ({
@@ -866,6 +905,7 @@ function Fields({
           <FieldLabel htmlFor="ss-wearer">{o.wearerId}</FieldLabel>
           <p>{t.permission}</p>
           <select
+            disabled={repeated}
             id="ss-wearer"
             value={v.wearerId ?? ""}
             onChange={(e) =>
@@ -912,6 +952,30 @@ function Fields({
                   : t.lines;
               })()}
             </legend>
+            {repeated && (
+              <label>
+                {repeatServiceMessages[locale].mapping}
+                <select
+                  value={line.key}
+                  onChange={(e) =>
+                    form.setValue(`lines.${i}.key`, e.target.value, {
+                      shouldDirty: true,
+                    })
+                  }
+                >
+                  <option value="">{t.choose}</option>
+                  {profile?.content.lines.map((m) => (
+                    <option key={m.key} value={m.key}>
+                      {labels[m.addonKey ?? "$base"]
+                        ? locale === "ta"
+                          ? labels[m.addonKey ?? "$base"]?.labelTa
+                          : labels[m.addonKey ?? "$base"]?.labelEn
+                        : m.key}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <Field>
               <FieldLabel htmlFor={`ss-work-${line.id}`}>
                 {t.requestedWork}
@@ -1001,7 +1065,7 @@ function Fields({
                 key={spec.key}
                 type="button"
                 variant="outline"
-                disabled={!label || v.lines.length >= 32}
+                disabled={repeated || !label || v.lines.length >= 32}
                 onClick={() => {
                   const current = form.getValues("lines");
                   if (current.some((line) => line.key === spec.key)) return;
@@ -1052,18 +1116,20 @@ function Fields({
           {input("occasion")}
           {input("orderDate", "date")}
           {input("historicalReason")}
-          <SourceOrder
-            wearerRequired={
-              profile?.content.wearerRequirement !== "not-required"
-            }
-            key={v.customerId ?? "none"}
-            shopId={shopId}
-            form={form}
-            customerId={v.customerId}
-            orderId={v.sourceOrderId}
-            pieceId={v.sourcePieceId}
-            locale={locale}
-          />
+          {!repeated && (
+            <SourceOrder
+              wearerRequired={
+                profile?.content.wearerRequirement !== "not-required"
+              }
+              key={v.customerId ?? "none"}
+              shopId={shopId}
+              form={form}
+              customerId={v.customerId}
+              orderId={v.sourceOrderId}
+              pieceId={v.sourcePieceId}
+              locale={locale}
+            />
+          )}
           <Field>
             <FieldLabel htmlFor="ss-presentation">{o.presentation}</FieldLabel>
             <select id="ss-presentation" {...form.register("presentation")}>
@@ -1124,7 +1190,11 @@ export function ServiceIntakeEditor({
       </h2>
       <DraftForm
         controller={controller}
-        schema={serviceOrderDraftSchema}
+        schema={
+          serviceRepeatDraftSchema.safeParse(s.values).success
+            ? serviceRepeatDraftSchema
+            : serviceOrderDraftSchema
+        }
         guard={guard}
         locale={locale}
         canPromote={false}
@@ -1138,12 +1208,22 @@ export function ServiceIntakeEditor({
         )}
       >
         {(form) => (
-          <Fields
-            shopId={shopId}
-            controller={controller}
-            form={form}
-            locale={locale}
-          />
+          <>
+            {serviceRepeatDraftSchema.safeParse(s.values).success && (
+              <ServiceRepeatContext
+                controller={controller}
+                form={form}
+                shopId={shopId}
+                locale={locale}
+              />
+            )}
+            <Fields
+              shopId={shopId}
+              controller={controller}
+              form={form}
+              locale={locale}
+            />
+          </>
         )}
       </DraftForm>
       <div className="owner-actions">
@@ -1197,6 +1277,18 @@ export function ServiceOrderDetail({
         {order.customer?.label}
         {order.wearer ? ` · ${order.wearer.label}` : ""}
       </p>
+      {order.currentAttribution && (
+        <p>
+          {contactMergeMessages[locale].current}:{" "}
+          <a href={`/customers/${order.currentAttribution.customerId}`}>
+            {order.currentAttribution.code} · {order.currentAttribution.label}
+          </a>{" "}
+          ·{" "}
+          <a href={`/customers/${order.currentAttribution.originalCustomerId}`}>
+            {contactMergeMessages[locale].original}
+          </a>
+        </p>
+      )}
       <h3>{t.property}</h3>
       <p>{order.intake.subjectDescription}</p>
       {order.intake.propertyReference && (

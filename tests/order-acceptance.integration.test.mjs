@@ -951,27 +951,29 @@ async function acceptedFixture(f, value = f.value) {
 async function legacyFixture(f) {
   const o = await acceptedFixture(f);
   // This disposable structural downgrade predates the empty service-source FKs.
-  // Capture and restore those exact FKs and the current piece guard around the
+  // Capture and restore those exact FKs (including repeat selections) and the current piece guard around the
   // real 0031 migration; do not cascade away later history or weaken runtime.
   assert.equal(
     (
       await f.admin.query(
-        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line) as n",
+        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line)+(select count(*) from service_repeat_selection) as n",
       )
     ).rows[0].n,
     "0",
   );
   const references = (
     await f.admin.query(
-      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
+      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
     )
   ).rows;
-  assert.equal(references.length, 2);
+  assert.equal(references.length, 3);
   for (const reference of references) {
     assert(
-      ["service_property_subject", "order_service_change_line"].includes(
-        reference.relation,
-      ),
+      [
+        "service_property_subject",
+        "order_service_change_line",
+        "service_repeat_selection",
+      ].includes(reference.relation),
     );
     assert.match(reference.conname, /^[a-z_][a-z0-9_]*$/);
   }

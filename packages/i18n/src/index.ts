@@ -6,8 +6,11 @@ export { pwaMessages } from "./pwa-messages.js";
 export { wearerMessages } from "./wearer-messages.js";
 export type Locale = "en" | "ta";
 export { bookingMessages, formatBookingPaise } from "./booking-messages.js";
+export { contactMergeMessages } from "./contact-merge-messages.js";
+export { customerHistoryMessages } from "./customer-history-messages.js";
 export { documentMessages } from "./document-messages.js";
 export { groupIntakeMessages } from "./group-intake-messages.js";
+export { identityReviewMessages } from "./identity-review-messages.js";
 export { measurementFormsMessages } from "./measurement-forms-messages.js";
 export { mediaMessages } from "./media-messages.js";
 export {
@@ -16,6 +19,8 @@ export {
   orderMessages,
 } from "./order-messages.js";
 export { orderPieceMessages } from "./order-piece-messages.js";
+export { repeatOrderMessages } from "./repeat-order-messages.js";
+export { repeatServiceMessages } from "./repeat-service-messages.js";
 export { serviceCatalogueMessages } from "./service-catalogue-messages.js";
 export { serviceLineMessages } from "./service-line-messages.js";
 export { serviceTemplatesMessages } from "./service-templates-messages.js";

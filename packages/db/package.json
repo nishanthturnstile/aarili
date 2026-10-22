@@ -275,6 +275,14 @@
     "./repositories/small-services": {
       "types": "./dist/repositories/small-services.d.ts",
       "import": "./dist/repositories/small-services.js"
+    },
+    "./customer-history-repository": {
+      "types": "./dist/customer-history-repository.d.ts",
+      "import": "./dist/customer-history-repository.js"
+    },
+    "./repositories/customer-history": {
+      "types": "./dist/repositories/customer-history.d.ts",
+      "import": "./dist/repositories/customer-history.js"
     }
   },
   "scripts": {

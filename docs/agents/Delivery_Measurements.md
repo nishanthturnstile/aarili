@@ -1,5 +1,269 @@
 # Delivery measurements
 
+## Repeat-order/history promotion #144 — 22 October 2026
+
+- Owner authorized promotion, issue fixes, merge and branch synchronization.
+  Initial promotion candidate `7c0d53a`; release run `39716863348` started
+  around **03:27Z**. First failure investigation began after completed scaffold
+  output at **03:45:29Z**; active coding and rework were not separately timed.
+- Development linear-history protection rejected the ancestry-sync merge;
+  #144 was retargeted to main using the prior promotion-branch approach.
+  No branch settings were changed. The candidate initially matched development
+  `7776645` byte-for-byte.
+- Release failures: **272 units passed**, **238 PostgreSQL passed / 10 failed**;
+  each phone/tablet shard 2 **24 passed / 1 failed**, desktop shard 2 **23 passed /
+  2 failed**. Six remaining browser shards and audit passed. Failures and fixes
+  are retained in `Promotion_2026_10_22_Evidence.md`.
+- Local first focused attempts failed because Docker was stopped after restart.
+  Restarted Docker, then repeated the focused checks. Desktop customer/guardian
+  packet **3/3, 5.7m** before final customer focus correction. The final rebuilt
+  two-scenario packet passed **6/6, 10.6m**, covering all three device sizes,
+  with exit 0. Log `.scratch/promotion-144-ui-final.log`. Final hosted release
+  state is tracked by #144's checks and timeline.
+- Final correction `verify:fast` **exit 0**, **272 units / 62 files**, unit
+  duration **20.65s**, production web build task **21.279s**. Focused PostgreSQL
+  **exit 0, 68/68 across four files, 666.46s**; all ten release failures pass.
+  Logs `.scratch/promotion-144-fast.log` and `promotion-144-pg-fixed.log`.
+- Same checkout and branch `codex/promotion-144-regressions`; no new worktree.
+  Unrelated roadmap/design-prompt edits are preserved and excluded.
+
+## Issue #138 - authorised contact merge / 1.2.4e
+
+- First observed task timestamp **2026-10-21T15:50:34Z** before implementation
+  edits. Updated the same checkout to development `1dc7746` after #142 merged
+  at **15:41:47Z**. Branch `codex/contact-merge`; no worktree or live activation.
+  Active coding and rework were not separately instrumented and remain unknown.
+- Baseline required checks passed in run `39624106793`. No unchanged full-suite
+  baseline rerun. Enumerated implemented identity consumers before merge writes.
+- Initial PostgreSQL migration parser failure: **3 failed, 43.46s**, corrected
+  at the observed CASE expression. Follow-up **3/3, 31.30s**; combined merge/C1/
+  history **12/12, 231.76s**; expanded SQL invariant/recovery **4/4, 40.90s**.
+  The permission concurrency assertion then found only advisory waiters and
+  missed the earlier contact-row lock: **3 passed / 1 failed, 57.53s**. Corrected
+  observation passed **4/4, 81.48s**. Final audited-version/authority/history packet passed **8/8, 141.49s**.
+- First browser **3 failed** because a test count had no shop context and forced
+  RLS returned zero. Authenticated history assertions fixed it; **3/3, 4.2m**.
+  Expanded explicit service selection/history **6/6, 5.7m**. Self-review found
+  that parent focus clearing could unmount a pending child merge; fixed frozen
+  recovery while clearing private labels. Focus/retry and C1 regression passed **6/6, 8.2m**. Final frozen-build merge packet passed **3/3, 4.6m**.
+- Focus-recovery `verify:fast`: native **exit 0, 130.368s**, **272 units / 62 files**,
+  including production build. The first fast attempt had one changed-interface
+  formatting failure. PowerShell stderr status was explicitly captured on final
+  attempts rather than interpreting wrapper errors as native command failures.
+- T3 opened ordinary sign-in but two snapshots timed out; used the prescribed
+  repository browser workflow. Loopback hosts were prepared during implementation;
+  earliest exact tryable UTC was not instrumented. Final review-ready UTC, URL,
+  native final verification, PR publication and hosted CI are recorded below.
+- Final sequential `verify:fast`: **exit 0, 166.194s**, **272 units / 62 files**,
+  unit stage **15.38s**, production graph **38.709s**. A preceding attempt hit the
+  unchanged job property test's 5s timeout while PostgreSQL ran: **271 passed /
+  1 failed, 69.937s**. Kept its timeout; sequential focused **2/2, 399ms** then
+  the complete fast gate passed. Retain the failure rather than hiding it.
+- Final ordinary sign-in/preview check **7.058s**, axe zero, English desktop and
+  Tamil phone, no business mutation. Review-ready observed **16:55:19Z** at
+  [the synthetic customer](http://127.0.0.1:65263/customers/01a15f62-2721-7f7a-82bc-ab40f80f0edf).
+  This is a recorded final-ready time; earliest tryable UTC remains unknown.
+- Human Tamil/physical Android/assistive-technology acceptance, owner review,
+  CI queue/execution and merge remain pending. Elapsed work is not active coding.
+- Draft [PR #143](https://github.com/nishanthturnstile/aarili/pull/143) opened
+  **16:59:21Z**, tested implementation `405eccc`. Initial required CI started
+  at **16:59:27Z / 16:59:28Z** in
+  [run 39639716887](https://github.com/nishanthturnstile/aarili/actions/runs/39639716887).
+  Observed PR-open to first check start was six seconds; exact queue/execution
+  duration is unknown/pending. A metadata-only docs follow-up preserves the
+  tested runtime/test patch. Owner review/merge waiting is not coding time.
+
+
+## Issue #137 — duplicate contact review / 1.2.4d
+
+- First observed task timestamp **2026-10-21T14:08:20Z**, before implementation
+  edits. Updated the same checkout to `b3ac971` after #141 merged at
+  **14:07:44Z**; branch `codex/duplicate-contact-review`. Active coding/rework
+  time was not separately instrumented and is unknown.
+- Inherited #141 Fast verification and Dependency audit passed in run
+  `39611266705`. No worktree, full-suite baseline rerun or live activation.
+- PG packets: customer/wearer/history/review **12/12, 124.79s**;
+  guardian/order/review **13/13, 122.91s**; expanded review/history
+  **8/8, 127.40s**. The latter includes observed registration lock waiting,
+  same-shop composite FK rejection, populated upgrade and write-disable reads.
+- Intermediate fast check passed **266 unit tests / 60 files**, unit stage
+  **13.11s**, production graph **22.214s**. Final affected validation pending.
+- Expanded final PG inputs passed **8/8, 120.95s**, including expired-key
+  cross-action replay, source/pair version evidence, and ordinary privacy denial.
+- The broader browser packet was **9 passed / 6 failed, 13.1m**; customer,
+  draft-refresh and wearer-registration checks passed at all sizes. The affected
+  follow-up was **6 passed / 3 failed, 9.5m**; history and wearer correction passed,
+  while the real admission limit exposed the need for explicit wait/retry in the
+  duplicate-review flow. Preserve these as rework evidence, not a single clean
+  browser pass. Final duplicate review passed **3/3, 4.2m**, each device **1.3m**,
+  including the actual admission wait and explicit same-request retry.
+- Final `verify:fast`: **111.851s**, **271 unit passes / 61 files**, unit stage
+  **14.97s**, production graph **17.575s**. Before the last client copy/error-code
+  changes, another fast pass took **97.991s**; new inputs justified the last run.
+  Five existing Biome informational suggestions remain in an unchanged script.
+- Final ordinary review host refreshed and observed ready **15:08:12Z**:
+  `http://127.0.0.1:55961/customers/01a15f01-3b49-77a5-9fb4-308f354e1cea`.
+  Its owner sign-in, pair review, bilingual axe/reflow/storage and final visual
+  captures passed. Local review-ready observed **15:13:41Z**. CI queue/execution,
+  owner review/merge time remain pending; active coding time remains unknown.
+- Initial desktop browser test found heading focus missing. A three-size rerun
+  used the old production bundle and failed the same check; rebuilt before the
+  next browser run. These are rework, not clean-pass timing.
+- Synthetic ordinary review host first ready **2026-10-21T14:38:42Z** by observed
+  readiness output, URL `http://127.0.0.1:57817/customers/01a15ee5-afed-7a60-8854-44ddde5f0c46`.
+  Credentials remain in its ignored private access file. Final refresh time,
+  final refresh supersedes this first host. CI/merge/human acceptance remain pending.
+- [Requirement evidence and manual packet](Identity_Review_Implementation_Evidence.md).
+- Draft [PR #142](https://github.com/nishanthturnstile/aarili/pull/142) opened
+  **15:15:23Z**, registered with T3, implementation `d9844be`. Initial Fast
+  verification and Dependency audit started **15:15:29Z** in run `39623983204`.
+  Queue time was not separately instrumented; this is an observed six-second
+  PR-open-to-first-check-start interval. Execution remained in progress at
+  inspection and may be superseded by the documentation-only publication update.
+  Owner review/merge and the latest-head CI outcome remain pending.
+
+## Issue #136 — customer / wearer history / 1.2.4c
+
+- Owner selected #136 after merging #140 at **2026-10-21T12:30:48Z**.
+  Subsequently merged as #141 at **14:07:44Z**; required checks passed in
+  [run 39611266705](https://github.com/nishanthturnstile/aarili/actions/runs/39611266705).
+  Updated the same checkout to `9ee0e0c`; branch `codex/customer-history`.
+  All direct blockers #135/#78/#79/#80 merged. No worktree or live activation.
+- First observed task timestamp **2026-10-21T12:34:14Z**, before implementation
+  edits. Active coding/rework time was not separately instrumented and is unknown.
+- Inherited #140 Fast verification and Dependency audit passed in run
+  `39599571515`. Promotion gates remain separate.
+- Intermediate implementation: three PostgreSQL scenarios passed in **108.53s**.
+  A later expanded identity/guardian packet had **13 passing / 1 failing**; the
+  new same-phone/name fixture found missing phone-query keys and inner-name recall.
+  Four history scenarios then passed in **65.40s**, before the final privacy-cursor
+  and exact-source-version additions. Earlier fixture/setup failures are recorded
+  in the [implementation evidence](Customer_History_Implementation_Evidence.md).
+- First three-size browser packet passed **3/3, 2.0m** (phone **32.6s**, tablet
+  **36.0s**, desktop **33.2s**), English/light and Tamil/dark, including tablet
+  landscape with 200% text. Final packet passed **3/3, 1.7m**: **29.0s / 29.8s /
+  27.1s** after changed privacy/source metadata and Tamil copy.
+- First full fast packet passed **266 units / 60 files**; a later passing frozen
+  packet took **16.09s** for units and **16.852s** for the production task graph.
+  Final full-fast exit 0 in **150.297s**, units **21.08s**, production task graph
+  **19.608s**. After a Tamil-copy correction, affected lint, types (**21.138s**)
+  and build (**16.740s**) passed. Handoff lint and Knip passed.
+- Final PostgreSQL **4/4, 82.72s** includes A1/A2 accepted lineage, exact parent/
+  line versions and privacy cursor invalidation. Ten existing wearer/guardian
+  regressions passed in the earlier combined packet, whose history recall failure
+  was fixed and independently rerun; not claimed as one 14-case clean run.
+- New exports required a disposable space-path clean check: offline frozen install,
+  ten package builds (**20.558s**) and five compiled export imports passed without
+  lockfile change. Full promotion verification remains separate.
+- Review host observed ready **2026-10-21T13:30:56Z**:
+  `http://127.0.0.1:51490/customers/01a15ea7-d14e-7767-9b7a-89169fd654fd`.
+  Private synthetic access uses `.scratch/customer-history-review-host/private.json`.
+  Ordinary UI sign-in, history/source navigation, desktop/Tamil phone inspection,
+  axe/reflow/storage checks passed. Local handoff readiness observed at
+  **2026-10-21T13:39:22Z** after the clean export check. Active coding time unknown.
+- Draft [PR #141](https://github.com/nishanthturnstile/aarili/pull/141) to
+  `development` observed published **2026-10-21T13:47:42Z**, implementation
+  commit `70b822e4817e51f033bd15b800ec3b46709e0f26`. T3 link registered.
+  Initial run `39611050600` Fast verification and Dependency audit started
+  **13:47:18Z** and were in progress at that observation; full promotion jobs
+  were skipped. Final execution/queue durations remain pending, not reconstructed.
+- Owner review/merge: pending for this delivery. Human
+  physical-device, fluent Tamil and screen-reader observations remain pending.
+  Do not sum overlapping elapsed timers or infer active coding time from commits.
+
+## Issue #135 — selected service repeat / 1.2.4b
+
+- Owner selected #135 after merging #139. Pulled `development` to `56b07f6` in
+  the existing clean checkout; branch `codex/repeat-service-intake`. All five
+  native blockers #134/#124/#125/#126/#118 are closed with merged feature PRs.
+- Inherited #139 Fast verification and Dependency audit passed in run
+  `39578686370`; full promotion gates remain separate.
+- Implementation start was not timestamped before editing; observed underway
+  at **2026-10-21T10:58:03Z**. Active
+  coding/rework duration remains unknown. No worktree or live-data activation.
+- Frozen core checks: **54/54 PostgreSQL, 612.24s**; expanded final A2
+  **11/11, 155.93s**; grouped acceptance **17/17 selected, 227.52s**.
+- Fast verification exit 0, **132.880s**, **266 units / 60 files, 15.76s**;
+  production task graph **20.521s**. Earlier 5s command/jobs property timeouts
+  under parallel load passed on the frozen rerun with unchanged timeouts.
+- Ordinary sign-in/source review on the running synthetic host verified by
+  **2026-10-21T11:44:07Z**, port **59586**. Earlier check expected the intermediate
+  `/owner` URL rather than final `/dashboard`; corrected diagnostic script passed.
+  Visual review led to using existing 44px form controls. Subsequent validation,
+  PR/CI/review-ready/merge observations remain separately recorded when actual.
+- Final styled controls: fast exit 0, **109.670s**, **266 units, 12.27s** and
+  production graph **15.136s**. Pinned-node A2/grouped browser checks follow;
+  final host was restarted after the build so review uses the final UI.
+- Draft [PR #140](https://github.com/nishanthturnstile/aarili/pull/140), capability
+  `f4f1cf4`, opened **2026-10-21T11:51:45Z** and immediately linked to T3.
+  Fast/audit in [run 39595111999](https://github.com/nishanthturnstile/aarili/actions/runs/39595111999)
+  started **11:51:52Z**; audit finished **11:52:12Z**, Fast **11:53:46Z**.
+- Desktop grouped read exposed a real lock cycle; an instrumented pass was not
+  treated as a fix. Corrected deterministic PostgreSQL case failed with 503
+  (**10.70s**) before the sorted page-lock change, then passed (**11.14s**).
+  Fixture setup errors and the two browser failures are retained in the evidence.
+- After the lock correction: fast exit 0 **113.895s**, **266 units, 14.43s**,
+  production graph **17.292s**; A2/order PostgreSQL **17/17, 205.61s**.
+  Final standalone/native-piece review host verified by **12:14:36Z**, port
+  **59017**, with pinned Node, axe, 44px targets and Tamil landscape/reflow.
+  Active coding/rework duration, owner waiting and merge remain unknown/pending.
+- Final source-list software: A2 browser **24.9s / 19.1s / 16.5s** at
+  phone/tablet/desktop; grouped phone **1.5m**, desktop **1.4m**. The six-case
+  run was **5 pass / 1 fail, 6.9m** because tablet received a known promotion
+  429. After adding explicit Retry-After/confirmation recovery and a deterministic
+  injected 429, tablet **1/1 passed, 1.7m**. No admission value was changed.
+  Lint/Knip passed again after that test-only change. These are separate runs,
+  not a claimed six-case clean run. Final PR head CI and human review remain pending.
+- Review packet and implementation closeout prepared by **2026-10-21T12:24:54Z**;
+  runtime correction/evidence commit `e3531f8` pushed immediately afterward.
+  In [run 39599419140](https://github.com/nishanthturnstile/aarili/actions/runs/39599419140),
+  both jobs started **12:25:07Z**; audit passed **12:25:28Z**, Fast was in progress
+  when observed. A documentation-only timing closeout supersedes that head;
+  latest-head CI, owner/device/language/AT review and merge remain pending.
+
+## Issue #134 — custom repeat-order intake / 1.2.4a
+
+- Owner approved D1–D6, publication of #134–#138 and A1 selection on 21 October
+  2026. Rechecked #114/#120/#125/#126 and their merged PRs. Existing checkout
+  at `bc23c0e`, branch `codex/repeat-custom-intake`; no worktree.
+- Implementation observed underway by **2026-10-21T08:58:33Z**. Exact first-edit
+  time and separate active coding/rework durations were not instrumented; unknown.
+- Initial repeat SQL **3/3, 36.57s**; expanded corrected suite **6/6, 70.13s**;
+  populated-upgrade/publisher-race follow-up **2/2, 24.54s**. Test assertion and
+  browser synchronization failures are retained in the implementation evidence.
+- Native `verify:fast` third attempt passed, **264 units / 59 files, 15.78s**;
+  production task graph **20.784s**. Whole-chain elapsed was not separately timed.
+- By **09:16:31Z**, three-screen browser workflow and affected legacy PostgreSQL
+  regressions were running. First tryable host, review-ready, PR/hosted CI and merge
+  observations follow when actual; pending phases are not counted as coding time.
+- Final current-software `verify:fast`: native **exit 0, 115.676s**, **264 units,
+  16.04s**, production graph **20.262s**. Final corrected SQL **12/12 selected,
+  148.26s**; supplemental scope **1/1 selected, 18.22s**. Legacy acceptance
+  **44/44** passed; four exact-inventory failures were corrected and rechecked.
+- Final expanded browser phone **32.4s**, tablet/desktop **1.3m**; original
+  three-size flow **1.5m**. Wrong post-acceptance test locator failed three cases
+  before correction; failures are retained. No active-rework duration is inferred.
+- First final host verified tryable by **2026-10-21T09:28:12Z**, port **64776**;
+  ordinary sign-in and synthetic source review passed. Earlier temporary host's
+  exact first-tryable timestamp is unknown. Owner/physical-device/AT/Tamil findings,
+  hosted CI, merge and deployment remain pending.
+- Lost-acceptance extension initially failed **48.0s** after the exact retry hit
+  real HTTP 429. After honoring native Retry-After, phone **1/1 passed, 1.4m**
+  (scenario **1.3m**); no new rate or admission bypass. Canonical-ID follow-up
+  verification and PR readiness are recorded below when observed.
+- Canonical-ID/populated-upgrade follow-up **2/2 selected, 31.22s**, final frozen
+  fast verification **native exit 0, 99.608s**, **264 units, 13.46s** and production
+  graph **15.490s**. Review packet and current evidence prepared by **09:37:29Z**;
+  verification exit confirmation followed immediately. PR/CI/merge observations
+  remain separate; no active coding duration is reconstructed.
+- Capability `96c10d2`, draft [PR #139](https://github.com/nishanthturnstile/aarili/pull/139)
+  opened **2026-10-21T09:38:58Z** and immediately linked to T3. At **09:39:05Z**,
+  Fast verification and Dependency audit were queued in
+  [run 39578594864](https://github.com/nishanthturnstile/aarili/actions/runs/39578594864).
+  Hosted execution, review waiting, human findings and merge remain pending.
+  Subsequent documentation-only closeout may supersede that run; no active time
+  or merge duration is inferred from these timestamps.
+
 ## Issue #124 — standalone small-service intake / 1.2.3a
 
 - Owner approved A–C/D1–D6, ticket publication and A selection on 20 October 2026.

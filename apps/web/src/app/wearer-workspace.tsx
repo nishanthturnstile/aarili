@@ -22,7 +22,11 @@ import {
   wearerPurposeEventSchema,
   wearerUpdateSchema,
 } from "@aarili/contracts/wearers";
-import { draftMessages, type Locale } from "@aarili/i18n";
+import {
+  draftMessages,
+  identityReviewMessages,
+  type Locale,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
@@ -37,6 +41,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useForm } from "react-hook-form";
+import { CustomerHistory } from "./customer-history";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import { GuardianWorkspace } from "./guardian-workspace";
@@ -318,6 +323,25 @@ export function WearerWorkspace({
           </li>
         ))}
       </ul>
+      {!controller && (
+        <CustomerHistory
+          key={`${customer.id}:${customer.version}:${active?.id ?? "all"}:${active?.version ?? 0}`}
+          shopId={shopId}
+          customerId={customer.id}
+          wearerId={active?.id ?? null}
+          queries={queries}
+          onWearer={(id) => {
+            if (mayLeave()) {
+              setSelected(id);
+              setTimeout(
+                () =>
+                  document.getElementById("selected-wearer-heading")?.focus(),
+                0,
+              );
+            }
+          }}
+        />
+      )}
       {active && policy && !controller && (
         <WearerDetails
           key={`${active.id}:${active.version}`}
@@ -1114,7 +1138,7 @@ function WearerDetails({
       className="wearer-selected"
       aria-labelledby="selected-wearer-heading"
     >
-      <h3 id="selected-wearer-heading">
+      <h3 id="selected-wearer-heading" tabIndex={-1}>
         {t("active")}: {wearer.displayName}
       </h3>
       <p className="customer-muted">
@@ -1622,8 +1646,11 @@ function WearerCorrection({
   updated: () => void;
 }) {
   const t = useTranslations("wearers");
+  const correctionText = identityReviewMessages[useLocale() as Locale];
   const { register, getValues, reset, setValue } = useForm<WearerUpdate>({
     defaultValues: {
+      reason: "",
+      displayName: wearer.displayName,
       age: wearer.age,
       preferences: wearer.preferences,
       relationship: wearer.relationship,
@@ -1649,6 +1676,10 @@ function WearerCorrection({
   async function save() {
     const raw = getValues();
     const input = wearerUpdateSchema.safeParse({
+      reason: raw.reason,
+      ...(wearer.personId !== customer.personId
+        ? { displayName: raw.displayName }
+        : {}),
       age: raw.age,
       preferences: raw.preferences,
       relationship: {
@@ -1676,6 +1707,8 @@ function WearerCorrection({
   }
   useEffect(() => {
     reset({
+      reason: "",
+      displayName: wearer.displayName,
       age: wearer.age,
       preferences: wearer.preferences,
       relationship: {
@@ -1718,6 +1751,26 @@ function WearerCorrection({
         disabled={mutation.busy || !!mutation.attempt || mutation.stale}
       >
         <legend className="sr-only">{t("edit")}</legend>
+        <Labeled id="wearer-correct-reason" label={correctionText.reason}>
+          <textarea
+            id="wearer-correct-reason"
+            className="ui-input"
+            required
+            maxLength={1000}
+            {...register("reason")}
+          />
+        </Labeled>
+        {wearer.personId !== customer.personId ? (
+          <Labeled id="wearer-correct-name" label={correctionText.displayName}>
+            <Input
+              id="wearer-correct-name"
+              maxLength={120}
+              {...register("displayName")}
+            />
+          </Labeled>
+        ) : (
+          <p>{correctionText.selfName}</p>
+        )}
         <Labeled id="wearer-correct-age" label={t("age")}>
           <select
             id="wearer-correct-age"

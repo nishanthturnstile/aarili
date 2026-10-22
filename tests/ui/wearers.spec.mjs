@@ -569,6 +569,9 @@ test("CW-04/05/07/08/11/13 subject-bound purpose refusal/withdrawal, corrections
         })
         .click();
       await page
+        .locator("#wearer-correct-reason")
+        .fill("SYNTHETIC preference correction");
+      await page
         .locator("#wearer-correct-pref-fit")
         .fill("Original expressed preference retained");
       await page
@@ -594,6 +597,7 @@ test("CW-04/05/07/08/11/13 subject-bound purpose refusal/withdrawal, corrections
         `${wearerPath}/${self.id}`,
         {
           age: current.age,
+          reason: "SYNTHETIC competing preference correction",
           preferences: {
             ...current.preferences,
             fit: "Concurrent saved preference",
@@ -641,6 +645,7 @@ test("CW-04/05/07/08/11/13 subject-bound purpose refusal/withdrawal, corrections
           phone: contact.phone,
           aliases: [],
           notes: "Concurrent customer correction",
+          reason: "SYNTHETIC stale contact context",
         },
         {
           "Idempotency-Key": crypto.randomUUID(),

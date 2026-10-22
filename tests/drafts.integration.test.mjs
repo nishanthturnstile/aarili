@@ -49,6 +49,8 @@ async function fixture(run) {
               "measurement.forms",
               "order.group",
               "order.quick",
+              "order.repeat",
+              "order.repeat-service",
               "order.service",
               "order.service-change",
               "order.services-intake",

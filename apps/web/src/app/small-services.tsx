@@ -4,6 +4,7 @@ import {
   listServiceOrders,
   readServiceOrder,
   readServiceProfiles,
+  readServiceRepeatSource,
 } from "@aarili/api/small-services-client";
 import type { DraftCursor, DraftRecord } from "@aarili/contracts/drafts";
 import {
@@ -14,6 +15,7 @@ import {
   serviceIntakeDraftSchema,
   serviceOrderDraftSchema,
   serviceProfileDraftSchema,
+  serviceRepeatDraftSchema,
 } from "@aarili/contracts/small-services";
 import { draftMessages, type Locale, smallServiceMessages } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
@@ -22,6 +24,7 @@ import { v7 } from "uuid";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import type { OwnerGuard } from "./owner-feedback";
+import { ServiceRepeatPanel } from "./repeat-services";
 import { ServiceIntakeAddonsEditor } from "./service-intake-addons";
 import {
   ServiceIntakeEditor,
@@ -107,6 +110,7 @@ export function SmallServices({
           if (
             [
               "order.service",
+              "order.repeat-service",
               "service.intake-profile",
               "order.services-intake",
             ].includes(row.workflow) &&
@@ -156,12 +160,14 @@ export function SmallServices({
     setController(undefined);
   }
   function mayLeave() {
+    if (!selected.current) return guard.safe();
     return (
       !selected.current ||
       selected.current.confirmLeave(() => window.confirm(d.warning))
     );
   }
   function close(force = false) {
+    if (!selected.current && !guard.safe()) return;
     if (!force && !mayLeave()) return;
     release();
     setOrder(undefined);
@@ -171,6 +177,7 @@ export function SmallServices({
     void refreshProfiles();
   }
   async function openOrder(id: string) {
+    if (!selected.current && !guard.safe()) return;
     setBusy(true);
     setFailed(false);
     try {
@@ -270,13 +277,15 @@ export function SmallServices({
         return;
       }
       const parsed =
-        r.workflow === "order.service"
-          ? serviceOrderDraftSchema.safeParse(r.payload)
-          : r.workflow === "service.intake-profile"
-            ? serviceProfileDraftSchema.safeParse(r.payload)
-            : r.workflow === "order.services-intake"
-              ? serviceIntakeDraftSchema.safeParse(r.payload)
-              : null;
+        r.workflow === "order.repeat-service"
+          ? serviceRepeatDraftSchema.safeParse(r.payload)
+          : r.workflow === "order.service"
+            ? serviceOrderDraftSchema.safeParse(r.payload)
+            : r.workflow === "service.intake-profile"
+              ? serviceProfileDraftSchema.safeParse(r.payload)
+              : r.workflow === "order.services-intake"
+                ? serviceIntakeDraftSchema.safeParse(r.payload)
+                : null;
       if (!parsed?.success || r.lifecycle !== "active" || r.schemaVersion !== 1)
         throw Error("Unsupported draft");
       open(r.workflow, parsed.data, r);
@@ -355,16 +364,41 @@ export function SmallServices({
       {failed && <p role="alert">{t.error}</p>}
       {busy && <p role="status">{t.loading}</p>}
       {order ? (
-        <ServiceOrderDetail
-          shopId={shopId}
-          key={order.id}
-          order={order}
-          locale={locale}
-          back={() => close(true)}
-          reload={() => void openOrder(order.id)}
-        />
+        <>
+          <ServiceRepeatPanel
+            shopId={shopId}
+            orderId={order.id}
+            key={`repeat-${order.id}`}
+            guard={guard}
+            locale={locale}
+            onDraft={(r) => open(r.workflow, r.payload, r)}
+            onUnavailable={() => {
+              setOrder(undefined);
+              setOrders([]);
+              setDrafts([]);
+              setFailed(true);
+            }}
+            onOrder={(id) => {
+              void readServiceRepeatSource(shopId, id).then(
+                (s) => {
+                  if (s.kind === "custom") onAccepted?.("order.accepted", id);
+                  else void openOrder(id);
+                },
+                () => setFailed(true),
+              );
+            }}
+          />
+          <ServiceOrderDetail
+            shopId={shopId}
+            key={order.id}
+            order={order}
+            locale={locale}
+            back={() => close(true)}
+            reload={() => void openOrder(order.id)}
+          />
+        </>
       ) : controller ? (
-        workflow === "order.service" ? (
+        workflow === "order.service" || workflow === "order.repeat-service" ? (
           <ServiceIntakeEditor
             key={controller.instance}
             shopId={shopId}

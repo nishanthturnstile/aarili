@@ -653,6 +653,46 @@ and actual handover remain their named later slices.
 
 ##### Vertical Slice 1.2.4 — Reuse Orders and Maintain Customer History
 
+**REA delivery brief (21 October 2026):** the
+[Repeat Orders and Customer History prompt](agents/Repeat_Order_History_REA_Prompt.md)
+starts with reviewed duplicate-as-new intake, followed by unified history and
+authorised identity corrections. Nool repeat/clone and TailorMan customer history
+are research candidates, not proof of their internal implementation. The brief
+preserves source snapshots, wearer distinctions and later-domain dependencies;
+it changes no scope or approval gates.
+
+**Approved packet (21 October 2026; A1 selected as #134):**
+[REA evidence](agents/Repeat_Order_History_REA_Evidence.md),
+[independent design and field reuse/reset matrix](agents/Repeat_Order_History_Design.md),
+[concrete tickets](agents/Repeat_Order_History_Ticket_Packet.md) and
+[validation/selection status](agents/Repeat_Order_History_Implementation_Evidence.md)
+define A1 custom repeat intake, A2 selected service/piece-context repeat, B unified
+implemented-domain history, C1 duplicate review/corrective edits and C2 authorised
+contact merge/relink. Existing 1.2.1–1.2.3 blockers are merged through promotion
+#130. A1 #134 merged as PR #139; the owner selected A2 #135 after that merge.
+[A2 implementation and validation](agents/Repeat_Service_Implementation_Evidence.md)
+records selected standalone/add-on/native-piece work as new service intake.
+A2 merged as PR #140; the owner selected B #136 after that merge. Its
+[customer/wearer history implementation](agents/Customer_History_Implementation_Evidence.md)
+projects currently authorised implemented records with original identifiers,
+revision/source links and stable private pagination. This is partial CUS-03;
+B merged as PR #141; the owner selected C1 #137 after that merge. Its
+[duplicate review and correction evidence](agents/Identity_Review_Implementation_Evidence.md)
+records manual same-key candidate review, distinct identities, keep/dismiss
+history and reasoned existing corrections. C1 merged as PR #142; the owner selected
+C2 #138 after that merge. Its [contact merge evidence](agents/Contact_Merge_Implementation_Evidence.md)
+records the identity-consumer gate, reviewed aliases, selected wearer-free service
+attribution and reasoned restore events. Unavailable/sensitive history domains and
+activation gates remain open; this does not close all CUS-05/06.
+A1 adds independent repeat drafts and authorised lineage through existing custom
+acceptance. RH-01–11/14–15 apply to A1; B adds bounded implemented-domain history,
+while C1 adds bounded identity review/corrections and C2 adds bounded contact
+aliases/current service attribution with preserved original references.
+AC-58 remains its material slice; AC-59 timing is a measured design target, and
+measurement/design/fit/media/financial dependencies retain their own gates.
+A1 does not close all of 1.2.4 or authorise live data. See the evidence for
+validation results and pending human acceptance.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** CUS-03, CUS-05, CUS-06, ORD-08, ORD-12, MEA-10, TRU-06, TRU-12. Scenarios: AC-02, AC-58, AC-59.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.2. Architecture constraints in §9 apply in addition to business dependencies.

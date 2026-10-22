@@ -1,0 +1,133 @@
+export const contactMergeMessages = {
+  en: {
+    title: "Merge contact records",
+    intro:
+      "Review both contacts and every consequence. Matching phone numbers do not establish identity.",
+    source: "Original contact",
+    survivor: "Surviving contact",
+    choose: "Choose a value",
+    preview: "Preview merge",
+    restorePreview: "Review mistaken merge",
+    restore: "Restore original contact",
+    fields: "Choose each surviving field",
+    displayName: "Name",
+    phone: "Phone",
+    email: "Email",
+    aliases: "Aliases",
+    notes: "Notes",
+    sourceValue: "Use original",
+    survivorValue: "Keep survivor",
+    associations: "Current service attribution",
+    associationHelp:
+      "Select each supported service separately. Original orders, customer IDs and snapshots remain unchanged.",
+    empty: "No accepted services to relink.",
+    reason: "Reason for this correction",
+    confirm:
+      "I reviewed the identities, chosen values, selected services and exclusions.",
+    apply: "Confirm contact merge",
+    cancel: "Close merge review",
+    saved: "Correction recorded. Open either contact to review its history.",
+    busy: "Checking contact records…",
+    error:
+      "Could not confirm the outcome. Retry the same correction before making another change.",
+    changed:
+      "The records changed. Refresh the preview and review your choices again.",
+    limited: "Wait before retrying the same correction.",
+    retry: "Retry same correction",
+    refresh: "Refresh preview",
+    blocked: "This pair cannot be merged in its current state.",
+    retained:
+      "Wearer identities, guardians, permissions, drafts, bookings, money and private assets retain their original references. Their links cannot be moved here.",
+    restoreHelp:
+      "Restore the original contact and every service currently attributed by this merge. Survivor field corrections remain; review further field changes separately.",
+    history: "Merge and restore history",
+    merged: "This original contact resolves to",
+    original: "Original attribution",
+    current: "Current attribution",
+    unknown: "Not recorded",
+    discard:
+      "The last outcome may be unknown. Close only after checking the contact history.",
+    discardEdits: "Discard this unsaved merge review?",
+    exclusions: {
+      wearer: "Wearer authority cannot transfer",
+      booking: "Grouped or payer agreement retained",
+      source: "Native source relationship retained",
+      repeat: "Repeat lineage retained",
+      additions: "Accepted additions retained",
+      profile: "Requires separately reviewed profile authority",
+      "other-contact": "Already belongs to the survivor",
+    },
+    conflicts: {
+      "alias-conflict": "An existing contact alias conflicts with this merge.",
+      "wearer-conflict":
+        "Current wearer authority is unavailable or shared wearer relationships disagree.",
+      "too-many-records":
+        "Too many associations for one review. No merge was applied.",
+      "not-merged": "There is no current merge to restore.",
+    },
+  },
+  ta: {
+    title: "தொடர்பு பதிவுகளை இணைக்கவும்",
+    intro:
+      "இரு தொடர்புகளையும் ஒவ்வொரு மாற்றத்தையும் சரிபார்க்கவும். ஒரே தொலைபேசி எண் ஒரே நபரை உறுதிப்படுத்தாது.",
+    source: "அசல் தொடர்பு",
+    survivor: "தொடரும் தொடர்பு",
+    choose: "தகவலைத் தேர்ந்தெடுக்கவும்",
+    preview: "இணைப்பை முன்பார்க்கவும்",
+    restorePreview: "தவறான இணைப்பைச் சரிபார்க்கவும்",
+    restore: "அசல் தொடர்பை மீட்டமைக்கவும்",
+    fields: "தொடரும் ஒவ்வொரு தகவலையும் தேர்ந்தெடுக்கவும்",
+    displayName: "பெயர்",
+    phone: "தொலைபேசி",
+    email: "மின்னஞ்சல்",
+    aliases: "மாற்றுப் பெயர்கள்",
+    notes: "குறிப்புகள்",
+    sourceValue: "அசல் தகவலைப் பயன்படுத்தவும்",
+    survivorValue: "தொடரும் தகவலை வைத்திருக்கவும்",
+    associations: "தற்போதைய சேவைத் தொடர்பு",
+    associationHelp:
+      "அனுமதிக்கப்பட்ட ஒவ்வொரு சேவையையும் தனித்தனியாகத் தேர்ந்தெடுக்கவும். அசல் ஆர்டர், வாடிக்கையாளர் அடையாளம் மற்றும் ஏற்ற பதிவுகள் மாறாது.",
+    empty: "மாற்றுவதற்கு ஏற்ற சேவைகள் இல்லை.",
+    reason: "இந்தத் திருத்தத்திற்கான காரணம்",
+    confirm: "அடையாளங்கள், தேர்ந்தெடுத்த தகவல்கள், சேவைகள் மற்றும் விலக்குகளைச் சரிபார்த்தேன்.",
+    apply: "தொடர்பு இணைப்பை உறுதிப்படுத்தவும்",
+    cancel: "இணைப்புச் சரிபார்ப்பை மூடவும்",
+    saved: "திருத்தம் பதிவானது. வரலாற்றைப் பார்க்க தொடர்பைத் திறக்கவும்.",
+    busy: "தொடர்பு பதிவுகள் சரிபார்க்கப்படுகின்றன…",
+    error:
+      "முடிவை உறுதிப்படுத்த முடியவில்லை. புதிய மாற்றத்திற்கு முன் இதே திருத்தத்தை மீண்டும் முயலவும்.",
+    changed: "பதிவுகள் மாறிவிட்டன. முன்பார்வையைப் புதுப்பித்து மீண்டும் சரிபார்க்கவும்.",
+    limited: "இதே திருத்தத்தை மீண்டும் முயல சிறிது காத்திருக்கவும்.",
+    retry: "இதே திருத்தத்தை மீண்டும் முயலவும்",
+    refresh: "முன்பார்வையைப் புதுப்பிக்கவும்",
+    blocked: "தற்போதைய நிலையில் இத்தொடர்புகளை இணைக்க முடியாது.",
+    retained:
+      "அணிபவர் அடையாளங்கள், பாதுகாவலர்கள், அனுமதிகள், வரைவுகள், குழுக்கள், பணம் மற்றும் தனிப்பட்ட கோப்புகள் அசல் தொடர்பிலேயே இருக்கும். இங்கு அவற்றை மாற்ற முடியாது.",
+    restoreHelp:
+      "அசல் தொடர்பையும் இந்த இணைப்பால் மாற்றிய அனைத்து சேவைகளையும் மீட்டமைக்கவும். தொடரும் தொடர்பின் தகவல் திருத்தங்கள் இருக்கும்; கூடுதல் திருத்தத்தைத் தனியாகச் சரிபார்க்கவும்.",
+    history: "இணைப்பு மற்றும் மீட்டமைப்பு வரலாறு",
+    merged: "இந்த அசல் தொடர்பு சுட்டுவது",
+    original: "அசல் தொடர்பு",
+    current: "தற்போதைய தொடர்பு",
+    unknown: "பதிவாகவில்லை",
+    discard:
+      "கடைசி முடிவு தெரியாமல் இருக்கலாம். தொடர்பு வரலாற்றைச் சரிபார்த்த பிறகே மூடவும்.",
+    discardEdits: "சேமிக்காத இணைப்புச் சரிபார்ப்பை நீக்கவா?",
+    exclusions: {
+      wearer: "அணிபவரின் அனுமதியை மாற்ற முடியாது",
+      booking: "குழு அல்லது பணம் செலுத்துபவர் ஒப்பந்தம் தொடரும்",
+      source: "அசல் உடைத் தொடர்பு தொடரும்",
+      repeat: "மறு ஆர்டர் தொடர்பு தொடரும்",
+      additions: "ஏற்ற கூடுதல் வேலை தொடரும்",
+      profile: "தனியான அனுமதிச் சரிபார்ப்பு தேவை",
+      "other-contact": "ஏற்கனவே தொடரும் தொடர்புக்குச் சொந்தமானது",
+    },
+    conflicts: {
+      "alias-conflict": "ஏற்கனவே உள்ள தொடர்பு இணைப்பு முரண்படுகிறது.",
+      "wearer-conflict":
+        "தற்போதைய அணிபவர் அனுமதி இல்லை அல்லது பொதுவான அணிபவரின் உறவில் முரண்பாடு உள்ளது.",
+      "too-many-records": "ஒரே சரிபார்ப்பிற்கு அதிக தொடர்புகள் உள்ளன. இணைக்கப்படவில்லை.",
+      "not-merged": "மீட்டமைக்க தற்போதைய இணைப்பு இல்லை.",
+    },
+  },
+} as const;

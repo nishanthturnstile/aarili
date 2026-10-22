@@ -5,13 +5,18 @@ import {
   registerCustomer,
 } from "@aarili/api/customer-client";
 import {
-  type CustomerContact,
+  type CustomerCorrection,
   type CustomerCreate,
   type CustomerPolicy,
   type CustomerProfile,
   type CustomerSearchPage,
   customerContactSchema,
 } from "@aarili/contracts/customers";
+import {
+  contactMergeMessages,
+  identityReviewMessages,
+  type Locale,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import {
   Field,
@@ -26,10 +31,12 @@ import {
   type FormEvent,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
+import { CustomerDuplicates } from "./customer-duplicates";
 import { createCustomerQueries } from "./customer-query";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
@@ -38,10 +45,17 @@ import { WearerWorkspace } from "./wearer-workspace";
 type CustomerMode = "customers" | "customer-new" | "customer-profile";
 type Attempt = {
   key: string;
-  input: CustomerContact | CustomerCreate;
+  input: CustomerCorrection | CustomerCreate;
   etag?: string;
 };
-const blank = { displayName: "", phone: "", email: "", notes: "", aliases: "" };
+const blank = {
+  displayName: "",
+  phone: "",
+  email: "",
+  notes: "",
+  aliases: "",
+  reason: "",
+};
 type Values = typeof blank;
 function valuesFor(p: CustomerProfile): Values {
   return {
@@ -50,6 +64,7 @@ function valuesFor(p: CustomerProfile): Values {
     email: p.email ?? "",
     notes: p.notes ?? "",
     aliases: p.aliases.join("\n"),
+    reason: "",
   };
 }
 
@@ -100,6 +115,12 @@ export function CustomerScreen({
   const feedback = useRef<HTMLDivElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
   const [work] = useState(() => guard.track());
+  // Focus the mounted correction form before it becomes interactive. A queued
+  // timer can otherwise steal focus while the owner is entering the reason.
+  useLayoutEffect(() => {
+    if (editing && !loading && mode === "customer-profile")
+      nameInput.current?.focus();
+  }, [editing, loading, mode]);
   const current = useCallback(
     () => alive.current && queries.isCurrent(generation.current),
     [queries],
@@ -247,6 +268,8 @@ export function CustomerScreen({
         aliases: values.aliases.split("\n").filter((s) => s.trim()),
       });
       const invalid: Record<string, boolean> = {};
+      if (mode !== "customer-new" && !values.reason.trim())
+        invalid.reason = true;
       if (!parsed.success)
         for (const issue of parsed.error.issues)
           invalid[String(issue.path[0])] = true;
@@ -283,7 +306,7 @@ export function CustomerScreen({
                   occurredAt: consentAt,
                 },
               }
-            : contact,
+            : { ...contact, reason: values.reason.trim() },
         ...(profile ? { etag: `"v${profile.version}"` } : {}),
       };
       setAttempt(next);
@@ -303,7 +326,7 @@ export function CustomerScreen({
           : await correctCustomer(
               shopId,
               customerId ?? "",
-              next.input,
+              next.input as CustomerCorrection,
               next.key,
               next.etag ?? "",
             );
@@ -514,6 +537,14 @@ export function CustomerScreen({
               {profile && !editing && (
                 <>
                   <CustomerDetails profile={profile} />
+                  <CustomerDuplicates
+                    key={`${profile.id}:${profile.version}`}
+                    shopId={shopId}
+                    customerId={profile.id}
+                    mergedIntoId={profile.mergedInto?.id}
+                    queries={queries}
+                    guard={guard}
+                  />
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -522,7 +553,6 @@ export function CustomerScreen({
                       confirmedLeave.current = false;
                       setEditing(true);
                       setNotice("");
-                      setTimeout(() => nameInput.current?.focus(), 0);
                     }}
                     disabled={!policy.enabled}
                   >
@@ -610,6 +640,26 @@ export function CustomerScreen({
                         {t(mode === "customer-new" ? "newTitle" : "editTitle")}
                       </legend>
                       <p className="customer-muted">{t("nameOnly")}</p>
+                      {mode !== "customer-new" && (
+                        <Field>
+                          <FieldLabel htmlFor="customer-correction-reason">
+                            {
+                              identityReviewMessages[locale as "en" | "ta"]
+                                .reason
+                            }
+                          </FieldLabel>
+                          <textarea
+                            id="customer-correction-reason"
+                            className="ui-input"
+                            maxLength={1000}
+                            required
+                            {...register("reason", {
+                              onChange: () => changed("reason"),
+                            })}
+                            aria-invalid={!!errors.reason}
+                          />
+                        </Field>
+                      )}
                       <Field>
                         <FieldLabel htmlFor="customer-name">
                           {t("name")}
@@ -893,9 +943,19 @@ export function CustomerScreen({
 }
 function CustomerDetails({ profile }: { profile: CustomerProfile }) {
   const t = useTranslations("customers");
+  const locale = useLocale() as Locale;
   return (
     <section className="customer-details">
       <h2>{profile.displayName}</h2>
+      {profile.mergedInto && (
+        <p>
+          {contactMergeMessages[locale].merged}{" "}
+          <a href={`/customers/${profile.mergedInto.id}`}>
+            {profile.mergedInto.code} · {profile.mergedInto.displayName}
+          </a>
+        </p>
+      )}
+
       <p className="customer-muted">
         {t("currentVersion", { version: profile.version })}
       </p>

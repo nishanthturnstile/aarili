@@ -96,6 +96,9 @@ test("CW-13 refreshing drafts cannot silently replace a dirty concurrent wearer 
         })
         .click();
       await page
+        .locator("#wearer-correct-reason")
+        .fill("SYNTHETIC wearer correction");
+      await page
         .locator("#wearer-correct-pref-fit")
         .fill("Uncommitted proposal");
       await page
@@ -105,6 +108,7 @@ test("CW-13 refreshing drafts cannot silently replace a dirty concurrent wearer 
         "patch",
         `${path}/${wearer.wearerId}`,
         {
+          reason: "SYNTHETIC competing correction",
           age: "adult",
           preferences: {
             ...preferences,

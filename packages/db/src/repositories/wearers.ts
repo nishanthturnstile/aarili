@@ -39,6 +39,7 @@ export type WearerWrite = {
   originDraftId: string | null;
   noticeId: string;
   invalidateAuthority?: boolean;
+  revision?: { reason: string; previousVersion: number; fields: string[] };
   searchKey?: { nameTaNorm: string; nameLatinNorm: string; nameSkel: string };
 };
 export interface WearerRepository extends RequestRepository<WearerMutation> {
@@ -55,6 +56,7 @@ export interface WearerRepository extends RequestRepository<WearerMutation> {
   lockPerson(id: string): Promise<void>;
   identity(id: string): Promise<WearerIdentity | undefined>;
   byPerson(personId: string): Promise<WearerIdentity | undefined>;
+  isContactPerson(personId: string): Promise<boolean>;
   read(customerId: string, id: string): Promise<WearerProfile | undefined>;
   list(customerId: string): Promise<WearerProfile[]>;
   search(

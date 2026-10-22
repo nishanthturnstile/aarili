@@ -58,6 +58,14 @@ export {
   reviewGroupIntake,
 } from "./group-intake.js";
 export { projectOrderPieces, summarizePieceProgress } from "./order-pieces.js";
+export {
+  createRepeatOrder,
+  initialRepeatOrder,
+  readRepeatLinks,
+  readRepeatSource,
+  repeatOrderWorkflow,
+  reviewRepeatOrder,
+} from "./repeat-orders.js";
 
 export type QuickOrderContext = {
   customers: CustomerContext;
@@ -708,8 +716,23 @@ export async function listAcceptedOrders(
   const q = orderListQuerySchema.safeParse(input);
   if (!q.success) fail("VALIDATION_FAILED", 422);
   const rows = await acceptance(ctx).repository.list(q.data.before),
+    window = rows.slice(0, 25),
     orders = [];
-  for (const r of rows.slice(0, 25))
+  // Display order can oppose grouping/repeat recovery's authority order. Lock
+  // the entire page's customer/wearer classes before hydrating any one record.
+  for (const id of [
+    ...new Set(
+      window.map((r) => r.intake.customerId).filter((id): id is string => !!id),
+    ),
+  ].sort())
+    await ctx.wearers.repository.lockCustomer(id);
+  for (const id of [
+    ...new Set(
+      window.map((r) => r.intake.wearerId).filter((id): id is string => !!id),
+    ),
+  ].sort())
+    await ctx.wearers.repository.lockWearer(id);
+  for (const r of window)
     try {
       orders.push(await readAcceptedOrder(ctx, r.id));
     } catch (e) {

@@ -46,7 +46,7 @@ function orders(ctx: SmallServiceContext) {
 // locks against a simultaneous scope read or mutation.
 export async function prepareServiceDraftReads(
   ctx: SmallServiceContext,
-  records: DraftRecord[],
+  records: Pick<DraftRecord, "workflow" | "payload">[],
 ) {
   const repo = orders(ctx),
     orderIds = new Set<string>(),
@@ -62,6 +62,21 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    if (
+      record.workflow === "order.repeat" ||
+      record.workflow === "order.repeat-service"
+    ) {
+      const ref = p.repeat;
+      if (
+        ref &&
+        typeof ref === "object" &&
+        "sourceId" in ref &&
+        typeof ref.sourceId === "string"
+      )
+        orderIds.add(ref.sourceId);
+      if (typeof p.customerId === "string") customers.add(p.customerId);
+      if (typeof p.wearerId === "string") wearers.add(p.wearerId);
+    }
     if (record.workflow === "order.service-change") {
       const v = serviceChangeDraftSchema.parse(p);
       orderIds.add(v.orderId);
@@ -103,6 +118,13 @@ export async function prepareServiceDraftReads(
         if (v.data.context.payerId) customers.add(v.data.context.payerId);
       }
     }
+  }
+  // Service repeats can point to another service. Collect the immutable ancestor
+  // chain before taking any booking/order/identity locks, including mixed lists.
+  for (const id of orderIds) {
+    const service = await ctx.repository.readOrder(id);
+    if (service?.intake.sourceOrderId)
+      orderIds.add(service.intake.sourceOrderId);
   }
   const memberships = new Map<string, string | undefined>();
   for (const id of [...orderIds].sort()) {

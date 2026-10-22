@@ -6,12 +6,15 @@ import {
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { createBookingRoutes } from "./bookings.js";
+import { createCustomerHistoryRoutes } from "./customer-history.js";
 import { createCustomerRoutes } from "./customers.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
 import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
+import { createRepeatOrderRoutes } from "./repeat-orders.js";
+import { createServiceRepeatRoutes } from "./repeat-services.js";
 import { createServiceTemplatesRoutes } from "./service-templates.js";
 import { createShopCalendarRoutes } from "./shop-calendar.js";
 import { createShopCommitmentsRoutes } from "./shop-commitments.js";
@@ -86,9 +89,12 @@ export function createApi(
   if (owner) {
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));
+    app.route("/", createCustomerHistoryRoutes(owner));
     app.route("/", createBookingRoutes(owner));
     app.route("/", createOrderRoutes(owner));
+    app.route("/", createRepeatOrderRoutes(owner));
     app.route("/", createSmallServiceRoutes(owner));
+    app.route("/", createServiceRepeatRoutes(owner));
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));
