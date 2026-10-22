@@ -57,8 +57,7 @@ export const designChoicesMessages = {
     selected: "Explicitly selected",
     incompatible:
       "Earlier illustrative selections need review; nothing was silently discarded.",
-    examples:
-      "Private reference examples are unavailable until the reference ticket.",
+    examples: "Private reference examples are not available yet.",
     error:
       "Unable to load or validate this configuration. Check its exact sources and try again.",
     noChoices:

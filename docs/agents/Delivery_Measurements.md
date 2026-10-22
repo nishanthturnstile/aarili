@@ -55,6 +55,27 @@
   scan passed in **154.268s**, preserving the lockfile and deleting its exact
   disposable copy. Production readiness/outage/shutdown smoke **31.874s**;
   root browser-artifact scan **0.533s**. Original broad-run totals remain pending.
+- Inventory revision `def9b5d` hosted Fast verification **06:43:32–06:45:26 UTC**
+  (**114s**) and Dependency audit **06:43:31–06:44:56 UTC** (**85s**) passed in
+  [run 39735741565](https://github.com/nishanthturnstile/aarili/actions/runs/39735741565).
+- Broad clean run ultimately **exit 1, 3491.033s**; integration **248 passed /
+  4 outdated-inventory failures, 3185.47s**. Corrected affected file passed 6/6;
+  no wholesale rerun or false full-green claim. This long supplementary check
+  overlaps other work and is not added to active coding time. Its temporary
+  installation and PostgreSQL fixtures were cleaned up.
+- Final presentation/validation review adds the visible none marker, plain
+  unavailable-reference wording and bounded schema graph visits. The new graph
+  test's formatting first failed fast (**1.333s**), then Biome corrected it.
+  Frozen final `verify:fast` **exit 0, 97.886s**, **278 units / 63 files,
+  11.45s**, build **14.311s**. Final affected PG/UI/host times follow when observed.
+- Frozen final A1 PG **4/4**, **46.852s** command; final rebuilt A1 browser
+  **3/3**, **97.091s**, all four language/theme combinations and three screen
+  classes, 12 refreshed captures and zero axe violations. Final review-ready
+  time **07:15:45 UTC**, host port **58892**, ordinary sign-in HTTP 200. Prior
+  temporary hosts were stopped for builds; this host remains for owner review.
+  First tryable time remains **06:22:31 UTC**. Active coding/rework time remains
+  unknown; human acceptance, current-head hosted checks, merge and deployment
+  remain separately pending. Runtime code is frozen after the final checks.
 
 ## Repeat-order/history promotion #144 — 22 October 2026
 

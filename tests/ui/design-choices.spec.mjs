@@ -178,6 +178,22 @@ test("DS-A1-01–06 controlled choice create/save/reload/publish, profile previe
         { exact: true },
       ),
     ).toBeVisible();
+    const noneSelector = editor().getByLabel("SYNTHETIC sleeve-design", {
+      exact: true,
+    });
+    await noneSelector.selectOption(sources.choices[3].definition.id);
+    await expect(noneSelector.locator("option:checked")).toHaveText(
+      `${sources.choices[3].definition.content.labelEn} ${en.noneLabel}`,
+    );
+    await editor()
+      .getByRole("button", { name: en.preview, exact: true })
+      .click();
+    await expect(
+      editor().getByText(
+        `${en["sleeve-design"]} · SYNTHETIC sleeve-design: ${en.selected}`,
+        { exact: true },
+      ),
+    ).toBeVisible();
     await prepareOwnerScreen(page, "ta", true);
     await expect(
       editor().getByRole("heading", { name: ta.profile, exact: true }),

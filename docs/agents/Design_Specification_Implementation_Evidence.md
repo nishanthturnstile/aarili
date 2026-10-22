@@ -5,6 +5,13 @@
 [ticket packet](Design_Specification_Ticket_Packet.md),
 [research evidence](Design_Specification_REA_Evidence.md).
 
+Draft [PR #149](https://github.com/nishanthturnstile/aarili/pull/149) contains A1;
+A2/B remain blocked/unselected. The broad clean-copy run finished **248 passed /
+4 failed**; its missing workflow-inventory entry was corrected and the affected
+file passed **6/6**. The whole broad command was not rerun. Current focused gates,
+native portability, known failures and the running review packet are detailed
+below; no full-parent-feature, human acceptance or live activation claim.
+
 ## Authority and selected outcome
 
 After the concrete packet was presented, the owner explicitly answered
@@ -306,7 +313,8 @@ files**, Vitest **14.83s**; strict type tasks **23 successful**; production buil
 **12 successful tasks / 16.623s**, including web and worker. Lint/boundaries/tokens,
 Knip, negative types and **103 offline OpenAPI paths** passed. Five existing
 informational Biome template-literal suggestions in `review-service-additions.mjs`
-are unchanged; no formatting/lint errors. No runtime capability source changed afterwards.
+are unchanged; no formatting/lint errors. That result predates the final
+presentation/validation refinements described below.
 
 Supplementary `pnpm verify:clean` is still running at draft publication. Its
 frozen install passed with the lockfile unchanged; lint, Knip, strict types,
@@ -349,6 +357,62 @@ approved workflow; this is not a passing promotion gate. A later test-inventory/
 evidence-only follow-up preserves runtime capability inputs. Current-head CI,
 owner acceptance/merge and deployment remain separately gated.
 
+The inventory-correction revision **def9b5d90deb7cebcb51570d2fa7c1b5f8054e15**
+passed both required hosted checks in
+[run 39735741565](https://github.com/nishanthturnstile/aarili/actions/runs/39735741565):
+Fast verification **06:43:32–06:45:26 UTC** (114s), Dependency audit
+**06:43:31–06:44:56 UTC** (85s). These are that revision's results; later
+presentation/validation changes require their own current-head CI.
+
+### Broad-run closeout and final refinements
+
+The original `pnpm verify:clean` completed **exit 1, 3491.033s**. Its integration
+stage finished **248 passed / 4 failed across 44 files**, **3185.47s**. The only
+failures were the four draft calls whose test wrapper asserted an outdated
+workflow inventory, producing a masked 503 instead of 200. The corrected complete
+file's **6/6** result is above. The original frozen command remains failed; it was
+not rerun wholesale after a one-entry assertion correction. Successful unaffected
+results are retained under the workflow's evidence-reuse rule. Its temporary
+installation directory and disposable PostgreSQL resources were cleaned up.
+
+Its later build/smoke/artifact stages did not execute because integration failed.
+Those checks were completed independently: current-source fast production build,
+fresh native frozen install/package exports/web build/private-canary scan,
+production readiness/outage/worker shutdown and browser-artifact scan above.
+This does not turn the original full-command failure into a pass.
+
+Final presentation review replaced internal ticket wording with the plain
+unavailable-reference state and marks an explicit-none option visibly in the
+illustrative selector. The browser case now selects it and checks the none label
+separately from unknown and the selected state. Final validation review memoises
+completed schema graph visits as well as preview evaluation; a malformed 40-node
+shared dependency graph is rejected without exponentially revisiting branches.
+It adds one bounded negative unit case; no compatibility policy or source history
+is changed. A final fast attempt caught formatting in that test (**1.333s**),
+then Biome corrected it without changing its behaviour.
+
+Frozen final `pnpm verify:fast` — **exit 0, 97.886s**, **278 units / 63 files**,
+Vitest **11.45s**, all strict type tasks, negative-type checks, Knip/lint/boundaries/
+tokens, **103 OpenAPI paths** and production web/worker build (**14.311s**) passed.
+Final `pnpm test:integration tests/design-choices.integration.test.mjs` — **exit 0,
+4/4 passed**, Vitest **45.61s**, command **46.852s**. This includes the expanded
+availability/profile/definition race in the complete file, not only a filtered run.
+Final `pnpm exec node scripts/test-ui.mjs tests/ui/design-choices.spec.mjs` against
+the frozen fast build — **exit 0, 3/3 passed**, Playwright **1.5m**, command
+**97.091s**. All four language/theme combinations on all three screen classes,
+explicit-none selection, IME/recovery, keyboard/axe, landscape and 320px reflow
+passed; all **12 captures** were refreshed with **zero axe violations**.
+
+These final checks tested dirty refinements above `def9b5d`: the design contract's
+graph traversal, the content editor's explicit-none label, the English unavailable
+copy and their two focused test files. No runtime source changed after these
+results. This closeout and delivery-timing edits are documentation-only. Final
+review-ready and latest running-host checks were observed **07:15:45 UTC**.
+The final rebuilt browser-artifact scan also passed: **29 artifacts, exit 0,
+0.290s**. The full browser suite, physical Android, fluent Tamil and assistive
+technology acceptance were not rerun or claimed; the scoped automated matrix and
+the earlier 12-workflow regression are the current UI evidence.
+
 ### Migration and recovery
 
 Migration 0042 is additive and uses the existing advisory-locked migration runner.
@@ -367,9 +431,10 @@ Restore/kill-switch/live-data activation retain their existing gates.
 Startup after `pnpm build`: `node scripts/review-design-choices.mjs` using pinned
 Node/PATH. It creates a disposable loopback host/database and prints only its
 route and private access-file location. Exact running URL is recorded below when
-observed. Current refreshed host: **http://127.0.0.1:62781/settings?section=design-choices**,
-ready observed **06:33:48 UTC** on 22 October. The earlier port 51739 host was
-stopped cleanly before final build. Private credentials: `.scratch/design-choices-review-host/private.json`
+observed. Final host: **http://127.0.0.1:58892/settings?section=design-choices**,
+review-ready and HTTP **200** observed **07:15:45 UTC** on 22 October. Earlier
+51739/62781/53713 hosts were stopped cleanly for rebuilds. The final host remains
+running for owner review. Private credentials: `.scratch/design-choices-review-host/private.json`
 (ignored, never paste into Git/chat). Ordinary owner sign-in; no hosted tunnel.
 Named shop: **SYNTHETIC Design choices**. It contains **SYNTHETIC blouse questions**,
 four independent neck/sleeve choices, salwar top/bottom/dupatta profiles, alteration

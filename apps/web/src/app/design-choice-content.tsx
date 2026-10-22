@@ -977,9 +977,7 @@ function QuestionPreview({
                   return {
                     value: r.revisionId,
                     label: choice
-                      ? locale === "ta"
-                        ? choice.definition.content.labelTa
-                        : choice.definition.content.labelEn
+                      ? `${locale === "ta" ? choice.definition.content.labelTa : choice.definition.content.labelEn}${choice.definition.content.kind === "choice" && choice.definition.content.none ? ` ${t("noneLabel")}` : ""}`
                       : t("historical"),
                   };
                 }),

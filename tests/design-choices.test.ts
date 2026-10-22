@@ -140,3 +140,19 @@ test("DS-A1-02 intended garment lengths need explicit reviewed unit/precision an
   }));
   expect(designChoicesCommandSchema.safeParse(p).success).toBe(true);
 });
+
+test("DS-A1-03 bounded malformed shared dependencies reject duplicate dimensions without exponential graph traversal", () => {
+  const p = profile();
+  if (p.content.kind !== "profile") throw Error();
+  const questions: DesignQuestion[] = [];
+  for (let i = 0; i < 40; i++) {
+    const q = question();
+    q.when = questions.slice(-8).map((parent) => ({
+      questionId: parent.id,
+      choice: parent.choices[0] as ReturnType<typeof ref>,
+    }));
+    questions.push(q);
+  }
+  p.content.questions = questions;
+  expect(designChoicesCommandSchema.safeParse(p).success).toBe(false);
+});

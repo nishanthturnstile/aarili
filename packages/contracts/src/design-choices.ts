@@ -198,12 +198,16 @@ export const designChoicesCommandSchema = designChoicesDraftSchema.superRefine(
           issue(p, "Unsupported dependency choice");
       }
     }
+    const complete = new Set<string>();
     const visit = (id: string, trail: Set<string>): boolean => {
+      if (complete.has(id)) return true;
       if (trail.has(id)) return false;
       const next = new Set(trail).add(id);
-      return (c.questions.find((q) => q.id === id)?.when ?? []).every((w) =>
-        visit(w.questionId, next),
+      const valid = (c.questions.find((q) => q.id === id)?.when ?? []).every(
+        (w) => visit(w.questionId, next),
       );
+      if (valid) complete.add(id);
+      return valid;
     };
     for (const q of c.questions)
       if (!visit(q.id, new Set())) {
