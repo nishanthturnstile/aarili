@@ -1,6 +1,7 @@
 # Design specifications: concrete ticket packet
 
-22 October 2026. **Software packet approved; A1 merged and A2 #147 selected.** Roadmap 1.3.1;
+22 October 2026. **Software packet approved; A1 merged; selected A2 #147 implemented in
+[draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), awaiting owner review/merge.** Roadmap 1.3.1;
 [design](Design_Specification_Design.md), [research](Design_Specification_REA_Evidence.md),
 [baseline/checks](Design_Specification_Implementation_Evidence.md).
 
@@ -21,7 +22,7 @@ does not authorise merge, deployment, production policy or live data.
 | Published ticket | Reviewable owner outcome | Native direct dependencies |
 | --- | --- | --- |
 | **A1 / 1.3.1a — Maintain controlled design choices and preview garment-specific questions** | Owner publishes/revises bilingual choices and their exact garment/piece profile, previews resulting questions and controls new-order availability. | #97 catalogue, #98 forms, #99 manifests, #53 vocabulary, #55 durable drafts, #16 command history. All currently merged. |
-| **A2 / 1.3.1b — Save, select and revise a garment's exact specification** | Owner reopens an accepted garment/piece, saves a versioned specification, chooses which version is current, and deliberately reviews reuse into new work. | #146 A1, #114 accepted order, #118 native pieces, #120 grouped acceptance, #134 repeat, #138 identity/merge boundary, #56 draft recovery. Existing prerequisites merged; A1 must merge first. |
+| **A2 / 1.3.1b — Save, select and revise a garment's exact specification** | Owner reopens an accepted garment/piece, saves a versioned specification, chooses which version is current, and deliberately reviews reuse into new work. | #146 A1, #114 accepted order, #118 native pieces, #120 grouped acceptance, #134 repeat, #138 identity/merge boundary, #56 draft recovery. All merged and rechecked on selection. |
 | **B / 1.3.1c — Attach private component references and preserve replacement history** | Owner adds image/document/sketch/voice references with source/rights/intent, captions and bounded annotations; replacement creates a successor while old permitted history remains exact. | #147 A2, #57 private uploads, #58 processing, #79 adult wearer, #80 guardian, #138 sensitive-relink exclusions. Existing prerequisites merged; A2 must merge first. |
 
 Transitive infrastructure requirements include 0.2.3 and 0.4.1/0.4.3. The current

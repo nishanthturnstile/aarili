@@ -1,7 +1,8 @@
 # Versioned garment design specifications: independent design
 
 22 October 2026. Roadmap **1.3.1**. **Owner-approved software design and packet;
-A1 [#146](https://github.com/nishanthturnstile/aarili/issues/146) merged; A2 #147 selected.** [Research](Design_Specification_REA_Evidence.md),
+A1 [#146](https://github.com/nishanthturnstile/aarili/issues/146) merged; selected A2 #147 implemented in
+[draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), awaiting owner review/merge.** [Research](Design_Specification_REA_Evidence.md),
 [concrete packet](Design_Specification_Ticket_Packet.md),
 [verification and delivery status](Design_Specification_Implementation_Evidence.md).
 

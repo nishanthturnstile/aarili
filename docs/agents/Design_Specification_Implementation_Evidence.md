@@ -96,6 +96,13 @@ draft awareness; destructive down SQL is not supplied.
 ### A2 verification ledger
 
 Frozen runtime inputs, base `3459ec4`, branch `codex/design-specifications-a2`.
+Capability commit **3c96b945a4d4e9529bfe47bf56c2011dac2b6a5e** is published in
+[draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), created
+**09:49:19 UTC** and immediately registered with T3. Its required Fast verification
+(**09:49:26–09:51:29**, 123s) and Dependency audit (**09:49:25–09:49:49**, 24s)
+passed in [run 39758369014](https://github.com/nishanthturnstile/aarili/actions/runs/39758369014).
+Later test-inventory corrections require their own affected-file evidence and
+current-head CI; this earlier run is not presented as verifying later commits.
 Command logs are outside Git in `%TEMP%/aarili-design-spec-a2-20261022`; synthetic
 browser captures are ignored under `.scratch/design-specifications-ui`.
 
@@ -108,8 +115,8 @@ browser captures are ignored under `.scratch/design-specifications-ui`.
 | A2 Playwright / axe | **3/3, exit 0, 151.854s**, **09:25:25.144–09:27:56.998**. Phone **360×800**, tablet **820×1180**, desktop **1440×900**; EN/TA × light/dark, **12 captures**, zero axe violations. Includes keyboard, Tamil IME, save-only/use, exact committed-response loss and replay, stale comparison/recovery, inactive reuse, permission-loss clearing and no private browser storage. |
 | Production smoke | **Exit 0, 23.320s**, **09:45:16.664–09:45:39.984**. Production Next/Hono/real PostgreSQL readiness/outage, typed client and worker shutdown. |
 | Final test-only addition / documentation checks | `pnpm lint` **exit 0, 5.295s**, **09:47:14.277–09:47:19.572**; `pnpm knip` exit 0; artifact scan **exit 0, 0.374s**, **09:47:32.286–09:47:32.660**, **29** artifacts; `git diff --check` exit 0. No runtime changes since final fast gate. |
-| Full existing real PostgreSQL regression | Started **09:11:30.744**; running. `pnpm test:integration --reporter=verbose`; completion/counts pending. |
-| Existing browser regressions | Started **09:34:45.445**; running. Acceptance, native pieces, booking groups, booking/draft recovery, repeat and customer history: **30 tests**, three device projects, zero retries. Completion pending. |
+| Full existing real PostgreSQL regression | **Exit 1, 3301.763s**, **09:11:30.744–10:06:32.507**. `pnpm test:integration --reporter=verbose`: **253 passed / 4 stale-test failures**, **42 passed / 3 failed files (45)**. All five A2 cases passed. Failures and corrective checks are preserved below; no full-green rerun claim. |
+| Existing browser regressions | **30/30, exit 0, 1473.358s**, **09:34:45.445–09:59:18.803**. Acceptance, native pieces, booking groups, booking/draft recovery, repeat and customer history, three device projects, zero retries. Disposable fixtures/web servers cleaned. |
 
 Development failures remain in the private command logs. Early PG runs exposed
 deferred FKs, an ambiguous alias and a missing privacy read policy. Expanded
@@ -121,6 +128,36 @@ deleting a historical membership and correctly hit its FK; permission-loss testi
 now revokes wearer authority. Final passing commands above cover these changes.
 An earlier broad PG attempt was deliberately terminated to correct the UPSERT;
 it has no completed-suite result. No fabricated pass count or hidden retry.
+
+The continuing full regression reported four outdated-test failures: the two
+legacy piece downgrade fixtures must preserve the new empty design-scope FK;
+customer history now has seven unavailable domains because design history is
+implemented; and self-review found a bootstrap inventory ordering mistake.
+Only tests are corrected: the fixture captures/restores all five exact FKs,
+checks both design tables are empty before its disposable downgrade, history checks
+that designs is absent, and the bootstrap expected array uses JavaScript ordering.
+The original broad result is retained. Corrected bootstrap file passed
+**12/12, exit 0, 324.695s**, **09:51:01.601–09:56:26.296 UTC**. The first legacy
+fixture correction omitted the exact draft-response FK, leaving the same two
+fixture failures. After including it, both exact migration cases passed
+**2/2 (42 filtered), exit 0, 47.207s**, **10:05:08.280–10:05:55.487 UTC**. The
+acceptance/history-file run finished **46 passed / 2 legacy-fixture failures
+(48 cases), exit 1, 910.517s**, **09:52:20.663–10:07:31.180 UTC**; all four
+customer-history cases pass. Those two failures used the first correction before
+the second design FK was added; their subsequent **2/2** result above verifies
+the final fixture. Only those two cases call this downgrade helper. No whole-suite
+rerun is claimed. Biome checked all three corrected files with exit 0;
+five changed UTF-8 documents and **142** local links also passed the bounded
+documentation check. Runtime inputs remain unchanged.
+
+All four original failing scenarios now have passing corrective evidence. The
+full broad command's original failure remains visible. Current-head feature CI
+is linked on PR #150; the earlier capability run above records its exact tested
+revision. Final documentation/test-only commits do not change runtime inputs.
+Final local lint **exit 0, 2.603s**, **10:08:30.562–10:08:33.165 UTC**; the five
+UTF-8 documents / 142 local links and `git diff --check` pass. The local review
+packet is ready **10:08:33 UTC**. Current-head hosted checks are reported on the
+PR, with human acceptance and merge still pending.
 
 The UI received two bounded visual inspections and one mechanical review (no
 findings). This does not constitute fluent Tamil, physical-device or screen-reader
@@ -136,8 +173,8 @@ have not been run for A2; document generation is outside this ticket.
 | **DS-A2-03** | Frozen definitions, exact prior answers and reasoned unchanged inactive retention. New/repeated inactive use denied. Current profile/choice eligibility rechecked under A1 configuration locks; label/disable/publish races and disabled accepted parent covered by PG cases. |
 | **DS-A2-04** | Immutable versions/children, scope CAS plus latest-saved base, separate reasoned selection events and independent history pagination. Save-only/current preservation, atomic save-and-use, selecting older history, concurrent first save/revision/selection and late-child denial covered by PG/UI. |
 | **DS-A2-05** | Explicit unresolved/inspiration/instruction intent; responses always report customer approval `not-recorded`. Governed-state policy fails closed on save-and-use and selection. The future governed-state seam is injected under a real owner transaction in PG tests; A2 does not implement or claim an actual 1.4.3 approval writer. |
-| **DS-A2-06** | Exact source version/digest/scope revision plus explicit field selection; maps current target profile, fresh draft/IDs, copied values start as inspiration. Cross-wearer, stale, foreign and inactive sources denied; no media or commitment transfer. Existing intake/repeat schemas remain unchanged; broader repeat regressions pending below. |
-| **DS-A2-07** | Six forced-RLS tenant tables, minimal durable idempotency metadata, exact private replay and narrow audited privacy functions. Real PG covers authority/erasure races, stale draft after erasure, actor/hash mismatch, all nine rollback points with successful retries, history cursor invalidation and denied runtime redaction. Broad isolation/history regression pending below. |
+| **DS-A2-06** | Exact source version/digest/scope revision plus explicit field selection; maps current target profile, fresh draft/IDs, copied values start as inspiration. Cross-wearer, stale, foreign and inactive sources denied; no media or commitment transfer. Existing intake/repeat schemas remain unchanged; custom/service/grouped repeat PG cases pass within the broad run, and existing three-size repeat browser regressions pass. |
+| **DS-A2-07** | Six forced-RLS tenant tables, minimal durable idempotency metadata, exact private replay and narrow audited privacy functions. Real PG covers authority/erasure races, stale draft after erasure, actor/hash mismatch, all nine rollback points with successful retries, history cursor invalidation and denied runtime redaction. Broad isolation/draft/identity cases passed; corrected legacy/history checks are recorded separately. |
 | **DS-A2-08** | Final three-size EN/TA/theme matrix passes, keyboard/IME/axe/reload/conflict/cancel/lost response/inactive source/access clearing exercised. Private values stay out of URLs/local storage/static service-worker cache. Owner language/device/assistive-technology review remains open. |
 
 The running synthetic review host was ready **09:35:14 UTC**, observed by

@@ -42,6 +42,43 @@
 - Production smoke **exit 0, 23.320s**, **09:45:16.664–09:45:39.984 UTC**;
   final artifact scan **29 checked, exit 0, 0.374s**. Lint after the supplemental
   test addition **exit 0, 5.295s**, with Knip also exit 0. Runtime inputs unchanged.
+- Capability **3c96b94** pushed; draft
+  [PR #150](https://github.com/nishanthturnstile/aarili/pull/150) created
+  **09:49:19 UTC**, immediately linked to T3. Hosted queue about **3s**;
+  Fast **09:49:26–09:51:29 UTC**, **123s**, audit **09:49:25–09:49:49 UTC**,
+  **24s**, both passed in
+  [run 39758369014](https://github.com/nishanthturnstile/aarili/actions/runs/39758369014).
+  Subsequent test-only corrections need current-head checks before final handoff.
+- Broad PG revealed four stale assertions/fixtures (legacy piece FK ×2, history
+  unavailable-domain count and bootstrap inventory ordering). Corrected only test
+  setup/expectations and rerunning all three affected files; original broad totals
+  and focused correction timings remain pending. No runtime change or gate waiver.
+- Corrected bootstrap file **12/12, exit 0, 324.695s**,
+  **09:51:01.601–09:56:26.296 UTC**. The order/history files are still running.
+  Biome checked the three changed tests; five changed documents / **142** local
+  links passed. Verification overlaps broad PG/browser execution; active rework
+  stopwatch time remains unknown.
+- Existing browser regression **30/30, exit 0, 1473.358s**,
+  **09:34:45.445–09:59:18.803 UTC**, zero retries, all three device classes;
+  acceptance, pieces, groups, repeat, history and both draft-recovery paths.
+  This is separate from the new A2 three-case matrix and overlaps real PG runs.
+- Full real PG finished **253 passed / 4 stale-test failures**, **42 passed /
+  3 failed files (45)**, **exit 1, 3301.763s**, **09:11:30.744–10:06:32.507 UTC**.
+  All five A2 cases pass. Original broad output is retained; no complete rerun or
+  full-green claim. The first legacy-fixture correction missed the draft-response
+  FK; its final two-case check passed **2/2 (42 filtered), exit 0, 47.207s**,
+  **10:05:08.280–10:05:55.487 UTC**, after preserving all five exact FKs. The
+  acceptance/history-file run finished **46 passed / 2 first-correction fixture
+  failures (48), exit 1, 910.517s**, **09:52:20.663–10:07:31.180 UTC**; all four
+  history cases pass. The two remaining cases subsequently pass with the final
+  five-FK fixture as recorded above. No whole-suite green result is substituted
+  for either original failing command. Only test fixtures/expectations and
+  documentation changed after the verified capability commit.
+- Final local lint **exit 0, 2.603s**, **10:08:30.562–10:08:33.165 UTC**;
+  document/link and whitespace checks pass. Local review packet ready
+  **10:08:33 UTC**; current-head hosted checks are tracked on PR #150. Human
+  review/acceptance, owner merge and deployment remain pending, separately from
+  first tryable **09:35:14 UTC**. Final commits only correct tests/documentation.
 
 ## Issue #146 / 1.3.1a — controlled design choices
 
