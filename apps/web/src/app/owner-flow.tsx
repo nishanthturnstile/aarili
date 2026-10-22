@@ -5,6 +5,7 @@ import {
 } from "@aarili/api/client";
 import {
   customerMessages,
+  designChoicesMessages,
   guardianMessages,
   type Locale,
   measurementFormsMessages,
@@ -95,6 +96,7 @@ export function OwnerFlow({
           commitments: shopCommitmentsMessages[locale],
           directory: shopDirectoryMessages[locale],
           catalogue: serviceCatalogueMessages[locale],
+          designChoices: designChoicesMessages[locale],
           measurementForms: measurementFormsMessages[locale],
           serviceTemplates: serviceTemplatesMessages[locale],
         }}

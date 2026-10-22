@@ -1,5 +1,50 @@
 # Delivery measurements
 
+## Issue #146 / 1.3.1a — controlled design choices
+
+- Owner approved the concrete A1/A2/B software packet and A1 selection on
+  **22 October 2026**. Ticket publication was observed around **05:34:49 UTC**;
+  implementation start recorded **05:36:35 UTC**, before first schema edit.
+  Existing checkout, branch `codex/design-choices-a1`, base `154a456` from updated
+  development; all six direct blockers merged. No worktree.
+- Research/planning is recorded separately. Active coding/rework stopwatch time
+  is **unknown**; elapsed command/wait time is not reported as coding time.
+- Development schema/property **5/5**, **14.926s** command; first design PG
+  **3/3**, **27.309s** command. Expanded five-file PG regression **22/22**,
+  **193.311s** command. Explicit scenario fixture initially violated incumbent
+  stitching-form applicability; corrected fixture then **4/4**, **33.422s**.
+- First desktop browser workflow reached domain/axe checks but failed a test-only
+  appearance-storage key assertion (**49.693s**). Corrected the key to the existing
+  `aarili-appearance`; no browser-storage behaviour was changed.
+- Clean-install attempt 1 installed the frozen workspace then failed the new
+  client boundary registration (**58.700s**); attempt 2 found an unnecessary
+  fixture export in Knip (**61.303s**). Corrections retain the strict gates.
+  Final clean/native/browser results and reviewer-ready timestamps follow when
+  observed in [the A1 evidence](Design_Specification_Implementation_Evidence.md).
+- As of **06:17:39 UTC**, no review host or PR has been opened. First tryable,
+  review-ready, hosted queue/execution, human acceptance and merge remain pending.
+  Verification stages can overlap; their durations must not be added as active
+  implementation time. A2 #147 and B #148 remain blocked/unselected.
+- First A1 review host ready observed by **06:22:31 UTC**, loopback port **51739**;
+  T3 opened its ordinary owner sign-in. HTTP **200** confirmed with native
+  PowerShell's BasicParsing mode at **06:26 UTC** (the legacy DOM parser first
+  threw a local PowerShell error). Private access file exists outside Git/chat.
+  Final reviewer handoff URL and review-ready time remain pending final checks.
+- Three-device recovery browser **3/3**, **129.639s**. Current focused A1 PG
+  **4/4**, **61.682s**. Additional no-design status type errors were caught by
+  production builds (**34.683s / 10.127s**) and corrected with an explicit union
+  guard. These checks/rework are not folded into an invented coding duration.
+- Final rebuilt browser regression **12/12**, **481.127s**, followed by expanded
+  four-language/theme-combination A1 coverage **3/3**, **116.344s** (12 captures,
+  zero axe violations). New explicit availability/profile/definition race check
+  **1 passed / 3 filtered**, **24.037s**. The initial review host was stopped
+  cleanly before the final fast gate rebuild; the handoff host will be refreshed.
+- Final current-source `verify:fast`: **exit 0, 118.160s**, **277 units / 63
+  files (14.83s)**, build **16.623s**. Refreshed review host ready by
+  **06:33:48 UTC**, port **62781**, with the exact route/private access method in
+  the A1 evidence. Broad clean-install regression remains running at draft-PR
+  publication; no final full-suite claim or human acceptance is inferred.
+
 ## Repeat-order/history promotion #144 — 22 October 2026
 
 - Owner authorized promotion, issue fixes, merge and branch synchronization.
