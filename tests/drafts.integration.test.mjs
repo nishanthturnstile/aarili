@@ -51,6 +51,8 @@ async function fixture(run) {
               "design.specification",
               "design.specification@2",
               "measurement.forms",
+              "measurement.session",
+              "measurement.use",
               "order.group",
               "order.quick",
               "order.repeat",

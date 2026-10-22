@@ -726,7 +726,7 @@ The brief changes no scope, dependencies or issue-publication authority.
 [independent design](agents/Design_Specification_Design.md),
 [concrete A1 → A2 → B tickets](agents/Design_Specification_Ticket_Packet.md) and
 [current baseline/verification status](agents/Design_Specification_Implementation_Evidence.md)
-record the approved design, merged A1 and selected A2 implementation. A1 controls choices/question profiles; A2 saves
+record the approved design and merged A1/A2/B implementation. A1 controls choices/question profiles; A2 saves
 exact garment/piece specification versions and governs repeat/current selection;
 B adds private component references in all required asset classes with captions,
 annotations and version-preserving replacement. The owner approved publication
@@ -734,11 +734,12 @@ as A1 #146 → A2 #147 → B #148 with native blockers. A1 merged in PR #149;
   A2 #147 merged in [PR #150](https://github.com/nishanthturnstile/aarili/pull/150).
   The owner selected B #148 after all six direct blockers merged. A2 adds exact
 scope/version/answer/selection records, reasoned inactive retention and explicit
-field reuse into a fresh accepted target. B is implemented in draft
-[PR #151](https://github.com/nishanthturnstile/aarili/pull/151); current focused
-verification, original broad failures and the running synthetic review packet
-are recorded in the implementation evidence. Owner/human acceptance and merge
-remain pending.
+field reuse into a fresh accepted target. B merged in
+[PR #151](https://github.com/nishanthturnstile/aarili/pull/151) on 22 October 2026
+at 16:42:48 UTC (`2aa1b12`), with passing Fast verification and Dependency audit.
+Current focused verification, original broad failures and the synthetic review
+packet remain in the implementation evidence. Human acceptance and production
+privacy/retention/activation gates remain separate.
 A1/A2 alone do not close ORD-07/DES-05/10 or full 1.3.1;
 AC-08 and later approval/measurement/pattern/slip gates remain open.
 
@@ -754,6 +755,32 @@ AC-08 and later approval/measurement/pattern/slip gates remain open.
 - **Deliverable:** Versioned garment specifications and controlled design libraries.
 
 ##### Vertical Slice 1.3.2 — Record and Select Measurement Versions
+
+**REA delivery brief (22 October 2026):** the
+[Measurement Versions prompt](agents/Measurement_Versions_REA_Prompt.md) uses
+Nool's documented measurement/version-selection flow as the primary research
+candidate and TailorMan's measurement entry/templates as a secondary comparison.
+It reuses existing form definitions and sequences wearer sessions, immutable
+versions and explicit garment selection, preserving privacy and later trial/fit/
+pattern dependencies. The brief changes no scope, policy or approval gates.
+
+**Preparation packet (22 October 2026):**
+[REA evidence and access gaps](agents/Measurement_Versions_REA_Evidence.md),
+[independent design](agents/Measurement_Versions_Design.md),
+[approved A → B → C tickets](agents/Measurement_Versions_Ticket_Packet.md) and
+[fresh baseline/validation](agents/Measurement_Versions_Implementation_Evidence.md)
+cover exact existing forms, wearer/source-linked sessions, immutable values and
+explicit garment/piece selection; then correction/reviewed reuse; then optional
+private fit assets. After private sign-in, REA observed Nool entry/save/edit,
+comparison and explicit item-version selection; the same V2 badge survived an
+edit, and earlier-order structured-value stability remains unproven. TailorMan
+public form observations are separated from vendor claims. Direct
+1.1.3/1.3.1 and technical prerequisites are merged. The owner approved the software
+packet and proceeding on 22 October: A [#153](https://github.com/nishanthturnstile/aarili/issues/153)
+is selected and in implementation; B [#154](https://github.com/nishanthturnstile/aarili/issues/154)
+and C [#155](https://github.com/nishanthturnstile/aarili/issues/155) are published
+with native blockers and require merged predecessors and selection. Production
+policy/activation, merge and full 1.3.2/AC-06 completion remain open.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** MEA-01, MEA-02, MEA-03, MEA-04, MEA-05, MEA-06, MEA-07, MEA-11. Scenarios: AC-06, AC-07, AC-08.

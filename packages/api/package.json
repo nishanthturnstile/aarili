@@ -163,6 +163,10 @@
     "./design-references-client": {
       "types": "./dist/design-references-client.d.ts",
       "import": "./dist/design-references-client.js"
+    },
+    "./measurement-sessions-client": {
+      "types": "./dist/measurement-sessions-client.d.ts",
+      "import": "./dist/measurement-sessions-client.js"
     }
   },
   "scripts": {

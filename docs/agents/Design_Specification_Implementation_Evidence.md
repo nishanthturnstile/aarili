@@ -1,5 +1,15 @@
 # Design specification delivery and verification status
 
+**Fresh dependency check, 22 October 2026 during 1.3.2 preparation:**
+[PR #151](https://github.com/nishanthturnstile/aarili/pull/151) merged at
+**16:42:48 UTC**, commit `2aa1b1246213845f1dcaa55d7505051219aedecd`.
+Its Fast verification and Dependency audit passed in
+[run 39814350982](https://github.com/nishanthturnstile/aarili/actions/runs/39814350982).
+Issues #146–#148 are closed and all three merge commits are ancestors of updated
+development. Prior selected/draft/pending-merge text below is historical evidence;
+original failed test totals are deliberately retained. No new human acceptance,
+production privacy/retention or live-activation result is asserted by this update.
+
 22 October 2026. Roadmap **1.3.1**. **A1 #146 / PR #149 and A2 #147 / PR #150 merged;
 owner selected [B #148](https://github.com/nishanthturnstile/aarili/issues/148).** [Design](Design_Specification_Design.md),
 [ticket packet](Design_Specification_Ticket_Packet.md),

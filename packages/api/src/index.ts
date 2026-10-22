@@ -13,6 +13,7 @@ import { createDesignReferencesRoutes } from "./design-references.js";
 import { createDesignSpecificationsRoutes } from "./design-specifications.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
+import { createMeasurementSessionsRoutes } from "./measurement-sessions.js";
 import { createMediaRoutes } from "./media.js";
 import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
@@ -106,6 +107,7 @@ export function createApi(
     app.route("/", createServiceCatalogueRoutes(owner));
     app.route("/", createDesignChoicesRoutes(owner));
     app.route("/", createDesignSpecificationsRoutes(owner));
+    app.route("/", createMeasurementSessionsRoutes(owner));
     app.route("/", createDesignReferencesRoutes(owner));
     app.route("/", createMeasurementFormsRoutes(owner));
     app.route("/", createServiceTemplatesRoutes(owner));

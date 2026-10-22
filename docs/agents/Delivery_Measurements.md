@@ -1,5 +1,77 @@
 # Delivery measurements
 
+## Issue #153 / 1.3.2a — wearer session and first measurement selection
+
+- Owner approved proceeding on **22 October 2026**. A/B/C published as
+  #153/#154/#155 with native blockers read back; A selected. All 12 prerequisite
+  merge commits were freshly verified as ancestors. Existing checkout updated
+  from development at `2aa1b12`, branch `codex/1.3.2a-measurement-sessions`.
+  No worktree, direct development/main push, merge or deployment.
+- First application file creation: **17:46:06.003 UTC**, observed filesystem
+  creation time. A later 17:48:49 documentation checkpoint was initially labelled
+  as the start and is corrected in the evidence document. Active coding/rework
+  stopwatch time is **unknown**; elapsed test and wait time is not coding time.
+- Development arithmetic/policy tests: **23 passed**, including 500 exact
+  round-trip properties. Expanded measurement PostgreSQL file: **6 passed,
+  62.31s** at that checkpoint. Subsequent first-use/typed-piece/registry changes
+  require the broad final results below; initial focused results are not reused
+  as final frozen-source evidence.
+- First phone synthetic UI captures: **18:29:56.610–18:29:58.581 UTC** (artifact
+  creation times). Browser command **1 passed, 1.5m**, including real form-use
+  approval, recovery, save-only/selection and English/Tamil/theme/axe. This was a
+  disposable fixture, **not** a running owner-review host or physical-device
+  acceptance. Later refinements remain subject to final three-size checks.
+- Initial full verification exited **1 / 3.080s** on missing typed-client boundary
+  registration; corrected. Broad `pnpm verify` started **18:49:29.764 UTC**,
+  source fingerprint `18e9e51634399ed1fc5a4c9fa13267c9801db73159721c332a4c21f72cca516b`.
+  Final result, review-host availability, PR/CI and owner-review/merge timestamps
+  remain pending until observed. The Next.js CLI advisory/reminder is retained
+  as a separate baseline concern; no upgrade or suppression is included.
+
+- Broad verification ended **19:41:05.538 UTC**, **3095.774s**, exit 1:
+  **311 units passed; 263 PG passed / 5 failed**, all failures in two stale
+  registry fixtures. Corrected affected PG rerun: **18/18 passed**, **283.972s**,
+  **19:41:17.182–19:46:01.154 UTC**. Final frozen `verify:fast`: **exit 0,
+  119.265s**, **19:44:39.482–19:46:38.747 UTC**. Production smoke **13.923s**
+  and artifact check **0.500s** also passed. Application source fingerprint:
+  `90e566bd9925c8bc4d3ebae35bfd21dde7391e2cc47b93736a614b660c75a7c7`.
+- Three-size measurement browser checkpoint: **3/3 passed**, **289.229s**,
+  **19:37:58.078–19:42:47.307 UTC**. Later offline assertion needs the final run.
+  First successful disposable review-host setup was observed through the protected
+  route at **19:42:43 UTC**; stopped before builds. Final running host pending.
+- Full browser startup retries and the accidentally overlapping discarded runs
+  are recorded in the implementation evidence. They are verification rework,
+  not application coding time or valid full-suite results. Final browser, PR/CI,
+  human review and merge remain pending until observed.
+
+## 1.3.2 preparation — measurement versions design and ticket review
+
+- **22 October 2026; preparation only, no implementation delivery/PR.** Existing
+  checkout updated to `development` at `2aa1b12`, preserving the roadmap brief
+  and prompt, then branched `codex/1.3.2-measurement-versions-design`. No worktree.
+  Initial switch/pull refusals and deliberate patch restoration are recorded in
+  [preparation evidence](Measurement_Versions_Implementation_Evidence.md).
+- REA passive Nool capture **16:56:53.970–16:56:55.027 UTC** observed sign-in;
+  authenticated measurements were unobserved in the initial pass. Public TailorMan scenarios and
+  source review informed the independent A/B/C packet. No saved public-demo or
+  real-data mutation. Research/preparation active stopwatch time is **unknown**.
+- `pnpm verify:fast`: **17:10:53.316–17:14:08.667 UTC**, **195.351s**, exit 0;
+  lint/Knip/types, **288/288** units, negative types, OpenAPI and production build.
+  These are current repository checks, not tests of the proposed session runtime.
+- Packet validation checked local links, requirements, 25 acceptance IDs, exact
+  document arithmetic and preservation of original edits. Final validation and
+  manual review boundaries are in the evidence record. Application implementation
+  start, running measurement review host, first usable behaviour, issue/PR,
+  CI/review waiting and merge time are **not started/pending**, not reconstructed.
+  This preparation does not consume an implementation-delivery timing slot.
+- Owner privately signed in; authenticated REA follow-up **17:22–17:32 UTC**
+  exercised synthetic save/reopen/cancel/edit/compare and explicit order-version
+  selection. The existing V2 label survived editing; old-order structured value
+  stability remains unproven. One research order/two adult-labelled profiles were
+  saved only in the permitted synthetic Nool account. Twelve retained-UI evidence
+  assertions passed. Documentation amended; no Aarili runtime inputs changed or
+  implementation authority granted. See the exact ledger and fresh scoped checks.
+
 ## Issue #148 / 1.3.1c — private versioned design references
 
 - Owner selected B after A2 PR #150 merged **22 October 2026, 10:13:32 UTC**.

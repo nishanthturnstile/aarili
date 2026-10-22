@@ -139,6 +139,10 @@
     "./design-media-policy": {
       "types": "./dist/design-media-policy.d.ts",
       "import": "./dist/design-media-policy.js"
+    },
+    "./measurement-sessions": {
+      "types": "./dist/measurement-sessions.d.ts",
+      "import": "./dist/measurement-sessions.js"
     }
   },
   "scripts": {

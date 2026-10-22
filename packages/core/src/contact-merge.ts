@@ -60,6 +60,8 @@ async function prepare(ctx: CustomerHistoryContext, q: ContactMergeQuery) {
     throw new HistoryFailure(412, "PAIR_CHANGED");
   const state = await repo.state(q.sourceId, q.survivorId);
   const blocked: ContactMergePreview["blocked"] = [];
+  if (await repo.hasMeasurementAssociations([q.sourceId, q.survivorId]))
+    blocked.push("measurement-association");
   if (associations.length > 100) blocked.push("too-many-records");
   const active = state.aliases.find((a) => a.sourceId === q.sourceId);
   if (q.mode === "restore") {

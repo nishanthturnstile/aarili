@@ -45,6 +45,7 @@ import { CustomerHistory } from "./customer-history";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import { GuardianWorkspace } from "./guardian-workspace";
+import { MeasurementSessions } from "./measurement-sessions";
 import type { OwnerGuard } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
 
@@ -101,6 +102,7 @@ export function WearerWorkspace({
   guard: OwnerGuard;
 }) {
   const t = useTranslations("wearers");
+  const locale = useLocale() as Locale;
   const [scope] = useState(() => createDraftScope(shopId, guard));
   const [profiles, setProfiles] = useState<WearerProfile[]>([]);
   const [policy, setPolicy] = useState<CustomerPolicy>();
@@ -352,6 +354,16 @@ export function WearerWorkspace({
           queries={queries}
           guard={guard}
           updated={() => void refresh()}
+        />
+      )}
+      {active && policy?.enabled && !controller && (
+        <MeasurementSessions
+          key={active.id}
+          shopId={shopId}
+          customerId={customer.id}
+          wearerId={active.id}
+          locale={locale}
+          guard={guard}
         />
       )}
       {controller && (

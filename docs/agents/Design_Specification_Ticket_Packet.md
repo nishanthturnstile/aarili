@@ -1,5 +1,12 @@
 # Design specifications: concrete ticket packet
 
+**Current dependency status, checked 22 October 2026:** A1 #146 / PR #149,
+A2 #147 / PR #150 and B #148 / PR #151 are merged. B merged at 16:42:48 UTC
+as `2aa1b12`, with passing Fast verification and Dependency audit. Earlier
+selected/draft/pending-merge wording below is the dated delivery record.
+Measurement preparation may use these merged prerequisites; production policy,
+human and later workflow gates remain separate.
+
 22 October 2026. **Software packet approved; A1 and A2 merged; owner selected
 [B #148](https://github.com/nishanthturnstile/aarili/issues/148), implemented in draft
 [PR #151](https://github.com/nishanthturnstile/aarili/pull/151) for owner review.** Roadmap 1.3.1;

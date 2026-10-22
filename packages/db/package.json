@@ -311,6 +311,14 @@
     "./repositories/design-references": {
       "types": "./dist/repositories/design-references.d.ts",
       "import": "./dist/repositories/design-references.js"
+    },
+    "./measurement-sessions-repository": {
+      "types": "./dist/measurement-sessions-repository.d.ts",
+      "import": "./dist/measurement-sessions-repository.js"
+    },
+    "./repositories/measurement-sessions": {
+      "types": "./dist/repositories/measurement-sessions.d.ts",
+      "import": "./dist/repositories/measurement-sessions.js"
     }
   },
   "scripts": {
