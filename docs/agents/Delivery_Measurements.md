@@ -44,6 +44,17 @@
   **06:33:48 UTC**, port **62781**, with the exact route/private access method in
   the A1 evidence. Broad clean-install regression remains running at draft-PR
   publication; no final full-suite claim or human acceptance is inferred.
+- Capability **53be125** committed/pushed; draft
+  [PR #149](https://github.com/nishanthturnstile/aarili/pull/149) created
+  **06:36:00 UTC**, immediately linked to T3. Fast/audit jobs running at
+  **06:36:11 UTC**, [run 39734956167](https://github.com/nishanthturnstile/aarili/actions/runs/39734956167).
+  Hosted queue/execution and owner review/merge durations remain pending.
+- Broad clean-copy integration exposed four missing-workflow-inventory
+  assertions; the single-entry test correction passed **6/6**, **108.050s**.
+  Fresh focused clean frozen install/package-export/web-build/private-canary
+  scan passed in **154.268s**, preserving the lockfile and deleting its exact
+  disposable copy. Production readiness/outage/shutdown smoke **31.874s**;
+  root browser-artifact scan **0.533s**. Original broad-run totals remain pending.
 
 ## Repeat-order/history promotion #144 — 22 October 2026
 

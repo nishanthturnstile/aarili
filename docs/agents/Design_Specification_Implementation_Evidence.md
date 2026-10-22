@@ -306,13 +306,48 @@ files**, Vitest **14.83s**; strict type tasks **23 successful**; production buil
 **12 successful tasks / 16.623s**, including web and worker. Lint/boundaries/tokens,
 Knip, negative types and **103 offline OpenAPI paths** passed. Five existing
 informational Biome template-literal suggestions in `review-service-additions.mjs`
-are unchanged; no formatting/lint errors. No capability source changed afterwards.
+are unchanged; no formatting/lint errors. No runtime capability source changed afterwards.
 
 Supplementary `pnpm verify:clean` is still running at draft publication. Its
 frozen install passed with the lockfile unchanged; lint, Knip, strict types,
 277 units, negative types, OpenAPI and the Linux sandbox's **five A4/A3 page
 goldens / 50 synthetic strings / four fonts** passed. Its full integration/build/
 smoke/artifact/cleanup result is pending until recorded below; no full-pass claim.
+
+The continuing broad run exposed **four failures** in `drafts.integration.test.mjs`:
+its exact production-workflow list omitted the new `design.choices` entry. Added
+that one expected entry; no draft/runtime assertion was relaxed. Current-source
+`pnpm test:integration tests/drafts.integration.test.mjs` — **exit 0, 6/6 passed**,
+Vitest **106.68s**, whole command **108.050s**. The original broad run retains its
+failed frozen assertion and is not represented as green; final totals follow.
+
+Because the broad check's failed test prevents its later build/artifact stages,
+ran a fresh disposable native **install/export/build/canary** check separately.
+`pnpm exec node %TEMP%/aarili-design-spec-rea-20261022/verify-clean-exports.mjs`
+— **exit 0, 154.268s**. This temporary recipe copies `scripts/verify-clean.mjs`,
+replacing only its broad `verify` stage with `build:packages`; it retains frozen
+install, clean web build with the existing private canary, artifact scan,
+unchanged-lock assertion and guarded deletion of its exact temporary directory.
+All installed packages are the pinned workspace dependencies. This explicitly
+checks native export/install portability; it does not claim a second full verify.
+
+Current `pnpm smoke` — **exit 0, 31.874s**: production standalone Next/Hono,
+real PostgreSQL readiness/outage, typed operational client and worker shutdown.
+`pnpm exec node scripts/check-artifacts.mjs` — **exit 0, 0.533s**, **29 browser
+artifacts** checked for synthetic private-configuration leakage.
+
+### Publication and review state
+
+Capability commit **53be125bbef5c1e9b54e6309739be18f39d11ac2** was committed and
+pushed after current-source fast/PG/browser evidence. Draft
+[PR #149](https://github.com/nishanthturnstile/aarili/pull/149) targets development,
+created **06:36:00 UTC** and registered with T3 immediately. At **06:36:11 UTC**,
+required Fast verification and Dependency audit were running in
+[run 39734956167](https://github.com/nishanthturnstile/aarili/actions/runs/39734956167).
+Full scaffold/browser jobs are deliberately skipped on feature PRs under the
+approved workflow; this is not a passing promotion gate. A later test-inventory/
+evidence-only follow-up preserves runtime capability inputs. Current-head CI,
+owner acceptance/merge and deployment remain separately gated.
 
 ### Migration and recovery
 
