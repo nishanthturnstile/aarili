@@ -31,6 +31,7 @@ import {
   type FormEvent,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -114,6 +115,12 @@ export function CustomerScreen({
   const feedback = useRef<HTMLDivElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
   const [work] = useState(() => guard.track());
+  // Focus the mounted correction form before it becomes interactive. A queued
+  // timer can otherwise steal focus while the owner is entering the reason.
+  useLayoutEffect(() => {
+    if (editing && !loading && mode === "customer-profile")
+      nameInput.current?.focus();
+  }, [editing, loading, mode]);
   const current = useCallback(
     () => alive.current && queries.isCurrent(generation.current),
     [queries],
@@ -546,7 +553,6 @@ export function CustomerScreen({
                       confirmedLeave.current = false;
                       setEditing(true);
                       setNotice("");
-                      setTimeout(() => nameInput.current?.focus(), 0);
                     }}
                     disabled={!policy.enabled}
                   >
