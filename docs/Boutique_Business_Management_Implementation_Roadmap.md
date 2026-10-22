@@ -734,7 +734,11 @@ as A1 #146 → A2 #147 → B #148 with native blockers. A1 merged in PR #149;
   A2 #147 merged in [PR #150](https://github.com/nishanthturnstile/aarili/pull/150).
   The owner selected B #148 after all six direct blockers merged. A2 adds exact
 scope/version/answer/selection records, reasoned inactive retention and explicit
-field reuse into a fresh accepted target. B implementation and fresh verification are underway.
+field reuse into a fresh accepted target. B is implemented in draft
+[PR #151](https://github.com/nishanthturnstile/aarili/pull/151); current focused
+verification, original broad failures and the running synthetic review packet
+are recorded in the implementation evidence. Owner/human acceptance and merge
+remain pending.
 A1/A2 alone do not close ORD-07/DES-05/10 or full 1.3.1;
 AC-08 and later approval/measurement/pattern/slip gates remain open.
 

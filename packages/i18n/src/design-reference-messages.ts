@@ -1,5 +1,14 @@
 export const designReferenceMessages = {
   en: {
+    comparison: "Review reference changes",
+    comparisonHint:
+      "Compare the current specification with this proposed version before saving. Saving alone does not change the current specification or record customer approval.",
+    currentReferences: "Current references",
+    proposedReferences: "Proposed references",
+    removedReference:
+      "Removed from the proposed version; preserved in history.",
+    noReferences: "No references.",
+    emptyValue: "Not recorded",
     attachment: "Attached file",
     reviewAttachment: "Review this draft attachment",
     saveBeforeReview: "Wait for this draft to save before reviewing its file.",
@@ -94,6 +103,14 @@ export const designReferenceMessages = {
       "Revising a source creates a successor; its previous files and saved design versions stay unchanged.",
   },
   ta: {
+    comparison: "ஆதார மாற்றங்களைப் பார்",
+    comparisonHint:
+      "சேமிக்கும் முன் தற்போதைய விவரக்குறிப்பையும் இந்தப் புதிய பதிப்பையும் ஒப்பிடவும். சேமிப்பது மட்டும் தற்போதைய விவரக்குறிப்பை மாற்றாது; வாடிக்கையாளர் ஒப்புதலையும் பதிவு செய்யாது.",
+    currentReferences: "தற்போதைய ஆதாரங்கள்",
+    proposedReferences: "புதிய பதிப்பின் ஆதாரங்கள்",
+    removedReference: "புதிய பதிப்பிலிருந்து நீக்கப்பட்டது; வரலாற்றில் பாதுகாக்கப்படும்.",
+    noReferences: "ஆதாரங்கள் இல்லை.",
+    emptyValue: "பதிவு செய்யப்படவில்லை",
     attachment: "இணைத்த கோப்பு",
     reviewAttachment: "இந்த வரைவு ஆதாரத்தைப் பார்",
     saveBeforeReview: "கோப்பைப் பார்க்க இந்த வரைவு சேமிக்கப்படும் வரை காத்திருக்கவும்.",

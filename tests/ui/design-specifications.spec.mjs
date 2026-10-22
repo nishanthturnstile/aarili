@@ -1,5 +1,9 @@
 import { mkdir } from "node:fs/promises";
-import { designSpecificationMessages, draftMessages } from "@aarili/i18n";
+import {
+  designReferenceMessages,
+  designSpecificationMessages,
+  draftMessages,
+} from "@aarili/i18n";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import {
@@ -266,7 +270,10 @@ test("DS-A2-01–08 owner exact piece versions, save-only, selection, recovery, 
             region.getByText(t.approval, { exact: true }).first(),
           ).toBeVisible();
           await expect(
-            region.getByText(t.media, { exact: true }).first(),
+            region.getByRole("region", {
+              name: designReferenceMessages[locale].source,
+              exact: true,
+            }),
           ).toBeVisible();
           expect(
             await page.evaluate(

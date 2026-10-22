@@ -30,7 +30,8 @@
   corrected tablet/desktop outage dimensions; capture-only rerun **3/3**,
   **102.728s**, **12:13:12.631–12:14:55.359 UTC**. Round three still returned
   **recapture**: image failure was visible but PDF/voice controls had not been
-  exercised. Added assertions for all three failed reads; recapture pending.
+  exercised. Added assertions for all three failed reads; the full run then
+  passed all six new cases and refreshed all 30 captures at their declared widths.
   These are evidence corrections, not a ship verdict. Final full `pnpm verify`
   began **12:15:30.356 UTC**; broad browser run follows sequentially.
 - Broad `pnpm verify` ended **12:59:04.455 UTC**, **2614.099s**, exit 1:
@@ -57,15 +58,82 @@
   version/three references. T3 is on its normal sign-in page. Earlier first
   tryable time remains the pre-review observation above; this is fresh current
   access, not a reconstructed original ready instant. Human acceptance pending.
+- Stable capability **00cb356** pushed; draft
+  [PR #151](https://github.com/nishanthturnstile/aarili/pull/151) created
+  **13:21:30 UTC**, immediately linked to T3. Opened while full UI/finish-review
+  evidence is explicitly pending so hosted Linux fast/audit can run independently.
+  This is not final review-ready/owner acceptance. Hosted results pending.
+- Capability-head hosted [run 39786125693](https://github.com/nishanthturnstile/aarili/actions/runs/39786125693)
+  passed: Fast **13:21:37–13:24:01 UTC (144s)**, audit
+  **13:21:37–13:21:54 UTC (17s)**. Queue about two seconds from first scheduled
+  check at 13:21:35 UTC. Final evidence-head hosted status remains pending.
+- Full UI's first A2 phone case stopped on its obsolete "private references not
+  available" placeholder assertion (**28.3s**). Updated only that expectation to
+  the bilingual source/rights region; product unchanged. Retain the original
+  failure and continue all devices. Tablet repeated the cached old test body
+  (**32.1s**), so run the corrected affected file fresh at all three sizes afterward.
+- Tablet Tamil/dark generic draft-recovery first-page assertion failed
+  **28.2s**: 27 seeded rows, only20 before the database cutoff; latest creation
+  14:34:29.143 UTC exceeded cutoff14:34:28.649 UTC. Added bounded fixture-only
+  database-clock settling before list open; production/assertions/timeouts
+  unchanged. Fresh 12-case recovery matrix is pending after the full invocation.
+- Finish review round four accepted all 30 captures and all four original fixes;
+  **fix** for the remaining D16 desktop current-versus-proposed comparison.
+  The second material batch adds exact current/draft component, asset, caption,
+  intent, annotations and removal review alongside desktop editing, stacked on
+  narrow layouts. Fresh build/captures, affected browser cases and scored verdict
+  remain pending. A standalone web typecheck found a union narrowing error
+  (corrected) and stale pre-rebuild i18n declarations; this is not passing evidence.
+- Full `test:ui` ended **15:55:06.426 UTC**, **10151.886s**, exit 1:
+  **233 passed / 4 failed (237)**, one worker and zero retries. Failures: all
+  three cached obsolete A2 assertions plus one tablet fixture clock race; all
+  six new reference cases passed. Preserved original failure artifacts outside
+  Git before fresh affected verification. No broad green claim.
+- Post-D16 `verify:fast` **exit 0, 126.851s**,
+  **15:55:17.329–15:57:24.180 UTC**; all lint/Knip/types, 288 units, negative
+  declarations, 112 OpenAPI paths and production build (**19.216s**) passed.
+  Fresh smoke/artifact and 21-case affected browser checks follow sequentially.
+- Current production smoke **exit 0, 12.591s**,
+  **15:57:36.831–15:57:49.422 UTC**; artifact scan **29, exit 0, 0.292s**,
+  **15:57:49.482–15:57:49.774 UTC**. The whole three affected browser files
+  started afterward, 21 cases, one worker, zero retries.
+- First expanded phone outage/comparison case failed **22.3s** on an ambiguous
+  note selector (seeded note plus new note). Scoped it to the newly added note;
+  no product/assertion changes. Fresh three-project outage rerun required.
+- Affected three-file run **15:57:49.842–16:10:39.525 UTC**, **769.683s**, exit 1:
+  **18 passed / 3 failed**. All A2 (3), recovery (12) and main reference (3) cases
+  passed; only the cached note-selector failed on all three outage projects.
+  Preserved artifacts; corrected outage scenario rerun separately.
+- First outage-only rerun **16:10:55.919–16:13:24.615 UTC**, **148.696s**,
+  exit 1, **0/3**: new comparison assertions reached, but test checked submission
+  before filling its required revision reason. Corrected setup; no product or
+  assertion weakening. Preserved artifacts; fresh three-project rerun follows.
+- Next outage-only attempt **16:14:14.346–16:17:59.000 UTC**, **224.654s**,
+  exit 1, **0/3**: captures and comparison assertions passed; later source reload
+  was ambiguous after selecting a replacement source. Scoped the source-list
+  action; application unchanged. Original artifacts retained; rerun follows.
 - Clean-native attempts **156.544s** and **158.969s** stopped on the old unit stub
   and a jobs property timeout under concurrent browser startup respectively.
   Frozen installs/package-export builds/types passed; neither command is claimed
   green. Sequential root verification passed 288 units and negative/OpenAPI checks
   before being interrupted for the finish-review changes. Preserve raw failures;
   no weakened tests. Heavy final commands will run sequentially.
-- Final review-ready, PR, hosted checks and human review/merge times are
-  pending. Full verification and the refreshed synthetic manual packet remain in progress;
-  no deployment or live-data activation is authorized.
+- Final outage-only rerun **exit 0, 3/3, 156.572s**,
+  **16:18:36.278–16:21:12.850 UTC**. Together with the eighteen passes above,
+  latest focused evidence covers all21 cases; no single green21-case/broad claim.
+  All31 current captures validated, including supplemental desktop comparison
+  viewport; fresh D16 verdict **ship**, scored fix resolved, prior four fixes
+  retained, no material batch regressions observed. This is scoped visual
+  acceptance only. Documenter returned No changes.
+- Final root lint **exit 0, 3.885s**, **16:23:53.805–16:23:57.690 UTC** after
+  test-only corrections. Current synthetic host **49677** observed ready
+  **16:23:57 UTC**; normal sign-in/history200, one version/three references;
+  T3 own tab navigated to ordinary sign-in without session injection.
+- Final pushed-revision hosted checks are recorded on PR #151. Human acceptance,
+  owner merge and live activation remain pending; no deployment authorized.
+- Local review packet ready observed **16:26:14 UTC** after scored D16 ship,
+  current host/sign-in checks and final focused evidence. Active coding/rework
+  stopwatch remains unknown; browser waits are not counted as coding time.
 
 ## Issue #147 / 1.3.1b — garment specification versions
 

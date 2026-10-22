@@ -1,7 +1,8 @@
 # Design specifications: concrete ticket packet
 
 22 October 2026. **Software packet approved; A1 and A2 merged; owner selected
-[B #148](https://github.com/nishanthturnstile/aarili/issues/148), implementation and verification underway.** Roadmap 1.3.1;
+[B #148](https://github.com/nishanthturnstile/aarili/issues/148), implemented in draft
+[PR #151](https://github.com/nishanthturnstile/aarili/pull/151) for owner review.** Roadmap 1.3.1;
 [design](Design_Specification_Design.md), [research](Design_Specification_REA_Evidence.md),
 [baseline/checks](Design_Specification_Implementation_Evidence.md).
 

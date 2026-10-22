@@ -324,17 +324,125 @@ test("DS-B-09 320px Tamil source recording, IME deferral, keyboard and core edit
         await saved
           .getByRole("button", { name: t.revise, exact: true })
           .click();
-        await mkdir(".scratch/design-references-ui", { recursive: true });
-        await page.setViewportSize(info.project.use.viewport);
-        await page.screenshot({
-          path: `.scratch/design-references-ui/${info.project.name}-ta-unavailable.png`,
-          fullPage: true,
+        const comparison = screen.getByRole("region", {
+          name: r.comparison,
+          exact: true,
         });
-        await page.setViewportSize({ width: 320, height: 800 });
+        await expect(comparison).toContainText("SYNTHETIC image/jpeg");
+        const referenceFields = screen.getByRole("group", {
+          name: r.title,
+          exact: true,
+        });
+        const firstReference = referenceFields.locator("details").first();
+        await firstReference
+          .getByLabel(r.caption, { exact: true })
+          .fill("SYNTHETIC proposed caption");
+        await firstReference
+          .getByLabel(r.intent, { exact: true })
+          .selectOption("instruction");
+        await firstReference
+          .getByLabel(r.component, { exact: true })
+          .selectOption(f.value.answers[0].questionId);
+        await firstReference
+          .getByRole("button", { name: r.addNote, exact: true })
+          .click();
+        await firstReference
+          .getByLabel(r.note, { exact: true })
+          .last()
+          .fill("SYNTHETIC proposed annotation");
+        await referenceFields
+          .getByRole("button", { name: r.remove, exact: true })
+          .last()
+          .click();
+        await expect(comparison).toContainText("SYNTHETIC proposed caption");
+        await expect(comparison).toContainText("SYNTHETIC proposed annotation");
+        await expect(comparison).toContainText(r.instruction);
+        await expect(comparison).toContainText(
+          f.s.profile.definition.content.questions[0].labelTa,
+        );
+        await expect(
+          comparison.getByText(r.removedReference, { exact: true }),
+        ).toHaveCount(1);
+        // History remains exact while the proposed values are still editable.
+        await expect(saved).not.toContainText("SYNTHETIC proposed caption");
+        await expect(saved).toContainText("SYNTHETIC audio/mpeg");
         const workbench = screen.getByRole("region", {
           name: r.source,
           exact: true,
         });
+        await workbench
+          .getByRole("button", { name: r.refresh, exact: true })
+          .first()
+          .click();
+        await workbench
+          .getByRole("button", {
+            name: /^SYNTHETIC shop-owned sketch or private customer source/,
+          })
+          .click();
+        await workbench
+          .locator("div")
+          .filter({ hasText: /^application\/pdf/ })
+          .last()
+          .getByRole("button", { name: r.candidate, exact: true })
+          .click();
+        await firstReference
+          .getByRole("button", { name: r.replace, exact: true })
+          .click();
+        const identities = comparison
+          .locator(".reference-comparison-pair")
+          .first()
+          .locator(".reference-hash");
+        await expect(identities).toHaveCount(2);
+        expect(await identities.nth(0).innerText()).not.toBe(
+          await identities.nth(1).innerText(),
+        );
+        await expect(comparison).toContainText("SYNTHETIC proposed annotation");
+        await screen
+          .getByLabel(t.reason, { exact: true })
+          .fill("SYNTHETIC compare reference changes before saving");
+        await mkdir(".scratch/design-references-ui", { recursive: true });
+        await page.setViewportSize(info.project.use.viewport);
+        const editorBounds = await screen
+          .locator(".design-reference-fields")
+          .boundingBox();
+        const comparisonBounds = await comparison.boundingBox();
+        if (info.project.name === "desktop") {
+          expect(comparisonBounds.x).toBeGreaterThanOrEqual(
+            editorBounds.x + editorBounds.width,
+          );
+          expect(Math.abs(comparisonBounds.y - editorBounds.y)).toBeLessThan(2);
+        } else {
+          expect(comparisonBounds.y).toBeGreaterThanOrEqual(
+            editorBounds.y + editorBounds.height,
+          );
+        }
+        const saveButton = screen.getByRole("button", {
+          name: t.saveOnly,
+          exact: true,
+        });
+        expect(
+          await comparison.evaluate(
+            (node, button) =>
+              !!(
+                node.compareDocumentPosition(button) &
+                Node.DOCUMENT_POSITION_FOLLOWING
+              ),
+            await saveButton.elementHandle(),
+          ),
+        ).toBe(true);
+        await page.screenshot({
+          path: `.scratch/design-references-ui/${info.project.name}-ta-unavailable.png`,
+          fullPage: true,
+        });
+        if (info.project.name === "desktop") {
+          await comparison.evaluate((node) =>
+            node.scrollIntoView({ block: "start" }),
+          );
+          await page.screenshot({
+            path: ".scratch/design-references-ui/desktop-ta-comparison-viewport.png",
+          });
+        }
+        await page.setViewportSize({ width: 320, height: 800 });
         await workbench
           .getByRole("button", { name: r.create, exact: true })
           .click();
@@ -393,6 +501,7 @@ test("DS-B-09 320px Tamil source recording, IME deferral, keyboard and core edit
           .click();
         await workbench
           .getByRole("button", { name: r.refresh, exact: true })
+          .first()
           .click();
         await expect(
           workbench.getByRole("button", {

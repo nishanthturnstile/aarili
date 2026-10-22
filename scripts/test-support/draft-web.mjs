@@ -210,8 +210,29 @@ export async function withDraftWeb(run) {
               throw Error(
                 `Synthetic seed count mismatch: ${JSON.stringify({ prior, after, requested: count })}`,
               );
+            // The list intentionally freezes a database-time cutoff. A clock
+            // step can put freshly committed rows after that cutoff; establish
+            // eligible fixture data before asserting the complete first page.
+            // This bounded setup read changes neither production clocks nor
+            // pagination, command retries, assertions or test timeouts.
+            let settled = false;
+            for (let attempt = 0; attempt < 100; attempt++) {
+              const row = (
+                await f.admin.query(
+                  "select coalesce(clock_timestamp() >= max(created_at) + interval '1 second',true) as settled from durable_draft where shop_id=$1",
+                  [f.a.shop],
+                )
+              ).rows[0];
+              if (row?.settled) {
+                settled = true;
+                break;
+              }
+              await delay(50);
+            }
+            if (!settled)
+              throw Error("Synthetic draft seed clock did not settle");
             console.info(
-              `Synthetic draft seed metadata: ${JSON.stringify(after)}`,
+              `Synthetic draft seed metadata: ${JSON.stringify(await stats())}`,
             );
           },
           async authorize(id) {

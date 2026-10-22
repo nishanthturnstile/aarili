@@ -119,8 +119,9 @@ the fixes. Corrected only capture timing/viewport setup: open the revision,
 capture document top plus failed historical reads at each configured viewport,
 then restore 320px for source-entry testing. Rerun **3/3**, **102.728s**,
 **12:13:12.631–12:14:55.359 UTC**. Primary capture widths are 360/820/1440;
-the separately named source-workbench crops intentionally remain 320px.
-Fresh full finish review is pending. The actual guardian/age worker race also
+the separately named source-workbench crops use a 320px page viewport (272px
+element crops, not full-page images).
+The actual guardian/age worker race also
 passed **1/1**, **16.610s**, **12:07:52.717–12:08:09.327 UTC**: consent withdrawal
 and then unknown age while processing is outside the transaction each prevent
 final acceptance and usage recording. These are synthetic policy fixtures.
@@ -128,7 +129,31 @@ Round three also returned **recapture**: viewport widths were valid, but only
 the image-read action had been exercised. PDF and voice showed unclicked download
 controls. The scenario now clicks each historical download action and requires
 three failure messages before capture. No product code changed for either
-recapture; replacement evidence and fresh review remain pending.
+recapture. The full browser invocation then passed all **six new reference
+cases** at 360/820/1440, including the stricter three-failure outage assertion.
+All **30** required PNGs were refreshed after the run start, checked for valid
+headers/dimensions and opened for inspection. Full-page outage dimensions are
+360×14705, 820×11403 and 1440×10959. The 12 draft-fieldset crops are 312/772/1104px
+wide within their respective page viewports; the three source-workbench crops
+are 272×2560 within 320px pages. They are explicitly element crops, not claimed
+full-page viewport images. Fresh full finish review round four accepted all
+30 captures and all four original fixes, with matching type/material/ground,
+exact component labels, translated rights and outage presentation. Its disposition
+was **fix** for one additional D16 requirement: a compact current-versus-proposed
+reference comparison alongside the desktop successor editor.
+
+The second material fix batch adds that comparison, using exact current-version
+and live draft values without new media reads. It exposes component, immutable
+asset identity, caption, intent and every annotation/anchor, with explicit
+successor removals and preserved-history wording. Desktop uses an adjacent
+comparison; narrower layouts stack it. English/Tamil copy separates save-only,
+current selection and customer approval. New browser assertions edit caption,
+intent and notes, remove a reference, verify unchanged history and check the
+desktop/stacked geometry before save. Current rebuild and fresh captures pass;
+the verdict pass scored this D16 fix **resolved**, disposition **ship**. All four
+prior fixes remain retained; no material batch regressions observed. This verdict
+covers the scored fix only, not whole-surface/backend/human/live acceptance.
+No second detector or redesign.
 
 The separate Impeccable documentation handoff checked both specification/reference
 components, canonical CSS, bilingual reference messages, D8–D18 and sampled shared
@@ -136,6 +161,11 @@ Button/Input components. It recommends preserving the incumbent system: Current
 palette, local Noto families/weights, shared fields/actions, 44px controls, wrapping
 and bounded private previews remain in use. No new visual-world files or system
 rules are warranted. Its source inspection is not rendered/device acceptance.
+The fresh post-comparison documenter rechecked both components, CSS, bilingual
+messages, shared Button/DraftForm and D8–D18. It again returned **No changes**:
+the desktop adjacent/stacked-before-submit comparison preserves incumbent tokens,
+typography, spacing and controls, without a reused-system rule change. This is
+source evidence, not rendered or human acceptance.
 The system document's older supported-workflow inventory is pre-existing drift;
 it was reported, not repaired or adopted as a new baseline.
 
@@ -154,7 +184,7 @@ command results and human findings are recorded separately, not inferred here.
 | DS-B-06 | Generic design byte access denied; exact saved and active-draft association reads succeed only under current authority. Wrong shop/promoted draft/erased source deny fresh links; safe attachment download through existing short-lived capability. Previously issued capability remains usable until its existing expiry. |
 | DS-B-07 | Real app_privacy audited subject erasure races history/draft/replay/saved and active-draft reads; tombstones, advanced ETags, erased private values, runtime/wrong-shop denial and no late annotation insertion. Retained derivatives remain: this proves access/redaction, not object/backup purge. |
 | DS-B-08 | Real source-write and reference-annotation-write injected failures leave all business/reference/value/media-reference/audit/key counts unchanged; same-key retry succeeds. Existing media processing/fencing/cleanup/restore tests remain applicable because the pipeline is reused; the broad run passes those existing files, with its one unrelated scope-error regression and correction recorded separately. |
-| DS-B-09 | Six focused Chromium cases, 12 full-page history captures, 12 draft-review crops, three corrected full-page outage captures and three intentional 320px source crops. English/Tamil, both themes, three viewport classes, axe, keyboard, IME deferral and core editing despite denied historical image/PDF/voice access. Physical device, screen reader and fluent Tamil acceptance remain pending. |
+| DS-B-09 | Six Chromium reference cases pass within the full run; 12 full-page history captures, 12 draft-review element crops, three corrected full-page outage captures and three source crops within 320px pages. English/Tamil, both themes, three viewport classes, axe, keyboard, IME deferral and core editing despite denied historical image/PDF/voice access. Physical device, screen reader and fluent Tamil acceptance remain pending. |
 
 ### B migration and recovery review
 
@@ -176,8 +206,9 @@ Use the existing synthetic loopback path:
 `pnpm exec node scripts/review-design-references.mjs`. It creates disposable
 PostgreSQL/S3 fixtures and serves the shipping specification component with a
 synthetic saved JPEG/PDF/MP3 reference set. The refreshed host is
-**http://127.0.0.1:56339**, normal entry **http://127.0.0.1:56339/sign-in**,
-observed ready **13:11:18 UTC**. The established private access file is
+**http://127.0.0.1:49677**, normal entry **http://127.0.0.1:49677/sign-in**,
+observed ready **16:23:57 UTC** after the D16 rebuild. Earlier host 56339 stopped
+cleanly before rebuilding. The established private access file is
 `.scratch/design-references-review-host/private.json` (ignored; never attach,
 paste or commit its credentials/cookie). Use its synthetic sign-in through the
 normal form. Fresh normal sign-in and authenticated history reads both returned
@@ -196,7 +227,10 @@ real customer or minor image.
    from ready. Attach the ready candidate to the intended component, enter a
    caption and text/normalised image annotation (**DS-B-01/02/04**).
 3. Replace an asset or caption/note/intent, record the revision reason and save
-   without using it. Current remains v1; reopen exact v1 and the successor. A
+   without using it. Before submitting, compare current and proposed component,
+   exact asset IDs, caption, intent, notes/anchors and removals in the adjacent
+   desktop review (stacked before submission on narrower screens). Current
+   remains v1; reopen exact v1 and the successor. A
    separate explicit use action changes current. Changed-byte geometry requires
    review, and removal from a successor keeps old history (**DS-B-03**).
 4. In English and Tamil/light and dark, use keyboard annotations/source fields
@@ -230,9 +264,15 @@ scenario. Their disposed fixture containers were cleaned explicitly.
 Current checks do not yet prove full acceptance. Logs are outside Git under
 `%TEMP%/aarili-design-references-b-20261022`; synthetic captures remain ignored.
 The initial B review host was stopped while its API composition was updated;
-fresh current access is recorded in the manual packet above. No B PR yet.
-The broad verification result and post-correction evidence follow. Full browser
-and finish-review results remain pending.
+fresh current access is recorded in the manual packet above. Draft
+[PR #151](https://github.com/nishanthturnstile/aarili/pull/151) is open against
+`development`, created **13:21:30 UTC**, immediately linked to T3. Capability
+commit **00cb356a6b9b62c6aafd9bb868f97c22be647d69**. Hosted Fast/audit passed in
+[run 39786125693](https://github.com/nishanthturnstile/aarili/actions/runs/39786125693):
+Fast **13:21:37–13:24:01 UTC (144s)**; audit **13:21:37–13:21:54 UTC (17s)**.
+These are capability-head results; a later UI/test/evidence commit needs current-head
+hosted status before final handoff. The initial draft explicitly marked browser
+and finish review pending; final results and limits are recorded below.
 
 The final broad run started **12:15:30.356 UTC**. It passed lint, boundaries,
 tokens, Knip, all strict types, **288/288 units**, negative checks, current OpenAPI
@@ -241,15 +281,15 @@ diagnostic reproduced it (**23.227s**, **12:31:51.430–12:32:14.657 UTC**):
 unsupported small-service design-list requests returned 503 instead of 404.
 The new reference preflight threw a media-domain denial across the older
 specification boundary; that boundary handled draft-domain denials. Source now
-maps the denial to the existing draft 404. Compiled inputs are held unchanged
-until the broad run ends; this correction is not yet claimed verified. No
+maps the denial to the existing draft 404. Compiled inputs were held unchanged
+until the broad run ended; corrected verification follows below. No
 timeouts, assertions or applicability rules were weakened.
 
 That broad command finished **12:59:04.455 UTC**, **2614.099s**, exit 1:
 **261 passed / 1 failed**, **48 passed / 1 failed files (49)**. The only failure
 is the reproduced 503/404 regression above. Full-command production build/smoke/
-artifact stages did not run after the integration failure. The correction is
-being rebuilt and verified with current `verify:fast`, all affected A2/B PG files
+artifact stages did not run after the integration failure. The correction was
+rebuilt and verified with current `verify:fast`, all affected A2/B PG files
 and applicability, followed by the remaining smoke/artifact and browser stages.
 The original command is not relabelled green and the broad PG suite is not
 repeated solely to replace its recorded result; affected retests follow the
@@ -276,7 +316,103 @@ full command/output remains in the external log directory.
 Production smoke **exit 0**, **11.883s**, **13:05:42.243–13:05:54.126 UTC**;
 root artifact check **29 artifacts, exit 0, 0.294s**,
 **13:05:54.187–13:05:54.481 UTC**. Full `pnpm test:ui` began
-**13:05:54.540 UTC**; result remains pending.
+**13:05:54.540 UTC** and ended **15:55:06.426 UTC**, **10151.886s**, exit 1:
+**233 passed / 4 failed (237)**, one worker, zero retries. All six new reference
+cases passed. Failures were the three cached obsolete A2 assertions and the one
+tablet generic-draft fixture clock case detailed below; no other failure.
+Original failure artifacts were preserved outside Git before the fresh run.
+The phone A2 browser case failed at an obsolete assertion that private references
+were unavailable. B deliberately replaces that placeholder. Corrected the test
+to require the bilingual source/rights region; no product code changed. The
+initial phone failure remains in this full run. Tablet repeated the exact old
+literal and original source location: the runner cached the original test body
+for this invocation despite the source correction. A fresh affected **three-size**
+file rerun is required afterward; these repetitions are not separate product bugs.
+A separate tablet Tamil/dark generic draft-recovery case failed its first-page
+25-row assertion (**28.2s**). Diagnostics show 27 committed rows but a list cutoff
+of **14:34:28.649 UTC** before the latest seeded creation at **14:34:29.143 UTC**;
+only 20 were eligible. The database clock observation was also behind that latest
+creation timestamp. The fixture now checks, with bounded database reads, that
+the clock is at least one second beyond the seed maximum before opening the list.
+This is setup synchronisation, not a production tolerance or changed pagination;
+all 25/27-row assertions, test timeouts and business retries remain intact. Fresh
+affected recovery-file verification subsequently passed all twelve cases below;
+retain the original failure.
+The pre-commit whitespace check removed one final blank line from migration 0044;
+only EOF whitespace changed after the PG/native commands, producing the current
+SHA above. Executable SQL is unchanged. The real-PG browser fixtures
+apply the current migration file; no history/object/data rewrite was introduced.
+
+Post-D16 `pnpm verify:fast` **exit 0**, **126.851s**,
+**15:55:17.329–15:57:24.180 UTC**: lint/boundaries/tokens, Knip, all strict types,
+**288 units / 65 files**, negative declarations, **112 OpenAPI paths** and
+production build (**19.216s**). The earlier standalone typecheck's stale i18n
+declarations and corrected union narrowing are superseded by this complete
+package rebuild and current typecheck. No backend/schema/privacy change in this
+fix batch; affected real-PG evidence above remains applicable.
+Current production smoke **exit 0, 12.591s**, **15:57:36.831–15:57:49.422 UTC**;
+browser artifact scan **29 artifacts, exit 0, 0.292s**,
+**15:57:49.482–15:57:49.774 UTC**. Fresh affected browser command runs the whole
+reference, A2 specification and generic draft-recovery files, **21 cases** across
+all three configured projects, with one worker and zero retries.
+Its first phone outage/comparison case failed **22.3s** at a strict locator:
+the synthetic reference already had a plain note, so the newly added note action
+matched two textareas. Scoped the fill to the last, newly added note; production
+code and comparison/history assertions are unchanged. Preserve this attempt;
+the outage scenario needs a fresh three-project rerun after this invocation.
+The complete invocation finished **15:57:49.842–16:10:39.525 UTC**, **769.683s**,
+exit 1: **18 passed / 3 failed**. All three A2 specification cases, all twelve
+generic recovery cases (including the original tablet Tamil/dark clock case),
+and all three bilingual/theme reference workflows passed. The only failures
+were the same cached note-selector body on all three projects, before outage
+capture; their artifacts are preserved outside Git. The corrected scenario is
+rerun separately, with no production changes or weakened assertions.
+The first fresh outage-only invocation (**16:10:55.919–16:13:24.615 UTC**,
+**148.696s**, exit 1, **0/3**) reached the new component/caption/intent/note,
+replacement-ID, removal and unchanged-history assertions, then waited for a
+submit button before entering the required revision reason. The application
+correctly withheld promotion for that incomplete draft. The test now enters its
+reason before the submission-order assertion; no production change. Artifacts
+are retained and the three-project scenario is rerun with this setup correction.
+The next outage invocation (**16:14:14.346–16:17:59.000 UTC**, **224.654s**,
+exit 1, **0/3**) passed comparison/submission-order/geometry assertions and
+produced all corrected captures, then found a second source-list Reload control
+because the replacement setup had selected a source. Scoped that later reload
+to the source list, preserving file reload and all source/IME/publication checks.
+This is another test selector correction; application inputs remain frozen.
+Final outage-only command **exit 0, 3/3**, **156.572s**,
+**16:18:36.278–16:21:12.850 UTC**, all three configured sizes, one worker and zero
+retries. Combined with the preceding eighteen passes, the latest affected evidence
+covers all 21 cases; this is not a single green 21-case invocation or a relabelled
+broad command. It verifies live component/caption/intent/note changes, different
+replacement file identities, removal notices, unchanged historical values,
+adjacent desktop/stacked narrow layout, comparison before submission, all three
+failed historical media reads, source IME/publication and successor save.
+
+All **31** current PNGs are fresh after the rebuilt inputs: original thirty plus
+the supplemental **1440×1000 desktop-ta-comparison-viewport.png**, deliberately
+scrolled to the editor/comparison (not a full-page/document-top claim). Full-page
+outage dimensions are **360×17877 / 820×14037 / 1440×11770**. Draft-review crops
+are **312 / 772 / 634px**, source crops **272×4214** within 320px pages. Parent
+inspected the current three outage pages, supplemental desktop view, all four
+desktop draft variants, representative phone/tablet English-light/Tamil-dark
+drafts and the narrow source crop; no visible clipping. Fresh verdict pass returned
+**ship** for the scored D16 fix: resolved, all four prior fixes retained, no
+material batch regressions observed; all31 captures valid under their stated
+roles. This is scoped visual review, not backend, whole-surface, actual device,
+assistive-technology, fluent-Tamil or owner/live acceptance. The documenter
+returned No changes; parent rechecked
+the later promoted-state visibility guard against the same incumbent rules.
+Final root lint after test-only corrections **exit 0, 3.885s**,
+**16:23:53.805–16:23:57.690 UTC**. No capability/UI source changed after the
+post-D16 fast build; later changes are test setup/selectors/capture evidence/docs.
+
+The rebuilt manual host's normal sign-in and authenticated history read both
+return **200**, with one saved version/three references. The T3 review tab is on
+its ordinary sign-in page; no session was injected. Draft PR #151 remains the
+owner review/merge boundary. Required Fast verification and Dependency audit
+must pass on the final pushed revision; their current status is published on
+the PR. No merge, production migration, deployment or live-data activation.
 
 ## A2 / #147 — selected implementation, 22 October 2026
 

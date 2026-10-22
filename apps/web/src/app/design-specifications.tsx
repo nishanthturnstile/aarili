@@ -29,6 +29,7 @@ import { Input } from "@aarili/ui/components/input";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   type ReferenceCandidate,
+  ReferenceComparison,
   ReferenceFields,
   ReferenceWorkbench,
   SavedReferences,
@@ -363,6 +364,7 @@ function DraftFields({
 }
 function Editor({
   controller,
+  current,
   savedVersions,
   profile,
   choices,
@@ -376,6 +378,7 @@ function Editor({
   pieceId,
 }: {
   controller: DraftRecovery;
+  current: DesignSpecificationVersion | undefined;
   savedVersions: DesignSpecificationVersion[];
   profile: DesignChoicesDefinition | undefined;
   choices: DesignChoicesRevision[];
@@ -400,6 +403,7 @@ function Editor({
         ? designSpecificationMediaDraftSchema
         : designSpecificationDraftSchema
     ).safeParse(s.values);
+  const reviewing = s.status !== "promoted";
   return (
     <div className="directory-editor">
       <h3>{t.draft}</h3>
@@ -434,70 +438,86 @@ function Editor({
             renderConflict={() => <p>{t.conflict}</p>}
           >
             {(form) => (
-              <>
-                <DraftFields
-                  v={form.watch()}
-                  changeValues={(patch) => {
-                    for (const [key, value] of Object.entries(patch)) {
-                      if (key === "answers")
-                        form.setValue(
-                          "answers",
-                          value as DesignSpecificationDraft["answers"],
-                          { shouldDirty: true },
-                        );
-                      else if (key === "reason")
-                        form.setValue("reason", String(value), {
+              <div
+                className={
+                  form.watch("operation") === "save" && reviewing
+                    ? "design-reference-edit-layout"
+                    : "owner-form"
+                }
+              >
+                <div className="owner-form design-reference-fields">
+                  <DraftFields
+                    v={form.watch()}
+                    changeValues={(patch) => {
+                      for (const [key, value] of Object.entries(patch)) {
+                        if (key === "answers")
+                          form.setValue(
+                            "answers",
+                            value as DesignSpecificationDraft["answers"],
+                            { shouldDirty: true },
+                          );
+                        else if (key === "reason")
+                          form.setValue("reason", String(value), {
+                            shouldDirty: true,
+                          });
+                        else if (key === "use")
+                          form.setValue("use", Boolean(value), {
+                            shouldDirty: true,
+                          });
+                      }
+                    }}
+                    profile={profile}
+                    choices={choices}
+                    historical={historical}
+                    locale={locale}
+                    t={t}
+                  />
+                  {form.watch("operation") === "save" && (
+                    <ReferenceFields
+                      values={form.watch("referenceItems")}
+                      change={(items) =>
+                        form.setValue("referenceItems", items, {
                           shouldDirty: true,
-                        });
-                      else if (key === "use")
-                        form.setValue("use", Boolean(value), {
-                          shouldDirty: true,
-                        });
-                    }
-                  }}
-                  profile={profile}
-                  choices={choices}
-                  historical={historical}
-                  locale={locale}
-                  t={t}
-                />
-                {form.watch("operation") === "save" && (
-                  <ReferenceFields
-                    values={form.watch("referenceItems")}
-                    change={(items) =>
-                      form.setValue("referenceItems", items, {
-                        shouldDirty: true,
-                      })
-                    }
+                        })
+                      }
+                      profile={profile}
+                      locale={locale}
+                      candidate={candidate}
+                      shopId={shopId}
+                      draftId={s.id}
+                      savedItems={
+                        designSpecificationMediaDraftSchema.safeParse(
+                          s.committed?.payload,
+                        ).data?.referenceItems ?? []
+                      }
+                      knownReferences={savedVersions.flatMap(
+                        (v) => v.referenceItems,
+                      )}
+                      images={
+                        new Set([
+                          ...draftImages,
+                          ...savedVersions.flatMap((v) =>
+                            v.referenceItems
+                              .filter((r) => r.display)
+                              .map((r) => r.assetId),
+                          ),
+                          ...(candidate?.asset.contentType.startsWith("image/")
+                            ? [candidate.asset.id]
+                            : []),
+                        ])
+                      }
+                    />
+                  )}
+                </div>
+                {form.watch("operation") === "save" && reviewing && (
+                  <ReferenceComparison
+                    current={current}
+                    proposed={form.watch("referenceItems")}
                     profile={profile}
                     locale={locale}
-                    candidate={candidate}
-                    shopId={shopId}
-                    draftId={s.id}
-                    savedItems={
-                      designSpecificationMediaDraftSchema.safeParse(
-                        s.committed?.payload,
-                      ).data?.referenceItems ?? []
-                    }
-                    knownReferences={savedVersions.flatMap(
-                      (v) => v.referenceItems,
-                    )}
-                    images={
-                      new Set([
-                        ...draftImages,
-                        ...savedVersions.flatMap((v) =>
-                          v.referenceItems
-                            .filter((r) => r.display)
-                            .map((r) => r.assetId),
-                        ),
-                        ...(candidate?.asset.contentType.startsWith("image/")
-                          ? [candidate.asset.id]
-                          : []),
-                      ])
-                    }
                   />
                 )}
-              </>
+              </div>
             )}
           </DraftForm>
           <ReferenceWorkbench
@@ -981,6 +1001,7 @@ export function DesignSpecifications({
             <>
               <Editor
                 controller={controller}
+                current={currentSaved}
                 savedVersions={state.versions}
                 profile={draftProfile}
                 choices={choices}

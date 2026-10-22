@@ -52,6 +52,116 @@ function rightsLabel(basis: DesignMediaSubject["rightsBasis"], t: T) {
   }[basis];
 }
 
+export function ReferenceComparison({
+  current,
+  proposed,
+  profile,
+  locale,
+}: {
+  current: DesignSpecificationVersion | undefined;
+  proposed: DesignReferenceDraft[];
+  profile: DesignChoicesDefinition | undefined;
+  locale: Locale;
+}) {
+  const t = designReferenceMessages[locale];
+  const previous = current?.referenceItems ?? [];
+  const pairs = [
+    ...previous.map((before) => ({
+      before,
+      after: proposed.find(
+        (r) => r.replacesId === before.id || r.id === before.id,
+      ),
+    })),
+    ...proposed
+      .filter(
+        (r) => !previous.some((p) => r.replacesId === p.id || r.id === p.id),
+      )
+      .map((after) => ({ before: undefined, after })),
+  ];
+  function describe(
+    r: DesignReferenceDraft,
+    definition: DesignChoicesDefinition | undefined,
+  ) {
+    if ("redacted" in r && r.redacted) return <p>{t.erased}</p>;
+    const question =
+      definition?.content.kind === "profile"
+        ? definition.content.questions.find((q) => q.id === r.questionId)
+        : undefined;
+    return (
+      <dl>
+        <dt>{t.component}</dt>
+        <dd>
+          {r.questionId
+            ? question
+              ? text(question, locale)
+              : t.erased
+            : t.whole}
+        </dd>
+        <dt>{t.attachment}</dt>
+        <dd className="reference-hash">{r.assetId}</dd>
+        <dt>{t.caption}</dt>
+        <dd>{r.caption || t.emptyValue}</dd>
+        <dt>{t.intent}</dt>
+        <dd>{r.intent === "instruction" ? t.instruction : t.inspiration}</dd>
+        <dt>{t.notes}</dt>
+        <dd>
+          {r.annotations.length ? (
+            <ul>
+              {r.annotations.map((a, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: immutable ordered annotation snapshot has no IDs
+                <li key={i}>
+                  {a.note} ·{" "}
+                  {a.anchor.kind === "note"
+                    ? t.note
+                    : a.anchor.kind === "point"
+                      ? t.point
+                      : t.rectangle}
+                  {a.anchor.kind !== "note" &&
+                    ` (${t.x}: ${a.anchor.x}; ${t.y}: ${a.anchor.y}${a.anchor.kind === "rectangle" ? `; ${t.width}: ${a.anchor.width}; ${t.height}: ${a.anchor.height}` : ""})`}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            t.emptyValue
+          )}
+        </dd>
+      </dl>
+    );
+  }
+  return (
+    <section
+      className="owner-form reference-comparison"
+      aria-label={t.comparison}
+    >
+      <h4>{t.comparison}</h4>
+      <p>{t.comparisonHint}</p>
+      {!pairs.length && <p>{t.noReferences}</p>}
+      {pairs.map(({ before, after }) => (
+        <div
+          className="reference-comparison-pair"
+          key={before?.id ?? after?.id}
+        >
+          <div>
+            <h5>
+              {t.currentReferences}
+              {current ? ` · v${current.version}` : ""}
+            </h5>
+            {before ? (
+              describe(before, current?.profile)
+            ) : (
+              <p>{t.noReferences}</p>
+            )}
+          </div>
+          <div>
+            <h5>{t.proposedReferences}</h5>
+            {after ? describe(after, profile) : <p>{t.removedReference}</p>}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function ReferenceFields({
   values,
   change,
