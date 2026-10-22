@@ -38,6 +38,7 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
+      "designSpecificationsRepository exact scope/version/answer/selection and privacy; design.specification save/select/reuse, current authority and history",
       "designChoicesRepository exact choice/profile history, typed dependencies, availability, preview and design.choices draft promotion",
       "contactMergeRepository inventory/state/append; original references and current contact attribution",
       "customerHistoryRepository.candidates/decisions/decide/reviewReplay; same-shop customer_pair_review and redactable identity_revision_evidence",
@@ -536,6 +537,12 @@ test("0.2.2 D3/D8 real catalog gate rejects FORCE/write-check/policy/grant/schem
       "public.design_manifest_reference",
       "public.design_question",
       "public.design_question_dependency",
+      "public.design_spec_answer",
+      "public.design_spec_draft_value",
+      "public.design_spec_event",
+      "public.design_spec_scope",
+      "public.design_spec_value",
+      "public.design_spec_version",
       "public.design_template_link",
       "public.document_artifact",
       "public.document_attempt",
@@ -795,6 +802,12 @@ test("0.2.2 D9 retained 0.2.1 schema upgrades under advisory locking; bootstrap 
         "public.design_manifest_reference",
         "public.design_question",
         "public.design_question_dependency",
+        "public.design_spec_answer",
+        "public.design_spec_draft_value",
+        "public.design_spec_event",
+        "public.design_spec_scope",
+        "public.design_spec_value",
+        "public.design_spec_version",
         "public.design_template_link",
         "public.document_artifact",
         "public.document_attempt",

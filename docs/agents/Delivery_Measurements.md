@@ -1,5 +1,48 @@
 # Delivery measurements
 
+## Issue #147 / 1.3.1b — garment specification versions
+
+- Owner selected A2 after A1 PR #149 merged **22 October 2026, 07:42:23 UTC**.
+  Updated the same checkout's `development` and created
+  `codex/design-specifications-a2` at `3459ec4`; all seven direct blockers verified
+  merged and ancestors. Implementation clock observed **07:47:31 UTC** before the
+  first code edit. Active coding/rework stopwatch time is **unknown**.
+- Development PG runs progressed from one case to **4/4** (**54.37s**, then
+  **45.33s**) and **5/5** (**59.40s**). Early failures exposed deferred FKs, an
+  ambiguous alias and a missing privacy read policy. Focused final five-case PG
+  **5/5, 76.719s**, **09:02:47–09:04:03 UTC**, includes nine injected-write
+  rollbacks and successful same-key retries, current-authority and erasure races.
+- Focused clean-native frozen install/export/build/canary/artifact check **exit 0,
+  129.623s**, **08:33:51.025–08:36:00.648 UTC**. Exact temporary copy cleaned and
+  lockfile unchanged. This is separate from full `verify:clean`, which was not run.
+- Initial desktop UI matrix passed **1/1, 35.8s**. Expanded browser attempts failed
+  in **123.289s**, **35.790s**, **158.554s**, **136.577s**, then **136.934s**
+  (**2 passed / 1 failed**). Findings/fixes: scope UPSERT versus insert-only guard,
+  source-query generation freezing the loader, test fixture trying to delete a
+  history-referenced membership, and Tamil phone form overflow. Logs are retained
+  privately; no automatic retries. Final UI **3/3, 151.854s**,
+  **09:25:25.144–09:27:56.998 UTC**, 12 EN/TA/theme/size captures, zero axe findings.
+- Final runtime `verify:fast` **exit 0, 118.199s**,
+  **09:30:01.984–09:32:00.183 UTC**: **283 units / 64 files**, all lint/Knip/types/
+  negative/API checks, production build **17.416s**. No runtime changes followed.
+- Additional salwar applicability/none real PG **1/1, 26.724s**,
+  **09:40:53.925–09:41:20.649 UTC**. Added after broad integration enumeration;
+  reported independently rather than included in its count.
+- Earlier broad integration attempt was deliberately terminated to fix the
+  pointer UPSERT; it has no completed-suite result. Final broad PG began
+  **09:11:30.744 UTC**, and existing 30-case browser regression began
+  **09:34:45.445 UTC**; final results pending. These commands overlap other work;
+  their elapsed times must not be added as active coding time.
+- First tryable synthetic review host ready **09:35:14 UTC**, observed by
+  **09:36:45 UTC**, loopback port **49672**. Exact route/private sign-in and
+  teardown are in [A2 evidence](Design_Specification_Implementation_Evidence.md).
+  T3 opens normal sign-in; authenticated Playwright checks do not substitute for
+  owner review. PR, current-head hosted checks, final review-ready and human
+  acceptance/merge timings remain pending. B #148 remains unselected.
+- Production smoke **exit 0, 23.320s**, **09:45:16.664–09:45:39.984 UTC**;
+  final artifact scan **29 checked, exit 0, 0.374s**. Lint after the supplemental
+  test addition **exit 0, 5.295s**, with Knip also exit 0. Runtime inputs unchanged.
+
 ## Issue #146 / 1.3.1a — controlled design choices
 
 - Owner approved the concrete A1/A2/B software packet and A1 selection on

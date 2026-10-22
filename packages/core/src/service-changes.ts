@@ -12,6 +12,7 @@ import {
   serviceChangeDraftSchema,
   serviceIntakeDraftSchema,
 } from "@aarili/contracts/small-services";
+import type { DesignSpecificationsRepository } from "@aarili/db/repositories/design-specifications";
 import { readBooking } from "./bookings.js";
 import { DraftFailure, type DraftWorkflow } from "./drafts.js";
 import { readAcceptedOrder, readOrderPieces } from "./orders.js";
@@ -47,6 +48,7 @@ function orders(ctx: SmallServiceContext) {
 export async function prepareServiceDraftReads(
   ctx: SmallServiceContext,
   records: Pick<DraftRecord, "workflow" | "payload">[],
+  designs?: DesignSpecificationsRepository,
 ) {
   const repo = orders(ctx),
     orderIds = new Set<string>(),
@@ -62,6 +64,14 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    if (record.workflow === "design.specification") {
+      if (typeof p.orderId === "string") orderIds.add(p.orderId);
+      const reuse = p.reuse as { versionId?: string } | null;
+      if (reuse?.versionId && designs) {
+        const source = await designs.read(reuse.versionId);
+        if (source) orderIds.add(source.orderId);
+      }
+    }
     if (
       record.workflow === "order.repeat" ||
       record.workflow === "order.repeat-service"

@@ -30,6 +30,10 @@ import {
   type DesignChoicesContext,
   designChoicesDraftWorkflow,
 } from "@aarili/core/design-choices";
+import {
+  type DesignSpecificationsContext,
+  designSpecificationWorkflow,
+} from "@aarili/core/design-specifications";
 import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
@@ -112,6 +116,7 @@ import { commandRepository } from "@aarili/db/command-repository";
 import { customerHistoryRepository } from "@aarili/db/customer-history-repository";
 import { customerRepository } from "@aarili/db/customer-repository";
 import { designChoicesRepository } from "@aarili/db/design-choices-repository";
+import { designSpecificationsRepository } from "@aarili/db/design-specifications-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
@@ -285,6 +290,11 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: ShopPoliciesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerDesignSpecifications: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DesignSpecificationsContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerDesignChoices: <T>(
     headers: Headers,
     shopId: string,
@@ -1365,6 +1375,12 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         ),
       );
       workflows.set(
+        "design.specification",
+        designSpecificationWorkflow(
+          designSpecificationsContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
         "design.choices",
         designChoicesDraftWorkflow(designChoicesContext(tx, shopId, userId)),
       );
@@ -1432,6 +1448,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
           prepareServiceDraftReads(
             smallServiceContext(tx, shopId, userId),
             records,
+            designSpecificationsRepository(tx, shopId),
           ),
         ...(configuration.draftInstrumentation
           ? { instrumentation: configuration.draftInstrumentation(tx, shopId) }
@@ -1532,6 +1549,26 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) =>
       run(guardianContext(tx, shopId, userId)),
+    );
+  }
+  function designSpecificationsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): DesignSpecificationsContext {
+    return {
+      orders: quickOrderContext(tx, shopId, actorId),
+      choices: designChoicesContext(tx, shopId, actorId),
+      repository: designSpecificationsRepository(tx, shopId),
+    };
+  }
+  async function withOwnerDesignSpecifications<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: DesignSpecificationsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(designSpecificationsContext(tx, shopId, actorId)),
     );
   }
   function designChoicesContext(
@@ -2106,6 +2143,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerShopDirectory,
+    withOwnerDesignSpecifications,
     withOwnerDesignChoices,
     withOwnerServiceCatalogue,
     withOwnerMeasurementForms,

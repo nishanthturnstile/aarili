@@ -5,6 +5,7 @@ import { createCommandRoutes } from "@aarili/api/commands";
 import { createCustomerHistoryRoutes } from "@aarili/api/customer-history";
 import { createCustomerRoutes } from "@aarili/api/customers";
 import { createDesignChoicesRoutes } from "@aarili/api/design-choices";
+import { createDesignSpecificationsRoutes } from "@aarili/api/design-specifications";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
@@ -19,6 +20,16 @@ import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createDesignSpecificationsRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => 0,
+    withOwnerDesignSpecifications: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createCustomerHistoryRoutes({
@@ -318,6 +329,17 @@ for (const [path, method] of [
       method
     ],
     `Missing design choices contract ${method} ${path}`,
+  );
+for (const [path, method] of [
+  ["list", "post"],
+  ["versions/{id}", "get"],
+  ["reuse", "post"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/design-specifications/${path}`]?.[
+      method
+    ],
+    `Missing design specification contract ${method} ${path}`,
   );
 await writeFile(
   "test-results/openapi.json",

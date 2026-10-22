@@ -47,6 +47,7 @@ async function fixture(run) {
             assert.deepEqual([...ctx.workflows.keys()].sort(), [
               "booking.group",
               "design.choices",
+              "design.specification",
               "measurement.forms",
               "order.group",
               "order.quick",

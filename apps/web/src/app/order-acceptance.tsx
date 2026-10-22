@@ -24,6 +24,7 @@ import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { DesignSpecifications } from "./design-specifications";
 import type { DraftRecovery } from "./draft-recovery";
 import { OrderPiecesDetail } from "./order-pieces";
 import type { OwnerGuard } from "./owner-feedback";
@@ -612,6 +613,12 @@ export function AcceptedOrderDetail({
         locale={locale}
         guard={guard}
         onChanged={() => void reload()}
+      />
+      <DesignSpecifications
+        order={order}
+        shopId={shopId}
+        locale={locale}
+        guard={guard}
       />
       <OrderPiecesDetail
         order={order}

@@ -147,6 +147,14 @@
     "./design-choices-client": {
       "types": "./dist/design-choices-client.d.ts",
       "import": "./dist/design-choices-client.js"
+    },
+    "./design-specifications": {
+      "types": "./dist/design-specifications.d.ts",
+      "import": "./dist/design-specifications.js"
+    },
+    "./design-specifications-client": {
+      "types": "./dist/design-specifications-client.d.ts",
+      "import": "./dist/design-specifications-client.js"
     }
   },
   "scripts": {

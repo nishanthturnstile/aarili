@@ -726,13 +726,15 @@ The brief changes no scope, dependencies or issue-publication authority.
 [independent design](agents/Design_Specification_Design.md),
 [concrete A1 → A2 → B tickets](agents/Design_Specification_Ticket_Packet.md) and
 [current baseline/verification status](agents/Design_Specification_Implementation_Evidence.md)
-record the approved design and selected A1 implementation. A1 controls choices/question profiles; A2 saves
+record the approved design, merged A1 and selected A2 implementation. A1 controls choices/question profiles; A2 saves
 exact garment/piece specification versions and governs repeat/current selection;
 B adds private component references in all required asset classes with captions,
 annotations and version-preserving replacement. The owner approved publication
-as A1 #146 → A2 #147 → B #148 with native blockers and selected only #146.
-A1's additive configuration/history and preview implementation is in review;
-A2/B await selection and merged blockers. A1/A2 alone do not close ORD-07/DES-05/10 or full 1.3.1;
+as A1 #146 → A2 #147 → B #148 with native blockers. A1 merged in PR #149;
+the owner then selected A2 #147 after all its blockers merged. A2 adds exact
+scope/version/answer/selection records, reasoned inactive retention and explicit
+field reuse into a fresh accepted target. B awaits selection and the A2 merge.
+A1/A2 alone do not close ORD-07/DES-05/10 or full 1.3.1;
 AC-08 and later approval/measurement/pattern/slip gates remain open.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
