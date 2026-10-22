@@ -5,6 +5,7 @@ import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation"
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { CustomerScreen } from "./customer-screen";
+import { DesignChoicesScreen } from "./design-choices-screen";
 import { MeasurementFormsScreen } from "./measurement-forms-screen";
 import { OrdersScreen } from "./orders-screen";
 import { OwnerConnections } from "./owner-connections";
@@ -61,6 +62,7 @@ export function OwnerWorkspace({
     | "serviceTemplates"
     | "serviceProfiles"
     | "measurementForms"
+    | "design-choices"
     | "catalogue"
   >(() => {
     if (typeof window === "undefined") return "profile";
@@ -71,6 +73,7 @@ export function OwnerWorkspace({
       selected === "serviceTemplates" ||
       selected === "serviceProfiles" ||
       selected === "measurementForms" ||
+      selected === "design-choices" ||
       selected === "catalogue" ||
       selected === "directory" ||
       selected === "policies" ||
@@ -90,6 +93,7 @@ export function OwnerWorkspace({
       | "serviceTemplates"
       | "serviceProfiles"
       | "measurementForms"
+      | "design-choices"
       | "catalogue",
   ) {
     if (!guard.safe() && !window.confirm(t("calendar.discard"))) return;
@@ -169,6 +173,7 @@ export function OwnerWorkspace({
                   "policies",
                   "commitments",
                   "catalogue",
+                  "design-choices",
                   "serviceTemplates",
                   "measurementForms",
                 ] as const
@@ -190,11 +195,13 @@ export function OwnerWorkspace({
                             ? "serviceTemplates.title"
                             : item === "measurementForms"
                               ? "measurementForms.title"
-                              : item === "catalogue"
-                                ? "catalogue.title"
-                                : item === "commitments"
-                                  ? "commitments.title"
-                                  : "policies.title",
+                              : item === "design-choices"
+                                ? "designChoices.title"
+                                : item === "catalogue"
+                                  ? "catalogue.title"
+                                  : item === "commitments"
+                                    ? "commitments.title"
+                                    : "policies.title",
                   )}
                 </Button>
               ))}
@@ -223,6 +230,12 @@ export function OwnerWorkspace({
               />
             ) : section === "measurementForms" ? (
               <MeasurementFormsScreen
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "design-choices" ? (
+              <DesignChoicesScreen
                 shopId={entry.shop.shopId}
                 queries={queries}
                 guard={guard}

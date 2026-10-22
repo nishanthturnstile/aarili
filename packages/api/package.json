@@ -139,6 +139,14 @@
     "./customer-history-client": {
       "types": "./dist/customer-history-client.d.ts",
       "import": "./dist/customer-history-client.js"
+    },
+    "./design-choices": {
+      "types": "./dist/design-choices.d.ts",
+      "import": "./dist/design-choices.js"
+    },
+    "./design-choices-client": {
+      "types": "./dist/design-choices-client.d.ts",
+      "import": "./dist/design-choices-client.js"
     }
   },
   "scripts": {

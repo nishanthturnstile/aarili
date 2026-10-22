@@ -4,6 +4,7 @@ import { createApi, createShopPoliciesRoutes } from "@aarili/api";
 import { createCommandRoutes } from "@aarili/api/commands";
 import { createCustomerHistoryRoutes } from "@aarili/api/customer-history";
 import { createCustomerRoutes } from "@aarili/api/customers";
+import { createDesignChoicesRoutes } from "@aarili/api/design-choices";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
 import { createMediaRoutes } from "@aarili/api/media";
@@ -208,6 +209,16 @@ api.route(
     },
   }),
 );
+api.route(
+  "/",
+  createDesignChoicesRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => null,
+    withOwnerDesignChoices: async () => {
+      throw Error("Offline design schema only");
+    },
+  }),
+);
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },
@@ -293,6 +304,20 @@ for (const [path, method] of [
       method
     ],
     `Missing service template contract ${method} ${path}`,
+  );
+for (const [path, method] of [
+  ["list", "post"],
+  ["entries/{id}", "get"],
+  ["history", "post"],
+  ["revisions/{id}", "get"],
+  ["definitions/{id}", "get"],
+  ["preview", "post"],
+])
+  assert(
+    document.paths[`/api/shops/{shopId}/settings/design-choices/${path}`]?.[
+      method
+    ],
+    `Missing design choices contract ${method} ${path}`,
   );
 await writeFile(
   "test-results/openapi.json",

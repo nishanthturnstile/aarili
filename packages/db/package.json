@@ -283,6 +283,18 @@
     "./repositories/customer-history": {
       "types": "./dist/repositories/customer-history.d.ts",
       "import": "./dist/repositories/customer-history.js"
+    },
+    "./design-choices-repository": {
+      "types": "./dist/design-choices-repository.d.ts",
+      "import": "./dist/design-choices-repository.js"
+    },
+    "./design-choices-schema": {
+      "types": "./dist/design-choices-schema.d.ts",
+      "import": "./dist/design-choices-schema.js"
+    },
+    "./repositories/design-choices": {
+      "types": "./dist/repositories/design-choices.d.ts",
+      "import": "./dist/repositories/design-choices.js"
     }
   },
   "scripts": {

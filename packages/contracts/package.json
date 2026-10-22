@@ -95,6 +95,10 @@
     "./customer-history": {
       "types": "./dist/customer-history.d.ts",
       "import": "./dist/customer-history.js"
+    },
+    "./design-choices": {
+      "types": "./dist/design-choices.d.ts",
+      "import": "./dist/design-choices.js"
     }
   },
   "scripts": {

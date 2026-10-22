@@ -8,6 +8,7 @@ import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { createBookingRoutes } from "./bookings.js";
 import { createCustomerHistoryRoutes } from "./customer-history.js";
 import { createCustomerRoutes } from "./customers.js";
+import { createDesignChoicesRoutes } from "./design-choices.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createMediaRoutes } from "./media.js";
@@ -101,6 +102,7 @@ export function createApi(
     app.route("/", createShopCommitmentsRoutes(owner));
     app.route("/", createShopDirectoryRoutes(owner));
     app.route("/", createServiceCatalogueRoutes(owner));
+    app.route("/", createDesignChoicesRoutes(owner));
     app.route("/", createMeasurementFormsRoutes(owner));
     app.route("/", createServiceTemplatesRoutes(owner));
 

@@ -1,5 +1,82 @@
 # Delivery measurements
 
+## Issue #146 / 1.3.1a — controlled design choices
+
+- Owner approved the concrete A1/A2/B software packet and A1 selection on
+  **22 October 2026**. Ticket publication was observed around **05:34:49 UTC**;
+  implementation start recorded **05:36:35 UTC**, before first schema edit.
+  Existing checkout, branch `codex/design-choices-a1`, base `154a456` from updated
+  development; all six direct blockers merged. No worktree.
+- Research/planning is recorded separately. Active coding/rework stopwatch time
+  is **unknown**; elapsed command/wait time is not reported as coding time.
+- Development schema/property **5/5**, **14.926s** command; first design PG
+  **3/3**, **27.309s** command. Expanded five-file PG regression **22/22**,
+  **193.311s** command. Explicit scenario fixture initially violated incumbent
+  stitching-form applicability; corrected fixture then **4/4**, **33.422s**.
+- First desktop browser workflow reached domain/axe checks but failed a test-only
+  appearance-storage key assertion (**49.693s**). Corrected the key to the existing
+  `aarili-appearance`; no browser-storage behaviour was changed.
+- Clean-install attempt 1 installed the frozen workspace then failed the new
+  client boundary registration (**58.700s**); attempt 2 found an unnecessary
+  fixture export in Knip (**61.303s**). Corrections retain the strict gates.
+  Final clean/native/browser results and reviewer-ready timestamps follow when
+  observed in [the A1 evidence](Design_Specification_Implementation_Evidence.md).
+- As of **06:17:39 UTC**, no review host or PR has been opened. First tryable,
+  review-ready, hosted queue/execution, human acceptance and merge remain pending.
+  Verification stages can overlap; their durations must not be added as active
+  implementation time. A2 #147 and B #148 remain blocked/unselected.
+- First A1 review host ready observed by **06:22:31 UTC**, loopback port **51739**;
+  T3 opened its ordinary owner sign-in. HTTP **200** confirmed with native
+  PowerShell's BasicParsing mode at **06:26 UTC** (the legacy DOM parser first
+  threw a local PowerShell error). Private access file exists outside Git/chat.
+  Final reviewer handoff URL and review-ready time remain pending final checks.
+- Three-device recovery browser **3/3**, **129.639s**. Current focused A1 PG
+  **4/4**, **61.682s**. Additional no-design status type errors were caught by
+  production builds (**34.683s / 10.127s**) and corrected with an explicit union
+  guard. These checks/rework are not folded into an invented coding duration.
+- Final rebuilt browser regression **12/12**, **481.127s**, followed by expanded
+  four-language/theme-combination A1 coverage **3/3**, **116.344s** (12 captures,
+  zero axe violations). New explicit availability/profile/definition race check
+  **1 passed / 3 filtered**, **24.037s**. The initial review host was stopped
+  cleanly before the final fast gate rebuild; the handoff host will be refreshed.
+- Final current-source `verify:fast`: **exit 0, 118.160s**, **277 units / 63
+  files (14.83s)**, build **16.623s**. Refreshed review host ready by
+  **06:33:48 UTC**, port **62781**, with the exact route/private access method in
+  the A1 evidence. Broad clean-install regression remains running at draft-PR
+  publication; no final full-suite claim or human acceptance is inferred.
+- Capability **53be125** committed/pushed; draft
+  [PR #149](https://github.com/nishanthturnstile/aarili/pull/149) created
+  **06:36:00 UTC**, immediately linked to T3. Fast/audit jobs running at
+  **06:36:11 UTC**, [run 39734956167](https://github.com/nishanthturnstile/aarili/actions/runs/39734956167).
+  Hosted queue/execution and owner review/merge durations remain pending.
+- Broad clean-copy integration exposed four missing-workflow-inventory
+  assertions; the single-entry test correction passed **6/6**, **108.050s**.
+  Fresh focused clean frozen install/package-export/web-build/private-canary
+  scan passed in **154.268s**, preserving the lockfile and deleting its exact
+  disposable copy. Production readiness/outage/shutdown smoke **31.874s**;
+  root browser-artifact scan **0.533s**. Original broad-run totals remain pending.
+- Inventory revision `def9b5d` hosted Fast verification **06:43:32–06:45:26 UTC**
+  (**114s**) and Dependency audit **06:43:31–06:44:56 UTC** (**85s**) passed in
+  [run 39735741565](https://github.com/nishanthturnstile/aarili/actions/runs/39735741565).
+- Broad clean run ultimately **exit 1, 3491.033s**; integration **248 passed /
+  4 outdated-inventory failures, 3185.47s**. Corrected affected file passed 6/6;
+  no wholesale rerun or false full-green claim. This long supplementary check
+  overlaps other work and is not added to active coding time. Its temporary
+  installation and PostgreSQL fixtures were cleaned up.
+- Final presentation/validation review adds the visible none marker, plain
+  unavailable-reference wording and bounded schema graph visits. The new graph
+  test's formatting first failed fast (**1.333s**), then Biome corrected it.
+  Frozen final `verify:fast` **exit 0, 97.886s**, **278 units / 63 files,
+  11.45s**, build **14.311s**. Final affected PG/UI/host times follow when observed.
+- Frozen final A1 PG **4/4**, **46.852s** command; final rebuilt A1 browser
+  **3/3**, **97.091s**, all four language/theme combinations and three screen
+  classes, 12 refreshed captures and zero axe violations. Final review-ready
+  time **07:15:45 UTC**, host port **58892**, ordinary sign-in HTTP 200. Prior
+  temporary hosts were stopped for builds; this host remains for owner review.
+  First tryable time remains **06:22:31 UTC**. Active coding/rework time remains
+  unknown; human acceptance, current-head hosted checks, merge and deployment
+  remain separately pending. Runtime code is frozen after the final checks.
+
 ## Repeat-order/history promotion #144 — 22 October 2026
 
 - Owner authorized promotion, issue fixes, merge and branch synchronization.

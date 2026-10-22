@@ -714,6 +714,27 @@ validation results and pending human acceptance.
 
 ##### Vertical Slice 1.3.1 — Capture a Versioned Design Specification
 
+**REA delivery brief (22 October 2026):** the
+[Versioned Design Specification prompt](agents/Design_Specification_REA_Prompt.md)
+uses Nool's documented job-sheet and attachment flows as the primary research
+candidate, with TailorMan's exposed type configuration as a secondary comparison.
+It sequences controlled garment specifications and private component references,
+preserving historical versions, rights and later approval/measurement/pattern gates.
+The brief changes no scope, dependencies or issue-publication authority.
+
+**Approved packet (22 October 2026):** [research observations and gaps](agents/Design_Specification_REA_Evidence.md),
+[independent design](agents/Design_Specification_Design.md),
+[concrete A1 → A2 → B tickets](agents/Design_Specification_Ticket_Packet.md) and
+[current baseline/verification status](agents/Design_Specification_Implementation_Evidence.md)
+record the approved design and selected A1 implementation. A1 controls choices/question profiles; A2 saves
+exact garment/piece specification versions and governs repeat/current selection;
+B adds private component references in all required asset classes with captions,
+annotations and version-preserving replacement. The owner approved publication
+as A1 #146 → A2 #147 → B #148 with native blockers and selected only #146.
+A1's additive configuration/history and preview implementation is in review;
+A2/B await selection and merged blockers. A1/A2 alone do not close ORD-07/DES-05/10 or full 1.3.1;
+AC-08 and later approval/measurement/pattern/slip gates remain open.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-07, DES-01, DES-02, DES-03, DES-04, DES-05, DES-10. Scenarios: AC-07, AC-08.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3. Architecture constraints in §9 apply in addition to business dependencies.
