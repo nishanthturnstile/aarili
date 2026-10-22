@@ -1,5 +1,32 @@
 # Delivery measurements
 
+## Repeat-order/history promotion #144 — 22 October 2026
+
+- Owner authorized promotion, issue fixes, merge and branch synchronization.
+  Initial promotion candidate `7c0d53a`; release run `39716863348` started
+  around **03:27Z**. First failure investigation began after completed scaffold
+  output at **03:45:29Z**; active coding and rework were not separately timed.
+- Development linear-history protection rejected the ancestry-sync merge;
+  #144 was retargeted to main using the prior promotion-branch approach.
+  No branch settings were changed. The candidate initially matched development
+  `7776645` byte-for-byte.
+- Release failures: **272 units passed**, **238 PostgreSQL passed / 10 failed**;
+  each phone/tablet shard 2 **24 passed / 1 failed**, desktop shard 2 **23 passed /
+  2 failed**. Six remaining browser shards and audit passed. Failures and fixes
+  are retained in `Promotion_2026_10_22_Evidence.md`.
+- Local first focused attempts failed because Docker was stopped after restart.
+  Restarted Docker, then repeated the focused checks. Desktop customer/guardian
+  packet **3/3, 5.7m** before final customer focus correction. The final rebuilt
+  two-scenario packet passed **6/6, 10.6m**, covering all three device sizes,
+  with exit 0. Log `.scratch/promotion-144-ui-final.log`. Final hosted release
+  state is tracked by #144's checks and timeline.
+- Final correction `verify:fast` **exit 0**, **272 units / 62 files**, unit
+  duration **20.65s**, production web build task **21.279s**. Focused PostgreSQL
+  **exit 0, 68/68 across four files, 666.46s**; all ten release failures pass.
+  Logs `.scratch/promotion-144-fast.log` and `promotion-144-pg-fixed.log`.
+- Same checkout and branch `codex/promotion-144-regressions`; no new worktree.
+  Unrelated roadmap/design-prompt edits are preserved and excluded.
+
 ## Issue #138 - authorised contact merge / 1.2.4e
 
 - First observed task timestamp **2026-10-21T15:50:34Z** before implementation

@@ -478,6 +478,7 @@ test("CW-08/09/11/12/13 aunt, child and separate parent; pending guardian draft 
         "patch",
         `${f.wearerPath}/${f.child.wearerId}`,
         {
+          reason: "SYNTHETIC age correction for guardian eligibility",
           age: "unknown",
           preferences: f.preferences,
           relationship: f.relationship,
