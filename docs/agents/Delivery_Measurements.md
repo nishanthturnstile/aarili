@@ -1,5 +1,85 @@
 # Delivery measurements
 
+## Issue #147 / 1.3.1b — garment specification versions
+
+- Owner selected A2 after A1 PR #149 merged **22 October 2026, 07:42:23 UTC**.
+  Updated the same checkout's `development` and created
+  `codex/design-specifications-a2` at `3459ec4`; all seven direct blockers verified
+  merged and ancestors. Implementation clock observed **07:47:31 UTC** before the
+  first code edit. Active coding/rework stopwatch time is **unknown**.
+- Development PG runs progressed from one case to **4/4** (**54.37s**, then
+  **45.33s**) and **5/5** (**59.40s**). Early failures exposed deferred FKs, an
+  ambiguous alias and a missing privacy read policy. Focused final five-case PG
+  **5/5, 76.719s**, **09:02:47–09:04:03 UTC**, includes nine injected-write
+  rollbacks and successful same-key retries, current-authority and erasure races.
+- Focused clean-native frozen install/export/build/canary/artifact check **exit 0,
+  129.623s**, **08:33:51.025–08:36:00.648 UTC**. Exact temporary copy cleaned and
+  lockfile unchanged. This is separate from full `verify:clean`, which was not run.
+- Initial desktop UI matrix passed **1/1, 35.8s**. Expanded browser attempts failed
+  in **123.289s**, **35.790s**, **158.554s**, **136.577s**, then **136.934s**
+  (**2 passed / 1 failed**). Findings/fixes: scope UPSERT versus insert-only guard,
+  source-query generation freezing the loader, test fixture trying to delete a
+  history-referenced membership, and Tamil phone form overflow. Logs are retained
+  privately; no automatic retries. Final UI **3/3, 151.854s**,
+  **09:25:25.144–09:27:56.998 UTC**, 12 EN/TA/theme/size captures, zero axe findings.
+- Final runtime `verify:fast` **exit 0, 118.199s**,
+  **09:30:01.984–09:32:00.183 UTC**: **283 units / 64 files**, all lint/Knip/types/
+  negative/API checks, production build **17.416s**. No runtime changes followed.
+- Additional salwar applicability/none real PG **1/1, 26.724s**,
+  **09:40:53.925–09:41:20.649 UTC**. Added after broad integration enumeration;
+  reported independently rather than included in its count.
+- Earlier broad integration attempt was deliberately terminated to fix the
+  pointer UPSERT; it has no completed-suite result. Final broad PG began
+  **09:11:30.744 UTC**, and existing 30-case browser regression began
+  **09:34:45.445 UTC**; final results pending. These commands overlap other work;
+  their elapsed times must not be added as active coding time.
+- First tryable synthetic review host ready **09:35:14 UTC**, observed by
+  **09:36:45 UTC**, loopback port **49672**. Exact route/private sign-in and
+  teardown are in [A2 evidence](Design_Specification_Implementation_Evidence.md).
+  T3 opens normal sign-in; authenticated Playwright checks do not substitute for
+  owner review. PR, current-head hosted checks, final review-ready and human
+  acceptance/merge timings remain pending. B #148 remains unselected.
+- Production smoke **exit 0, 23.320s**, **09:45:16.664–09:45:39.984 UTC**;
+  final artifact scan **29 checked, exit 0, 0.374s**. Lint after the supplemental
+  test addition **exit 0, 5.295s**, with Knip also exit 0. Runtime inputs unchanged.
+- Capability **3c96b94** pushed; draft
+  [PR #150](https://github.com/nishanthturnstile/aarili/pull/150) created
+  **09:49:19 UTC**, immediately linked to T3. Hosted queue about **3s**;
+  Fast **09:49:26–09:51:29 UTC**, **123s**, audit **09:49:25–09:49:49 UTC**,
+  **24s**, both passed in
+  [run 39758369014](https://github.com/nishanthturnstile/aarili/actions/runs/39758369014).
+  Subsequent test-only corrections need current-head checks before final handoff.
+- Broad PG revealed four stale assertions/fixtures (legacy piece FK ×2, history
+  unavailable-domain count and bootstrap inventory ordering). Corrected only test
+  setup/expectations and rerunning all three affected files; original broad totals
+  and focused correction timings remain pending. No runtime change or gate waiver.
+- Corrected bootstrap file **12/12, exit 0, 324.695s**,
+  **09:51:01.601–09:56:26.296 UTC**. The order/history files are still running.
+  Biome checked the three changed tests; five changed documents / **142** local
+  links passed. Verification overlaps broad PG/browser execution; active rework
+  stopwatch time remains unknown.
+- Existing browser regression **30/30, exit 0, 1473.358s**,
+  **09:34:45.445–09:59:18.803 UTC**, zero retries, all three device classes;
+  acceptance, pieces, groups, repeat, history and both draft-recovery paths.
+  This is separate from the new A2 three-case matrix and overlaps real PG runs.
+- Full real PG finished **253 passed / 4 stale-test failures**, **42 passed /
+  3 failed files (45)**, **exit 1, 3301.763s**, **09:11:30.744–10:06:32.507 UTC**.
+  All five A2 cases pass. Original broad output is retained; no complete rerun or
+  full-green claim. The first legacy-fixture correction missed the draft-response
+  FK; its final two-case check passed **2/2 (42 filtered), exit 0, 47.207s**,
+  **10:05:08.280–10:05:55.487 UTC**, after preserving all five exact FKs. The
+  acceptance/history-file run finished **46 passed / 2 first-correction fixture
+  failures (48), exit 1, 910.517s**, **09:52:20.663–10:07:31.180 UTC**; all four
+  history cases pass. The two remaining cases subsequently pass with the final
+  five-FK fixture as recorded above. No whole-suite green result is substituted
+  for either original failing command. Only test fixtures/expectations and
+  documentation changed after the verified capability commit.
+- Final local lint **exit 0, 2.603s**, **10:08:30.562–10:08:33.165 UTC**;
+  document/link and whitespace checks pass. Local review packet ready
+  **10:08:33 UTC**; current-head hosted checks are tracked on PR #150. Human
+  review/acceptance, owner merge and deployment remain pending, separately from
+  first tryable **09:35:14 UTC**. Final commits only correct tests/documentation.
+
 ## Issue #146 / 1.3.1a — controlled design choices
 
 - Owner approved the concrete A1/A2/B software packet and A1 selection on

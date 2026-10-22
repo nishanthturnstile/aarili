@@ -1,16 +1,210 @@
 # Design specification delivery and verification status
 
-22 October 2026. Roadmap **1.3.1**. **Software packet approved; selected A1
-[#146](https://github.com/nishanthturnstile/aarili/issues/146) implemented for review.** [Design](Design_Specification_Design.md),
+22 October 2026. Roadmap **1.3.1**. **A1 #146 merged in PR #149; owner selected
+[A2 #147](https://github.com/nishanthturnstile/aarili/issues/147) after that merge.** [Design](Design_Specification_Design.md),
 [ticket packet](Design_Specification_Ticket_Packet.md),
 [research evidence](Design_Specification_REA_Evidence.md).
 
-Draft [PR #149](https://github.com/nishanthturnstile/aarili/pull/149) contains A1;
-A2/B remain blocked/unselected. The broad clean-copy run finished **248 passed /
+[PR #149](https://github.com/nishanthturnstile/aarili/pull/149) contains A1 and merged
+at **07:42:23 UTC**. The A2 delivery record is immediately below; the dated A1
+sections following it are historical. B #148 remains unselected. A1's broad clean-copy run finished **248 passed /
 4 failed**; its missing workflow-inventory entry was corrected and the affected
 file passed **6/6**. The whole broad command was not rerun. Current focused gates,
 native portability, known failures and the running review packet are detailed
 below; no full-parent-feature, human acceptance or live activation claim.
+
+## A2 / #147 — selected implementation, 22 October 2026
+
+Owner instruction: “merged to development branch take the latest pull and start
+the implementation of issue #147”. The clean existing checkout was fetched,
+`development` fast-forwarded to **3459ec44e327b6a7fc8bd5821d0bcba4d7aab12e**, and
+`codex/design-specifications-a2` created there. The A1 disposable review host was
+stopped before rebuilding. No worktree, deployment or live data.
+
+All direct blockers are closed; each closing PR is merged and its merge commit
+passed `git merge-base --is-ancestor <commit> HEAD` with exit 0:
+
+| Issue / closing PR | Merge commit |
+| --- | --- |
+| #146 / #149 | `3459ec44e327b6a7fc8bd5821d0bcba4d7aab12e` |
+| #114 / #116 | `c375a5af8090b846346c89c12fe097f133fc4701` |
+| #118 / #121 | `80b339ff3ef192a29879f1922bed41efaff7622e` |
+| #120 / #123 | `63d5123863e5324a35c635fa25592310593a828b` |
+| #134 / #139 | `56b07f6b453cf560b73784c52fc60b4edbf3e34a` |
+| #138 / #143 | `77766454ae9a0adede7224557b7962c22fbe3c3f` |
+| #56 / #68 | `909b2798594054f9661afbbdd2bbdef4ac77f194` |
+
+### Implementation and integrity review
+
+`design.specification` v1 extends the existing server-draft registry, order detail,
+typed API clients and owner transaction. Existing intake/repeat v1 schemas stay
+strict and unchanged. Explicit repeat-design review operates after a fresh target
+order has been accepted: choose the exact source version and fields, map by stable
+question identity to the target's current supported profile, and review the new
+draft. Its initial copied values are inspiration; a subsequent explicit owner
+instruction decision is permitted. No approval, price/promise, task state or
+private media transfers. Cross-wearer copying is denied even if both are visible.
+
+Migration **0043_design_specifications.sql** adds six tenant tables: scope,
+immutable event/version/typed answer, redactable saved values and redactable exact
+draft-response values. Whole scope uses the order UUID and an explicit kind;
+piece scope uses the native piece UUID. `UNIQUE NULLS NOT DISTINCT` and composite
+order/piece/wearer/profile/question/choice FKs close null and cross-scope loopholes.
+All six tables ENABLE/FORCE RLS; runtime grants are SELECT/INSERT except the
+guarded scope pointer's four columns. Child INSERT is sealed to the creating
+transaction, not only protected against later UPDATE/DELETE.
+
+Each save increments the scope CAS revision and appends a complete version. A
+save-only preserves current; save-and-use commits selection with the save. A
+separate reasoned use command appends an event without creating a content version.
+Both the latest saved base and scope revision must match. Selection of an old
+version rechecks current choice eligibility and governed-work policy; inactive
+old versions need a supported successor or library reactivation before selection.
+An unchanged inactive answer can be retained in a same-scope revision only with
+an explicit retention reason and identical prior answer/profile identity. Accepted
+category/manifest availability does not replace or rewrite the pinned intake.
+
+Actual lock graph: request key → draft → sorted booking aggregates → sorted order
+aggregates → sorted customer/person and wearer authority → design scope → catalogue
+→ forms → manifests → design configuration. Mixed draft-list preflight discovers
+design/repeat source aggregates before taking the authority classes. A1 publishers
+never acquire orders after configuration. Guardian/service authority applies on
+draft edits, reads, history and replay, as well as publication. No media locks or
+jobs are introduced in A2.
+
+Business event, version/answers, pointer, minimal audit, promoted draft, exact
+private response values and bound idempotency result commit together. Idempotency
+JSON stores metadata with an empty payload. The new optional draft adapter hooks
+read an exact response revision under current authority; older lost responses
+remain exact after a later edit/promotion. Existing adapters retain their previous
+behaviour. `app_privacy` receives two narrowly audited functions: saved-event
+redaction also scrubs same-scope durable drafts and their exact private responses;
+draft-only redaction covers never-published private drafts. They acquire the
+ordinary draft/order lock classes, advance the durable draft ETag and preserve
+provenance. Readers and idempotent replay re-read private values after acquiring
+authority locks, so a concurrent erasure cannot return a stale private payload.
+Immutable digests identify original content; redacted responses are not claimed
+to hash to those digests. General retention/backups and live privacy policy remain
+separate activation gates.
+
+No new dependency, infrastructure or toolchain baseline. New package subpaths
+require fresh focused clean-native export/build checks. SQL is additive, creates
+no approved catalogue seeds and rewrites no acceptance snapshot or counter.
+Compatible rollback disables these writers while retaining the new schema and
+draft awareness; destructive down SQL is not supplied.
+
+### A2 verification ledger
+
+Frozen runtime inputs, base `3459ec4`, branch `codex/design-specifications-a2`.
+Capability commit **3c96b945a4d4e9529bfe47bf56c2011dac2b6a5e** is published in
+[draft PR #150](https://github.com/nishanthturnstile/aarili/pull/150), created
+**09:49:19 UTC** and immediately registered with T3. Its required Fast verification
+(**09:49:26–09:51:29**, 123s) and Dependency audit (**09:49:25–09:49:49**, 24s)
+passed in [run 39758369014](https://github.com/nishanthturnstile/aarili/actions/runs/39758369014).
+Later test-inventory corrections require their own affected-file evidence and
+current-head CI; this earlier run is not presented as verifying later commits.
+Command logs are outside Git in `%TEMP%/aarili-design-spec-a2-20261022`; synthetic
+browser captures are ignored under `.scratch/design-specifications-ui`.
+
+| Check | Fresh result and UTC command interval |
+| --- | --- |
+| `pnpm verify:fast` | **Exit 0, 118.199s**, **09:30:01.984–09:32:00.183**. Biome/boundaries/tokens, Knip, workspace/test types, **283 units / 64 files**, negative type checks, **106** OpenAPI paths and production build (**17.416s**). Five informational Biome messages in unchanged `review-service-additions.mjs` remain. |
+| Focused clean-native export check | **Exit 0, 129.623s**, **08:33:51.025–08:36:00.648**. Frozen install, package exports/web build, private-configuration canary and **29** artifact checks; lockfile unchanged and exact disposable copy removed. This is not the full `verify:clean` command. No package/export/dependency changes followed it. |
+| A2 focused real PostgreSQL | **5/5, exit 0, 76.719s**, **09:02:47–09:04:03**. Migration upgrade, whole/native scopes, all question types, exact history, forced isolation, inactive retention/reuse, CAS/replay, nine injected-write rollbacks with same-key retries, permission and erasure races. Later selection/history assertions are included in the broad run below. |
+| Additional applicability real PostgreSQL | **1/1, exit 0, 26.724s**, **09:40:53.925–09:41:20.649**. `design-specification-applicability.integration.test.mjs`: exact salwar top/bottom/dupatta profiles, reviewed no-design scopes, unknown versus reviewed not-applicable, explicit none and wrong-piece rejection. Added after the broad run enumerated files, so reported separately. Runtime inputs did not change. |
+| A2 Playwright / axe | **3/3, exit 0, 151.854s**, **09:25:25.144–09:27:56.998**. Phone **360×800**, tablet **820×1180**, desktop **1440×900**; EN/TA × light/dark, **12 captures**, zero axe violations. Includes keyboard, Tamil IME, save-only/use, exact committed-response loss and replay, stale comparison/recovery, inactive reuse, permission-loss clearing and no private browser storage. |
+| Production smoke | **Exit 0, 23.320s**, **09:45:16.664–09:45:39.984**. Production Next/Hono/real PostgreSQL readiness/outage, typed client and worker shutdown. |
+| Final test-only addition / documentation checks | `pnpm lint` **exit 0, 5.295s**, **09:47:14.277–09:47:19.572**; `pnpm knip` exit 0; artifact scan **exit 0, 0.374s**, **09:47:32.286–09:47:32.660**, **29** artifacts; `git diff --check` exit 0. No runtime changes since final fast gate. |
+| Full existing real PostgreSQL regression | **Exit 1, 3301.763s**, **09:11:30.744–10:06:32.507**. `pnpm test:integration --reporter=verbose`: **253 passed / 4 stale-test failures**, **42 passed / 3 failed files (45)**. All five A2 cases passed. Failures and corrective checks are preserved below; no full-green rerun claim. |
+| Existing browser regressions | **30/30, exit 0, 1473.358s**, **09:34:45.445–09:59:18.803**. Acceptance, native pieces, booking groups, booking/draft recovery, repeat and customer history, three device projects, zero retries. Disposable fixtures/web servers cleaned. |
+
+Development failures remain in the private command logs. Early PG runs exposed
+deferred FKs, an ambiguous alias and a missing privacy read policy. Expanded
+browser runs exposed a scope-pointer UPSERT conflicting with the first-insert
+guard, a request-generation busy-state bug, and Tamil phone overflow. The pointer
+now has distinct guarded INSERT/UPDATE paths; source browsing has its own request
+generation; the editor uses the existing form layout. A fixture initially tried
+deleting a historical membership and correctly hit its FK; permission-loss testing
+now revokes wearer authority. Final passing commands above cover these changes.
+An earlier broad PG attempt was deliberately terminated to correct the UPSERT;
+it has no completed-suite result. No fabricated pass count or hidden retry.
+
+The continuing full regression reported four outdated-test failures: the two
+legacy piece downgrade fixtures must preserve the new empty design-scope FK;
+customer history now has seven unavailable domains because design history is
+implemented; and self-review found a bootstrap inventory ordering mistake.
+Only tests are corrected: the fixture captures/restores all five exact FKs,
+checks both design tables are empty before its disposable downgrade, history checks
+that designs is absent, and the bootstrap expected array uses JavaScript ordering.
+The original broad result is retained. Corrected bootstrap file passed
+**12/12, exit 0, 324.695s**, **09:51:01.601–09:56:26.296 UTC**. The first legacy
+fixture correction omitted the exact draft-response FK, leaving the same two
+fixture failures. After including it, both exact migration cases passed
+**2/2 (42 filtered), exit 0, 47.207s**, **10:05:08.280–10:05:55.487 UTC**. The
+acceptance/history-file run finished **46 passed / 2 legacy-fixture failures
+(48 cases), exit 1, 910.517s**, **09:52:20.663–10:07:31.180 UTC**; all four
+customer-history cases pass. Those two failures used the first correction before
+the second design FK was added; their subsequent **2/2** result above verifies
+the final fixture. Only those two cases call this downgrade helper. No whole-suite
+rerun is claimed. Biome checked all three corrected files with exit 0;
+five changed UTF-8 documents and **142** local links also passed the bounded
+documentation check. Runtime inputs remain unchanged.
+
+All four original failing scenarios now have passing corrective evidence. The
+full broad command's original failure remains visible. Current-head feature CI
+is linked on PR #150; the earlier capability run above records its exact tested
+revision. Final documentation/test-only commits do not change runtime inputs.
+Final local lint **exit 0, 2.603s**, **10:08:30.562–10:08:33.165 UTC**; the five
+UTF-8 documents / 142 local links and `git diff --check` pass. The local review
+packet is ready **10:08:33 UTC**. Current-head hosted checks are reported on the
+PR, with human acceptance and merge still pending.
+
+The UI received two bounded visual inspections and one mechanical review (no
+findings). This does not constitute fluent Tamil, physical-device or screen-reader
+acceptance. Full PDF goldens, full browser/promotion CI and full `verify:clean`
+have not been run for A2; document generation is outside this ticket.
+
+### A2 requirement review and manual packet
+
+| Acceptance | Implementation and verification |
+| --- | --- |
+| **DS-A2-01** | Strict answer states and 14 independent question types; the first four controls are neck type, neck design, sleeve type, sleeve design. Exact intended-garment rational lengths and reviewed increments; no body measurements. Five core/property cases, all-types PG case and supplemental salwar/none/applicability case pass. |
+| **DS-A2-02** | Explicit whole scope and native piece UUIDs, accepted wearer/category/manifest snapshot and composite tenant FKs. Whole alteration, salwar piece mismatch, foreign order/shop/wearer and unsupported/no-body service paths exercised against PostgreSQL. |
+| **DS-A2-03** | Frozen definitions, exact prior answers and reasoned unchanged inactive retention. New/repeated inactive use denied. Current profile/choice eligibility rechecked under A1 configuration locks; label/disable/publish races and disabled accepted parent covered by PG cases. |
+| **DS-A2-04** | Immutable versions/children, scope CAS plus latest-saved base, separate reasoned selection events and independent history pagination. Save-only/current preservation, atomic save-and-use, selecting older history, concurrent first save/revision/selection and late-child denial covered by PG/UI. |
+| **DS-A2-05** | Explicit unresolved/inspiration/instruction intent; responses always report customer approval `not-recorded`. Governed-state policy fails closed on save-and-use and selection. The future governed-state seam is injected under a real owner transaction in PG tests; A2 does not implement or claim an actual 1.4.3 approval writer. |
+| **DS-A2-06** | Exact source version/digest/scope revision plus explicit field selection; maps current target profile, fresh draft/IDs, copied values start as inspiration. Cross-wearer, stale, foreign and inactive sources denied; no media or commitment transfer. Existing intake/repeat schemas remain unchanged; custom/service/grouped repeat PG cases pass within the broad run, and existing three-size repeat browser regressions pass. |
+| **DS-A2-07** | Six forced-RLS tenant tables, minimal durable idempotency metadata, exact private replay and narrow audited privacy functions. Real PG covers authority/erasure races, stale draft after erasure, actor/hash mismatch, all nine rollback points with successful retries, history cursor invalidation and denied runtime redaction. Broad isolation/draft/identity cases passed; corrected legacy/history checks are recorded separately. |
+| **DS-A2-08** | Final three-size EN/TA/theme matrix passes, keyboard/IME/axe/reload/conflict/cancel/lost response/inactive source/access clearing exercised. Private values stay out of URLs/local storage/static service-worker cache. Owner language/device/assistive-technology review remains open. |
+
+The running synthetic review host was ready **09:35:14 UTC**, observed by
+**09:36:45 UTC**. Open
+**http://127.0.0.1:49672/orders?order=01a162f6-ec15-7b9b-afe5-68ba5deb507b**.
+The T3 review tab opens the normal sign-in. Read the generated email/password
+privately from ignored `.scratch/design-specifications-review-host/private.json`;
+do not paste it into chat or Git. This disposable shop/customer and both accepted
+orders are synthetic. No outbound mail or external sharing. Playwright verified
+the authenticated workflow; opening sign-in in T3 is not a manual acceptance claim.
+
+1. Sign in, open the route above, choose the native `SYNTHETIC design-top` piece
+   and inspect v1. The four independent construction/design choices and intended
+   garment dimensions should be legible; references are explicitly unavailable.
+2. Revise with a reason and save v2 only. Current stays v1. Close/reopen the draft,
+   then deliberately use v2 with a reason. Inspect v1 and selection history.
+3. Open the same scope in two tabs; advance one, then attempt to save the other.
+   Compare current history and retained draft input; no automatic merge.
+4. Choose the other synthetic order as a repeat source, exact version and fields.
+   Inspect inspiration intent. Disable a selected source choice in A1 settings and
+   retry: explicit reuse fails while ordinary intake remains available.
+5. Return `DS-A2-01–08 — pass/fail — observation`. Customer approval remains
+   unrecorded; private references await B #148. Human review and owner merge remain
+   pending; this is not full 1.3.1 / ORD-07 completion or live activation.
+
+To stop this host, run `node scripts/review-design-specifications.mjs stop` with
+the pinned Node. To regenerate after stopping, run the same script without `stop`;
+it creates a new disposable database/port/private access file. Do not rebuild the
+production output while the review host is serving it. Stop/cleanup applies only
+to this disposable host, not the owner's development database.
 
 ## Authority and selected outcome
 

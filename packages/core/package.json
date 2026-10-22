@@ -127,6 +127,10 @@
     "./design-choices": {
       "types": "./dist/design-choices.d.ts",
       "import": "./dist/design-choices.js"
+    },
+    "./design-specifications": {
+      "types": "./dist/design-specifications.d.ts",
+      "import": "./dist/design-specifications.js"
     }
   },
   "scripts": {

@@ -26,6 +26,7 @@ type DraftFormProps<T extends FieldValues> = {
   guard: ReturnType<typeof createWorkGuard>;
   children: (form: UseFormReturn<T>) => ReactNode;
   canPromote?: boolean;
+  promotionLabel?: string;
   renderConflict?: (record: DraftRecord) => ReactNode;
 };
 export function DraftForm<T extends FieldValues>(props: DraftFormProps<T>) {
@@ -40,6 +41,7 @@ function DraftFormBody<T extends FieldValues>({
   guard,
   children,
   canPromote = true,
+  promotionLabel,
   renderConflict,
 }: DraftFormProps<T>) {
   const state = useSyncExternalStore(
@@ -252,7 +254,7 @@ function DraftFormBody<T extends FieldValues>({
             state.status !== "saved" || state.work.dirty || state.work.inFlight
           }
         >
-          {t.promote}
+          {promotionLabel ?? t.promote}
         </Button>
       )}
       {state.work.dirty && <p>{t.saveFirst}</p>}

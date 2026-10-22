@@ -104,7 +104,6 @@ export const unavailableHistoryDomains = [
   "documents",
   "money",
   "custody",
-  "designs",
   "measurements",
   "fit",
 ] as const;

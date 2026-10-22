@@ -950,29 +950,31 @@ async function acceptedFixture(f, value = f.value) {
 // snapshot/demand/draft/audit is edited. Then run the real migration runner.
 async function legacyFixture(f) {
   const o = await acceptedFixture(f);
-  // This disposable structural downgrade predates the empty service-source FKs.
+  // This disposable structural downgrade predates the empty service/design FKs.
   // Capture and restore those exact FKs (including repeat selections) and the current piece guard around the
   // real 0031 migration; do not cascade away later history or weaken runtime.
   assert.equal(
     (
       await f.admin.query(
-        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line)+(select count(*) from service_repeat_selection) as n",
+        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line)+(select count(*) from service_repeat_selection)+(select count(*) from design_spec_scope)+(select count(*) from design_spec_draft_value) as n",
       )
     ).rows[0].n,
     "0",
   );
   const references = (
     await f.admin.query(
-      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
+      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass,'design_spec_scope'::regclass,'design_spec_draft_value'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
     )
   ).rows;
-  assert.equal(references.length, 3);
+  assert.equal(references.length, 5);
   for (const reference of references) {
     assert(
       [
         "service_property_subject",
         "order_service_change_line",
         "service_repeat_selection",
+        "design_spec_scope",
+        "design_spec_draft_value",
       ].includes(reference.relation),
     );
     assert.match(reference.conname, /^[a-z_][a-z0-9_]*$/);

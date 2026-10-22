@@ -31,6 +31,11 @@ export const customerHistoryMessages = {
     imported: "Import",
     support: "Support",
     fieldLabels: {
+      designVersion: "Design specification version",
+      currentDesignVersion: "Current specification selection",
+      specificationId: "Exact specification version ID",
+      currentSpecificationId: "Selected specification version ID",
+      scopeVersion: "Design scope revision",
       contactAlias: "Contact alias",
       currentAttribution: "Current contact attribution",
       sourceCustomer: "Original contact ID",
@@ -107,7 +112,7 @@ export const customerHistoryMessages = {
     redacted: "Personal evidence was redacted",
     unavailable: "Not available in this history yet",
     unavailableHelp:
-      "Enquiries, appointments, shared documents, payment position, material custody, designs, measurements and fit history need their own authoritative workflows.",
+      "Enquiries, appointments, shared documents, payment position, material custody, measurements and fit history need their own authoritative workflows.",
     boundary:
       "Pages show a fixed committed history boundary. Recent changes may appear after refresh; current permission is checked on every request.",
     pieces: "Native pieces",
@@ -119,6 +124,8 @@ export const customerHistoryMessages = {
     wearer: "Wearer",
     reference: "Event reference",
     actions: {
+      "design.specification.save": "Design specification version saved",
+      "design.specification.select": "Current specification selected",
       "customer.merge": "Contacts merged after review",
       "customer.restore": "Original contact restored after review",
       "customer.pair-review": "Contact pair reviewed",
@@ -173,6 +180,11 @@ export const customerHistoryMessages = {
     imported: "இறக்குமதி",
     support: "ஆதரவு",
     fieldLabels: {
+      designVersion: "வடிவமைப்பு விவரக்குறிப்புப் பதிப்பு",
+      currentDesignVersion: "பயன்படுத்தும் விவரக்குறிப்பின் தேர்வு",
+      specificationId: "குறிப்பிட்ட விவரக்குறிப்புப் பதிப்பு அடையாளம்",
+      currentSpecificationId: "தேர்ந்தெடுத்த விவரக்குறிப்புப் பதிப்பு அடையாளம்",
+      scopeVersion: "வடிவமைப்புப் பகுதித் திருத்த எண்",
       contactAlias: "தொடர்பு இணைப்பு",
       currentAttribution: "தற்போதைய தொடர்பு",
       sourceCustomer: "அசல் தொடர்பு அடையாளம்",
@@ -249,7 +261,7 @@ export const customerHistoryMessages = {
     redacted: "தனிப்பட்ட சான்று மறைக்கப்பட்டது",
     unavailable: "இந்த வரலாற்றில் இன்னும் கிடைக்காதவை",
     unavailableHelp:
-      "விசாரணைகள், சந்திப்புகள், பகிர்ந்த ஆவணங்கள், பண நிலை, பொருள் பாதுகாப்பு, வடிவமைப்புகள், அளவுகள் மற்றும் பொருத்த வரலாற்றுக்கு அவற்றின் சொந்தப் பதிவுச் செயல்முறைகள் தேவை.",
+      "விசாரணைகள், சந்திப்புகள், பகிர்ந்த ஆவணங்கள், பண நிலை, பொருள் பாதுகாப்பு, அளவுகள் மற்றும் பொருத்த வரலாற்றுக்கு அவற்றின் சொந்தப் பதிவுச் செயல்முறைகள் தேவை.",
     boundary:
       "பக்கங்கள் நிலையான உறுதிசெய்யப்பட்ட வரலாற்றைக் காட்டுகின்றன. புதுப்பித்தால் புதிய மாற்றங்கள் தெரியலாம்; ஒவ்வொரு கோரிக்கையிலும் தற்போதைய அனுமதி சரிபார்க்கப்படும்.",
     pieces: "ஆடைக் கூறுகள்",
@@ -261,6 +273,10 @@ export const customerHistoryMessages = {
     wearer: "அணிபவர்",
     reference: "நிகழ்வு அடையாளம்",
     actions: {
+      "design.specification.save":
+        "வடிவமைப்பு விவரக்குறிப்புப் பதிப்பு சேமிக்கப்பட்டது",
+      "design.specification.select":
+        "பயன்படுத்தும் விவரக்குறிப்புப் பதிப்பு தேர்ந்தெடுக்கப்பட்டது",
       "customer.merge": "சரிபார்ப்பிற்குப் பிறகு தொடர்புகள் இணைக்கப்பட்டன",
       "customer.restore": "சரிபார்ப்பிற்குப் பிறகு அசல் தொடர்பு மீட்டமைக்கப்பட்டது",
       "customer.pair-review": "இரு தொடர்புகளும் ஆய்வு செய்யப்பட்டன",

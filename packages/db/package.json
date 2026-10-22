@@ -295,6 +295,14 @@
     "./repositories/design-choices": {
       "types": "./dist/repositories/design-choices.d.ts",
       "import": "./dist/repositories/design-choices.js"
+    },
+    "./design-specifications-repository": {
+      "types": "./dist/design-specifications-repository.d.ts",
+      "import": "./dist/design-specifications-repository.js"
+    },
+    "./repositories/design-specifications": {
+      "types": "./dist/repositories/design-specifications.d.ts",
+      "import": "./dist/repositories/design-specifications.js"
     }
   },
   "scripts": {

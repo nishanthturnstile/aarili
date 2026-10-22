@@ -210,6 +210,22 @@ export async function withOwnerWeb(
               await admin.end();
             }
           },
+          revokeWearerAuthority: async (wearerId) => {
+            if (!/^[0-9a-f-]{36}$/i.test(wearerId))
+              throw Error("Invalid synthetic wearer");
+            const admin = new pg.Client({
+              connectionString: adminConnectionString,
+            });
+            try {
+              await admin.connect();
+              await admin.query(
+                "update customer_wearer_relationship set authorised=false where wearer_id=$1",
+                [wearerId],
+              );
+            } finally {
+              await admin.end();
+            }
+          },
           revokeOwnerMembership: async () => {
             // Disposable-fixture fault injection only. This credential never
             // enters the web process and proves no runtime bypass capability.

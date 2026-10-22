@@ -30,6 +30,18 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  // Private workflows cache only operation metadata; hydrate content under current
+  // authority, including privacy redaction, rather than replaying personal values.
+  minimalReplay?: boolean;
+  replayPayload?(
+    draftId: string,
+    version: number,
+  ): Promise<Record<string, unknown>>;
+  retainPrivateResponse?(
+    record: DraftRecord,
+    auditId: string,
+    key: string,
+  ): Promise<void>;
   validateEdit?(
     previous: Record<string, unknown>,
     next: Record<string, unknown>,
@@ -114,6 +126,11 @@ export async function readDraft(ctx: DraftContext, id: string) {
   const draft = await ctx.repository.read(id.toLowerCase());
   if (!draft) fail(404, "NOT_FOUND");
   await ctx.workflows.get(draft.workflow)?.authorizeDraft?.(draft.payload);
+  if (ctx.workflows.get(draft.workflow)?.minimalReplay) {
+    const current = await ctx.repository.read(id.toLowerCase());
+    if (!current) fail(404, "NOT_FOUND");
+    return current;
+  }
   return draft;
 }
 export async function listDrafts(
@@ -132,7 +149,10 @@ export async function listDrafts(
   for (const row of window) {
     try {
       await ctx.workflows.get(row.workflow)?.authorizeDraft?.(row.payload);
-      drafts.push(row);
+      const current = ctx.workflows.get(row.workflow)?.minimalReplay
+        ? await readDraft(ctx, row.id)
+        : row;
+      if (current.lifecycle === "active") drafts.push(current);
     } catch (e) {
       if (!(e instanceof DraftFailure) || e.status !== 404) throw e;
     }
@@ -208,7 +228,20 @@ export async function mutateDraft(
       prior.hash !== binding.hash
     )
       fail(422, "IDEMPOTENCY_MISMATCH");
-    const replay = draftSuccessSchema.parse(prior.response);
+    let replay = draftSuccessSchema.parse(prior.response);
+    const privateWorkflow = ctx.workflows.get(replay.draft.workflow);
+    if (privateWorkflow?.minimalReplay) {
+      if (!privateWorkflow.replayPayload) fail(409, "REQUEST_CONFLICT");
+      replay = {
+        draft: {
+          ...replay.draft,
+          payload: await privateWorkflow.replayPayload(
+            replay.draft.id,
+            replay.draft.version,
+          ),
+        },
+      };
+    }
     await ctx.workflows
       .get(replay.draft.workflow)
       ?.authorizeDraft?.(replay.draft.payload);
@@ -335,7 +368,16 @@ export async function mutateDraft(
       schemaVersion: draft.schemaVersion,
     });
   const response = draftSuccessSchema.parse({ draft });
-  await repo.persist(key, binding, response);
+  await ctx.workflows
+    .get(draft.workflow)
+    ?.retainPrivateResponse?.(draft, actionId, key);
+  await repo.persist(
+    key,
+    binding,
+    ctx.workflows.get(draft.workflow)?.minimalReplay
+      ? { draft: { ...draft, payload: {} } }
+      : response,
+  );
   return response;
 }
 // No production policy is approved. Selection is explicit and fails closed;
