@@ -1,6 +1,6 @@
 # Measurement versions: preparation, validation and implementation authority
 
-22–23 October 2026. Roadmap **1.3.2**. **A / #153 was owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156) after required CI passed. B / #154 is selected and in implementation; [current B evidence](Measurement_History_Implementation_Evidence.md) separates passing focused checks from pending full verification and review. C remains unselected. Full 1.3.2, human and pilot acceptance remain open.** [Design](Measurement_Versions_Design.md),
+22–23 October 2026. Roadmap **1.3.2**. **A / #153 was owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156) after required CI passed. B / #154 merged in [PR #161](https://github.com/nishanthturnstile/aarili/pull/161); [current B evidence](Measurement_History_Implementation_Evidence.md) records full verification and all 243 browser passes, retained failures and pending human/pilot findings. C remains unselected. Full 1.3.2, human and pilot acceptance remain open.** [Design](Measurement_Versions_Design.md),
 [ticket packet](Measurement_Versions_Ticket_Packet.md),
 [REA evidence](Measurement_Versions_REA_Evidence.md),
 [requested brief](Measurement_Versions_REA_Prompt.md).
@@ -516,4 +516,7 @@ and measurement PR #156; final required Fast verification/audit passed for #156
 on `ba9c5a3` ([run 39895867446](https://github.com/nishanthturnstile/aarili/actions/runs/39895867446)).
 The measurement merge was **03:38:18 UTC, 23 October 2026**, commit `824304b`.
 The agent did not merge or deploy. Full-browser and human/pilot qualifications
-are tracked separately in the recovery evidence; #154/#155 remain unselected.
+were tracked separately in the recovery evidence; #154/#155 were unselected at
+that checkpoint. B was subsequently selected and merged via #161; its final
+[current evidence](Measurement_History_Implementation_Evidence.md) supersedes the
+old pending full-browser state. C remains unselected.

@@ -8,8 +8,10 @@ A selected and owner-merged in [PR #156](https://github.com/nishanthturnstile/aa
 on 23 October 2026, after required CI passed on the corrected baseline.
 Full-browser and human/pilot qualifications remain separate; see
 [current recovery](Measurement_Versions_Validation_Recovery.md).
-B was selected on 23 October; [implementation evidence](Measurement_History_Implementation_Evidence.md)
-tracks its pending validation/review. C remains unselected and requires B's merge.**
+B merged in [PR #161](https://github.com/nishanthturnstile/aarili/pull/161) on
+23 October; [implementation evidence](Measurement_History_Implementation_Evidence.md)
+records full verification and all 243 browser passes with remaining human/pilot
+qualifications. C remains unselected; B's prerequisite merge is satisfied.**
 [Design](Measurement_Versions_Design.md), [REA evidence](Measurement_Versions_REA_Evidence.md),
 [validation and baseline](Measurement_Versions_Implementation_Evidence.md).
 
@@ -35,7 +37,7 @@ Software review/publication/selection, production business policy approval,
 merge and live activation are distinct. The owner approved proceeding with this
 software packet. All three issues were published with `enhancement` and
 `ready-for-agent` using the installed to-tickets workflow; native blockers were
-read back. A was selected and merged. B was selected on 23 October; C remains unselected. Deployment,
+read back. A and B were selected and merged. C remains unselected. Deployment,
 production policy and live activation remain separate. A/B/C retain their stable
 local ticket identities.
 
@@ -44,13 +46,13 @@ architecture §§6–11/15 and the relevant MV-D decisions. Use focused sequenti
 branches from newly updated `origin/development` in this same checkout, one
 issue/PR each. Re-read actual issue/comments/native blockers before implementation.
 Existing prerequisites were verified merged; A's merge now satisfies B's A edge.
-C's B edge remains unsatisfied. B is selected; C needs its own selection after B merges.
+B merged in #161, satisfying C's B edge. C still needs its own explicit selection.
 
 | Ticket | Proposed direct blockers (not just related context) |
 | --- | --- |
 | A | #98 exact forms; #99 manifest/form bindings; #79/#80 wearer/guardian authority; #147/#148 current garment/specification/media/privacy seams; #138 merge/relink guard; #16 atomic commands/history; #55/#56 durable drafts/recovery; #51/#53 bilingual shell/vocabulary. 1.1.3 customer registration #78 is covered through the wearer prerequisites. All existing blockers are closed/merged. |
-| B / #154 | #153 (merged via #156), #134/#135 repeat intake, #136 history, #137/#138 identity corrections/merge. All direct prerequisites verified merged; B selected and in implementation. |
-| C / #155 | #154 (must merge for correction/reference history), #57/#58 media admission/processing, #148 typed private reference ownership/rights/privacy composition. Existing issues are merged; B is in implementation and unmerged. C remains unselected. |
+| B / #154 | #153 (merged via #156), #134/#135 repeat intake, #136 history, #137/#138 identity corrections/merge. All direct prerequisites verified merged; B merged via #161. |
+| C / #155 | #154 (must merge for correction/reference history), #57/#58 media admission/processing, #148 typed private reference ownership/rights/privacy composition. Existing issues and B are merged. C remains unselected. |
 
 The roadmap's technical prerequisite 0.4.3 is verified through #57/#58 even
 though A has no fitting-photo admission. Keep all transitive prerequisites in

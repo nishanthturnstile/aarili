@@ -17,7 +17,18 @@ Scaffold was cancelled at its 20-minute budget. Local full verification finished
 **07:26:22.428 UTC**, **exit 1 / 2938.848s**, **269 PG passes / 7 failures**.
 Six failures were stale B fixture expectations; one Docker-stopped fixture had
 an unchanged isolated pass. Corrected affected fixtures: **14 passes / 119.51s**.
-Final full verification, review-ready and merge times remain pending.
+Final frozen `pnpm verify`: **07:31:43.524 to 08:20:28.556 UTC**, **exit 0 /
+2925.032s**, candidate `d8265a8`, unchanged 811-file fingerprint. Passed **311
+units**, **276 PG integration tests / 2784.04s**, PDF, build (**13.975s**), smoke
+and 29-artifact scan. Latest required hosted checks passed in
+[run 39918350342](https://github.com/nishanthturnstile/aarili/actions/runs/39918350342).
+That hosted run queued **3s** before Fast/audit started at 07:31:43 UTC; Fast
+finished at 07:33:36 UTC (**113s** job elapsed), audit at 07:32:02 UTC (**19s**).
+GitHub records merge **08:20:22 UTC**, `d2cd8c9`, and issue closure 08:20:23 UTC;
+the agent did not merge. Tested and merged Git trees match exactly. PR-to-merge
+elapsed **1h 22m 48s** is review/integration time, not active coding. Final review
+packet rechecked **08:23:13.280 UTC**; human/device/Tamil/policy acceptance remains
+pending. Final evidence is a documentation-only follow-up after the observed merge.
 Active coding time is not instrumented; overlapping command elapsed times are
 not added to it. [Evidence and retained failures](Measurement_History_Implementation_Evidence.md).
 
