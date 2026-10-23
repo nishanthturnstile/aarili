@@ -75,6 +75,7 @@ export async function createRepeatOrder(
     snapshotDigest: string;
     scopeDigest: string;
     reuseInstructions: boolean;
+    measurementReuse?: import("@aarili/contracts/orders").RepeatOrderDraft["measurementReuse"];
   },
   key: string,
   version: number,

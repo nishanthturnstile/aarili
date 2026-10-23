@@ -11,6 +11,15 @@ export function measurementSessionsRepository(
   shopId: string,
 ): MeasurementSessionsRepository {
   shopId = shopId.toLowerCase();
+  let compatible = false;
+  async function reader() {
+    if (!compatible) {
+      await tx.execute(
+        sql`select set_config('app.measurement_history_reader','1.3.2b',true)`,
+      );
+      compatible = true;
+    }
+  }
   const useFields = sql`id,payload,actor_id as "actorId",recorded_at as "recordedAt",origin_draft_id as "originDraftId"`;
   const useRow = (r: Record<string, unknown>) =>
     measurementUseSchema.parse({
@@ -22,6 +31,13 @@ export function measurementSessionsRepository(
       authority: "synthetic-review",
     });
   const repo: MeasurementSessionsRepository = {
+    async identity(id) {
+      return (
+        await tx.execute<{ customerId: string; wearerId: string }>(
+          sql`select customer_id as "customerId",wearer_id as "wearerId" from measurement_event where shop_id=${shopId}::uuid and id=${id}::uuid and operation='save'`,
+        )
+      ).rows[0];
+    },
     async latestApproval(formId) {
       const r = (
         await tx.execute(
@@ -47,9 +63,10 @@ export function measurementSessionsRepository(
       return ids.id;
     },
     async read(id) {
+      await reader();
       const r = (
         await tx.execute(
-          sql`select e.id,e.customer_id as "customerId",e.wearer_id as "wearerId",e.actor_id as "actorId",e.origin_draft_id as "originDraftId",e.recorded_at as "recordedAt",v.frozen as form,v.approval_id as "approvalId",p.source,p.fit_notes as "fitNotes",p.reason,(p.redacted_at is not null) as redacted from measurement_event e join measurement_version v on (v.shop_id,v.id)=(e.shop_id,e.id) join measurement_private p on (p.shop_id,p.event_id)=(e.shop_id,e.id) where e.shop_id=${shopId}::uuid and e.id=${id}::uuid`,
+          sql`select e.id,e.customer_id as "customerId",e.wearer_id as "wearerId",e.actor_id as "actorId",e.origin_draft_id as "originDraftId",e.recorded_at as "recordedAt",v.frozen as form,v.approval_id as "approvalId",v.session_id as "sessionId",v.previous_id as "previousId",v.version,(select head.id from measurement_version head where head.shop_id=v.shop_id and head.session_id=v.session_id order by head.version desc limit 1) as "headId",p.source,p.fit_notes as "fitNotes",p.reason,(p.redacted_at is not null) as redacted from measurement_event e join measurement_version v on (v.shop_id,v.id)=(e.shop_id,e.id) join measurement_private p on (p.shop_id,p.event_id)=(e.shop_id,e.id) where e.shop_id=${shopId}::uuid and e.id=${id}::uuid`,
         )
       ).rows[0];
       if (!r) return undefined;
@@ -71,7 +88,10 @@ export function measurementSessionsRepository(
         actorId: r.actorId,
         originDraftId: r.originDraftId,
         recordedAt: new Date(r.recordedAt as string).toISOString(),
-        version: 1,
+        version: r.version,
+        sessionId: r.sessionId,
+        previousId: r.previousId,
+        headId: r.headId,
         form: r.form,
         approval: useRow(a),
         source: r.source ?? {
@@ -99,22 +119,64 @@ export function measurementSessionsRepository(
       }
       return versions;
     },
-    async selection(orderId, pieceId) {
-      const r = (
-        await tx.execute<{ selectedId: string }>(
-          sql`select selected_id as "selectedId" from measurement_selection where shop_id=${shopId}::uuid and order_id=${orderId}::uuid and scope_key=${pieceId ?? orderId}::uuid`,
+    async selection(orderId, pieceId, beforeVersion) {
+      await reader();
+      const head = (
+        await tx.execute<{ version: number; selectedId: string }>(
+          sql`select version,selected_id as "selectedId" from measurement_selection where shop_id=${shopId}::uuid and order_id=${orderId}::uuid and scope_key=${pieceId ?? orderId}::uuid order by version desc limit 1`,
         )
       ).rows[0];
-      return { version: r ? 1 : 0, selectedId: r?.selectedId ?? null };
+      const rows = (
+        await tx.execute<{
+          id: string;
+          selectedId: string;
+          version: number;
+          actorId: string;
+          recordedAt: string;
+          reason: string | null;
+        }>(
+          sql`select s.event_id as id,s.selected_id as "selectedId",s.version,e.actor_id as "actorId",e.recorded_at as "recordedAt",p.reason from measurement_selection s join measurement_event e on (e.shop_id,e.id)=(s.shop_id,s.event_id) join measurement_private p on (p.shop_id,p.event_id)=(e.shop_id,e.id) where s.shop_id=${shopId}::uuid and s.order_id=${orderId}::uuid and s.scope_key=${pieceId ?? orderId}::uuid and (${beforeVersion ?? null}::integer is null or s.version<${beforeVersion ?? null}::integer) order by s.version desc limit 26`,
+        )
+      ).rows;
+      return {
+        version: head?.version ?? 0,
+        selectedId: head?.selectedId ?? null,
+        nextHistory: rows.length > 25 ? (rows[24]?.version ?? null) : null,
+        history: rows.slice(0, 25).map((r) => ({
+          ...r,
+          recordedAt: new Date(r.recordedAt).toISOString(),
+        })),
+      };
+    },
+    async lockSession(id) {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${`measurementSession:${shopId}:${id}`},0))`,
+      );
+    },
+    async usages(id) {
+      await reader();
+      return (
+        await tx.execute<{
+          orderId: string;
+          pieceId: string | null;
+          code: string;
+          customerId: string;
+          wearerId: string;
+        }>(
+          sql`select distinct s.order_id as "orderId",s.piece_id as "pieceId",o.code,o.customer_id as "customerId",o.wearer_id as "wearerId" from measurement_selection s join garment_order o on (o.shop_id,o.id)=(s.shop_id,s.order_id) where s.shop_id=${shopId}::uuid and s.selected_id=${id}::uuid order by s.order_id,s.piece_id`,
+        )
+      ).rows;
     },
     async used(ids) {
+      await reader();
       return (
         await tx.execute<{ id: string }>(
-          sql`select selected_id as id from measurement_selection where shop_id=${shopId}::uuid and selected_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(ids)}::jsonb))::uuid[])`,
+          sql`select distinct selected_id as id from measurement_selection where shop_id=${shopId}::uuid and selected_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(ids)}::jsonb))::uuid[])`,
         )
       ).rows.map((r) => r.id);
     },
     async write(v, saved) {
+      await reader();
       const ids = (
         await tx.execute<{ id: string; audit: string }>(
           sql`select uuidv7() as id,uuidv7() as audit`,
@@ -131,8 +193,11 @@ export function measurementSessionsRepository(
         sql`insert into measurement_private(shop_id,event_id,source,fit_notes,reason) values(${shopId}::uuid,${ids.id}::uuid,${JSON.stringify(v.source)}::jsonb,${v.fitNotes},${v.reason})`,
       );
       if (saved) {
+        const prior = v.correctionId
+          ? await repo.read(v.correctionId)
+          : undefined;
         await tx.execute(
-          sql`insert into measurement_version(shop_id,id,form_entry_id,form_id,approval_id,frozen) values(${shopId}::uuid,${ids.id}::uuid,${saved.form.entryId}::uuid,${saved.form.id}::uuid,${saved.approval.id}::uuid,${JSON.stringify(saved.form)}::jsonb)`,
+          sql`insert into measurement_version(shop_id,id,form_entry_id,form_id,approval_id,frozen,session_id,previous_id,version) values(${shopId}::uuid,${ids.id}::uuid,${saved.form.entryId}::uuid,${saved.form.id}::uuid,${saved.approval.id}::uuid,${JSON.stringify(saved.form)}::jsonb,${prior?.sessionId ?? ids.id}::uuid,${prior?.id ?? null}::uuid,${prior ? prior.version + 1 : 1})`,
         );
         for (const [position, a] of saved.values.entries())
           await tx.execute(
@@ -141,7 +206,7 @@ export function measurementSessionsRepository(
       } else {
         if (!v.target || !v.selectedId) throw Error("Selection unavailable");
         await tx.execute(
-          sql`insert into measurement_selection(shop_id,event_id,order_id,scope_key,piece_id,selected_id) values(${shopId}::uuid,${ids.id}::uuid,${v.target.orderId}::uuid,${v.target.pieceId ?? v.target.orderId}::uuid,${v.target.pieceId}::uuid,${v.selectedId}::uuid)`,
+          sql`insert into measurement_selection(shop_id,event_id,order_id,scope_key,piece_id,selected_id,version) values(${shopId}::uuid,${ids.id}::uuid,${v.target.orderId}::uuid,${v.target.pieceId ?? v.target.orderId}::uuid,${v.target.pieceId}::uuid,${v.selectedId}::uuid,${v.baseVersion + 1})`,
         );
       }
       return ids.id;

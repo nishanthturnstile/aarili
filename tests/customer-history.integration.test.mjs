@@ -386,7 +386,8 @@ test(
           ),
         );
         assert.equal(result.attribution, "original-identifiers-current-labels");
-        assert.equal(result.unavailable.length, 7);
+        assert.equal(result.unavailable.length, 6);
+        assert(!result.unavailable.includes("measurements"));
         assert(!result.unavailable.includes("designs"));
         for (const query of [
           "Meena",

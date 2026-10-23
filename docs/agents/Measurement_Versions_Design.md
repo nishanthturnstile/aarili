@@ -5,7 +5,8 @@ approved. Tickets [#153](https://github.com/nishanthturnstile/aarili/issues/153)
 [#154](https://github.com/nishanthturnstile/aarili/issues/154),
 [#155](https://github.com/nishanthturnstile/aarili/issues/155) published; selected A
 owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156)
-after required CI passed. B/C remain unselected. Full-browser and human/pilot
+after required CI passed. B was selected on 23 October and is being implemented;
+C remains unselected. See [B implementation evidence](Measurement_History_Implementation_Evidence.md). Full-browser and human/pilot
 qualifications are tracked in [current recovery](Measurement_Versions_Validation_Recovery.md).** [Research](Measurement_Versions_REA_Evidence.md),
 [concrete tickets](Measurement_Versions_Ticket_Packet.md),
 [baseline and validation](Measurement_Versions_Implementation_Evidence.md).
@@ -21,7 +22,9 @@ No product/technology baseline amendment is proposed.
 
 ### Selected A implementation boundary
 
-The approved issues are #153/#154/#155; only A / #153 is selected. A uses a
+The approved issues are #153/#154/#155; A is merged and B is now selected.
+The following records the original A boundary, extended by B's reviewed
+lineage/reuse contract and minimum-reader decision. A uses a
 new immutable first-version event ID as the session's first saved version.
 Corrections and predecessor/lineage extension remain B. An observation may be
 saved independently of an order. Its first explicit selection is limited to one

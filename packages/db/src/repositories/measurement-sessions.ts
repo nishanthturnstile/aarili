@@ -1,5 +1,6 @@
 import type { DraftRecord } from "@aarili/contracts/drafts";
 import type {
+  MeasurementSelection,
   MeasurementSessionDraft,
   MeasurementUse,
   MeasurementUseDraft,
@@ -12,6 +13,9 @@ export type MeasurementWrite = {
   requestId: string;
 };
 export interface MeasurementSessionsRepository {
+  identity(
+    id: string,
+  ): Promise<{ customerId: string; wearerId: string } | undefined>;
   latestApproval(formId: string): Promise<MeasurementUse | undefined>;
   writeApproval(input: MeasurementUseDraft & MeasurementWrite): Promise<string>;
   read(id: string): Promise<MeasurementVersion | undefined>;
@@ -23,7 +27,23 @@ export interface MeasurementSessionsRepository {
   selection(
     orderId: string,
     pieceId: string | null,
-  ): Promise<{ version: number; selectedId: string | null }>;
+    beforeVersion?: number,
+  ): Promise<
+    Pick<
+      MeasurementSelection,
+      "version" | "selectedId" | "history" | "nextHistory"
+    >
+  >;
+  lockSession(id: string): Promise<void>;
+  usages(id: string): Promise<
+    {
+      orderId: string;
+      pieceId: string | null;
+      code: string;
+      customerId: string;
+      wearerId: string;
+    }[]
+  >;
   used(ids: string[]): Promise<string[]>;
   write(
     input: MeasurementSessionDraft & MeasurementWrite,

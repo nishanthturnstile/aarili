@@ -1,10 +1,18 @@
+import { OwnerRequestError } from "@aarili/api/client";
+import {
+  readMeasurement,
+  readMeasurementTarget,
+} from "@aarili/api/measurement-sessions-client";
 import {
   createRepeatOrder,
   OrderRequestError,
+  readOrderPieces,
   readRepeatLinks,
   readRepeatSource,
 } from "@aarili/api/orders-client";
 import type { DraftRecord } from "@aarili/contracts/drafts";
+import type { MeasurementVersion } from "@aarili/contracts/measurement-sessions";
+import type { RepeatOrderDraft } from "@aarili/contracts/orders";
 import {
   type QuickOrderDraft,
   repeatOrderDraftSchema,
@@ -15,10 +23,12 @@ import {
   repeatOrderMessages,
 } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
+import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { v7 } from "uuid";
 import type { DraftRecovery } from "./draft-recovery";
+import { SavedMeasurement } from "./measurement-sessions";
 import type { OwnerGuard } from "./owner-feedback";
 
 type Source = Awaited<ReturnType<typeof readRepeatSource>>;
@@ -95,6 +105,15 @@ export function RepeatOrderPanel({
   const [source, setSource] = useState<Source>(),
     [links, setLinks] = useState<Awaited<ReturnType<typeof readRepeatLinks>>>(),
     [reuse, setReuse] = useState(false),
+    [measurementOptions, setMeasurementOptions] = useState<
+      {
+        reference: NonNullable<RepeatOrderDraft["measurementReuse"]>;
+        version: MeasurementVersion;
+        label: string;
+      }[]
+    >([]),
+    [measurementId, setMeasurementId] = useState(""),
+    [measurementReviewed, setMeasurementReviewed] = useState(false),
     [working, setWorking] = useState(false),
     [failed, setFailed] = useState(false);
   const alive = useRef(true),
@@ -146,10 +165,53 @@ export function RepeatOrderPanel({
     setFailed(false);
     try {
       const r = await readRepeatSource(shopId, orderId);
-      if (alive.current) setSource(r);
+      const options: typeof measurementOptions = [];
+      const pieces = await readOrderPieces(shopId, orderId);
+      for (const piece of [null, ...pieces.identities]) {
+        try {
+          const scope = await readMeasurementTarget(shopId, {
+            orderId,
+            pieceId: piece?.id ?? null,
+          });
+          if (scope.selectedId) {
+            const version = await readMeasurement(shopId, scope.selectedId);
+            options.push({
+              reference: {
+                selectedId: version.id,
+                sourcePieceId: piece?.id ?? null,
+                pieceKey: piece?.key ?? null,
+                reviewed: true,
+              },
+              version,
+              label: piece?.key ?? r.order.code,
+            });
+          }
+        } catch (e) {
+          // A scope with no supported exact mapping is not a reusable measurement.
+          // Other failures must not leave stale/private choices on the screen.
+          if (e instanceof OwnerRequestError && e.code === "NOT_FOUND") {
+            options.length = 0;
+            break;
+          }
+          if (
+            !(e instanceof Error) ||
+            !["REQUEST_CONFLICT"].includes(e.message)
+          )
+            throw e;
+        }
+      }
+      if (alive.current) {
+        setSource(r);
+        setMeasurementOptions(options);
+        setMeasurementId("");
+        setMeasurementReviewed(false);
+      }
     } catch (e) {
       if (alive.current) {
         setSource(undefined);
+        setMeasurementOptions([]);
+        setMeasurementId("");
+        setMeasurementReviewed(false);
         setFailed(true);
         if (e instanceof OrderRequestError && e.status === 404) onUnavailable();
       }
@@ -189,6 +251,15 @@ export function RepeatOrderPanel({
         snapshotDigest: source.order.snapshotDigest,
         scopeDigest: source.scopeDigest,
         reuseInstructions: reuse,
+        ...(measurementReviewed && measurementId
+          ? {
+              measurementReuse: measurementOptions.find(
+                (o) =>
+                  `${o.version.id}:${o.reference.sourcePieceId ?? "order"}` ===
+                  measurementId,
+              )?.reference,
+            }
+          : {}),
       },
       key: v7(),
       version: source.order.version,
@@ -255,6 +326,63 @@ export function RepeatOrderPanel({
       ) : (
         <>
           <Context source={source} locale={locale} />
+          {!!measurementOptions.length && (
+            <fieldset className="owner-form">
+              <legend>{t.measurement}</legend>
+              <p>{t.measurementHelp}</p>
+              <Field>
+                <FieldLabel htmlFor="repeat-measurement">
+                  {t.measurement}
+                </FieldLabel>
+                <select
+                  id="repeat-measurement"
+                  value={measurementId}
+                  disabled={working || !!pending.current}
+                  onChange={(e) => {
+                    setMeasurementId(e.target.value);
+                    setMeasurementReviewed(false);
+                  }}
+                >
+                  <option value="">{t.measurementNone}</option>
+                  {measurementOptions.map((o) => (
+                    <option
+                      key={`${o.version.id}:${o.reference.sourcePieceId}`}
+                      value={`${o.version.id}:${o.reference.sourcePieceId ?? "order"}`}
+                    >
+                      {o.label} · V{o.version.version} · {o.version.source.date}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {measurementId && (
+                <>
+                  {measurementOptions
+                    .filter(
+                      (o) =>
+                        `${o.version.id}:${o.reference.sourcePieceId ?? "order"}` ===
+                        measurementId,
+                    )
+                    .map((o) => (
+                      <SavedMeasurement
+                        key={o.version.id}
+                        v={o.version}
+                        locale={locale}
+                        prefix="repeat"
+                      />
+                    ))}
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={measurementReviewed}
+                      disabled={working || !!pending.current}
+                      onChange={(e) => setMeasurementReviewed(e.target.checked)}
+                    />
+                    {t.measurementReview}
+                  </label>
+                </>
+              )}
+            </fieldset>
+          )}
           <label>
             <input
               type="checkbox"
@@ -266,7 +394,11 @@ export function RepeatOrderPanel({
           </label>
           <div className="owner-actions">
             <Button
-              disabled={working || (disabled && !pending.current)}
+              disabled={
+                working ||
+                (disabled && !pending.current) ||
+                (!!measurementId && !measurementReviewed)
+              }
               onClick={() => void create()}
             >
               {pending.current ? t.retry : t.create}
@@ -374,6 +506,12 @@ export function RepeatDraftContext({
         <Context source={source} locale={locale} />
       ) : (
         <p>{t.loading}</p>
+      )}
+      {v.measurementReuse && (
+        <p>
+          {t.measurement}: {v.measurementReuse.selectedId.slice(-8)}.{" "}
+          {t.measurementHelp}
+        </p>
       )}
       {changed && <p role="alert">{t.changed}</p>}
       <Button

@@ -1,6 +1,6 @@
 # Measurement versions: preparation, validation and implementation authority
 
-22–23 October 2026. Roadmap **1.3.2**. **A / #153 implemented in [draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156); audit/full-browser/human/merge gates remain open. No feature-complete claim.** [Design](Measurement_Versions_Design.md),
+22–23 October 2026. Roadmap **1.3.2**. **A / #153 was owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156) after required CI passed. B / #154 is selected and in implementation; [current B evidence](Measurement_History_Implementation_Evidence.md) separates passing focused checks from pending full verification and review. C remains unselected. Full 1.3.2, human and pilot acceptance remain open.** [Design](Measurement_Versions_Design.md),
 [ticket packet](Measurement_Versions_Ticket_Packet.md),
 [REA evidence](Measurement_Versions_REA_Evidence.md),
 [requested brief](Measurement_Versions_REA_Prompt.md).

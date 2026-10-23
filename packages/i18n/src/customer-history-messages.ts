@@ -112,7 +112,7 @@ export const customerHistoryMessages = {
     redacted: "Personal evidence was redacted",
     unavailable: "Not available in this history yet",
     unavailableHelp:
-      "Enquiries, appointments, shared documents, payment position, material custody, measurements and fit history need their own authoritative workflows.",
+      "Enquiries, appointments, shared documents, payment position, material custody and fit outcomes need their own authoritative workflows. Measurement events link to permitted wearer details.",
     boundary:
       "Pages show a fixed committed history boundary. Recent changes may appear after refresh; current permission is checked on every request.",
     pieces: "Native pieces",
@@ -124,6 +124,8 @@ export const customerHistoryMessages = {
     wearer: "Wearer",
     reference: "Event reference",
     actions: {
+      "measurement.save": "Measurement version saved",
+      "measurement.select": "Measurement version selected for a garment",
       "design.specification.save": "Design specification version saved",
       "design.specification.select": "Current specification selected",
       "customer.merge": "Contacts merged after review",
@@ -261,7 +263,7 @@ export const customerHistoryMessages = {
     redacted: "தனிப்பட்ட சான்று மறைக்கப்பட்டது",
     unavailable: "இந்த வரலாற்றில் இன்னும் கிடைக்காதவை",
     unavailableHelp:
-      "விசாரணைகள், சந்திப்புகள், பகிர்ந்த ஆவணங்கள், பண நிலை, பொருள் பாதுகாப்பு, அளவுகள் மற்றும் பொருத்த வரலாற்றுக்கு அவற்றின் சொந்தப் பதிவுச் செயல்முறைகள் தேவை.",
+      "விசாரணைகள், சந்திப்புகள், பகிர்ந்த ஆவணங்கள், பண நிலை, பொருள் பாதுகாப்பு மற்றும் பொருத்த முடிவுகளுக்கு அவற்றின் சொந்தப் பதிவுச் செயல்முறைகள் தேவை. அளவு நிகழ்வுகள் அனுமதிக்கப்பட்ட அணிபவர் விவரங்களுக்கு இணைகின்றன.",
     boundary:
       "பக்கங்கள் நிலையான உறுதிசெய்யப்பட்ட வரலாற்றைக் காட்டுகின்றன. புதுப்பித்தால் புதிய மாற்றங்கள் தெரியலாம்; ஒவ்வொரு கோரிக்கையிலும் தற்போதைய அனுமதி சரிபார்க்கப்படும்.",
     pieces: "ஆடைக் கூறுகள்",
@@ -273,6 +275,8 @@ export const customerHistoryMessages = {
     wearer: "அணிபவர்",
     reference: "நிகழ்வு அடையாளம்",
     actions: {
+      "measurement.save": "அளவுப் பதிப்பு சேமிக்கப்பட்டது",
+      "measurement.select": "ஆடைக்கு அளவுப் பதிப்பு தேர்ந்தெடுக்கப்பட்டது",
       "design.specification.save":
         "வடிவமைப்பு விவரக்குறிப்புப் பதிப்பு சேமிக்கப்பட்டது",
       "design.specification.select":

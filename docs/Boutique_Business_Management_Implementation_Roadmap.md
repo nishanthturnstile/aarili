@@ -777,11 +777,13 @@ edit, and earlier-order structured-value stability remains unproven. TailorMan
 public form observations are separated from vendor claims. Direct
 1.1.3/1.3.1 and technical prerequisites are merged. The owner approved the software
 packet and proceeding on 22 October: A [#153](https://github.com/nishanthturnstile/aarili/issues/153)
-is implemented in [draft PR #156](https://github.com/nishanthturnstile/aarili/pull/156),
-with dependency-audit, full-browser, human and merge gates still open; B [#154](https://github.com/nishanthturnstile/aarili/issues/154)
-and C [#155](https://github.com/nishanthturnstile/aarili/issues/155) are published
-with native blockers and require merged predecessors and selection. Production
-policy/activation, merge and full 1.3.2/AC-06 completion remain open.
+was owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156).
+B [#154](https://github.com/nishanthturnstile/aarili/issues/154) was selected on
+23 October after every direct blocker merged and is in implementation; its
+[evidence](agents/Measurement_History_Implementation_Evidence.md) tracks validation
+and review. C [#155](https://github.com/nishanthturnstile/aarili/issues/155) remains
+unselected and blocked on B's merge. Full-browser/human acceptance, production
+policy/activation and full 1.3.2/AC-06 completion remain open.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** MEA-01, MEA-02, MEA-03, MEA-04, MEA-05, MEA-06, MEA-07, MEA-11. Scenarios: AC-06, AC-07, AC-08.

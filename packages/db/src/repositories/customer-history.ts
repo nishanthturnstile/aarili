@@ -53,6 +53,7 @@ export interface CustomerHistoryRepository {
       nameSkel: string;
       phoneDigits: string;
     },
+    measurementWearers?: string[],
   ): Promise<{ events: CustomerHistoryEvent[]; next: HistoryPosition | null }>;
 }
 

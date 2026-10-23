@@ -8,6 +8,7 @@ import {
   readMeasurements,
   readMeasurementTarget,
   readMeasurementUse,
+  reviewMeasurementSelection,
 } from "@aarili/api/measurement-sessions-client";
 import { readOrderPieces } from "@aarili/api/orders-client";
 import type { DraftCursor, DraftRecord } from "@aarili/contracts/drafts";
@@ -30,6 +31,7 @@ import {
   parseLength,
 } from "@aarili/contracts/measurement-values";
 import type { AcceptedOrder, OrderPieces } from "@aarili/contracts/orders";
+import { repeatMeasurementReferenceSchema } from "@aarili/contracts/orders";
 import { type Locale, measurementSessionMessages } from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
@@ -48,6 +50,7 @@ import type { OwnerGuard } from "./owner-feedback";
 
 type T = (typeof measurementSessionMessages)[Locale];
 type Definition = MeasurementFormRevision["definition"];
+type ReuseReview = Awaited<ReturnType<typeof reviewMeasurementSelection>>;
 const unknown = (): MeasurementSessionDraft["source"] => ({
   kind: "unknown",
   date: "",
@@ -71,12 +74,14 @@ function SourceFields({
   prefix,
   t,
   mixed = true,
+  observationLocked = false,
 }: {
   source: MeasurementSessionDraft["source"];
   change: (v: MeasurementSessionDraft["source"]) => void;
   prefix: string;
   t: T;
   mixed?: boolean;
+  observationLocked?: boolean;
 }) {
   return (
     <fieldset className="owner-form">
@@ -86,6 +91,7 @@ function SourceFields({
         <select
           id={`${prefix}-kind`}
           value={source.kind}
+          disabled={observationLocked}
           onChange={(e) =>
             change({ ...source, kind: e.target.value as typeof source.kind })
           }
@@ -114,6 +120,7 @@ function SourceFields({
           id={`${prefix}-date`}
           type="date"
           value={source.date}
+          readOnly={observationLocked}
           onChange={(e) => change({ ...source, date: e.target.value })}
         />
       </Field>
@@ -201,6 +208,7 @@ function MeasurementEditor({
   definition,
   locale,
   guard,
+  previous,
 }: {
   controller: DraftRecovery;
   definition?: Definition;
@@ -208,6 +216,7 @@ function MeasurementEditor({
   onDenied: () => void;
   locale: Locale;
   guard: OwnerGuard;
+  previous?: MeasurementVersion;
 }) {
   const t = measurementSessionMessages[locale],
     state = useSyncExternalStore(
@@ -227,6 +236,7 @@ function MeasurementEditor({
     <div className="directory-editor">
       <h3>{t.draft}</h3>
       <p>{t.saveHint}</p>
+      {state.error === "VERSION_STALE" && <p role="alert">{t.conflictHelp}</p>}
       {!selecting && (
         <ValidationPolicy
           policy={approval?.policy}
@@ -259,6 +269,37 @@ function MeasurementEditor({
               });
           return (
             <div className="owner-form">
+              {previous && !selecting && (
+                <section aria-label={t.compare}>
+                  <h4>{t.compare}</h4>
+                  <p>{t.correctionHelp}</p>
+                  <dl>
+                    {fields.map((field) => {
+                      const old = previous.values.find(
+                          (a) => a.fieldId === field.id,
+                        ),
+                        next = v.values.find((a) => a.fieldId === field.id);
+                      return (
+                        <div key={field.id}>
+                          <dt>{label(field, locale)}</dt>
+                          <dd>
+                            {t.previous}: {old?.rawText || t.missing}{" "}
+                            {old?.unit}
+                          </dd>
+                          <dd>
+                            {t.proposed}: {next?.rawText || t.missing}{" "}
+                            {next?.unit}{" "}
+                            {old?.rawText === next?.rawText &&
+                            old?.unit === next?.unit
+                              ? `· ${t.unchanged}`
+                              : ""}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                </section>
+              )}
               {!selecting && (
                 <>
                   <SourceFields
@@ -266,6 +307,7 @@ function MeasurementEditor({
                     change={(source) => change({ source })}
                     prefix="measurement-session"
                     t={t}
+                    observationLocked={!!v.correctionId}
                   />
                   <Field>
                     <FieldLabel htmlFor="measurement-display-unit">
@@ -577,7 +619,7 @@ function ApprovalEditor({
     </div>
   );
 }
-function SavedMeasurement({
+export function SavedMeasurement({
   v,
   locale,
   prefix = "history",
@@ -591,6 +633,8 @@ function SavedMeasurement({
   return (
     <>
       <dl>
+        <dt>{t.lineage}</dt>
+        <dd>{v.sessionId.slice(-8)}</dd>
         <dt>{t.form}</dt>
         <dd>{label(v.form.content, locale)}</dd>
         <dt>{t.version}</dt>
@@ -686,6 +730,12 @@ export function MeasurementSessions({
     [selection, setSelection] =
       useState<Awaited<ReturnType<typeof readMeasurementTarget>>>(),
     [selectedVersion, setSelectedVersion] = useState<MeasurementVersion>(),
+    [candidate, setCandidate] = useState<MeasurementVersion>(),
+    [reuseReview, setReuseReview] = useState<ReuseReview>(),
+    [impact, setImpact] = useState<{
+      physical: "unknown" | "not-started";
+      commercial: "unknown" | "none";
+    }>({ physical: "unknown", commercial: "unknown" }),
     [drafts, setDrafts] = useState<DraftRecord[]>([]),
     [controller, setController] = useState<DraftRecovery>(),
     [definition, setDefinition] = useState<Definition>(),
@@ -710,6 +760,9 @@ export function MeasurementSessions({
     setDrafts([]);
     setSelection(undefined);
     setSelectedVersion(undefined);
+    setCandidate(undefined);
+    setReuseReview(undefined);
+    setImpact({ physical: "unknown", commercial: "unknown" });
     setDefinition(undefined);
     setDraftUse(undefined);
   }, []);
@@ -869,6 +922,7 @@ export function MeasurementSessions({
     const c = scope.current?.open({
       workflow: w,
       schemaVersion: 1,
+      editableTargetConflict: w === "measurement.session",
       initial: payload,
       ...(record ? { record } : {}),
       committed: (r) => {
@@ -895,11 +949,113 @@ export function MeasurementSessions({
     current.current = undefined;
     setController(undefined);
     setDefinition(undefined);
+    setCandidate(undefined);
+    setReuseReview(undefined);
+  }
+  async function correct(v: MeasurementVersion) {
+    const gen = generation.current;
+    setBusy(true);
+    try {
+      const use = (
+        await readMeasurementUse(shopId, {
+          form: { entryId: v.form.entryId, revisionId: v.form.id },
+        })
+      ).approval;
+      if (use?.operation !== "approve")
+        throw new OwnerRequestError("REQUEST_CONFLICT");
+      if (!active.current || gen !== generation.current) return;
+      setCandidate(v);
+      open(
+        {
+          operation: "save",
+          customerId,
+          wearerId,
+          form: { entryId: v.form.entryId, revisionId: v.form.id },
+          approvalId: use.id,
+          source: { ...v.source },
+          values: v.values.map(({ numeric: _n, exact: _e, ...a }) => ({
+            ...a,
+          })),
+          fitNotes: v.fitNotes,
+          selectedId: null,
+          target: null,
+          baseVersion: 0,
+          reviewed: false,
+          reason: "",
+          erased: false,
+          correctionId: v.id,
+        },
+        v.form,
+        undefined,
+        "measurement.session",
+        use,
+      );
+    } catch (e) {
+      if (active.current && gen === generation.current) error(e);
+    } finally {
+      if (active.current && gen === generation.current) setBusy(false);
+    }
+  }
+  async function inspectReuse(v: MeasurementVersion) {
+    if (!selection) return;
+    const gen = generation.current;
+    setBusy(true);
+    setReuseReview(undefined);
+    try {
+      const r = await reviewMeasurementSelection(shopId, {
+        selectedId: v.id,
+        target: { orderId: selection.orderId, pieceId: selection.pieceId },
+        impact,
+      });
+      if (active.current && gen === generation.current) {
+        setCandidate(r.version);
+        setReuseReview(r);
+      }
+    } catch (e) {
+      if (active.current && gen === generation.current) error(e);
+    } finally {
+      if (active.current && gen === generation.current) setBusy(false);
+    }
+  }
+  function selectReviewed() {
+    if (!reuseReview || reuseReview.blocked.length) return;
+    const r = reuseReview;
+    open(
+      {
+        operation: "select",
+        customerId,
+        wearerId,
+        form: null,
+        approvalId: null,
+        source: unknown(),
+        values: [],
+        fitNotes: "",
+        selectedId: r.version.id,
+        target: { orderId: r.target.orderId, pieceId: r.target.pieceId },
+        baseVersion: r.target.version,
+        reviewed: false,
+        reason: "",
+        erased: false,
+        reuseReview: { digest: r.digest, impact },
+      },
+      undefined,
+    );
   }
   const form = forms.find((f) => f.id === formId),
     eligibleForms = selection?.form
       ? forms.filter((f) => f.id === selection.form?.revisionId)
       : forms;
+  const repeatReference = repeatMeasurementReferenceSchema.safeParse(
+    order?.snapshot.measurementReuse,
+  );
+  const currentHead = candidate
+    ? versions.find(
+        (v) =>
+          v.sessionId === candidate.sessionId &&
+          v.id === v.headId &&
+          v.id !== candidate.id,
+      )
+    : undefined;
   function start() {
     if (!form || approval?.operation !== "approve") return;
     open(
@@ -967,7 +1123,11 @@ export function MeasurementSessions({
         ? ((await readMeasurementUse(shopId, { form: v.form })).approval ??
           undefined)
         : undefined;
-      if (active.current && gen === generation.current)
+      const predecessor = v.correctionId
+        ? await readMeasurement(shopId, v.correctionId)
+        : undefined;
+      if (active.current && gen === generation.current) {
+        setCandidate(predecessor);
         open(
           v,
           f,
@@ -975,6 +1135,7 @@ export function MeasurementSessions({
           "measurement.session",
           use?.id === v.approvalId ? use : undefined,
         );
+      }
     } catch (e) {
       if (active.current && gen === generation.current) error(e);
     } finally {
@@ -982,7 +1143,10 @@ export function MeasurementSessions({
     }
   }
   return (
-    <section className="customer-evidence" aria-label={t.title}>
+    <section
+      className="customer-evidence measurement-workspace"
+      aria-label={t.title}
+    >
       <h3>{t.title}</h3>
       <p>{t.context}</p>
       {!opened ? (
@@ -1004,7 +1168,7 @@ export function MeasurementSessions({
                   <select
                     id="measurement-piece"
                     value={pieceId ?? ""}
-                    disabled={!!controller}
+                    disabled={!!controller || busy}
                     onChange={(e) => setPieceId(e.target.value || null)}
                   >
                     <option value="">{t.whole}</option>
@@ -1039,6 +1203,223 @@ export function MeasurementSessions({
                   />
                 </details>
               )}
+              {repeatReference.success && !controller && (
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => {
+                    const gen = generation.current;
+                    setBusy(true);
+                    void readMeasurement(
+                      shopId,
+                      repeatReference.data.selectedId,
+                    )
+                      .then(
+                        (v) => {
+                          if (active.current && gen === generation.current) {
+                            setCandidate(v);
+                            setReuseReview(undefined);
+                            setImpact({
+                              physical: "unknown",
+                              commercial: "unknown",
+                            });
+                          }
+                        },
+                        (e) => {
+                          if (active.current && gen === generation.current)
+                            error(e);
+                        },
+                      )
+                      .finally(() => {
+                        if (active.current && gen === generation.current)
+                          setBusy(false);
+                      });
+                  }}
+                >
+                  {t.reuse} · {repeatReference.data.selectedId.slice(-8)}
+                </Button>
+              )}
+              {!!selection?.history.length && (
+                <details>
+                  <summary>{t.selectionHistory}</summary>
+                  <ol>
+                    {selection.history.map((h) => (
+                      <li key={h.id}>
+                        {t.version} {h.version} · {h.selectedId.slice(-8)} ·{" "}
+                        {h.recordedAt} · {h.actorId.slice(-8)}
+                        <p>{h.reason}</p>
+                      </li>
+                    ))}
+                  </ol>
+                  {selection.nextHistory && (
+                    <Button
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => {
+                        const gen = generation.current;
+                        const beforeVersion = selection.nextHistory;
+                        if (!beforeVersion) return;
+                        setBusy(true);
+                        void readMeasurementTarget(shopId, {
+                          orderId: selection.orderId,
+                          pieceId: selection.pieceId,
+                          beforeVersion,
+                        })
+                          .then(
+                            (r) => {
+                              if (active.current && gen === generation.current)
+                                setSelection((old) =>
+                                  old && old.version === r.version
+                                    ? {
+                                        ...r,
+                                        history: [...old.history, ...r.history],
+                                      }
+                                    : r,
+                                );
+                            },
+                            (e) => {
+                              if (active.current && gen === generation.current)
+                                error(e);
+                            },
+                          )
+                          .finally(() => {
+                            if (active.current && gen === generation.current)
+                              setBusy(false);
+                          });
+                      }}
+                    >
+                      {t.moreSelections}
+                    </Button>
+                  )}
+                </details>
+              )}
+              {candidate &&
+                (!controller ||
+                  controller.snapshot().values.operation === "select") && (
+                  <section aria-label={t.compare} className="owner-form">
+                    <h4>{t.compare}</h4>
+                    {selectedVersion && (
+                      <details>
+                        <summary>{t.previous}</summary>
+                        <SavedMeasurement
+                          v={selectedVersion}
+                          locale={locale}
+                          prefix="compare-old"
+                        />
+                      </details>
+                    )}
+                    <details open>
+                      <summary>{t.proposed}</summary>
+                      <SavedMeasurement
+                        v={candidate}
+                        locale={locale}
+                        prefix="compare-new"
+                      />
+                    </details>
+                    {controller && candidate && <p>{t.correctionHelp}</p>}
+                    {!controller && selection && (
+                      <>
+                        <p>{t.impactHelp}</p>
+                        <Field>
+                          <FieldLabel htmlFor="measurement-impact-physical">
+                            {t.physical}
+                          </FieldLabel>
+                          <select
+                            id="measurement-impact-physical"
+                            value={impact.physical}
+                            disabled={busy}
+                            onChange={(e) => {
+                              setImpact({
+                                ...impact,
+                                physical: e.target
+                                  .value as typeof impact.physical,
+                              });
+                              setReuseReview(undefined);
+                            }}
+                          >
+                            <option value="unknown">{t.unknown}</option>
+                            <option value="not-started">{t.notStarted}</option>
+                          </select>
+                          {impact.physical === "not-started" && (
+                            <p>{t.notStarted}</p>
+                          )}
+                        </Field>
+                        <Field>
+                          <FieldLabel htmlFor="measurement-impact-commercial">
+                            {t.commercial}
+                          </FieldLabel>
+                          <select
+                            id="measurement-impact-commercial"
+                            value={impact.commercial}
+                            disabled={busy}
+                            onChange={(e) => {
+                              setImpact({
+                                ...impact,
+                                commercial: e.target
+                                  .value as typeof impact.commercial,
+                              });
+                              setReuseReview(undefined);
+                            }}
+                          >
+                            <option value="unknown">{t.unknown}</option>
+                            <option value="none">{t.noEffect}</option>
+                          </select>
+                          {impact.commercial === "none" && <p>{t.noEffect}</p>}
+                        </Field>
+                        <Button
+                          disabled={busy}
+                          onClick={() => void inspectReuse(candidate)}
+                        >
+                          {t.inspect}
+                        </Button>
+                        {reuseReview && (
+                          <>
+                            <p>
+                              {t.age}: {reuseReview.ageDays ?? t.unknown} ·{" "}
+                              {t.asOf}: {reuseReview.asOfDate ?? t.unknown}
+                            </p>
+                            <h4>{t.sources}</h4>
+                            {!reuseReview.sources.length && <p>{t.noSource}</p>}
+                            <ul>
+                              {reuseReview.sources.map((u) => (
+                                <li key={`${u.orderId}:${u.pieceId}`}>
+                                  {u.code} · {u.pieceId?.slice(-8) ?? t.whole}
+                                </li>
+                              ))}
+                            </ul>
+                            {reuseReview.sourceContextUnavailable && (
+                              <p>{t.unavailableSource}</p>
+                            )}
+                            {reuseReview.blocked.length ? (
+                              <>
+                                <p role="alert">{t.blockedReuse}</p>
+                                <ul>
+                                  {reuseReview.blocked.map((reason) => (
+                                    <li key={reason}>
+                                      {
+                                        {
+                                          incompatible: t.incompatible,
+                                          unavailable: t.unavailable,
+                                          "unsupported-impact":
+                                            t.unsupportedImpact,
+                                          "already-selected": t.alreadySelected,
+                                        }[reason]
+                                      }
+                                    </li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
+                              <Button disabled={busy} onClick={selectReviewed}>
+                                {t.select}
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </section>
+                )}
               {!controller && (
                 <>
                   <Field>
@@ -1100,6 +1481,16 @@ export function MeasurementSessions({
               )}
               {controller && (
                 <>
+                  {currentHead && (
+                    <details open>
+                      <summary>{t.currentHead}</summary>
+                      <SavedMeasurement
+                        v={currentHead}
+                        locale={locale}
+                        prefix="current-head"
+                      />
+                    </details>
+                  )}
                   {workflow === "measurement.use" && definition ? (
                     <ApprovalEditor
                       controller={controller}
@@ -1113,6 +1504,7 @@ export function MeasurementSessions({
                       onDenied={endAccess}
                       {...(definition ? { definition } : {})}
                       {...(draftUse ? { approval: draftUse } : {})}
+                      {...(candidate ? { previous: candidate } : {})}
                       locale={locale}
                       guard={guard}
                     />
@@ -1131,41 +1523,36 @@ export function MeasurementSessions({
                     {label(v.form.content, locale)} · {v.id.slice(-8)}
                   </summary>
                   <SavedMeasurement v={v} locale={locale} />
-                  {usedIds.includes(v.id) && <p>{t.used}</p>}
-                  {selection &&
-                    !selection.selectedId &&
-                    !usedIds.includes(v.id) &&
-                    selection.form?.revisionId === v.form.id &&
-                    !controller && (
+                  {!controller &&
+                    !v.redacted &&
+                    (v.headId === v.id ? (
                       <Button
-                        onClick={() =>
-                          open(
-                            {
-                              operation: "select",
-                              customerId,
-                              wearerId,
-                              form: null,
-                              approvalId: null,
-                              source: unknown(),
-                              values: [],
-                              fitNotes: "",
-                              selectedId: v.id,
-                              target: {
-                                orderId: selection.orderId,
-                                pieceId: selection.pieceId,
-                              },
-                              baseVersion: selection.version,
-                              reviewed: false,
-                              reason: "",
-                              erased: false,
-                            },
-                            undefined,
-                          )
-                        }
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => void correct(v)}
                       >
-                        {t.select}
+                        {t.correct}
                       </Button>
-                    )}
+                    ) : (
+                      <p>{t.head}</p>
+                    ))}
+                  {usedIds.includes(v.id) && <p>{t.used}</p>}
+                  {selection && !controller && (
+                    <Button
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => {
+                        setCandidate(v);
+                        setReuseReview(undefined);
+                        setImpact({
+                          physical: "unknown",
+                          commercial: "unknown",
+                        });
+                      }}
+                    >
+                      {t.reuse}
+                    </Button>
+                  )}
                 </details>
               ))}
               {next && (

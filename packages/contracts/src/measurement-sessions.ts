@@ -98,6 +98,14 @@ const measurementTargetSchema = z.strictObject({
   orderId: id,
   pieceId: id.nullable(),
 });
+export const measurementImpactSchema = z.strictObject({
+  physical: z.enum(["unknown", "not-started"]),
+  commercial: z.enum(["unknown", "none"]),
+});
+export const measurementReuseReviewSchema = z.strictObject({
+  digest: z.string().regex(/^[a-f0-9]{64}$/),
+  impact: measurementImpactSchema,
+});
 export const measurementSessionDraftSchema = z.strictObject({
   operation: z.enum(["save", "select"]),
   customerId: id,
@@ -113,6 +121,8 @@ export const measurementSessionDraftSchema = z.strictObject({
   reviewed: z.boolean(),
   reason: text(1000),
   erased: z.boolean(),
+  correctionId: id.nullable().optional(),
+  reuseReview: measurementReuseReviewSchema.nullable().optional(),
 });
 export type MeasurementSessionDraft = z.infer<
   typeof measurementSessionDraftSchema
@@ -137,7 +147,8 @@ export const measurementSessionCommandSchema =
         v.source.kind === "unknown" ||
         !v.source.date ||
         !v.source.measurer.trim() ||
-        !v.source.method.trim()
+        !v.source.method.trim() ||
+        v.reuseReview
       )
         bad();
     } else if (
@@ -150,7 +161,8 @@ export const measurementSessionCommandSchema =
       v.source.kind !== "unknown" ||
       v.source.date ||
       v.source.measurer ||
-      v.source.method
+      v.source.method ||
+      v.correctionId
     )
       bad();
     if (new Set(v.values.map((x) => x.fieldId)).size !== v.values.length) bad();
@@ -168,7 +180,10 @@ export const measurementVersionSchema = z.strictObject({
   id,
   customerId: id,
   wearerId: id,
-  version: z.literal(1),
+  version: z.number().int().positive(),
+  sessionId: id,
+  previousId: id.nullable(),
+  headId: id,
   actorId: id,
   recordedAt: z.iso.datetime(),
   originDraftId: id,
@@ -191,12 +206,53 @@ export const measurementStateSchema = z.strictObject({
   next: id.nullable(),
   usedIds: z.array(id),
 });
-export const measurementTargetQuerySchema = measurementTargetSchema;
+export const measurementTargetQuerySchema = measurementTargetSchema.extend({
+  beforeVersion: z.number().int().positive().optional(),
+});
 export const measurementSelectionSchema = z.strictObject({
   ...measurementTargetSchema.shape,
   version: z.number().int().min(0),
   selectedId: id.nullable(),
   form: catalogueRefSchema.nullable(),
+  nextHistory: z.number().int().positive().nullable(),
+  history: z.array(
+    z.strictObject({
+      id,
+      selectedId: id,
+      version: z.number().int().positive(),
+      actorId: id,
+      recordedAt: z.iso.datetime(),
+      reason: text(1000).nullable(),
+    }),
+  ),
+});
+export const measurementReviewQuerySchema = z.strictObject({
+  selectedId: id,
+  target: measurementTargetSchema,
+  impact: measurementImpactSchema,
+});
+export type MeasurementSelection = z.infer<typeof measurementSelectionSchema>;
+export const measurementUsageSchema = z.strictObject({
+  orderId: id,
+  pieceId: id.nullable(),
+  code: text(120),
+});
+export const measurementReviewSchema = z.strictObject({
+  version: measurementVersionSchema,
+  target: measurementSelectionSchema,
+  sources: z.array(measurementUsageSchema),
+  sourceContextUnavailable: z.boolean(),
+  asOfDate: z.iso.date().nullable(),
+  ageDays: z.number().int().nullable(),
+  digest: z.string().regex(/^[a-f0-9]{64}$/),
+  blocked: z.array(
+    z.enum([
+      "incompatible",
+      "unavailable",
+      "unsupported-impact",
+      "already-selected",
+    ]),
+  ),
 });
 export const measurementUseQuerySchema = z.strictObject({
   form: catalogueRefSchema,

@@ -1575,7 +1575,8 @@
   justify-content: start;
   text-align: start;
 }
-.order-editor select {
+.order-editor select,
+.measurement-workspace select {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -1586,6 +1587,7 @@
   border-radius: var(--radius);
 }
 .order-editor select:focus-visible,
+.measurement-workspace select:focus-visible,
 .order-intake summary:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
@@ -1598,6 +1600,15 @@
 .order-related-fields {
   display: grid;
   gap: var(--space-page);
+}
+.measurement-workspace,
+.measurement-workspace fieldset,
+.measurement-workspace .owner-form {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.measurement-workspace .owner-form {
+  grid-template-columns: minmax(0, 1fr);
 }
 .booking-editor {
   container-type: inline-size;

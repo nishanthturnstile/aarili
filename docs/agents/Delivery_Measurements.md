@@ -1,5 +1,18 @@
 # Delivery measurements
 
+## #154 / 1.3.2b — measurement corrections and reviewed reuse
+
+Owner selected B on 23 October 2026. Existing checkout updated to `43fa1b3`;
+implementation recorded from **05:14:47 UTC** on
+`codex/measurement-history-reuse`. No worktree or new baseline correction.
+First running synthetic O1/V1 + O2 review surface: **06:56 UTC**; production
+build **23.821s**, smoke and 29-artifact scan passed. The full verification run
+started **06:37:23.580 UTC** and remains in progress with an incumbent guardian
+concurrency failure, followed by an unchanged isolated pass (**14.76s**).
+Review-ready, PR, hosted CI and merge times remain pending.
+Active coding time is not instrumented; overlapping command elapsed times are
+not added to it. [Evidence and retained failures](Measurement_History_Implementation_Evidence.md).
+
 ## Measurement validation recovery — follow-up to #153/#157
 
 - Owner confirmed exclusive checkout access and requested fixes/evidence recovery

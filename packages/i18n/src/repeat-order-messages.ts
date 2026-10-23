@@ -1,5 +1,11 @@
 export const repeatOrderMessages = {
   en: {
+    measurement: "Carry a reviewed measurement reference",
+    measurementHelp:
+      "Choose one exact observation from a source scope. Values and approvals are not copied. After booking, review and explicitly select it for the new garment.",
+    measurementReview:
+      "I reviewed this exact observation for the new garment; its original measurement date remains unchanged.",
+    measurementNone: "No measurement reference",
     title: "Repeat as new",
     manifestChanged:
       "The service definition has changed. Select and review its current version for the new order.",
@@ -35,6 +41,12 @@ export const repeatOrderMessages = {
     loading: "Loading previous order…",
   },
   ta: {
+    measurement: "ஆய்வு செய்த அளவுப் பதிவின் இணைப்பை எடுத்துச் செல்",
+    measurementHelp:
+      "மூல ஆடையின் பகுதியிலிருந்து சரியான பதிவைத் தேர்ந்தெடுக்கவும். அளவுகளும் ஒப்புதல்களும் நகலாகாது. புதிய ஆடையைப் பதிவு செய்தபின் ஆய்வு செய்து தனியாகத் தேர்ந்தெடுக்கவும்.",
+    measurementReview:
+      "புதிய ஆடைக்காக இந்தப் பதிவை ஆய்வு செய்தேன்; அளந்த முந்தைய தேதி மாறாது.",
+    measurementNone: "அளவுப் பதிவு இணைப்பு இல்லை",
     title: "புதிய ஆர்டராக மீண்டும் உருவாக்கு",
     manifestChanged:
       "சேவை விவரம் மாறியுள்ளது. புதிய ஆர்டருக்குத் தற்போதைய பதிப்பைத் தேர்ந்தெடுத்துச் சரிபார்க்கவும்.",

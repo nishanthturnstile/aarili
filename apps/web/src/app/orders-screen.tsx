@@ -833,7 +833,7 @@ export function OrdersScreen({
     if (selected.current) scope.release(selected.current);
     const c = scope.open({
       workflow: record?.workflow ?? "order.quick",
-      schemaVersion: 1,
+      schemaVersion: record?.schemaVersion ?? 1,
       initial: record?.payload ?? initial,
       ...(record ? { record } : {}),
       committed,
@@ -951,7 +951,10 @@ export function OrdersScreen({
       }
       if (
         !["order.quick", "order.repeat"].includes(r.workflow) ||
-        r.schemaVersion !== 1 ||
+        !(
+          r.schemaVersion === 1 ||
+          (r.workflow === "order.repeat" && r.schemaVersion === 2)
+        ) ||
         !p.success ||
         r.lifecycle !== "active"
       )
