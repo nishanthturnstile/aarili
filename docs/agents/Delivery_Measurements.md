@@ -36,8 +36,15 @@
   checked on the running synthetic review host at **16:40:07 UTC**. T3 preview
   opened but two snapshot timeouts required the documented Playwright fallback.
 - Local review packet ready **17:14:33 UTC**, unchanged **851-file** source
-  fingerprint reproduced. PR/CI, owner review and merge remain pending. Active
-  coding time was not instrumented. [Evidence](Manual_Pattern_Outputs_Implementation_Evidence.md).
+  fingerprint reproduced. Draft [PR #167](https://github.com/nishanthturnstile/aarili/pull/167)
+  created **17:15:35 UTC**, implementation `71abb00`, targeting development and
+  immediately linked to T3. Initial CI jobs started **17:15:41 UTC** (six-second
+  queue); audit passed **17:16:00 UTC / 19s**, Fast verification remained in
+  progress at the recorded inspection. Documentation-only follow-up supersedes
+  that head; final-head CI and owner review/merge remain pending.
+- Review-host normal sign-in/records rechecked after test cleanup at
+  **17:16:18.755 UTC**. Active coding time was not instrumented.
+  [Evidence](Manual_Pattern_Outputs_Implementation_Evidence.md).
 
 ## #164 / 1.3.3a — fileless manual/external pattern references
 

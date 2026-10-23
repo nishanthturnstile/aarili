@@ -88,7 +88,7 @@ actual expiry/purge but exposed an incorrect HTTP-status assumption: Garage
 returned 400 rather than 403 for an expired signature. No expiry policy, grant,
 clock, assertion about absent bytes or production timeout was shortened.
 
-Final browser results appear below; PR/hosted check details follow publication.
+Final browser results and PR/hosted check observations appear below.
 Human fluent Tamil, screen-reader/physical devices and inherited
 privacy/recovery/configuration/pilot gates stay separate.
 
@@ -190,9 +190,21 @@ unchanged from the passing fast/build/smoke checks. Local evidence is complete
 for this implementation packet; a single green full aggregate is not claimed.
 
 Local review packet ready at **17:14:33 UTC**; its source fingerprint was
-reproduced unchanged at that checkpoint. PR publication and hosted checks are
-pending. Owner review/merge, fluent Tamil, assistive technology and physical
-devices remain separate from this automated evidence. No activation is claimed.
+reproduced unchanged at that checkpoint. Draft [PR #167](https://github.com/nishanthturnstile/aarili/pull/167)
+targets `development`, created **17:15:35 UTC**, implementation commit
+`71abb00e43a73c1af5d7696c3d22293f276c620e`. It was immediately registered to
+this T3 thread. Two unrelated measurement closeout edits remain unstaged and
+byte-for-byte preserved; only this issue's delivery-log section was committed.
+
+Initial implementation-head [hosted run](https://github.com/nishanthturnstile/aarili/actions/runs/39993605585)
+started required jobs at **17:15:41 UTC** (six seconds after PR creation).
+Dependency audit passed at **17:16:00 UTC / 19s**; Fast verification was still
+running when inspected at **17:16:13 UTC**. Full/browser jobs were skipped as
+required for a feature PR, not counted as passing evidence. This documentation
+follow-up changes no tested application input; the PR's final-head checks still
+govern merge and may supersede that initial run. Owner review/merge, fluent
+Tamil, assistive technology and physical devices remain pending. No activation
+is claimed.
 
 ## Acceptance traceability
 
@@ -216,6 +228,9 @@ Normal owner sign-in and the seeded records were checked at
 snapshot timeouts (`Preview automation snapshot timed out after 15000ms.`).
 The T3 tab had opened successfully; it could not provide inspection evidence.
 No competitor profile or human-owned tab was changed.
+After all verification-service cleanup, normal sign-in and the same selected
+sketch/unselected PDF/physical history were checked again at **17:16:18.755 UTC**.
+The review host remains running for the owner.
 
 - Open **http://127.0.0.1:62885/sign-in**. Synthetic credentials and exact record
   IDs are only in ignored `.scratch/pattern-output-review-host/private.json`;
