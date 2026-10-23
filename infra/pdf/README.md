@@ -4,9 +4,9 @@ This is an explicit verification/runtime resource manifest for #59. No service,
 provider, host deployment or production activation is created here. The future
 worker image must preserve these tested constraints rather than disable sandboxing.
 
-- Node 24.21.0 Bookworm slim: digest pinned in Dockerfile.
-- pnpm 12.11.2; frozen filtered production install from the workspace lock.
-- playwright-core 1.64.0; its exact Chromium distribution, full Chromium/new
+- Node 24.22.1 Bookworm slim: digest pinned in Dockerfile.
+- pnpm 12.15.0; frozen filtered production install from the workspace lock.
+- playwright-core 1.64.1; its exact Chromium distribution, full Chromium/new
   headless mode (`channel: chromium`), `chromiumSandbox: true`.
   Native Windows development uses the same pin's default Chromium headless shell
   with `chromiumSandbox: true`; Linux sandbox/golden proof uses this full build.

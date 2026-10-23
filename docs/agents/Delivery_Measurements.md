@@ -1,5 +1,24 @@
 # Delivery measurements
 
+## Issue #28 — approved dependency dashboard updates
+
+- Owner selected all listed updates, including major upgrades, on **23 October
+  2026**. Existing checkout, branch `codex/issue-28-dependency-updates`, base
+  `824304b`; unrelated changes preserved in a named stash. No worktree.
+- Exact implementation start/active coding time is **unknown**. First recorded
+  verification checkpoint: **03:44:39 UTC**. Initial install took **74.1s**;
+  scoped clean install/build passed. Fast verification passed **311 units** and
+  production build. Three-size bilingual PDF status browser check **3/3 passed,
+  1.6m**. These elapsed checks overlap and are not added as coding time.
+- Smoke exposed pg-boss schema 45/46 incompatibility; append-only migration,
+  catalog pin and upgrade/negative tests added, worker smoke then passed.
+  Final PostgreSQL integration **61/61 passed, 753.63s**, starting **04:02:16 UTC**;
+  sandboxed Linux **five PDF goldens** passed. Review-ready checkpoint **04:15 UTC**.
+  A resource-overlapped unit run had two five-second timeouts; controlled rerun
+  **311/311 passed, 37.96s**, then the standard fast command also passed. Original
+  failures and recovery remain in the [evidence ledger](Issue_28_Dependency_Updates_Evidence.md).
+- PR/CI, owner review, merge and first integrated usable time: **pending**.
+
 ## Issue #153 / 1.3.2a — wearer session and first measurement selection
 
 - Owner approved proceeding on **22 October 2026**. A/B/C published as

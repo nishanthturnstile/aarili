@@ -47,7 +47,7 @@
     "@aarili/core": "workspace:*",
     "@aarili/db": "workspace:*",
     "@aarili/platform": "workspace:*",
-    "pg-boss": "12.37.1",
+    "pg-boss": "12.38.0",
     "@aarili/documents": "workspace:*"
   },
   "devDependencies": {

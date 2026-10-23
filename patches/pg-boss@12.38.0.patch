@@ -2,7 +2,7 @@ diff --git a/dist/types.d.ts b/dist/types.d.ts
 index 44cdc07f6f19264da0167ece400b2f29b5ea0ae1..290fb74279f2240ea5b45ed232b03717e5aeabe4 100644
 --- a/dist/types.d.ts
 +++ b/dist/types.d.ts
-@@ -1550,3 +1550,99 @@ export type PgBossEventMap = {
+@@ -1588,3 +1588,99 @@ export type PgBossEventMap = {
      flow: [data: FlowEvent];
  };
  //# sourceMappingURL=types.d.ts.map

@@ -144,7 +144,7 @@ export async function assertIsolationCatalog(db: Database) {
     )
       throw new Error("Queue runtime function/DDL drift");
     const version = await db.execute(sql`select version from pgboss.version`);
-    if (version.rows.length !== 1 || version.rows[0]?.version !== 45)
+    if (version.rows.length !== 1 || version.rows[0]?.version !== 46)
       throw new Error("Queue schema version drift");
     const queues = await db.execute(
       sql`select name,table_name,partition from pgboss.queue`,

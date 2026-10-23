@@ -174,7 +174,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "zod": "4.6.6",
+    "zod": "4.6.7",
     "@aarili/auth": "workspace:*",
     "@aarili/contracts": "workspace:*",
     "@hono/zod-openapi": "1.6.3",
