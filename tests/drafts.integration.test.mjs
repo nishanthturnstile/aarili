@@ -57,6 +57,7 @@ async function fixture(run) {
               "order.quick",
               "order.repeat",
               "order.repeat-service",
+              "order.repeat@2",
               "order.service",
               "order.service-change",
               "order.services-intake",

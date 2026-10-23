@@ -7,9 +7,17 @@ implementation recorded from **05:14:47 UTC** on
 `codex/measurement-history-reuse`. No worktree or new baseline correction.
 First running synthetic O1/V1 + O2 review surface: **06:56 UTC**; production
 build **23.821s**, smoke and 29-artifact scan passed. The full verification run
-started **06:37:23.580 UTC** and remains in progress with an incumbent guardian
-concurrency failure, followed by an unchanged isolated pass (**14.76s**).
-Review-ready, PR, hosted CI and merge times remain pending.
+started **06:37:23.580 UTC**; its Docker guardian-fixture failure had an
+unchanged isolated pass (**14.76s**). Final diagnostics/results follow below.
+Draft [PR #161](https://github.com/nishanthturnstile/aarili/pull/161) opened
+**06:57:34 UTC**, `e19bfdb`; required Fast/audit passed. Manual run
+[39914719269](https://github.com/nishanthturnstile/aarili/actions/runs/39914719269)
+started **06:57:43 UTC**: all nine browser shards/aggregate passed **243 cases**;
+Scaffold was cancelled at its 20-minute budget. Local full verification finished
+**07:26:22.428 UTC**, **exit 1 / 2938.848s**, **269 PG passes / 7 failures**.
+Six failures were stale B fixture expectations; one Docker-stopped fixture had
+an unchanged isolated pass. Corrected affected fixtures: **14 passes / 119.51s**.
+Final full verification, review-ready and merge times remain pending.
 Active coding time is not instrumented; overlapping command elapsed times are
 not added to it. [Evidence and retained failures](Measurement_History_Implementation_Evidence.md).
 

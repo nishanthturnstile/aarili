@@ -129,17 +129,20 @@ restarted with this change; the earlier `d330…` fingerprint is historical.
 The restarted full command began **06:37:23.580 UTC**, still on dirty base
 `43fa1b3`, with **811 files** and fingerprint
 **`45068efbe5680bbc29e5837a4193fa597d767c116876efa8da8d73184310e09f`**.
-Its final status and end fingerprint remain pending. Raw output/start metadata
+It finished **07:26:22.428 UTC**, **exit 1 / 2938.848s**, with the same
+811-file fingerprint at the end. Raw output/start metadata
 are retained in ignored `.scratch/measurement-history-validation/verify-2026-10-23T06-37-23.580Z.*`.
 
 At approximately 06:48 UTC the restarted full run reported one failure in the
 incumbent `GB-05/06 minor guardian withdrawal ... historical materialisation`
-case (44-case order-acceptance file, 457.50s; failed case 57.139s). The remaining
-suite continues; its eventual diagnostics are pending. A bounded isolated
+case (44-case order-acceptance file, 457.50s; failed case 57.139s). Final
+diagnostics show Docker HTTP 409: that fixture container was stopped during
+setup. The isolated pass below did not require an application change. A bounded isolated
 reproduction, without source changes, passed **1 / 43 filtered, 14.76s** via
 `pnpm test:integration tests/order-acceptance.integration.test.mjs -t "minor guardian withdrawal serializes"`.
-This does not turn the failed full run into a pass. Production build is being
-run separately because that pipeline will stop at its integration failure.
+This does not turn the failed full run into a pass. Its final integration
+result was **269 passed / 7 failed, 48 passed / 4 failed files, 2880.02s**.
+Production stages below were run separately because the pipeline stopped there.
 
 Separate frozen-source `pnpm build` completed with **exit 0, 12 tasks,
 23.821s**, on Next 16.4.2 with strict checks and 19 routes. `pnpm smoke` then
@@ -147,6 +150,42 @@ exited 0: production Next/Hono/real-PostgreSQL readiness, outage, typed client a
 worker shutdown passed. `pnpm exec node scripts/check-artifacts.mjs` exited 0,
 checking **29 browser artifacts**. These are actual separate stage results;
 they do not erase the full integration failure or claim full `pnpm verify`.
+
+### Full-run follow-up and hosted coverage
+
+Draft [PR #161](https://github.com/nishanthturnstile/aarili/pull/161) opened
+**06:57:34 UTC**, capability commit `e19bfdb`. Its required Fast verification and
+Dependency audit passed. Manual full workflow
+[39914719269](https://github.com/nishanthturnstile/aarili/actions/runs/39914719269)
+was dispatched at **06:57:43 UTC** on that same commit:
+
+- All **nine browser shards and their aggregate passed**. Counts are
+  **27 + 29 + 25 = 81 per device**, **243 total**. Comparing every passed
+  file/line/title/project against fresh `pnpm exec playwright test --list`
+  proved 243 unique matches, no missing cases or extras. Each job retained one
+  worker, zero retries and its existing 40-minute budget. Actual root command
+  per shard was `pnpm test:ui --project=<device> --shard=<n>/3`.
+- Scaffold reached its **20-minute job limit** and was cancelled at 07:18:00 UTC;
+  it is not a pass. Its completed B PostgreSQL file passed **6 tests / 52.380s**;
+  A/history/repeat/design/identity results remain bounded to completed stages.
+  The private-configuration canary stage was not reached. No CI timeout or test
+  limit was changed, and the unchanged cancelled job is not blindly rerun.
+- The local full run exposed six stale fixture expectations: four API draft
+  scenarios asserted the pre-B workflow registry and their assertion mapped to
+  503; tenant-path inventory still described A; the historical pg-boss upgrade
+  compared migration history while also applying later feature migration 0047.
+  The registry/path expectations now name B explicitly. The pg-boss fixture is
+  scoped through its reviewed 0046 migration while B's populated 0047 upgrade
+  remains covered independently. No product handler/policy was relaxed.
+- After those three test-only corrections, actual
+  `pnpm test:integration tests/dependency-upgrades.integration.test.mjs tests/drafts.integration.test.mjs tests/tenant-isolation.integration.test.mjs`
+  passed **14 tests / 3 files, 119.51s**, exit 0. No application, migration,
+  browser helper or browser test input changed from the 243-pass candidate;
+  that full browser evidence is reused rather than repeated.
+
+A fresh frozen full `pnpm verify` is required on the corrected test inputs; its
+start/end fingerprint and final outcome will be recorded before handoff. Human
+review, production activation and owner merge remain separate.
 
 Scenario sources:
 [PostgreSQL](../../tests/measurement-history.integration.test.mjs),

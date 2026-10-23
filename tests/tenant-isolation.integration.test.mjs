@@ -38,7 +38,7 @@ async function clean(pool) {
 test("0.2.2 D1/D2/D6 TRU-01 AC-38 real sessions → API → core → bound repository; both owners and registered paths", async () => {
   await withTenantFixture(async ({ runtime, admin, owner, api, a, b }) => {
     assert.deepEqual(tenantPaths, [
-      "measurementSessionsRepository exact form-use approval, wearer sessions/values/private replay, first garment selection and audited erasure; measurement.use/measurement.session and private body-query routes",
+      "measurementSessionsRepository exact form-use approval, wearer session lineage/values/private replay, immutable garment selection history/CAS, reviewed reuse and audited erasure; measurement.use/measurement.session, order.repeat@2 and private body-query review/history routes",
       "designReferencesRepository typed subjects/library/ownership and exact version references; current web/worker rights, private replay, audited erasure and signed association reads",
       "designSpecificationsRepository exact scope/version/answer/selection and privacy; design.specification save/select/reuse, current authority and history",
       "designChoicesRepository exact choice/profile history, typed dependencies, availability, preview and design.choices draft promotion",
