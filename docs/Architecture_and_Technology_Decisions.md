@@ -126,7 +126,7 @@ These rules govern how each core technology is used.
 | Runtime | Node.js LTS | 24.x LTS | P1 | Same runtime for web, worker, tests and CI |
 | Language | TypeScript, strict mode | **7.0.2 (pinned)** | P1 | Recorded owner-approved workspace correction; strict declarations and Next typed routes verified in 0.1.1a |
 | Package manager / monorepo | pnpm workspaces + Turborepo | pnpm: current release, pinned in `packageManager`; turbo 2.11.7 | P1 | Allows the API to be extracted later |
-| Web framework | Next.js App Router, `output: 'standalone'`, Node runtime | 16.4.0 | P1 | Public gallery server rendering; one deployable |
+| Web framework | Next.js App Router, `output: 'standalone'`, Node runtime | 16.4.1 | P1 | Owner-approved security patch correction, 23 October 2026; public gallery server rendering; one deployable |
 | UI runtime | React | 19.3.0 | P1 | ? |
 | API layer | Hono in a Next.js route handler + `@hono/zod-openapi` | hono 4.13.x (pin 4.x); zod-openapi 1.6.3 | P1 | Middleware, typed clients and OpenAPI; extractable later |
 | Validation | Zod | 4.6.6 | P1 | Shared request/response contracts and form validation |
@@ -146,6 +146,15 @@ preserve strict checking; `skipLibCheck=false` and typed routes remain enabled.
 generator and native/Linux verification. This reconciles the earlier 6.x text;
 it does not authorise a new compiler upgrade or early installation of planned
 P1/P2/P3 packages. Installed exact versions remain in manifests and the lockfile.
+
+**Recorded Next.js security baseline correction (23 October 2026):** The owner
+approved [issue #157](https://github.com/nishanthturnstile/aarili/issues/157),
+updating the exact framework pin from 16.4.0 to 16.4.1 and its required lockfile
+graph for the upstream security fixes. React, TypeScript, strict JSX/route
+compatibility, standalone tracing, private headers and disabled dependency build
+scripts remain unchanged. This is a package-baseline correction, not a claim that
+Aarili was exploitable or an approval to activate a live environment. See
+[correction evidence](agents/Next_16_4_1_Baseline_Correction_Evidence.md).
 
 **Recorded pg-boss declaration correction (14 October 2026):** The owner
 authorized the PR #41 blocker repair. pg-boss 12.37.1's published declarations
