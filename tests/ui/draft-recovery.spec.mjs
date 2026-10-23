@@ -175,6 +175,7 @@ for (const locale of ["en", "ta"])
             console.info(
               `Reconnect interception: ${JSON.stringify({ blocked: blockedReconnect, committedVersion: committedAfterReconnect.version })}`,
             );
+            await page.unrouteAll({ behavior: "wait" });
             await page.close();
             page = await context.newPage();
             await page.goto(savedUrl);
@@ -335,6 +336,9 @@ for (const locale of ["en", "ta"])
             );
             await page.goto("about:blank");
           } finally {
+            for (const pending of context.pages())
+              await pending.unrouteAll({ behavior: "wait" });
+            await context.unrouteAll({ behavior: "wait" });
             await context.close();
           }
         },

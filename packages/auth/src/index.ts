@@ -47,6 +47,11 @@ import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
 import {
+  type ManualPatternsContext,
+  patternCapabilityWorkflow,
+  patternReferenceWorkflow,
+} from "@aarili/core/manual-patterns";
+import {
   type MeasurementFitContext,
   measurementFitReferenceWorkflow,
   measurementFitSubjectWorkflow,
@@ -140,6 +145,7 @@ import { designReferencesRepository } from "@aarili/db/design-references-reposit
 import { designSpecificationsRepository } from "@aarili/db/design-specifications-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { manualPatternsRepository } from "@aarili/db/manual-patterns-repository";
 import { measurementFitRepository } from "@aarili/db/measurement-fit-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
@@ -288,6 +294,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerManualPatterns: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ManualPatternsContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerHistory: <T>(
     headers: Headers,
     shopId: string,
@@ -1330,6 +1341,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "pattern.capability",
+        patternCapabilityWorkflow(manualPatternsContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "pattern.reference",
+        patternReferenceWorkflow(manualPatternsContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "measurement.fit-subject",
         measurementFitSubjectWorkflow(
           measurementFitContext(tx, shopId, userId),
@@ -1628,6 +1647,27 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) =>
       run(guardianContext(tx, shopId, userId)),
+    );
+  }
+  function manualPatternsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): ManualPatternsContext {
+    return {
+      actorId,
+      repository: manualPatternsRepository(tx, shopId),
+      specifications: designSpecificationsContext(tx, shopId, actorId),
+      measurements: measurementSessionsContext(tx, shopId, actorId),
+    };
+  }
+  async function withOwnerManualPatterns<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: ManualPatternsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(manualPatternsContext(tx, shopId, actorId)),
     );
   }
   function measurementSessionsContext(
@@ -2336,6 +2376,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerShopDirectory,
+    withOwnerManualPatterns,
     withOwnerMeasurementFit,
     withOwnerMeasurementSessions,
     withOwnerDesignSpecifications,

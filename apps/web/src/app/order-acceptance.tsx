@@ -26,6 +26,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { DesignSpecifications } from "./design-specifications";
 import type { DraftRecovery } from "./draft-recovery";
+import { ManualPatterns } from "./manual-patterns";
 import { MeasurementSessions } from "./measurement-sessions";
 import { OrderPiecesDetail } from "./order-pieces";
 import type { OwnerGuard } from "./owner-feedback";
@@ -627,6 +628,12 @@ export function AcceptedOrderDetail({
         />
       )}
       <DesignSpecifications
+        order={order}
+        shopId={shopId}
+        locale={locale}
+        guard={guard}
+      />
+      <ManualPatterns
         order={order}
         shopId={shopId}
         locale={locale}

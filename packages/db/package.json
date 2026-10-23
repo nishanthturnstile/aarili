@@ -327,6 +327,14 @@
     "./repositories/measurement-fit": {
       "types": "./dist/repositories/measurement-fit.d.ts",
       "import": "./dist/repositories/measurement-fit.js"
+    },
+    "./manual-patterns-repository": {
+      "types": "./dist/manual-patterns-repository.d.ts",
+      "import": "./dist/manual-patterns-repository.js"
+    },
+    "./repositories/manual-patterns": {
+      "types": "./dist/repositories/manual-patterns.d.ts",
+      "import": "./dist/repositories/manual-patterns.js"
     }
   },
   "scripts": {

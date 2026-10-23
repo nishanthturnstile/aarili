@@ -119,6 +119,10 @@
     "./measurement-fit": {
       "types": "./dist/measurement-fit.d.ts",
       "import": "./dist/measurement-fit.js"
+    },
+    "./manual-patterns": {
+      "types": "./dist/manual-patterns.d.ts",
+      "import": "./dist/manual-patterns.js"
     }
   },
   "scripts": {

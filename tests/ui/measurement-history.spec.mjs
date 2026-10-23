@@ -193,7 +193,7 @@ test("MV-B01/03/05/08 correct V1 to V2, preserve O1, compare and explicitly reus
           .locator("details")
           .filter({ has: page.locator("summary", { hasText: /Version 1/ }) })
           .first();
-        await original.locator("summary").click();
+        await original.locator(":scope > summary").click();
         await original
           .getByRole("button", { name: en.correct, exact: true })
           .click();
@@ -244,7 +244,7 @@ test("MV-B01/03/05/08 correct V1 to V2, preserve O1, compare and explicitly reus
           .locator("details")
           .filter({ has: page.locator("summary", { hasText: /Version 2/ }) })
           .first();
-        await correction.locator("summary").click();
+        await correction.locator(":scope > summary").click();
         await correction
           .getByRole("button", { name: en.correct, exact: true })
           .click();
@@ -296,7 +296,7 @@ test("MV-B01/03/05/08 correct V1 to V2, preserve O1, compare and explicitly reus
               }),
             })
             .first();
-          await version.locator("summary").click();
+          await version.locator(":scope > summary").click();
           await version
             .getByRole("button", { name: t.reuse, exact: true })
             .click();

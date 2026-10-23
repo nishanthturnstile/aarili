@@ -1,5 +1,50 @@
 # Delivery measurements
 
+## #164 / 1.3.3a — fileless manual/external pattern references
+
+- Owner approved MP-D01–12, the concrete A → B packet, publication and A's
+  implementation on 23 October 2026. A #164 and B #165 have native blockers;
+  A's ten prerequisites are merged. Existing checkout, latest development
+  `c04020a`, branch `codex/manual-pattern-fileless`; no worktree or toolchain change.
+- Instrumented implementation start **10:59:27.083 UTC**. First complete browser
+  save/review/select/revision sequence reached the reference screen at **11:43 UTC**.
+  Normal sign-in to the running private synthetic review host was checked at
+  **11:48 UTC**. The persistent seeded review provides selected folder 12 and
+  unselected successor folder 13; access/records stay outside Git.
+- Initial focused pattern/input PG run: **5 passes / 71.16s**. Broader verification
+  exposed a legacy migration fixture omitting the new empty FK relation; its two
+  cases passed after the fixture inventory was extended. A new withdrawal-race
+  fixture initially double-parsed an already parsed helper response; corrected.
+- The first full command passed 317 units, negative types/OpenAPI and Linux PDF,
+  then found those two migration fixture failures and was stopped. Clean native
+  installation passed; its first full run timed out a seeded jobs property at
+  5 seconds during 68-worker startup. The unchanged jobs file passed **2 tests /
+  669ms** in isolation. Clean-copy checks also exposed explicit tenant and draft
+  registry inventories needing the new tables/workflows. Corrected draft file:
+  **6 passes / 107.35s**. The final complete run caps workers at four, preserving
+  all tests, assertions, isolation and timeouts; no repository config changed.
+- Broad browser command **11:50:52.418–12:22:43.797 UTC / 1911.38s**: 29 passes,
+  7 fixture failures (nested summary selectors/route teardown). Corrected shared
+  measurement/draft checks: **18 passes** in the affected run; its three expanded
+  pattern fixtures omitted existing reviewed measurement reuse. Final corrected
+  pattern command **12:50:46.634–12:56:07.381 UTC / 320.75s**, **3 passes**, all
+  sizes and both languages. Combined current coverage: **36 distinct cases**.
+- Final status correction preserves blocking reviews across changed context.
+  Current-source pattern browser run **13:52:19.606–13:58:56.519 UTC / 396.92s**:
+  **3 passes**. Refreshed review host ready **13:53:04.757 UTC**; normal sign-in
+  and old/new selection fixture checked **14:01:14.312 UTC**.
+- Complete `pnpm verify` plus direct canary build/scan **13:47:58.077–14:19:53.021
+  UTC / 1914.95s**, **exit 0**: **317 units**, **288 PG cases / 1706.16s**, PDF,
+  production build (**15.772s**), smoke and **29-artifact** scan. Source fingerprint
+  covers **843 files**. Frozen native installs and export/type portability passed;
+  prior failed/stopped copies remain recorded separately.
+- Review packet ready **14:28:42 UTC** after local verification and documentation
+  validation. Draft [PR #166](https://github.com/nishanthturnstile/aarili/pull/166)
+  created **14:30:02 UTC**, implementation commit `97feeb1`, targeting development.
+  Hosted CI, owner review and merge timings remain pending. Active coding time was
+  not instrumented and is not reconstructed from wall-clock elapsed time.
+  [Evidence](Manual_Pattern_Implementation_Evidence.md).
+
 ## #155 / 1.3.2c - exact-version private fitting references
 
 - Owner selected C on 23 October 2026 after all four blockers merged. Existing

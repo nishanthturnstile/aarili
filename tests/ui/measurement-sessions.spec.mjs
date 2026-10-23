@@ -332,7 +332,7 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
           .locator("details")
           .filter({ has: page.locator("summary", { hasText: /Version 1/ }) })
           .first();
-        await saved.locator("summary").click();
+        await saved.locator(":scope > summary").click();
         await saved
           .getByRole("button", { name: en.reuse, exact: true })
           .click();
