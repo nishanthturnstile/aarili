@@ -60,6 +60,7 @@ export interface ContactMergeRepository
   extends RequestRepository<ContactMergeResult> {
   lock(): Promise<void>;
   lockOrder(id: string): Promise<void>;
+  hasMeasurementAssociations(customerIds: string[]): Promise<boolean>;
   inventory(
     sourceId: string,
     survivorId: string,

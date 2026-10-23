@@ -1,5 +1,13 @@
 # Versioned garment design specifications: independent design
 
+**Dependency status checked 22 October 2026 for 1.3.2 preparation:** A1 #146,
+A2 #147 and B #148 are closed; PRs #149/#150/#151 are merged into development.
+PR #151 merged at 16:42:48 UTC as `2aa1b1246213845f1dcaa55d7505051219aedecd`;
+its Fast verification and Dependency audit passed. The dated selection/in-progress
+notes below describe earlier work. This merge resolves the software dependency,
+not human acceptance, full AC-07/08, privacy/retention or live-activation gates.
+See [measurement baseline](Measurement_Versions_Implementation_Evidence.md).
+
 22 October 2026. Roadmap **1.3.1**. **Owner-approved software design and packet;
 A1 #146 / PR #149 and A2 #147 / PR #150 merged; owner selected
 [B #148](https://github.com/nishanthturnstile/aarili/issues/148), implementation and verification underway.** [Research](Design_Specification_REA_Evidence.md),

@@ -107,6 +107,14 @@
     "./design-references": {
       "types": "./dist/design-references.d.ts",
       "import": "./dist/design-references.js"
+    },
+    "./measurement-values": {
+      "types": "./dist/measurement-values.d.ts",
+      "import": "./dist/measurement-values.js"
+    },
+    "./measurement-sessions": {
+      "types": "./dist/measurement-sessions.d.ts",
+      "import": "./dist/measurement-sessions.js"
     }
   },
   "scripts": {

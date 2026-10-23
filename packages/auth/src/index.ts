@@ -50,6 +50,11 @@ import {
   type MeasurementFormsContext,
   measurementFormsDraftWorkflow,
 } from "@aarili/core/measurement-forms";
+import {
+  type MeasurementSessionsContext,
+  measurementSessionWorkflow,
+  measurementUseWorkflow,
+} from "@aarili/core/measurement-sessions";
 import { deniedMediaPolicy, type MediaContext } from "@aarili/core/media";
 import {
   bookingDraftWorkflow,
@@ -130,6 +135,7 @@ import { designSpecificationsRepository } from "@aarili/db/design-specifications
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
+import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import { ordersRepository } from "@aarili/db/orders-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
@@ -300,6 +306,11 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: ShopPoliciesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerMeasurementSessions: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementSessionsContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerDesignSpecifications: <T>(
     headers: Headers,
     shopId: string,
@@ -1448,6 +1459,16 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         "service.commitment-bindings",
         commitmentBindingsDraftWorkflow(commitmentContext(tx, shopId, userId)),
       );
+      workflows.set(
+        "measurement.use",
+        measurementUseWorkflow(measurementSessionsContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "measurement.session",
+        measurementSessionWorkflow(
+          measurementSessionsContext(tx, shopId, userId),
+        ),
+      );
       const policy = wearerPolicy();
       if (policy.enabled && policy.synthetic)
         workflows.set(
@@ -1575,6 +1596,26 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ) {
     return withOwnerTransaction(headers, shopId, (tx, userId) =>
       run(guardianContext(tx, shopId, userId)),
+    );
+  }
+  function measurementSessionsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): MeasurementSessionsContext {
+    return {
+      orders: quickOrderContext(tx, shopId, actorId),
+      repository: measurementSessionsRepository(tx, shopId),
+      consequences: designSpecificationsRepository(tx, shopId),
+    };
+  }
+  async function withOwnerMeasurementSessions<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementSessionsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(measurementSessionsContext(tx, shopId, actorId)),
     );
   }
   function designSpecificationsContext(
@@ -2231,6 +2272,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerShopDirectory,
+    withOwnerMeasurementSessions,
     withOwnerDesignSpecifications,
     withOwnerDesignReferences,
     withOwnerDesignChoices,

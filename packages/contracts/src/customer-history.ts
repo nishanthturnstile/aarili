@@ -167,6 +167,7 @@ export const contactMergePreviewSchema = z.strictObject({
     z.enum([
       "alias-conflict",
       "wearer-conflict",
+      "measurement-association",
       "too-many-records",
       "not-merged",
     ]),

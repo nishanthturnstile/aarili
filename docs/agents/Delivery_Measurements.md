@@ -1,29 +1,99 @@
 # Delivery measurements
 
-## Issue #157 — approved Next.js 16.4.1 baseline correction
+## Issue #153 / 1.3.2a — wearer session and first measurement selection
 
-- Owner approved a separate issue/PR in the existing checkout on **23 October
-  2026 IST**. Published and selected #157 with no blockers; preserved measurement
-  branch/PR #156, stopped its temporary review host, updated development at
-  `2aa1b12` and branched `codex/next-16.4.1-security`. No worktree or merge/deploy.
-- Implementation clock: **00:02:54 UTC**, before the first edit attempt. Active
-  coding/rework stopwatch time is **unknown**. Package baseline/lockfile and
-  architecture correction only; [acceptance/evidence](Next_16_4_1_Baseline_Correction_Evidence.md).
-- Pre-change audit **exit 1 / 1.621s**; post-change audit **exit 0 / 0.875s**,
-  no known vulnerabilities. Frozen install **exit 0 / 0.499s**; one Next 16.4.1
-  instance and unchanged native sharp resolution verified. `verify:fast` **exit
-  0 / 127.825s** (288 units), smoke **0 / 13.265s**, artifact scan **0 / 0.687s**
-  and focused root PDF browser **2 passed / 75.175s**. Both independent reviews
-  found no concrete blocker. Scoped clean native portability passed **0 / 167.894s**
-  after two retained Windows overlong-path harness failures (**56.884s**, **158.091s**).
-- Broad root browser started **00:12:53.980 UTC** and remains running. Its phone
-  booking-group review assertion failed (confirmation absent within two seconds;
-  review/save HTTP responses 200); this is unresolved, not a broad green result.
-  A fresh synthetic production review host/account/shop is ready at localhost
-  **64543**; credentials stay private. Draft packet prepared **00:24 UTC**; exact
-  final validation/review-ready, CI, merge and post-merge times remain pending.
-- Measurement A adoption remains gated on this correction's owner-reviewed merge;
-  B/C remain unstarted. Timing entries below retain earlier delivery evidence.
+- Owner approved proceeding on **22 October 2026**. A/B/C published as
+  #153/#154/#155 with native blockers read back; A selected. All 12 prerequisite
+  merge commits were freshly verified as ancestors. Existing checkout updated
+  from development at `2aa1b12`, branch `codex/1.3.2a-measurement-sessions`.
+  No worktree, direct development/main push, merge or deployment.
+- First application file creation: **17:46:06.003 UTC**, observed filesystem
+  creation time. A later 17:48:49 documentation checkpoint was initially labelled
+  as the start and is corrected in the evidence document. Active coding/rework
+  stopwatch time is **unknown**; elapsed test and wait time is not coding time.
+- Development arithmetic/policy tests: **23 passed**, including 500 exact
+  round-trip properties. Expanded measurement PostgreSQL file: **6 passed,
+  62.31s** at that checkpoint. Subsequent first-use/typed-piece/registry changes
+  require the broad final results below; initial focused results are not reused
+  as final frozen-source evidence.
+- First phone synthetic UI captures: **18:29:56.610–18:29:58.581 UTC** (artifact
+  creation times). Browser command **1 passed, 1.5m**, including real form-use
+  approval, recovery, save-only/selection and English/Tamil/theme/axe. This was a
+  disposable fixture, **not** a running owner-review host or physical-device
+  acceptance. Later refinements remain subject to final three-size checks.
+- Initial full verification exited **1 / 3.080s** on missing typed-client boundary
+  registration; corrected. Broad `pnpm verify` started **18:49:29.764 UTC**,
+  source fingerprint `18e9e51634399ed1fc5a4c9fa13267c9801db73159721c332a4c21f72cca516b`.
+  Final result, review-host availability, PR/CI and owner-review/merge timestamps
+  remain pending until observed. The Next.js CLI advisory/reminder is retained
+  as a separate baseline concern; no upgrade or suppression is included.
+
+- Broad verification ended **19:41:05.538 UTC**, **3095.774s**, exit 1:
+  **311 units passed; 263 PG passed / 5 failed**, all failures in two stale
+  registry fixtures. Corrected affected PG rerun: **18/18 passed**, **283.972s**,
+  **19:41:17.182–19:46:01.154 UTC**. Final frozen `verify:fast`: **exit 0,
+  119.265s**, **19:44:39.482–19:46:38.747 UTC**. Production smoke **13.923s**
+  and artifact check **0.500s** also passed. Application source fingerprint:
+  `90e566bd9925c8bc4d3ebae35bfd21dde7391e2cc47b93736a614b660c75a7c7`.
+- Three-size measurement browser checkpoint: **3/3 passed**, **289.229s**,
+  **19:37:58.078–19:42:47.307 UTC**. Later offline assertion needs the final run.
+  First successful disposable review-host setup was observed through the protected
+  route at **19:42:43 UTC**; stopped before builds. Final running host pending.
+- Full browser startup retries and the accidentally overlapping discarded runs
+  are recorded in the implementation evidence. They are verification rework,
+  not application coding time or valid full-suite results. Final browser, PR/CI,
+  human review and merge remain pending until observed.
+
+- Draft [PR #156](https://github.com/nishanthturnstile/aarili/pull/156) opened
+  **19:53:36 UTC** on `369419a`, targeting development and linked to this thread.
+  Hosted Fast verification passed in run `39844058655`; Dependency audit failed
+  on two critical/one high Next.js 16.4.0 advisories. A separate, concrete
+  [16.4.1 baseline correction](Next_16_4_1_Baseline_Correction_Proposal.md) is
+  proposed, not adopted; owner approval is pending. No merge/deploy.
+- Final production-host measurement browser run: **3/3 passed**, **254.539s**,
+  **20:07:52.924–20:12:07.463 UTC**, unchanged 806-file source fingerprint
+  `f12b4bd0cf58d1f37482fb0db7f6fab3e455e6878ccdb05cac1967d96b413188`.
+  Only the test fixture changed after the prior static/PG/build result; reconnect,
+  autosave admission and disposable clock synchronisation corrections and their
+  original failures are retained in the evidence ledger. Fresh root lint passed.
+- Final running review host ready file: **20:03:54.770 UTC**. Exact URL/private
+  sign-in and cleanup are in the evidence packet. A private loopback API check
+  at **20:11:16.243 UTC** verified sign-in, saved-but-unselected observation,
+  independent second adult and unconsented-minor denial. Human findings remain
+  pending; emulation is not physical-device/fluent-Tamil/AT acceptance.
+- Full root-browser attempts were interrupted when the pinned CLI exited after
+  readiness and disposable component hosts could not reuse its one-time retry.
+  No valid completed 240-case result is claimed. Audit/full-browser integration
+  and human/owner merge review remain open. Active coding/rework time is unknown;
+  the recorded waits/reruns are not reconstructed as coding time.
+
+## 1.3.2 preparation — measurement versions design and ticket review
+
+- **22 October 2026; preparation only, no implementation delivery/PR.** Existing
+  checkout updated to `development` at `2aa1b12`, preserving the roadmap brief
+  and prompt, then branched `codex/1.3.2-measurement-versions-design`. No worktree.
+  Initial switch/pull refusals and deliberate patch restoration are recorded in
+  [preparation evidence](Measurement_Versions_Implementation_Evidence.md).
+- REA passive Nool capture **16:56:53.970–16:56:55.027 UTC** observed sign-in;
+  authenticated measurements were unobserved in the initial pass. Public TailorMan scenarios and
+  source review informed the independent A/B/C packet. No saved public-demo or
+  real-data mutation. Research/preparation active stopwatch time is **unknown**.
+- `pnpm verify:fast`: **17:10:53.316–17:14:08.667 UTC**, **195.351s**, exit 0;
+  lint/Knip/types, **288/288** units, negative types, OpenAPI and production build.
+  These are current repository checks, not tests of the proposed session runtime.
+- Packet validation checked local links, requirements, 25 acceptance IDs, exact
+  document arithmetic and preservation of original edits. Final validation and
+  manual review boundaries are in the evidence record. Application implementation
+  start, running measurement review host, first usable behaviour, issue/PR,
+  CI/review waiting and merge time are **not started/pending**, not reconstructed.
+  This preparation does not consume an implementation-delivery timing slot.
+- Owner privately signed in; authenticated REA follow-up **17:22–17:32 UTC**
+  exercised synthetic save/reopen/cancel/edit/compare and explicit order-version
+  selection. The existing V2 label survived editing; old-order structured value
+  stability remains unproven. One research order/two adult-labelled profiles were
+  saved only in the permitted synthetic Nool account. Twelve retained-UI evidence
+  assertions passed. Documentation amended; no Aarili runtime inputs changed or
+  implementation authority granted. See the exact ledger and fresh scoped checks.
 
 ## Issue #148 / 1.3.1c — private versioned design references
 

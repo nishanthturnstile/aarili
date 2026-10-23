@@ -15,6 +15,7 @@ export { documentMessages } from "./document-messages.js";
 export { groupIntakeMessages } from "./group-intake-messages.js";
 export { identityReviewMessages } from "./identity-review-messages.js";
 export { measurementFormsMessages } from "./measurement-forms-messages.js";
+export { measurementSessionMessages } from "./measurement-session-messages.js";
 export { mediaMessages } from "./media-messages.js";
 export {
   formatOrderPaise,

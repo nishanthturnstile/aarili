@@ -75,6 +75,12 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    if (record.workflow === "measurement.session") {
+      if (typeof p.customerId === "string") customers.add(p.customerId);
+      if (typeof p.wearerId === "string") wearers.add(p.wearerId);
+      const target = p.target as { orderId?: string } | null;
+      if (typeof target?.orderId === "string") orderIds.add(target.orderId);
+    }
     if (
       record.workflow === "design.specification" ||
       record.workflow === "design.reference"

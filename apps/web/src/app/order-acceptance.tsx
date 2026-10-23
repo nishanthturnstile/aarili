@@ -26,6 +26,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { DesignSpecifications } from "./design-specifications";
 import type { DraftRecovery } from "./draft-recovery";
+import { MeasurementSessions } from "./measurement-sessions";
 import { OrderPiecesDetail } from "./order-pieces";
 import type { OwnerGuard } from "./owner-feedback";
 import { OrderServiceAdditions } from "./service-additions";
@@ -614,6 +615,17 @@ export function AcceptedOrderDetail({
         guard={guard}
         onChanged={() => void reload()}
       />
+      {order.intake.customerId && order.intake.wearerId && (
+        <MeasurementSessions
+          key={order.id}
+          order={order}
+          shopId={shopId}
+          customerId={order.intake.customerId}
+          wearerId={order.intake.wearerId}
+          locale={locale}
+          guard={guard}
+        />
+      )}
       <DesignSpecifications
         order={order}
         shopId={shopId}
