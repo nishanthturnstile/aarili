@@ -319,6 +319,14 @@
     "./repositories/measurement-sessions": {
       "types": "./dist/repositories/measurement-sessions.d.ts",
       "import": "./dist/repositories/measurement-sessions.js"
+    },
+    "./measurement-fit-repository": {
+      "types": "./dist/measurement-fit-repository.d.ts",
+      "import": "./dist/measurement-fit-repository.js"
+    },
+    "./repositories/measurement-fit": {
+      "types": "./dist/repositories/measurement-fit.d.ts",
+      "import": "./dist/repositories/measurement-fit.js"
     }
   },
   "scripts": {

@@ -22,6 +22,7 @@ import type { RepeatOrderDraft } from "@aarili/contracts/orders";
 import type { DesignSpecificationsRepository } from "@aarili/db/repositories/design-specifications";
 import type { MeasurementSessionsRepository } from "@aarili/db/repositories/measurement-sessions";
 import { DraftFailure, type DraftWorkflow } from "./drafts.js";
+import { authorizeMeasurementIdentity } from "./measurement-access.js";
 import { measurementFormsReferencesEligible } from "./measurement-forms.js";
 import {
   type QuickOrderContext,
@@ -54,43 +55,15 @@ export async function authorizeMeasurementWearer(
   ctx: MeasurementSessionsContext,
   v: { customerId: string; wearerId: string },
 ) {
-  const w = ctx.orders.wearers;
-  if (!w.policy.enabled || !w.policy.synthetic || !w.policy.notice) fail();
-  await w.repository.lockCustomer(v.customerId);
-  await w.repository.lockWearer(v.wearerId);
-  if (!(await w.repository.customer(v.customerId))) fail(404);
-  const p = await w.repository.read(v.customerId, v.wearerId);
-  if (
-    !p?.relationship.authorised ||
-    !p.relationship.informed ||
-    p.relationship.authorisationDeclined ||
-    p.relationship.informedDeclined ||
-    p.age === "unknown"
-  )
-    fail(404);
-  if (p.age === "adult") {
-    if (
-      !p.purposes.some(
-        (e) => e.purpose === "service" && e.decision === "grant" && e.eligible,
-      )
-    )
-      fail(404);
-  } else {
-    const g = await ctx.orders.guardians.repository.read(p.id, true);
-    if (
-      !g.authority?.verifiedCurrent ||
-      !g.purposes.some(
-        (e) =>
-          e.purpose === "measurement" &&
-          e.decision === "grant" &&
-          e.eligible &&
-          e.authorityId === g.authority?.id,
-      )
-    )
-      fail(404);
-  }
-  if (await ctx.repository.erased(v.wearerId)) fail(404);
-  return p;
+  return authorizeMeasurementIdentity(
+    {
+      wearers: ctx.orders.wearers.repository,
+      guardians: ctx.orders.guardians.repository,
+      measurements: ctx.repository,
+      policy: ctx.orders.wearers.policy,
+    },
+    v,
+  );
 }
 const wearer = authorizeMeasurementWearer;
 async function config(

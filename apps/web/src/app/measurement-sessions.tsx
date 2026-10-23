@@ -46,6 +46,7 @@ import {
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
+import { MeasurementFitImages } from "./measurement-fit";
 import type { OwnerGuard } from "./owner-feedback";
 
 type T = (typeof measurementSessionMessages)[Locale];
@@ -1523,6 +1524,13 @@ export function MeasurementSessions({
                     {label(v.form.content, locale)} · {v.id.slice(-8)}
                   </summary>
                   <SavedMeasurement v={v} locale={locale} />
+                  <MeasurementFitImages
+                    shopId={shopId}
+                    version={v}
+                    locale={locale}
+                    guard={guard}
+                    onAccessChange={() => void load()}
+                  />
                   {!controller &&
                     !v.redacted &&
                     (v.headId === v.id ? (

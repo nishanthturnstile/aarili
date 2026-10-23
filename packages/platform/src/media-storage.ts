@@ -3,6 +3,7 @@ import {
   GetObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
+  paginateListObjectsV2,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -158,6 +159,64 @@ export function createMediaStorage(config: {
         );
       } catch {
         throw Error("Private staging cleanup failed");
+      }
+    },
+    destroy() {
+      client.destroy();
+    },
+  };
+}
+// Explicit retained-fitting erasure capability. Ordinary web/media adapters do
+// not receive it. Core binds every operation to a committed tenant purge intent.
+export function createMeasurementFitErasureStorage(
+  config: Parameters<typeof createMediaStorage>[0],
+) {
+  const client = new S3Client({
+    endpoint: config.endpoint,
+    region: config.region,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+    forcePathStyle: true,
+    maxAttempts: 1,
+    requestHandler: { requestTimeout: 10000, connectionTimeout: 3000 },
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
+  });
+  const uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+  const prefixPattern = new RegExp(`^shops/${uuid}/private/${uuid}/${uuid}$`);
+  const keyPattern = new RegExp(
+    `^shops/${uuid}/(?:private/${uuid}/${uuid}/${uuid}|staging/${uuid})$`,
+  );
+  return {
+    async *objects(prefix: string): AsyncGenerator<string> {
+      if (!prefixPattern.test(prefix))
+        throw Error("Fitting erasure prefix denied");
+      try {
+        for await (const page of paginateListObjectsV2(
+          { client },
+          { Bucket: config.bucket, Prefix: `${prefix}/` },
+        )) {
+          for (const item of page.Contents ?? []) {
+            const key = item.Key ?? "";
+            if (!key.startsWith(`${prefix}/`) || !keyPattern.test(key))
+              throw Error("Fitting erasure listing rejected");
+            yield key;
+          }
+        }
+      } catch {
+        throw Error("Private fitting erasure listing failed");
+      }
+    },
+    async remove(key: string) {
+      if (!keyPattern.test(key)) throw Error("Fitting erasure key denied");
+      try {
+        await client.send(
+          new DeleteObjectCommand({ Bucket: config.bucket, Key: key }),
+        );
+      } catch {
+        throw Error("Private fitting erasure failed");
       }
     },
     destroy() {

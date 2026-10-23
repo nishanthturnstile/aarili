@@ -50,6 +50,8 @@ async function fixture(run) {
               "design.reference",
               "design.specification",
               "design.specification@2",
+              "measurement.fit-reference",
+              "measurement.fit-subject",
               "measurement.forms",
               "measurement.session",
               "measurement.use",

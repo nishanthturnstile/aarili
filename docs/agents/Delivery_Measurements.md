@@ -1,5 +1,31 @@
 # Delivery measurements
 
+## #155 / 1.3.2c - exact-version private fitting references
+
+- Owner selected C on 23 October 2026 after all four blockers merged. Existing
+  checkout pulled development `5cfd399`; implementation start **08:40:40.049 UTC**,
+  branch `codex/measurement-fit-references`. No worktree/baseline correction.
+- Focused C/B/design-consent PG run: **13 passes / 194.52s**. Final strengthened C
+  file: **6 passes / 81.97s**, command **10:03:16.412-10:04:40.209 UTC**,
+  normalized 826-file source fingerprint unchanged. Earlier completion-fixture
+  failure was required If-Match omission (428), corrected in the test.
+- C browser workflow: phone **48.0s**, tablet **48.4s**, desktop **48.5s**;
+  each covers English/light and Tamil/dark, keyboard, axe, reflow, optional upload,
+  read/processing failure, exact history and consent/erasure clearing. Retained
+  failed attempts exposed subject initial-save and test interception/locator races.
+- Clean-install full verification began **10:05:23.802 UTC**. Frozen native install
+  passed **52.8s**; lint/Knip/types, **311 unit tests**, negative types and OpenAPI
+  passed. Full PG/PDF/build/smoke and artifact/canary result remains pending.
+- Manual host access file ready **10:08:39 UTC** (file timestamp),
+  port **53582**; normal sign-in checked **10:09:38 UTC**. Two failed launcher
+  attempts were retained: declared JPEG and generated PNG mismatched, then corrected
+  to JPEG; seeding now precedes the live worker to avoid competing claims.
+  This launcher-only change occurred after the disposable clean verification copy;
+  feature/config/test inputs are identical in that copy (hash comparison retained).
+- Review-ready, PR, hosted CI, owner review and merge timestamps remain pending.
+  Active coding time was not instrumented; command elapsed time is not added to it.
+  [Evidence](Measurement_Fit_Implementation_Evidence.md). Human/pilot gates remain.
+
 ## #154 / 1.3.2b — measurement corrections and reviewed reuse
 
 Owner selected B on 23 October 2026. Existing checkout updated to `43fa1b3`;

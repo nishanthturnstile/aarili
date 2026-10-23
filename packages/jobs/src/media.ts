@@ -1,11 +1,19 @@
 import { authorizeJobPrincipal } from "@aarili/auth/job-principal";
 import type { CustomerPolicy } from "@aarili/contracts/customers";
+import { blockedCustomerPolicy } from "@aarili/core/customer-policy";
 import { designMediaPolicy } from "@aarili/core/design-media-policy";
+import type { MeasurementFitErasureStorage } from "@aarili/core/measurement-fit-purge";
+import { measurementMediaPolicy } from "@aarili/core/measurement-media-policy";
 import { type MediaContext, MediaFailure } from "@aarili/core/media";
 import { shopBrandingPolicy } from "@aarili/core/shop-profile";
 import { createUsageWriter } from "@aarili/core/usage";
 import { type Database, sql, type Transaction, withShop } from "@aarili/db";
 import { designReferencesRepository } from "@aarili/db/design-references-repository";
+import {
+  measurementFitPurgeRepository,
+  measurementFitRepository,
+} from "@aarili/db/measurement-fit-repository";
+import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import { ordersRepository } from "@aarili/db/orders-repository";
 import type { MediaAttempt } from "@aarili/db/repositories/media";
@@ -103,7 +111,25 @@ export function mediaProcessingHost(
           actor: { type: "user", id: userId },
           repository: mediaRepository(tx, shopId),
           ...resolved,
-          policy: shopBrandingPolicy(shopId, designPolicy),
+          policy: shopBrandingPolicy(
+            shopId,
+            measurementMediaPolicy(
+              {
+                repository: measurementFitRepository(tx, shopId),
+                measurements: measurementSessionsRepository(tx, shopId),
+                wearers: wearerRepository(tx, shopId, noticeId),
+                guardians: guardianRepository(
+                  tx,
+                  shopId,
+                  resolved.guardianPolicy?.enabled
+                    ? resolved.guardianPolicy.notice?.id
+                    : undefined,
+                ),
+                policy: p ?? blockedCustomerPolicy,
+              },
+              designPolicy,
+            ),
+          ),
           instrumentation: {
             stored: async (actionId, assetId, bytes) =>
               writer.record({
@@ -113,6 +139,35 @@ export function mediaProcessingHost(
                 bytes,
               }),
           },
+        });
+      });
+    },
+  };
+}
+export function measurementFitPurgeHost(
+  db: Database,
+  shopId: string,
+  userId: string,
+  storage: (tx: Transaction) => MeasurementFitErasureStorage | undefined,
+) {
+  return {
+    transaction<T>(
+      run: (ctx: {
+        actorId: string;
+        repository: ReturnType<typeof measurementFitPurgeRepository>;
+        storage: MeasurementFitErasureStorage;
+      }) => Promise<T>,
+    ) {
+      return withShop(db, userId, shopId, async (tx) => {
+        if (!(await authorizeJobPrincipal(tx, userId, shopId)))
+          throw new MediaFailure(403, "MEDIA_ACCESS_DENIED");
+        const adapter = storage(tx);
+        if (!adapter)
+          throw Error("Fitting erasure storage capability is not enabled");
+        return run({
+          actorId: userId,
+          repository: measurementFitPurgeRepository(tx, shopId),
+          storage: adapter,
         });
       });
     },

@@ -47,9 +47,15 @@ import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
 import {
+  type MeasurementFitContext,
+  measurementFitReferenceWorkflow,
+  measurementFitSubjectWorkflow,
+} from "@aarili/core/measurement-fit";
+import {
   type MeasurementFormsContext,
   measurementFormsDraftWorkflow,
 } from "@aarili/core/measurement-forms";
+import { measurementMediaPolicy } from "@aarili/core/measurement-media-policy";
 import {
   type MeasurementSessionsContext,
   measurementSessionWorkflow,
@@ -134,6 +140,7 @@ import { designReferencesRepository } from "@aarili/db/design-references-reposit
 import { designSpecificationsRepository } from "@aarili/db/design-specifications-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { measurementFitRepository } from "@aarili/db/measurement-fit-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
@@ -306,6 +313,11 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: ShopPoliciesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerMeasurementFit: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementFitContext, media: MediaContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerMeasurementSessions: <T>(
     headers: Headers,
     shopId: string,
@@ -1318,6 +1330,18 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "measurement.fit-subject",
+        measurementFitSubjectWorkflow(
+          measurementFitContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
+        "measurement.fit-reference",
+        measurementFitReferenceWorkflow(
+          measurementFitContext(tx, shopId, userId),
+        ),
+      );
+      workflows.set(
         "order.repeat-service",
         serviceRepeatWorkflow(smallServiceContext(tx, shopId, userId)),
       );
@@ -1616,6 +1640,29 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       repository: measurementSessionsRepository(tx, shopId),
       consequences: designSpecificationsRepository(tx, shopId),
     };
+  }
+  function measurementFitContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): MeasurementFitContext {
+    return {
+      sessions: measurementSessionsContext(tx, shopId, actorId),
+      repository: measurementFitRepository(tx, shopId),
+      media: mediaRepository(tx, shopId),
+    };
+  }
+  async function withOwnerMeasurementFit<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MeasurementFitContext, media: MediaContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(
+        measurementFitContext(tx, shopId, actorId),
+        ownerMediaContext(tx, shopId, actorId),
+      ),
+    );
   }
   async function withOwnerMeasurementSessions<T>(
     headers: Headers,
@@ -1926,9 +1973,18 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       ...adapters,
       policy: shopBrandingPolicy(
         shopId,
-        designMediaPolicy(
-          designReferencesContext(tx, shopId, userId).authority,
-          adapters.policy,
+        measurementMediaPolicy(
+          {
+            repository: measurementFitRepository(tx, shopId),
+            measurements: measurementSessionsRepository(tx, shopId),
+            wearers: wearerRepository(tx, shopId, wearerPolicy().notice?.id),
+            guardians: guardianContext(tx, shopId, userId).repository,
+            policy: wearerPolicy(),
+          },
+          designMediaPolicy(
+            designReferencesContext(tx, shopId, userId).authority,
+            adapters.policy,
+          ),
         ),
       ),
       instrumentation: {
@@ -2280,6 +2336,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerShopDirectory,
+    withOwnerMeasurementFit,
     withOwnerMeasurementSessions,
     withOwnerDesignSpecifications,
     withOwnerDesignReferences,
