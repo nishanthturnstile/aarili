@@ -9,12 +9,18 @@ export function PrivateUploadForm({
   accept,
   idPrefix = "media",
   imageOnly = false,
+  limitsText,
+  guidanceText,
+  unsupportedText,
 }: {
   controller: PrivateUpload;
   locale: "en" | "ta";
   accept?: string;
   idPrefix?: string;
   imageOnly?: boolean;
+  limitsText?: string;
+  guidanceText?: string;
+  unsupportedText?: string;
 }) {
   const state = useSyncExternalStore(
       controller.subscribe,
@@ -32,9 +38,8 @@ export function PrivateUploadForm({
           : state.error === "PREPARATION_FAILED"
             ? t.prepareFailed
             : state.error === "FILE_UNSUPPORTED"
-              ? imageOnly
-                ? t.unsupportedImage
-                : t.unsupported
+              ? (unsupportedText ??
+                (imageOnly ? t.unsupportedImage : t.unsupported))
               : state.error === "STATUS_UNAVAILABLE"
                 ? t.statusFailed
                 : state.error === "UPLOAD_CLOSED"
@@ -83,7 +88,9 @@ export function PrivateUploadForm({
             if (file) void controller.select(file);
           }}
         />
-        <p id={`${idPrefix}-limits`}>{imageOnly ? t.imageLimits : t.limits}</p>
+        <p id={`${idPrefix}-limits`}>
+          {limitsText ?? (imageOnly ? t.imageLimits : t.limits)}
+        </p>
         <p role="status" aria-live="polite">
           {t[state.state]}
         </p>
@@ -116,7 +123,7 @@ export function PrivateUploadForm({
                 ? "ஆதரிக்கப்படும் கோப்பு வகைகள்"
                 : "Supported file profiles"}
             </summary>
-            <p>{t.guidance}</p>
+            <p>{guidanceText ?? t.guidance}</p>
           </details>
         )}
       </div>

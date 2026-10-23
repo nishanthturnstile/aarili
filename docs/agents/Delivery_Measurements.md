@@ -1,5 +1,51 @@
 # Delivery measurements
 
+## #165 / 1.3.3b — private pattern outputs and deliberate reuse
+
+- Owner selected B on 23 October 2026 after #166 merged. Existing checkout
+  development updated to `96b3e54`, branch `codex/manual-pattern-outputs`.
+  All eight direct blockers' closing merge commits are ancestors. No worktree,
+  dependency or toolchain change. Task checkpoint **15:01:25 UTC**.
+- Initial workspace typecheck passed; existing pattern/input PostgreSQL checks
+  **6 passed / 87.28s**. First B PG/S3 file **4 failed / 57.21s** identified a
+  trigger SQL alias conflict and an invalid migration-fixture UNION ordering;
+  corrected and covered by later passes. UI compilation found one status-copy key;
+  lint found a broad callback capture, both corrected.
+- Final-UI `pnpm verify:fast` **16:42:51.428–16:47:06.440 UTC / 255.01s**,
+  **exit 0**: lint/Knip/types, **320 units**, negative types, OpenAPI and
+  production build. Aggregate `pnpm verify` **16:18:55.499–16:58:39.505 UTC /
+  2384.01s / exit 1**: Linux PDF passed, PG/S3 **293 passed, 2 failed /
+  2238.26s**. The expired-PUT case expected different Garage error wording;
+  corrected explicit expiry response passed **386.97s** including fresh Biome.
+  Existing fitting replay failed closed after a backward PG clock step and
+  passed unchanged in isolation (**71.38s**). Combined **295 distinct PG passes**
+  are not a green aggregate. No clock/grant/timeout policy changed.
+- Fresh direct canary build, production readiness/outage/worker shutdown and
+  29-artifact scan **16:58:04.093–16:59:16.553 UTC / 72.46s / exit 0** complete
+  the stages skipped by the failed aggregate.
+- Broad bilingual/three-size browser command **16:03:19.022–17:03:29.692 UTC /
+  3610.67s / exit 1**: **43 passed, 2 failed**. Desktop host boot/loading races
+  passed unchanged in a focused run **17:03:50.688–17:06:02.008 UTC / 131.32s /
+  exit 0 / 2 passed**. Final phone A+B refresh **17:06:27.482–17:09:45.205 UTC /
+  197.72s / exit 0 / 2 passed** verifies the last review/select-context UI edit.
+  Actual media/repeat-service **17:09:45.276–17:13:14.268 UTC / 208.99s /
+  exit 0 / 6 passed** completes **51 distinct selected browser cases** across
+  runs. The two final-phone refreshes are duplicates, not extra coverage.
+  Failures are not relabelled as a successful broad aggregate.
+- Normal sign-in and selected sketch/unselected PDF/physical history were
+  checked on the running synthetic review host at **16:40:07 UTC**. T3 preview
+  opened but two snapshot timeouts required the documented Playwright fallback.
+- Local review packet ready **17:14:33 UTC**, unchanged **851-file** source
+  fingerprint reproduced. Draft [PR #167](https://github.com/nishanthturnstile/aarili/pull/167)
+  created **17:15:35 UTC**, implementation `71abb00`, targeting development and
+  immediately linked to T3. Initial CI jobs started **17:15:41 UTC** (six-second
+  queue); audit passed **17:16:00 UTC / 19s**, Fast verification remained in
+  progress at the recorded inspection. Documentation-only follow-up supersedes
+  that head; final-head CI and owner review/merge remain pending.
+- Review-host normal sign-in/records rechecked after test cleanup at
+  **17:16:18.755 UTC**. Active coding time was not instrumented.
+  [Evidence](Manual_Pattern_Outputs_Implementation_Evidence.md).
+
 ## #164 / 1.3.3a — fileless manual/external pattern references
 
 - Owner approved MP-D01–12, the concrete A → B packet, publication and A's

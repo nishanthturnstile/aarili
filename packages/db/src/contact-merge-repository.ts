@@ -36,6 +36,19 @@ export function contactMergeRepository(
         )
       ).rowCount;
       if (measurements) return true;
+      if (
+        (
+          await tx.execute(
+            sql`select to_regclass('pattern_media_subject') as installed`,
+          )
+        ).rows[0]?.installed &&
+        (
+          await tx.execute(
+            sql`select 1 from pattern_media_subject where shop_id=${shopId}::uuid and customer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[]) limit 1`,
+          )
+        ).rowCount
+      )
+        return true;
       // Fileless pattern values/drafts are also wearer-private associations.
       if (
         !(

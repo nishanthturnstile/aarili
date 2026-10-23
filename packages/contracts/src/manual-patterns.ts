@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mediaReadSchema, mediaRecordSchema } from "./media.js";
 import { catalogueRefSchema } from "./service-catalogue.js";
 
 const id = z.uuid().transform((v) => v.toLowerCase());
@@ -84,13 +85,17 @@ export const patternDraftSchema = patternScopeSchema.extend({
   acknowledged: z.boolean(),
   erased: z.boolean(),
 });
-export const patternCommandSchema = patternDraftSchema.superRefine((v, c) => {
+function validateCommand(
+  v: z.infer<typeof patternDraftSchema>,
+  c: z.RefinementCtx,
+  output = false,
+) {
   const issue = (message: string) => c.addIssue({ code: "custom", message });
   if (v.erased || !v.reason.trim())
     issue("Record a reason under current authority");
   if (v.operation === "save") {
-    if (!v.content.locator.trim() || v.referenceId !== null)
-      issue("Record a physical locator");
+    if ((!v.content.locator.trim() && !output) || v.referenceId !== null)
+      issue("Record a physical locator or permitted output");
     for (const input of [v.content.design, v.content.measurement])
       if (input.state === "known" ? !input.versionId : !input.reason.trim())
         issue("Explain unknown or not-applicable inputs");
@@ -108,6 +113,74 @@ export const patternCommandSchema = patternDraftSchema.superRefine((v, c) => {
     if (v.operation === "review" && !v.evidence.trim())
       issue("Record review findings");
   }
+}
+// Version 1 remains strict and fileless for existing durable drafts/readers.
+export const patternCommandSchema = patternDraftSchema.superRefine((v, c) =>
+  validateCommand(v, c),
+);
+export const patternReferenceV2DraftSchema = patternDraftSchema.extend({
+  assetId: id.nullable(),
+  reuse: z
+    .strictObject({
+      referenceId: id,
+      digest: z.string().regex(/^[a-f0-9]{64}$/),
+    })
+    .nullable(),
+});
+export const patternReferenceV2CommandSchema =
+  patternReferenceV2DraftSchema.superRefine((v, c) => {
+    validateCommand(v, c, !!v.assetId || !!v.reuse);
+    if (v.assetId && v.reuse)
+      c.addIssue({
+        code: "custom",
+        message: "Choose a new upload or an exact source",
+      });
+    if (v.reuse && (!v.acknowledged || !v.evidence.trim()))
+      c.addIssue({
+        code: "custom",
+        message:
+          "Review source rights, target inputs and unverified assumptions",
+      });
+    if (v.operation !== "save" && (v.assetId || v.reuse))
+      c.addIssue({
+        code: "custom",
+        message: "Output and lineage belong to a new immutable version",
+      });
+  });
+export const patternSubjectDraftSchema = patternScopeSchema.extend({
+  customerId: id,
+  wearerId: id,
+  erased: z.boolean(),
+});
+export const patternSubjectSchema = patternSubjectDraftSchema.extend({ id });
+export const patternOutputSchema = z.strictObject({
+  assetId: id,
+  subjectId: id,
+  contentType: z.enum([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/pdf",
+  ]),
+  originalSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  display: z
+    .strictObject({
+      sha256: z.string().regex(/^[a-f0-9]{64}$/),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    })
+    .nullable(),
+  thumbnailSha256: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .nullable(),
+});
+export const patternLineageSchema = z.strictObject({
+  referenceId: id,
+  orderId: id,
+  pieceId: id.nullable(),
+  designId: id.nullable(),
+  measurementId: id.nullable(),
 });
 const provenance = {
   id,
@@ -130,6 +203,8 @@ export const patternVersionSchema = patternScopeSchema
     content: patternContentSchema.nullable(),
     reason: text(1000),
     redacted: z.boolean(),
+    output: patternOutputSchema.nullable().default(null),
+    source: patternLineageSchema.nullable().default(null),
   });
 export const patternEventSchema = z.strictObject({
   ...provenance,
@@ -155,6 +230,7 @@ export const patternStateSchema = patternScopeSchema.extend({
   nextEvent: counter.nullable(),
 });
 export const patternQuerySchema = patternScopeSchema.extend({
+  readerVersion: z.literal(2).optional(),
   beforeVersion: counter.optional(),
   beforeEvent: counter.optional(),
   beforeCapability: counter.optional(),
@@ -177,6 +253,7 @@ export const patternComparisonSchema = z.strictObject({
       "input-review-needed",
       "reference-not-reviewed",
       "governed-work",
+      "source-unavailable",
     ]),
   ),
 });
@@ -195,8 +272,66 @@ export const patternPageSchema = z.strictObject({
   available: z.boolean(),
 });
 export const patternCompareQuerySchema = patternScopeSchema.extend({
+  readerVersion: z.literal(2).optional(),
   referenceId: id,
 });
+const legacyVersion = patternVersionSchema.omit({ output: true, source: true });
+export const patternLegacyPageSchema = patternPageSchema.extend({
+  selected: legacyVersion.nullable(),
+  state: patternStateSchema.extend({
+    versions: z.array(legacyVersion).max(25),
+  }),
+});
+export const patternAssetsQuerySchema = patternScopeSchema.extend({
+  before: id.optional(),
+});
+export const patternAssetsSchema = z.strictObject({
+  subject: patternSubjectSchema.nullable(),
+  assets: z.array(mediaRecordSchema).max(25),
+  next: id.nullable(),
+});
+export const patternReadQuerySchema = patternCompareQuerySchema.extend({
+  variant: z.enum(["display", "thumbnail"]),
+});
+export const patternReadSchema = z.strictObject({
+  access: mediaReadSchema,
+  output: patternOutputSchema,
+});
+export const patternReuseQuerySchema = patternScopeSchema.extend({
+  referenceId: id,
+});
+export const patternReuseSchema = z.strictObject({
+  source: patternVersionSchema,
+  digest: z.string().regex(/^[a-f0-9]{64}$/),
+  targetDesignId: id.nullable(),
+  targetMeasurementId: id.nullable(),
+});
+export const patternPurgeLocatorSchema = z.strictObject({
+  kind: z.literal("pattern-output-purge"),
+  shopId: id,
+  purgeId: id,
+  initiatorId: id,
+  epoch: id,
+});
+export const patternRepeatContextSchema = z.strictObject({
+  adapterVersion: z.literal(1),
+  references: z
+    .array(
+      z.strictObject({
+        referenceId: id,
+        pieceId: id.nullable(),
+        version: z.number().int().positive(),
+        method: z.enum(["manual", "external"]),
+      }),
+    )
+    .max(50),
+});
+export type PatternReferenceV2Draft = z.infer<
+  typeof patternReferenceV2DraftSchema
+>;
+export type PatternSubject = z.infer<typeof patternSubjectSchema>;
+export type PatternSubjectDraft = z.infer<typeof patternSubjectDraftSchema>;
+export type PatternOutput = z.infer<typeof patternOutputSchema>;
 export type PatternBinding = z.infer<typeof patternBindingSchema>;
 export type PatternCapabilityDraft = z.infer<
   typeof patternCapabilityDraftSchema

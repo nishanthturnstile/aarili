@@ -1693,6 +1693,15 @@
   padding-block: var(--space-page);
   border-block-start: 1px solid var(--border);
 }
+.pattern-output-fields,
+.pattern-review-context {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pattern-output-fields dd,
+.pattern-review-context dd {
+  margin-inline-start: 0;
+}
 .pattern-reference dl {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);

@@ -61,6 +61,7 @@ export function initialRepeatOrder(
 }
 export async function readRepeatSource(ctx: QuickOrderContext, id: string) {
   const { orders, repeats } = repositories(ctx);
+  await ctx.patterns?.prepare(id);
   // Membership publishers use booking -> order -> identity. Recheck first membership.
   const member = await orders.bookings.membership(id);
   if (member) await orders.bookings.lock(member);
@@ -81,6 +82,7 @@ export async function readRepeatSource(ctx: QuickOrderContext, id: string) {
       ...scope,
     }),
     additions: scope.additions,
+    ...(ctx.patterns ? { patternContext: await ctx.patterns.read(id) } : {}),
     currentManifest: current?.available
       ? {
           entryId: current.entryId,

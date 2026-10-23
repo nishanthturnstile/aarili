@@ -825,10 +825,12 @@ limitations remain visible. Design/measurement prerequisites through #155 / PR
 #163 are merged in development `c04020a`; earlier in-progress headings are dated
 history. Human/pilot activation remains open. The owner approved publication and
 selected [A #164](https://github.com/nishanthturnstile/aarili/issues/164);
-A is implemented with local verification recorded; required CI and owner review
-remain open.
-[B #165](https://github.com/nishanthturnstile/aarili/issues/165) has A as a native
-blocker and awaits its own selection. A alone cannot close PAT-03 or the whole slice.
+A merged through #166 into development `96b3e54` after passing required CI.
+The owner selected [B #165](https://github.com/nishanthturnstile/aarili/issues/165)
+after all eight blockers merged; its [implementation and verification evidence](agents/Manual_Pattern_Outputs_Implementation_Evidence.md)
+records private output/replacement/reuse delivery. A+B retain the documented
+custom-order/single-form integration boundary; service/multi-form adapters and
+human/pilot acceptance remain explicit gaps before full PAT-03/slice closure.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** PAT-01, PAT-03. Scenarios: AC-07, AC-08.

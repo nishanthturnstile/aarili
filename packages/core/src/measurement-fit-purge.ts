@@ -27,6 +27,15 @@ export async function purgeMeasurementFit(
   const parsed = measurementFitPurgeLocatorSchema.safeParse(input);
   if (!parsed.success) return "ignored" as const;
   const p: MeasurementFitPurgeLocator = parsed.data;
+  return purgePrivateMedia(host, p, beforeCommit);
+}
+// Shared fenced object deletion; each caller validates its distinct domain
+// locator and composes only that domain's committed erasure intent repository.
+export async function purgePrivateMedia(
+  host: MeasurementFitPurgeHost,
+  p: { shopId: string; purgeId: string; initiatorId: string; epoch: string },
+  beforeCommit: () => Promise<void> = async () => {},
+) {
   const load = async (ctx: MeasurementFitPurgeContext) => {
     const intent = await ctx.repository.read(p.purgeId);
     if (

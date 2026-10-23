@@ -2,6 +2,7 @@ import { authorizeJobPrincipal } from "@aarili/auth/job-principal";
 import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { blockedCustomerPolicy } from "@aarili/core/customer-policy";
 import { designMediaPolicy } from "@aarili/core/design-media-policy";
+import { patternMediaPolicy } from "@aarili/core/manual-patterns";
 import type { MeasurementFitErasureStorage } from "@aarili/core/measurement-fit-purge";
 import { measurementMediaPolicy } from "@aarili/core/measurement-media-policy";
 import { type MediaContext, MediaFailure } from "@aarili/core/media";
@@ -9,6 +10,10 @@ import { shopBrandingPolicy } from "@aarili/core/shop-profile";
 import { createUsageWriter } from "@aarili/core/usage";
 import { type Database, sql, type Transaction, withShop } from "@aarili/db";
 import { designReferencesRepository } from "@aarili/db/design-references-repository";
+import {
+  manualPatternsRepository,
+  patternOutputPurgeRepository,
+} from "@aarili/db/manual-patterns-repository";
 import {
   measurementFitPurgeRepository,
   measurementFitRepository,
@@ -127,7 +132,23 @@ export function mediaProcessingHost(
                 ),
                 policy: p ?? blockedCustomerPolicy,
               },
-              designPolicy,
+              patternMediaPolicy(
+                {
+                  repository: manualPatternsRepository(tx, shopId),
+                  orders: ordersRepository(tx, shopId),
+                  measurements: measurementSessionsRepository(tx, shopId),
+                  wearers: wearerRepository(tx, shopId, noticeId),
+                  guardians: guardianRepository(
+                    tx,
+                    shopId,
+                    resolved.guardianPolicy?.enabled
+                      ? resolved.guardianPolicy.notice?.id
+                      : undefined,
+                  ),
+                  policy: p ?? blockedCustomerPolicy,
+                },
+                designPolicy,
+              ),
             ),
           ),
           instrumentation: {
@@ -149,6 +170,7 @@ export function measurementFitPurgeHost(
   shopId: string,
   userId: string,
   storage: (tx: Transaction) => MeasurementFitErasureStorage | undefined,
+  domain: "measurement-fit" | "pattern-output" = "measurement-fit",
 ) {
   return {
     transaction<T>(
@@ -166,7 +188,10 @@ export function measurementFitPurgeHost(
           throw Error("Fitting erasure storage capability is not enabled");
         return run({
           actorId: userId,
-          repository: measurementFitPurgeRepository(tx, shopId),
+          repository:
+            domain === "pattern-output"
+              ? patternOutputPurgeRepository(tx, shopId)
+              : measurementFitPurgeRepository(tx, shopId),
           storage: adapter,
         });
       });

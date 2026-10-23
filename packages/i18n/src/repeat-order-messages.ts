@@ -1,5 +1,8 @@
 export const repeatOrderMessages = {
   en: {
+    patternContext: "Previous pattern references — context only",
+    patternHelp:
+      "These exact sources are not selected for the new garment. After booking, review source rights and the new inputs in Pattern preparation, then save and explicitly select a new reference. Scale, formula assumptions and cutting approval are not inherited.",
     measurement: "Carry a reviewed measurement reference",
     measurementHelp:
       "Choose one exact observation from a source scope. Values and approvals are not copied. After booking, review and explicitly select it for the new garment.",
@@ -41,6 +44,9 @@ export const repeatOrderMessages = {
     loading: "Loading previous order…",
   },
   ta: {
+    patternContext: "முந்தைய பேட்டர்ன் குறிப்புகள் — தகவலுக்காக மட்டும்",
+    patternHelp:
+      "இந்த மூலங்கள் புதிய உடைக்குத் தேர்ந்தெடுக்கப்படவில்லை. முன்பதிவுக்குப் பிறகு பேட்டர்ன் தயாரிப்பில் மூல உரிமைகள் மற்றும் புதிய உள்ளீடுகளைச் சரிபார்த்து, புதிய குறிப்பைப் பதிவு செய்து வெளிப்படையாகத் தேர்ந்தெடு. அச்சு அளவு, சூத்திரக் கருதுகோள்கள் மற்றும் வெட்டும் அனுமதி தொடராது.",
     measurement: "ஆய்வு செய்த அளவுப் பதிவின் இணைப்பை எடுத்துச் செல்",
     measurementHelp:
       "மூல ஆடையின் பகுதியிலிருந்து சரியான பதிவைத் தேர்ந்தெடுக்கவும். அளவுகளும் ஒப்புதல்களும் நகலாகாது. புதிய ஆடையைப் பதிவு செய்தபின் ஆய்வு செய்து தனியாகத் தேர்ந்தெடுக்கவும்.",

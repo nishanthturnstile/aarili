@@ -68,6 +68,12 @@ export {
 } from "./repeat-orders.js";
 
 export type QuickOrderContext = {
+  patterns?: {
+    prepare(id: string): Promise<void>;
+    read(
+      id: string,
+    ): Promise<import("@aarili/contracts/orders").PatternRepeatContext>;
+  };
   measurements?: {
     repository: import("@aarili/db/repositories/measurement-sessions").MeasurementSessionsRepository;
     consequences: import("@aarili/db/repositories/design-specifications").DesignSpecificationsRepository;

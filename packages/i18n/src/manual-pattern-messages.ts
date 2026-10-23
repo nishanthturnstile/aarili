@@ -1,5 +1,40 @@
 export const manualPatternMessages = {
   en: {
+    outputLimits:
+      "JPEG, PNG or WebP: up to 20 MiB and 40 MP. PDF: up to 25 MiB. Sketches are resized; their dimensions do not verify print scale.",
+    outputGuidance:
+      "PDFs remain private downloads. If rejected, re-export a permitted PDF without a password. Images are reference sketches; no print calibration or cutting approval is provided.",
+    outputUnsupported: "Choose a JPEG, PNG or WebP sketch, or a permitted PDF.",
+    outputs: "Private sketches and pattern files",
+    outputHelp:
+      "Optional: upload your permitted JPEG, PNG, WebP sketch or PDF. A physical location works without a file. Uploading does not record or select a reference.",
+    prepareOutput: "Prepare private pattern uploads",
+    prepareOutputHelp:
+      "Create an upload subject for this exact garment or piece under current private-media authority.",
+    refreshOutputs: "Load uploaded pattern files",
+    moreOutputs: "More uploaded files",
+    output: "Uploaded output",
+    noOutput: "Physical reference only / no uploaded output",
+    chooseOutput: "Choose a ready output",
+    fileStatus: "Upload status",
+    pendingOutput:
+      "Only accepted ready files can be linked. Pending, processing, rejected, expired or unavailable files cannot be used.",
+    outputView: "View sketch / download PDF",
+    outputHide: "Hide output",
+    download: "Download private PDF",
+    imageAlt: "Private pattern reference sketch; scale unverified",
+    sourceReference: "Exact source pattern reference",
+    reviewSource: "Review source for this garment",
+    reuseSource: "Use this reviewed source context",
+    removeSource: "Clear source reuse",
+    reuseHelp:
+      "Review rights and original assumptions, then record the new garment's own exact or unknown inputs. Source review, validity and cutting approval are not inherited.",
+    sourceLineage: "Original source lineage",
+    sourceInputs: "Original source input versions",
+    reuseEvidence: "Source and target review findings",
+    outputEvidence: "Accepted file SHA-256",
+    fileUnavailable:
+      "The output or source is unavailable. Refresh and review access; your saved selection is unchanged.",
     title: "Pattern preparation",
     open: "Open pattern preparation",
     close: "Close pattern preparation",
@@ -22,9 +57,9 @@ export const manualPatternMessages = {
     unavailable: "Unavailable for new selection",
     notRecorded: "Not recorded",
     automated: "Automated drafting is unavailable.",
-    new: "Record physical reference",
+    new: "Record pattern reference",
     prepare: "Record pending preparation",
-    revise: "Revise physical reference",
+    revise: "Revise pattern reference",
     review: "Review this reference",
     select: "Select this exact reference",
     selected: "Selected reference",
@@ -63,7 +98,8 @@ export const manualPatternMessages = {
     assumptions: "Unverified formula / allowance assumptions",
     checks: "Check observations, including failed or unknown checks",
     warnings: "Reference limitations",
-    scaleWarning: "No print output linked; scale not assessed.",
+    scaleWarning:
+      "Print scale is unverified. A file, page size or claimed 1:1 scale is not calibration. Images are reference sketches and may be resized.",
     formulaWarning: "Formula assumptions unverified / not supplied.",
     cuttingWarning:
       "Reference review does not authorize cutting, validate fit or calibrate print scale.",
@@ -112,6 +148,42 @@ export const manualPatternMessages = {
     operationSelect: "Explicit selection",
   },
   ta: {
+    outputLimits:
+      "JPEG, PNG அல்லது WebP: அதிகபட்சம் 20 MiB மற்றும் 40 MP. PDF: அதிகபட்சம் 25 MiB. வரைபடங்களின் அளவு மாற்றப்படும்; அவற்றின் பரிமாணங்கள் அச்சு அளவை உறுதிப்படுத்தாது.",
+    outputGuidance:
+      "PDF தனிப்பட்ட பதிவிறக்கமாகவே இருக்கும். நிராகரிக்கப்பட்டால், அனுமதியுள்ள PDF ஐ கடவுச்சொல் இல்லாமல் மீண்டும் ஏற்றுமதி செய். படங்கள் தகவல் வரைபடங்கள்; அச்சு அளவுத்திருத்தம் அல்லது வெட்டும் அனுமதி வழங்கப்படாது.",
+    outputUnsupported:
+      "JPEG, PNG அல்லது WebP வரைபடம் அல்லது அனுமதியுள்ள PDF ஐத் தேர்ந்தெடு.",
+    outputs: "தனிப்பட்ட வரைபடங்கள் மற்றும் பேட்டர்ன் கோப்புகள்",
+    outputHelp:
+      "விருப்பம்: அனுமதியுள்ள JPEG, PNG, WebP வரைபடம் அல்லது PDF பதிவேற்றலாம். கோப்பு இல்லாமல் இருப்பிடக் குறிப்பு போதும். பதிவேற்றுவது குறிப்பைப் பதிவு செய்யவோ தேர்ந்தெடுக்கவோ செய்யாது.",
+    prepareOutput: "தனிப்பட்ட பேட்டர்ன் பதிவேற்றத்தைத் தயார் செய்",
+    prepareOutputHelp:
+      "தற்போதைய தனிப்பட்ட ஊடக அனுமதியுடன் இந்த உடை அல்லது பகுதிக்கான பதிவேற்ற இடத்தை உருவாக்கு.",
+    refreshOutputs: "பதிவேற்றிய பேட்டர்ன் கோப்புகளை ஏற்று",
+    moreOutputs: "மேலும் பதிவேற்றிய கோப்புகள்",
+    output: "பதிவேற்றிய வெளியீடு",
+    noOutput: "இருப்பிடக் குறிப்பு மட்டும் / பதிவேற்றிய வெளியீடு இல்லை",
+    chooseOutput: "தயாரான வெளியீட்டைத் தேர்ந்தெடு",
+    fileStatus: "பதிவேற்ற நிலை",
+    pendingOutput:
+      "ஏற்றுக்கொள்ளப்பட்டுத் தயாரான கோப்புகளை மட்டும் இணைக்கலாம். நிலுவை, செயலாக்கம், நிராகரிப்பு, காலாவதி அல்லது கிடைக்காத கோப்புகளைப் பயன்படுத்த முடியாது.",
+    outputView: "வரைபடத்தைப் பார் / PDF பதிவிறக்கு",
+    outputHide: "வெளியீட்டை மறை",
+    download: "தனிப்பட்ட PDF பதிவிறக்கு",
+    imageAlt: "தனிப்பட்ட பேட்டர்ன் வரைபடக் குறிப்பு; அச்சு அளவு உறுதிப்படுத்தப்படவில்லை",
+    sourceReference: "துல்லியமான மூல பேட்டர்ன் குறிப்பு",
+    reviewSource: "இந்த உடைக்கான மூலத்தைச் சரிபார்",
+    reuseSource: "சரிபார்த்த மூலக் குறிப்பைப் பயன்படுத்து",
+    removeSource: "மூல மறுபயன்பாட்டை நீக்கு",
+    reuseHelp:
+      "உரிமைகள் மற்றும் மூலக் கருதுகோள்களைச் சரிபார்த்து, புதிய உடையின் துல்லியமான அல்லது தெரியாத உள்ளீடுகளைப் பதிவு செய். மூலச் சரிபார்ப்பு, செல்லுபடியாகும் நிலை மற்றும் வெட்டும் அனுமதி தொடராது.",
+    sourceLineage: "மூலக் குறிப்பின் தொடர்பு",
+    sourceInputs: "மூல உள்ளீடுகளின் பதிப்புகள்",
+    reuseEvidence: "மூலம் மற்றும் புதிய உடைச் சரிபார்ப்பின் விவரங்கள்",
+    outputEvidence: "ஏற்றுக்கொண்ட கோப்பின் SHA-256",
+    fileUnavailable:
+      "வெளியீடு அல்லது மூலம் கிடைக்கவில்லை. அணுகலை மீண்டும் சரிபார்; சேமித்த தேர்வு மாறவில்லை.",
     title: "பேட்டர்ன் தயாரிப்பு",
     open: "பேட்டர்ன் தயாரிப்பைத் திற",
     close: "பேட்டர்ன் தயாரிப்பை மூடு",
@@ -131,9 +203,9 @@ export const manualPatternMessages = {
     unavailable: "புதிய தேர்வுக்குக் கிடைக்காது",
     notRecorded: "பதிவாகவில்லை",
     automated: "தானியங்கி பேட்டர்ன் வரைதல் கிடைக்காது.",
-    new: "பொருள் இருப்பிடக் குறிப்பைப் பதிவு செய்",
+    new: "பேட்டர்ன் குறிப்பைப் பதிவு செய்",
     prepare: "நிலுவைத் தயாரிப்பைப் பதிவு செய்",
-    revise: "இருப்பிடக் குறிப்பைத் திருத்து",
+    revise: "பேட்டர்ன் குறிப்பைத் திருத்து",
     review: "இந்தக் குறிப்பைச் சரிபார்",
     select: "இந்தத் துல்லியமான குறிப்பைத் தேர்ந்தெடு",
     selected: "தேர்ந்தெடுக்கப்பட்ட குறிப்பு",
@@ -172,7 +244,8 @@ export const manualPatternMessages = {
     assumptions: "சரிபார்க்கப்படாத சூத்திர / ஓர அனுமானங்கள்",
     checks: "தோல்வி அல்லது தெரியாதவை உட்பட சரிபார்ப்புக் குறிப்புகள்",
     warnings: "குறிப்பின் வரம்புகள்",
-    scaleWarning: "அச்சு வெளியீடு இணைக்கப்படவில்லை; அளவுகோல் மதிப்பிடப்படவில்லை.",
+    scaleWarning:
+      "அச்சு அளவு உறுதிப்படுத்தப்படவில்லை. கோப்பு, பக்க அளவு அல்லது 1:1 என்ற குறிப்பு அளவுத்திருத்தம் அல்ல. படங்கள் தகவல் வரைபடங்கள்; அளவு மாற்றப்பட்டிருக்கலாம்.",
     formulaWarning: "சூத்திர அனுமானங்கள் சரிபார்க்கப்படவில்லை / வழங்கப்படவில்லை.",
     cuttingWarning:
       "குறிப்பைச் சரிபார்ப்பது வெட்டும் அனுமதியோ, பொருத்த உறுதியோ, அச்சு அளவுகோல் சான்றோ அல்ல.",

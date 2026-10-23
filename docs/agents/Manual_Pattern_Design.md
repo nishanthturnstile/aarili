@@ -2,9 +2,11 @@
 
 23 October 2026. Roadmap **1.3.3**, PAT-01/03; AC-07/08 contributions.
 **Owner approved MP-D01–12 and the A → B packet on 23 October 2026.**
-Published [A #164](https://github.com/nishanthturnstile/aarili/issues/164) is
-selected for implementation; [B #165](https://github.com/nishanthturnstile/aarili/issues/165)
-remains blocked by A. Approval covers this independent software design, not
+Published [A #164](https://github.com/nishanthturnstile/aarili/issues/164) merged
+through #166 into development `96b3e54`. The owner selected
+[B #165](https://github.com/nishanthturnstile/aarili/issues/165) after all eight
+blockers merged; [B implementation/evidence](Manual_Pattern_Outputs_Implementation_Evidence.md)
+records its delivery. Approval covers this independent software design, not
 production policy, privacy activation, cutting approval or full feature closure.
 [Research](Manual_Pattern_REA_Evidence.md), [ticket packet](Manual_Pattern_Ticket_Packet.md),
 [baseline and verification](Manual_Pattern_Implementation_Evidence.md).

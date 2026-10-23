@@ -1,8 +1,10 @@
 import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { documentLocatorSchema } from "@aarili/contracts/documents";
+import { patternPurgeLocatorSchema } from "@aarili/contracts/manual-patterns";
 import { measurementFitPurgeLocatorSchema } from "@aarili/contracts/measurement-fit";
 import { mediaJobLocatorSchema } from "@aarili/contracts/media";
 import { type DocumentRenderer, processDocument } from "@aarili/core/documents";
+import { purgePatternOutputs } from "@aarili/core/manual-patterns";
 import {
   type MeasurementFitErasureStorage,
   purgeMeasurementFit,
@@ -81,6 +83,27 @@ export function productionJobComposition(
           input: unknown,
           beforeCommit: () => Promise<void>,
         ) => {
+          const patternPurge = patternPurgeLocatorSchema.safeParse(input);
+          if (patternPurge.success) {
+            if (!adapters) throw Error("Pattern erasure adapter unavailable");
+            const p = patternPurge.data;
+            try {
+              return await purgePatternOutputs(
+                measurementFitPurgeHost(
+                  db,
+                  p.shopId,
+                  p.initiatorId,
+                  (tx) => adapters(tx, p.shopId, p.initiatorId).erasureStorage,
+                  "pattern-output",
+                ),
+                p,
+                beforeCommit,
+              );
+            } catch (e) {
+              if (e instanceof ShopAccessError) return "ignored";
+              throw e;
+            }
+          }
           const purge = measurementFitPurgeLocatorSchema.safeParse(input);
           if (purge.success) {
             if (!adapters) throw Error("Fitting erasure adapter unavailable");

@@ -2,10 +2,11 @@
 
 23 October 2026. Roadmap **1.3.3**, PAT-01/03, AC-07/08 contributions.
 **Approved A → B; published as [#164](https://github.com/nishanthturnstile/aarili/issues/164)
-and [#165](https://github.com/nishanthturnstile/aarili/issues/165). A is selected.**
+and [#165](https://github.com/nishanthturnstile/aarili/issues/165). A merged; B selected.**
 Native blockers were written and read back on 23 October 2026. All A
-prerequisites are merged into `c04020a`. B must wait for A to merge and its own
-implementation selection. The packet below preserves the approved scope.
+prerequisites were merged into `c04020a`. A merged through #166 into `96b3e54`;
+the owner then selected B with all eight blockers merged. The packet below
+preserves the approved scope. [B delivery evidence](Manual_Pattern_Outputs_Implementation_Evidence.md).
 [Independent design](Manual_Pattern_Design.md),
 [research and limitations](Manual_Pattern_REA_Evidence.md),
 [current prerequisites and checks](Manual_Pattern_Implementation_Evidence.md).
@@ -48,7 +49,7 @@ manual/external pattern workflow, immutable reference history or cutting release
 
 ## Ticket A: fileless preparation and exact reference history
 
-**Stable slice:** 1.3.3a. **Status:** approved and selected, issue #164.
+**Stable slice:** 1.3.3a. **Status:** approved issue #164, merged through PR #166.
 **Primary requirements:** PAT-01/03, ORD-02/12/13, DES-03/05/11,
 MEA-04/07, CUS-02/06/07/09; TRU-01/03/05/06/07/08/10/13,
 USE-01/02/03/08/09. AC-07/08 plus applicable AC-06/38/40/52/53/55/56 safeguards.
@@ -139,8 +140,9 @@ implementation/review-ready/first-usable timings in Delivery_Measurements.md.
 
 ## Ticket B: private outputs, replacement and deliberate reuse
 
-**Stable slice:** 1.3.3b. **Status:** approved packet published as #165; blocked by
-unmerged A #164 and awaiting its own implementation selection.
+**Stable slice:** 1.3.3b. **Status:** approved packet published as #165; selected
+by the owner after all eight blockers merged. Delivery and fresh verification
+are recorded in [B evidence](Manual_Pattern_Outputs_Implementation_Evidence.md).
 **Primary requirements:** PAT-01/03, ORD-07/08/12/13, DES-03/05/10/11,
 MEA-04/07, CUS-03/06/07/09; TRU-01/03/05/06/07/08/10/13;
 USE-01/02/03/07/08/09. Applicable AC-07/08/38/40/52/53/55/56 safeguards.

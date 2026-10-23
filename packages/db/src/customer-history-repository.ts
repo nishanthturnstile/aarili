@@ -172,6 +172,10 @@ events as (
  select a.*,'order',o.id,null::uuid,o.wearer_id from audits a join visible_orders o on o.id=a.entity_id
  where a.entity_type='garment_order' and a.action in('order.accept','order.presentation','order.pieces.materialize','order.service-change','design.specification.save','design.specification.select')
  union all
+ select a.*,'order',o.id,null::uuid,o.wearer_id from audits a join pattern_event p on(p.shop_id,p.audit_id)=(a.shop_id,a.id) join visible_orders o on o.id=p.order_id
+ where o.wearer_id in(select id from allowed_measurement_wearers) and measurement_authority(p.shop_id,o.customer_id,o.wearer_id)
+ and (p.reference_id is null or pattern_reference_access(p.shop_id,p.reference_id))
+ union all
  select a.*,'booking',null::uuid,b.id,null::uuid from audits a join visible_bookings b on b.id=a.entity_id
  where a.entity_type='booking' and a.action in('booking.revise','booking.commercial.propose')
  union all
@@ -193,7 +197,7 @@ details as (
  (select jsonb_build_object('purpose',p.purpose,'decision',p.decision,'notice',p.notice_id) from guardian_purpose_event p where p.shop_id=e.shop_id and p.wearer_id=e.wearer_id and p.wearer_version=(e.changes->>'version')::integer limit 1) as guardian_purpose_fact,
  (select jsonb_build_object('age',v.age) from wearer_age_event v where v.shop_id=e.shop_id and v.wearer_id=e.wearer_id and v.wearer_version=(e.changes->>'version')::integer limit 1) as age_fact,
  cr.basis as commercial_basis,ie.reason as identity_reason,ie.fields as identity_fields,ie.previous_version as identity_previous,(ie.redacted_at is not null) as identity_redacted,pr.version as pair_version,pr.first_id as pair_first,pr.second_id as pair_second,
- case when e.action in('design.specification.save','design.specification.select') then array(select e.changes->>'pieceId' where e.changes->>'pieceId' is not null)
+ case when e.action in('design.specification.save','design.specification.select','pattern.prepare','pattern.save','pattern.review','pattern.select') then array(select e.changes->>'pieceId' where e.changes->>'pieceId' is not null)
  when e.action='order.service-change' then array(select distinct l.piece_id::text from order_service_change_line l join order_service_change ch on (ch.shop_id,ch.id)=(l.shop_id,l.change_id) where ch.shop_id=e.shop_id and ch.audit_id=e.id and l.piece_id is not null order by l.piece_id::text)
  else array(select p.id::text from order_piece p where p.shop_id=e.shop_id and p.order_id=e.order_id order by p.id) end as piece_ids,
  case when e.action='order.service-change' then array(select l.id::text from order_service_change_line l join order_service_change ch on (ch.shop_id,ch.id)=(l.shop_id,l.change_id) where ch.shop_id=e.shop_id and ch.audit_id=e.id order by l.id)
@@ -288,6 +292,10 @@ select * from details e where
           "service.line.correct": ["lineProgress"],
           "measurement.save": ["measurementVersion"],
           "measurement.select": ["measurementSelection"],
+          "pattern.prepare": ["patternPreparation"],
+          "pattern.save": ["patternReference"],
+          "pattern.review": ["patternReview"],
+          "pattern.select": ["patternSelection"],
         };
         const redacted =
           row.identity_redacted === true ||
@@ -305,6 +313,16 @@ select * from details e where
             : (row.identity_reason ?? row.note ?? row.reason ?? null),
           fields: row.identity_fields ?? fields[row.action as string] ?? [],
           facts: Object.entries({
+            ...(String(row.action).startsWith("pattern.")
+              ? {
+                  patternEventId: row.entity_id,
+                  patternReferenceId: (row.changes as Record<string, unknown>)
+                    .referenceId,
+                  patternScopeVersion: String(
+                    (row.changes as Record<string, unknown>).version,
+                  ),
+                }
+              : {}),
             ...(kind === "measurement"
               ? { measurementEventId: row.entity_id }
               : {}),
@@ -374,9 +392,11 @@ select * from details e where
               kind === "measurement"
                 ? row.wearer_id
                 : (order ?? row.booking_id ?? row.entity_id),
-            version: String(row.action).startsWith("design.specification.")
-              ? null
-              : (row.revision ?? null),
+            version:
+              String(row.action).startsWith("design.specification.") ||
+              String(row.action).startsWith("pattern.")
+                ? null
+                : (row.revision ?? null),
           },
           code: row.code ?? null,
           original: {

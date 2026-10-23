@@ -49,7 +49,11 @@ import { productionDraftRegistry } from "@aarili/core/drafts";
 import {
   type ManualPatternsContext,
   patternCapabilityWorkflow,
+  patternMediaPolicy,
   patternReferenceWorkflow,
+  patternSubjectWorkflow,
+  preparePatternRepeatContext,
+  readPatternRepeatContext,
 } from "@aarili/core/manual-patterns";
 import {
   type MeasurementFitContext,
@@ -297,7 +301,7 @@ export type OwnerAuth = {
   withOwnerManualPatterns: <T>(
     headers: Headers,
     shopId: string,
-    run: (ctx: ManualPatternsContext) => Promise<T>,
+    run: (ctx: ManualPatternsContext, media: MediaContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   withOwnerHistory: <T>(
     headers: Headers,
@@ -1349,6 +1353,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         patternReferenceWorkflow(manualPatternsContext(tx, shopId, userId)),
       );
       workflows.set(
+        "pattern.reference@2",
+        patternReferenceWorkflow(manualPatternsContext(tx, shopId, userId), 2),
+      );
+      workflows.set(
+        "pattern.subject",
+        patternSubjectWorkflow(manualPatternsContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "measurement.fit-subject",
         measurementFitSubjectWorkflow(
           measurementFitContext(tx, shopId, userId),
@@ -1543,6 +1555,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
             records,
             designSpecificationsRepository(tx, shopId),
             designReferencesRepository(tx, shopId),
+            manualPatternsRepository(tx, shopId),
           ),
         ...(configuration.draftInstrumentation
           ? { instrumentation: configuration.draftInstrumentation(tx, shopId) }
@@ -1557,6 +1570,18 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ): QuickOrderContext {
     const actor = { type: "user" as const, id: actorId };
     return {
+      patterns: {
+        prepare: (id) =>
+          preparePatternRepeatContext(
+            manualPatternsContext(tx, shopId, actorId),
+            id,
+          ),
+        read: (id) =>
+          readPatternRepeatContext(
+            manualPatternsContext(tx, shopId, actorId),
+            id,
+          ),
+      },
       measurements: {
         repository: measurementSessionsRepository(tx, shopId),
         consequences: designSpecificationsRepository(tx, shopId),
@@ -1657,6 +1682,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return {
       actorId,
       repository: manualPatternsRepository(tx, shopId),
+      media: mediaRepository(tx, shopId),
       specifications: designSpecificationsContext(tx, shopId, actorId),
       measurements: measurementSessionsContext(tx, shopId, actorId),
     };
@@ -1664,10 +1690,13 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   async function withOwnerManualPatterns<T>(
     headers: Headers,
     shopId: string,
-    run: (ctx: ManualPatternsContext) => Promise<T>,
+    run: (ctx: ManualPatternsContext, media: MediaContext) => Promise<T>,
   ) {
     return withOwnerTransaction(headers, shopId, (tx, actorId) =>
-      run(manualPatternsContext(tx, shopId, actorId)),
+      run(
+        manualPatternsContext(tx, shopId, actorId),
+        ownerMediaContext(tx, shopId, actorId),
+      ),
     );
   }
   function measurementSessionsContext(
@@ -1837,6 +1866,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       repository: measurementFormsRepository(tx, shopId),
       catalogue: catalogueContext(tx, shopId, actorId),
       async illustrationAllowed(id, version) {
+        if (await manualPatternsRepository(tx, shopId).subjectForAsset(id))
+          return false;
         const repository = mediaRepository(tx, shopId);
         await repository.lock(id);
         const a = await repository.read(id);
@@ -2013,17 +2044,27 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       ...adapters,
       policy: shopBrandingPolicy(
         shopId,
-        measurementMediaPolicy(
+        patternMediaPolicy(
           {
-            repository: measurementFitRepository(tx, shopId),
+            repository: manualPatternsRepository(tx, shopId),
+            orders: ordersRepository(tx, shopId),
             measurements: measurementSessionsRepository(tx, shopId),
             wearers: wearerRepository(tx, shopId, wearerPolicy().notice?.id),
             guardians: guardianContext(tx, shopId, userId).repository,
             policy: wearerPolicy(),
           },
-          designMediaPolicy(
-            designReferencesContext(tx, shopId, userId).authority,
-            adapters.policy,
+          measurementMediaPolicy(
+            {
+              repository: measurementFitRepository(tx, shopId),
+              measurements: measurementSessionsRepository(tx, shopId),
+              wearers: wearerRepository(tx, shopId, wearerPolicy().notice?.id),
+              guardians: guardianContext(tx, shopId, userId).repository,
+              policy: wearerPolicy(),
+            },
+            designMediaPolicy(
+              designReferencesContext(tx, shopId, userId).authority,
+              adapters.policy,
+            ),
           ),
         ),
       ),

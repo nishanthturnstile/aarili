@@ -10,11 +10,15 @@ import {
   type PatternCapabilityDraft,
   type PatternDraft,
   type PatternPage,
+  type PatternReferenceV2Draft,
   type PatternVersion,
   patternCapabilityCommandSchema,
   patternCapabilityDraftSchema,
   patternCommandSchema,
   patternDraftSchema,
+  patternReferenceV2CommandSchema,
+  patternReferenceV2DraftSchema,
+  patternSubjectDraftSchema,
 } from "@aarili/contracts/manual-patterns";
 import type { AcceptedOrder, OrderPieces } from "@aarili/contracts/orders";
 import { type Locale, manualPatternMessages } from "@aarili/i18n";
@@ -28,11 +32,15 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { UseFormReturn } from "react-hook-form";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import type { OwnerGuard } from "./owner-feedback";
+import {
+  PatternOutputFields,
+  PatternOutputView,
+  PatternUploads,
+} from "./pattern-outputs";
 
 type T = (typeof manualPatternMessages)[Locale];
 const denied = (e: unknown) =>
@@ -53,17 +61,19 @@ function Warnings({ t }: { t: T }) {
 }
 function InputProvenance({
   kind,
-  form,
+  value,
+  onChange,
   current,
   t,
 }: {
   kind: "design" | "measurement";
-  form: UseFormReturn<PatternDraft>;
+  value: PatternDraft["content"]["design"];
+  onChange: (value: PatternDraft["content"]["design"]) => void;
   current: string | null;
   t: T;
 }) {
   const prefix = useId();
-  const v = form.watch(`content.${kind}`);
+  const v = value;
   return (
     <fieldset className="owner-form">
       <legend>{t[kind]}</legend>
@@ -74,8 +84,7 @@ function InputProvenance({
           aria-label={t[kind]}
           value={v.state}
           onChange={(e) =>
-            form.setValue(
-              `content.${kind}`,
+            onChange(
               e.target.value === "known"
                 ? { state: "known", versionId: null }
                 : e.target.value === "not-applicable"
@@ -85,7 +94,6 @@ function InputProvenance({
                       policy: { entryId: "", revisionId: "" },
                     }
                   : { state: "unknown", reason: "" },
-              { shouldDirty: true },
             )
           }
         >
@@ -103,11 +111,7 @@ function InputProvenance({
               value={v.versionId ?? ""}
               maxLength={36}
               onChange={(e) =>
-                form.setValue(
-                  `content.${kind}`,
-                  { ...v, versionId: e.target.value || null },
-                  { shouldDirty: true },
-                )
+                onChange({ ...v, versionId: e.target.value || null })
               }
             />
           </label>
@@ -119,13 +123,7 @@ function InputProvenance({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() =>
-                  form.setValue(
-                    `content.${kind}`,
-                    { state: "known", versionId: current },
-                    { shouldDirty: true },
-                  )
-                }
+                onClick={() => onChange({ state: "known", versionId: current })}
               >
                 {t.useCurrent}
               </Button>
@@ -142,13 +140,7 @@ function InputProvenance({
               className="ui-input"
               maxLength={1000}
               value={v.reason}
-              onChange={(e) =>
-                form.setValue(
-                  `content.${kind}`,
-                  { ...v, reason: e.target.value },
-                  { shouldDirty: true },
-                )
-              }
+              onChange={(e) => onChange({ ...v, reason: e.target.value })}
             />
           </label>
           {v.state === "not-applicable" && (
@@ -160,14 +152,10 @@ function InputProvenance({
                   value={v.policy.entryId}
                   maxLength={36}
                   onChange={(e) =>
-                    form.setValue(
-                      `content.${kind}`,
-                      {
-                        ...v,
-                        policy: { ...v.policy, entryId: e.target.value },
-                      },
-                      { shouldDirty: true },
-                    )
+                    onChange({
+                      ...v,
+                      policy: { ...v.policy, entryId: e.target.value },
+                    })
                   }
                 />
               </label>
@@ -178,14 +166,10 @@ function InputProvenance({
                   value={v.policy.revisionId}
                   maxLength={36}
                   onChange={(e) =>
-                    form.setValue(
-                      `content.${kind}`,
-                      {
-                        ...v,
-                        policy: { ...v.policy, revisionId: e.target.value },
-                      },
-                      { shouldDirty: true },
-                    )
+                    onChange({
+                      ...v,
+                      policy: { ...v.policy, revisionId: e.target.value },
+                    })
                   }
                 />
               </label>
@@ -197,12 +181,14 @@ function InputProvenance({
   );
 }
 function ReferenceEditor({
+  shopId,
   controller,
   page,
   locale,
   guard,
   onDenied,
 }: {
+  shopId: string;
   controller: DraftRecovery;
   page: PatternPage;
   locale: Locale;
@@ -216,7 +202,18 @@ function ReferenceEditor({
     ),
     t = manualPatternMessages[locale];
   const prefix = useId();
-  const parsed = patternDraftSchema.safeParse(s.values);
+  const output = "assetId" in s.values;
+  const schema = output ? patternReferenceV2DraftSchema : patternDraftSchema;
+  const command = output
+    ? patternReferenceV2CommandSchema
+    : patternCommandSchema;
+  const parsed = schema.safeParse(s.values);
+  const reference = parsed.success
+    ? (page.state.versions.find((v) => v.id === parsed.data.referenceId) ??
+      (page.selected?.id === parsed.data.referenceId
+        ? page.selected
+        : undefined))
+    : undefined;
   useEffect(() => {
     if (s.status === "denied" || s.error === "NOT_FOUND") onDenied();
   }, [s.status, s.error, onDenied]);
@@ -225,13 +222,13 @@ function ReferenceEditor({
     <>
       <Warnings t={t} />
       {s.error === "VERSION_STALE" && <p role="alert">{t.conflict}</p>}
-      <DraftForm
+      <DraftForm<PatternDraft | PatternReferenceV2Draft>
         controller={controller}
-        schema={patternDraftSchema}
+        schema={schema}
         locale={locale}
         guard={guard}
         canPromote={
-          patternCommandSchema.safeParse(s.values).success &&
+          command.safeParse(s.values).success &&
           page.available &&
           parsed.success &&
           page.capability?.[parsed.data.method] === "available"
@@ -263,8 +260,72 @@ function ReferenceEditor({
               </select>
             </label>
             {op === "prepare" && <p>{t.preparation}</p>}
+            {(op === "review" || op === "select") && reference?.content && (
+              <div className="pattern-review-context">
+                <dl>
+                  <dt>{t.sourceReference}</dt>
+                  <dd>{reference.id}</dd>
+                  <dt>{t.sourceVersion}</dt>
+                  <dd>{reference.content.sourceVersion || t.unknown}</dd>
+                  <dt>{t.declaredScale}</dt>
+                  <dd>{reference.content.declaredScale || t.unknown}</dd>
+                  <dt>{t.assumptions}</dt>
+                  <dd>{reference.content.assumptions || t.unknown}</dd>
+                  <dt>{t.checks}</dt>
+                  <dd>{reference.content.checks || t.unknown}</dd>
+                  <dt>{t.sourceInputs}</dt>
+                  <dd>
+                    {reference.content.design.state === "known"
+                      ? reference.content.design.versionId
+                      : t.unknown}{" "}
+                    ·{" "}
+                    {reference.content.measurement.state === "known"
+                      ? reference.content.measurement.versionId
+                      : t.unknown}
+                  </dd>
+                  <dt>{t.currentInputs}</dt>
+                  <dd>
+                    {page.designId ?? t.unknown} ·{" "}
+                    {page.measurementId ?? t.unknown}
+                  </dd>
+                </dl>
+              </div>
+            )}
             {op === "save" && (
               <>
+                {output && (
+                  <PatternOutputFields
+                    shopId={shopId}
+                    page={page}
+                    locale={locale}
+                    onDenied={onDenied}
+                    value={patternReferenceV2DraftSchema.parse(form.watch())}
+                    onChange={(p) => {
+                      if (p.assetId !== undefined)
+                        form.setValue("assetId", p.assetId, {
+                          shouldDirty: true,
+                        });
+                      if (p.reuse !== undefined)
+                        form.setValue("reuse", p.reuse, { shouldDirty: true });
+                      if (p.method !== undefined)
+                        form.setValue("method", p.method, {
+                          shouldDirty: true,
+                        });
+                      if (p.evidence !== undefined)
+                        form.setValue("evidence", p.evidence, {
+                          shouldDirty: true,
+                        });
+                      if (p.content !== undefined)
+                        form.setValue("content", p.content, {
+                          shouldDirty: true,
+                        });
+                      if (p.acknowledged !== undefined)
+                        form.setValue("acknowledged", p.acknowledged, {
+                          shouldDirty: true,
+                        });
+                    }}
+                  />
+                )}
                 <label htmlFor={`${prefix}-field-4`}>
                   {t.locator}
                   <Input
@@ -348,13 +409,21 @@ function ReferenceEditor({
                 </details>
                 <InputProvenance
                   kind="design"
-                  form={form}
+                  value={form.watch("content.design")}
+                  onChange={(v) =>
+                    form.setValue("content.design", v, { shouldDirty: true })
+                  }
                   current={page.designId}
                   t={t}
                 />
                 <InputProvenance
                   kind="measurement"
-                  form={form}
+                  value={form.watch("content.measurement")}
+                  onChange={(v) =>
+                    form.setValue("content.measurement", v, {
+                      shouldDirty: true,
+                    })
+                  }
                   current={page.measurementId}
                   t={t}
                 />
@@ -530,12 +599,16 @@ function CapabilityEditor({
   );
 }
 function SavedReference({
+  shopId,
+  onDenied,
   v,
   page,
   locale,
   onAction,
   disabled,
 }: {
+  shopId: string;
+  onDenied: () => void;
   v: PatternVersion;
   page: PatternPage;
   locale: Locale;
@@ -627,6 +700,23 @@ function SavedReference({
                 : t.inputUnknown}
           </p>
           <Warnings t={t} />
+          <p>
+            {t.sourceReference}: {v.id}
+          </p>
+          {v.source && (
+            <p>
+              {t.sourceLineage}: {v.source.referenceId} · {t.sourceInputs}:{" "}
+              {v.source.designId ?? t.unknown} ·{" "}
+              {v.source.measurementId ?? t.unknown}
+            </p>
+          )}
+          <PatternOutputView
+            key={v.id}
+            shopId={shopId}
+            reference={v}
+            locale={locale}
+            onDenied={onDenied}
+          />
           <div className="owner-actions">
             <Button
               type="button"
@@ -693,6 +783,12 @@ function PatternScope({
     [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false),
     [ended, setEnded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [uploadWorking, setUploadWorking] = useState(false);
+  useEffect(
+    () => onEditing(!!editor || uploadWorking),
+    [editor, uploadWorking, onEditing],
+  );
   const endAccess = useCallback(() => {
     generation.current++;
     current.current?.invalidate();
@@ -757,10 +853,12 @@ function PatternScope({
           records.filter(
             (d) =>
               d.lifecycle === "active" &&
-              ["pattern.reference", "pattern.capability"].includes(
-                d.workflow,
-              ) &&
-              (d.workflow === "pattern.reference"
+              [
+                "pattern.reference",
+                "pattern.capability",
+                "pattern.subject",
+              ].includes(d.workflow) &&
+              (d.workflow !== "pattern.capability"
                 ? d.payload.orderId === orderId && d.payload.pieceId === pieceId
                 : JSON.stringify(d.payload.binding) ===
                   JSON.stringify(p.binding)),
@@ -804,18 +902,23 @@ function PatternScope({
     if (current.current) scope.current?.release(current.current);
     const c = scope.current?.open({
       workflow: kind,
-      schemaVersion: 1,
+      schemaVersion:
+        record?.schemaVersion ?? (kind === "pattern.reference" ? 2 : 1),
       initial,
       ...(record ? { record } : {}),
       editableTargetConflict: true,
       committed: (r) => {
-        if (r.lifecycle === "promoted") void load();
+        if (r.lifecycle === "promoted") {
+          setRefreshKey((n) => n + 1);
+          void load();
+        }
       },
     });
     current.current = c;
     setEditor(c);
     setWorkflow(kind);
     onEditing(!!c);
+    if (c && kind === "pattern.subject" && !record) void c.save();
   }
   function close() {
     if (
@@ -834,11 +937,18 @@ function PatternScope({
     operation: PatternDraft["operation"] = "save",
   ) {
     if (!page) return;
-    const initial = emptyPatternDraft(
-      { orderId, pieceId },
-      page.customerId,
-      page.wearerId,
-    );
+    const initial: PatternReferenceV2Draft = {
+      ...emptyPatternDraft(
+        { orderId, pieceId },
+        page.customerId,
+        page.wearerId,
+      ),
+      assetId:
+        v?.output && !v.source && operation === "save"
+          ? v.output.assetId
+          : null,
+      reuse: null,
+    };
     Object.assign(initial, {
       baseVersion: page.state.version,
       baseSavedId: page.state.latestSavedId,
@@ -856,6 +966,21 @@ function PatternScope({
       void comparePattern(shopId, { orderId, pieceId, referenceId: v.id })
         .then((c) => {
           if (g !== generation.current) return;
+          setPage((old) =>
+            old
+              ? {
+                  ...old,
+                  designId: c.designId,
+                  measurementId: c.measurementId,
+                  comparisons: [
+                    ...old.comparisons.filter(
+                      (r) => r.referenceId !== c.referenceId,
+                    ),
+                    c,
+                  ],
+                }
+              : old,
+          );
           open(
             { ...initial, referenceId: v.id, digest: c.digest },
             "pattern.reference",
@@ -934,6 +1059,28 @@ function PatternScope({
             <p>{page.state.version ? t.pending : t.empty}</p>
           )}
           <Warnings t={t} />
+          <PatternUploads
+            onWorking={setUploadWorking}
+            shopId={shopId}
+            scope={{ orderId, pieceId }}
+            locale={locale}
+            guard={guard}
+            refreshKey={refreshKey}
+            onDenied={endAccess}
+            disabled={busy || !!editor}
+            onPrepare={() =>
+              open(
+                {
+                  orderId,
+                  pieceId,
+                  customerId: page.customerId,
+                  wearerId: page.wearerId,
+                  erased: false,
+                },
+                "pattern.subject",
+              )
+            }
+          />
           {!editor && (
             <div className="owner-actions">
               <Button
@@ -974,8 +1121,19 @@ function PatternScope({
                   locale={locale}
                   guard={guard}
                 />
+              ) : workflow === "pattern.subject" ? (
+                <DraftForm
+                  controller={editor}
+                  schema={patternSubjectDraftSchema}
+                  locale={locale}
+                  guard={guard}
+                  promotionLabel={t.prepareOutput}
+                >
+                  {() => <p>{t.prepareOutputHelp}</p>}
+                </DraftForm>
               ) : (
                 <ReferenceEditor
+                  shopId={shopId}
                   controller={editor}
                   page={page}
                   locale={locale}
@@ -1006,6 +1164,8 @@ function PatternScope({
           <h3>{t.selected}</h3>
           {page.selected ? (
             <SavedReference
+              shopId={shopId}
+              onDenied={endAccess}
               v={page.selected}
               page={page}
               locale={locale}
@@ -1019,6 +1179,8 @@ function PatternScope({
             <summary>{t.recorded}</summary>
             {page.state.versions.map((v) => (
               <SavedReference
+                shopId={shopId}
+                onDenied={endAccess}
                 key={v.id}
                 v={v}
                 page={page}
