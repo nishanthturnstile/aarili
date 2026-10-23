@@ -956,17 +956,17 @@ async function legacyFixture(f) {
   assert.equal(
     (
       await f.admin.query(
-        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line)+(select count(*) from service_repeat_selection)+(select count(*) from design_spec_scope)+(select count(*) from design_spec_draft_value)+(select count(*) from design_media_order_subject)+(select count(*) from measurement_selection)+(select count(*) from measurement_draft_value)+(select count(*) from pattern_scope) as n",
+        "select (select count(*) from service_property_subject)+(select count(*) from order_service_change_line)+(select count(*) from service_repeat_selection)+(select count(*) from design_spec_scope)+(select count(*) from design_spec_draft_value)+(select count(*) from design_media_order_subject)+(select count(*) from measurement_selection)+(select count(*) from measurement_draft_value)+(select count(*) from pattern_scope)+(select count(*) from pattern_media_subject) as n",
       )
     ).rows[0].n,
     "0",
   );
   const references = (
     await f.admin.query(
-      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass,'design_spec_scope'::regclass,'design_spec_draft_value'::regclass,'design_media_order_subject'::regclass,'measurement_selection'::regclass,'measurement_draft_value'::regclass,'pattern_scope'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
+      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass,'design_spec_scope'::regclass,'design_spec_draft_value'::regclass,'design_media_order_subject'::regclass,'measurement_selection'::regclass,'measurement_draft_value'::regclass,'pattern_scope'::regclass,'pattern_media_subject'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
     )
   ).rows;
-  assert.equal(references.length, 9);
+  assert.equal(references.length, 10);
   for (const reference of references) {
     assert(
       [
@@ -979,6 +979,7 @@ async function legacyFixture(f) {
         "measurement_selection",
         "measurement_draft_value",
         "pattern_scope",
+        "pattern_media_subject",
       ].includes(reference.relation),
     );
     assert.match(reference.conname, /^[a-z_][a-z0-9_]*$/);

@@ -78,6 +78,19 @@ function Context({ source, locale }: { source: Source; locale: Locale }) {
         </div>
       </dl>
       {source.additions.length > 0 && <p>{t.additions}</p>}
+      {!!source.patternContext?.references.length && (
+        <details>
+          <summary>{t.patternContext}</summary>
+          <p>{t.patternHelp}</p>
+          <ul>
+            {source.patternContext.references.map((r) => (
+              <li key={r.referenceId}>
+                V{r.version} · {r.referenceId} · {r.pieceId ?? o.code}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <p>{t.reset}</p>
     </>
   );

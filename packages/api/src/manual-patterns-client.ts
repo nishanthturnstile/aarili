@@ -1,10 +1,16 @@
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
   type PatternQuery,
+  patternAssetsQuerySchema,
+  patternAssetsSchema,
   patternCompareQuerySchema,
   patternComparisonSchema,
   patternPageSchema,
   patternQuerySchema,
+  patternReadQuerySchema,
+  patternReadSchema,
+  patternReuseQuerySchema,
+  patternReuseSchema,
 } from "@aarili/contracts/manual-patterns";
 import { hc } from "hono/client";
 import {
@@ -34,7 +40,10 @@ export async function readPatterns(shopId: string, q: PatternQuery) {
     await authenticatedResult(
       (s) =>
         client().shops[":shopId"]["manual-patterns"].list.$post(
-          { param: { shopId }, json: patternQuerySchema.parse(q) },
+          {
+            param: { shopId },
+            json: patternQuerySchema.parse({ ...q, readerVersion: 2 }),
+          },
           { init: { cache: "no-store", signal: s } },
         ),
       result,
@@ -49,7 +58,60 @@ export async function comparePattern(
     await authenticatedResult(
       (s) =>
         client().shops[":shopId"]["manual-patterns"].compare.$post(
-          { param: { shopId }, json: patternCompareQuerySchema.parse(q) },
+          {
+            param: { shopId },
+            json: patternCompareQuerySchema.parse({ ...q, readerVersion: 2 }),
+          },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      result,
+    ),
+  );
+}
+export async function readPatternAssets(
+  shopId: string,
+  q: { orderId: string; pieceId: string | null; before?: string },
+) {
+  return patternAssetsSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["manual-patterns"].assets.$post(
+          { param: { shopId }, json: patternAssetsQuerySchema.parse(q) },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      result,
+    ),
+  );
+}
+export async function readPatternBytes(
+  shopId: string,
+  q: {
+    orderId: string;
+    pieceId: string | null;
+    referenceId: string;
+    variant: "display" | "thumbnail";
+  },
+) {
+  return patternReadSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["manual-patterns"].read.$post(
+          { param: { shopId }, json: patternReadQuerySchema.parse(q) },
+          { init: { cache: "no-store", signal: s } },
+        ),
+      result,
+    ),
+  );
+}
+export async function reviewPatternReuse(
+  shopId: string,
+  q: { orderId: string; pieceId: string | null; referenceId: string },
+) {
+  return patternReuseSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"]["manual-patterns"].reuse.$post(
+          { param: { shopId }, json: patternReuseQuerySchema.parse(q) },
           { init: { cache: "no-store", signal: s } },
         ),
       result,

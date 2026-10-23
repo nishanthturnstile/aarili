@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { bookingRecordSchema, bookingRevisionSchema } from "./bookings.js";
+import { patternRepeatContextSchema } from "./manual-patterns.js";
 
 export * from "./bookings.js";
 
@@ -215,6 +216,7 @@ export const acceptedOrderSchema = z.strictObject({
 });
 export type AcceptedOrder = z.infer<typeof acceptedOrderSchema>;
 export const repeatSourceSchema = z.strictObject({
+  patternContext: patternRepeatContextSchema.optional(),
   order: acceptedOrderSchema,
   scopeDigest: repeatSourceRefSchema.shape.scopeDigest,
   additions: z.array(
@@ -226,6 +228,7 @@ export const repeatSourceSchema = z.strictObject({
   ),
   currentManifest: quickOrderDraftSchema.shape.manifest,
 });
+export type PatternRepeatContext = z.infer<typeof patternRepeatContextSchema>;
 export const repeatLinksSchema = z.strictObject({
   source: z.strictObject({ id: z.uuid(), code: z.string() }).nullable(),
   children: z.array(z.strictObject({ id: z.uuid(), code: z.string() })),

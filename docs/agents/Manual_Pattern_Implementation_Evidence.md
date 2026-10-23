@@ -1,18 +1,23 @@
 # Manual pattern preparation: baseline, verification and approval status
 
-23 October 2026. **A #164 implemented; local verification passed. Owner review and CI remain required.**
+23 October 2026. **A #164 merged through PR #166 at 14:58:09 UTC.**
+Fast verification and Dependency audit succeeded on its final head `670c31b`;
+development contains squash merge `96b3e54`. The owner then selected B #165;
+[B delivery evidence](Manual_Pattern_Outputs_Implementation_Evidence.md) records
+its separate implementation. The following A evidence retains its original
+tested revisions and timing; merge does not close pilot or human-device gates.
 The owner approved the independent design MP-D01–12 and concrete A → B packet,
 then requested implementation. [A #164](https://github.com/nishanthturnstile/aarili/issues/164)
 and [B #165](https://github.com/nishanthturnstile/aarili/issues/165) are published
 with native blockers read back. A's ten direct prerequisites are merged; its
 branch `codex/manual-pattern-fileless` starts at latest development `c04020a`.
-B remains blocked by A and is not implemented. No worktree or dependency change.
+B's blockers are merged. No worktree or dependency change.
 
 Draft [PR #166](https://github.com/nishanthturnstile/aarili/pull/166) targets
 `development`, created **14:30:02 UTC** on 23 October 2026 with implementation
 commit `97feeb13d9f8825ae770420452480103a3a2e3e6`. It is registered to this
-thread. Required Fast verification/Dependency audit and owner acceptance remain
-open; no merge or deployment occurred.
+thread. Its required checks subsequently passed and the owner merged it as
+recorded above. No deployment occurred in this implementation task.
 
 ## A implementation and review boundary
 

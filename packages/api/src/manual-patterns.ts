@@ -1,13 +1,27 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  patternAssetsQuerySchema,
+  patternAssetsSchema,
   patternCompareQuerySchema,
   patternComparisonSchema,
+  patternLegacyPageSchema,
   patternPageSchema,
   patternQuerySchema,
+  patternReadQuerySchema,
+  patternReadSchema,
+  patternReuseQuerySchema,
+  patternReuseSchema,
 } from "@aarili/contracts/manual-patterns";
 import { DraftFailure } from "@aarili/core/drafts";
-import { comparePattern, readPatterns } from "@aarili/core/manual-patterns";
+import {
+  comparePattern,
+  readPatternAssets,
+  readPatternBytes,
+  readPatterns,
+  reviewPatternReuse,
+} from "@aarili/core/manual-patterns";
+import { MediaFailure } from "@aarili/core/media";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
@@ -91,9 +105,66 @@ export function createManualPatternsRoutes(
     .openapi(
       createRoute({
         method: "post",
+        path: "/shops/{shopId}/manual-patterns/assets",
+        request: { params, body: body(patternAssetsQuerySchema) },
+        responses: { 200: response(patternAssetsSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerManualPatterns(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readPatternAssets(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/manual-patterns/read",
+        request: { params, body: body(patternReadQuerySchema) },
+        responses: { 200: response(patternReadSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerManualPatterns(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx, media) => readPatternBytes(ctx, media, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/manual-patterns/reuse",
+        request: { params, body: body(patternReuseQuerySchema) },
+        responses: { 200: response(patternReuseSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerManualPatterns(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => reviewPatternReuse(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
         path: "/shops/{shopId}/manual-patterns/list",
         request: { params, body: body(patternQuerySchema) },
-        responses: { 200: response(patternPageSchema), ...failures },
+        responses: {
+          200: response(z.union([patternPageSchema, patternLegacyPageSchema])),
+          ...failures,
+        },
       }),
       async (c) => {
         const r = await owner.withOwnerManualPatterns(
@@ -104,6 +175,36 @@ export function createManualPatternsRoutes(
         for (const cookie of r.headers.getSetCookie())
           c.header("Set-Cookie", cookie, { append: true });
         c.header("ETag", `"v${r.data.state.version}"`);
+        if (!c.req.valid("json").readerVersion) {
+          if (
+            r.data.selected?.output ||
+            r.data.selected?.source ||
+            r.data.state.versions.some((v) => v.output || v.source)
+          )
+            throw new DraftFailure(409, {
+              error: {
+                code: "REQUEST_CONFLICT",
+                message:
+                  "Open the current pattern viewer to review files and source lineage",
+              },
+            });
+          const legacy = ({
+            output: _output,
+            source: _source,
+            ...v
+          }: (typeof r.data.state.versions)[number]) => v;
+          return c.json(
+            {
+              ...r.data,
+              state: {
+                ...r.data.state,
+                versions: r.data.state.versions.map(legacy),
+              },
+              selected: r.data.selected ? legacy(r.data.selected) : null,
+            },
+            200,
+          );
+        }
         return c.json(r.data, 200);
       },
     )
@@ -126,6 +227,16 @@ export function createManualPatternsRoutes(
       },
     );
   app.onError((e, c) => {
+    if (e instanceof MediaFailure)
+      return c.json(
+        {
+          error: {
+            code: e.code,
+            message: "Private pattern output unavailable",
+          },
+        },
+        e.status,
+      );
     if (e instanceof DraftFailure) return c.json(e.body, e.status);
     if (e instanceof OwnerAccessError)
       return c.json(

@@ -14,6 +14,7 @@ import {
 } from "@aarili/contracts/small-services";
 import type { DesignReferencesRepository } from "@aarili/db/repositories/design-references";
 import type { DesignSpecificationsRepository } from "@aarili/db/repositories/design-specifications";
+import type { ManualPatternsRepository } from "@aarili/db/repositories/manual-patterns";
 import { readBooking } from "./bookings.js";
 import { DraftFailure, type DraftWorkflow } from "./drafts.js";
 import { readAcceptedOrder, readOrderPieces } from "./orders.js";
@@ -51,6 +52,7 @@ export async function prepareServiceDraftReads(
   records: Pick<DraftRecord, "workflow" | "payload">[],
   designs?: DesignSpecificationsRepository,
   references?: DesignReferencesRepository,
+  patterns?: ManualPatternsRepository,
 ) {
   if (
     references &&
@@ -66,6 +68,7 @@ export async function prepareServiceDraftReads(
     bookingIds = new Set<string>(),
     customers = new Set<string>(),
     wearers = new Set<string>();
+  const patternSources = new Map<string, string>();
   const addIntake = (v: {
     customerId: string | null;
     wearerId: string | null;
@@ -76,10 +79,28 @@ export async function prepareServiceDraftReads(
   for (const record of records) {
     const p = record.payload;
     // Pattern reads participate in the same aggregate-before-identity lock order.
-    if (record.workflow === "pattern.reference") {
+    if (
+      record.workflow === "pattern.reference" ||
+      record.workflow === "pattern.subject"
+    ) {
       if (typeof p.orderId === "string") orderIds.add(p.orderId);
       if (typeof p.customerId === "string") customers.add(p.customerId);
       if (typeof p.wearerId === "string") wearers.add(p.wearerId);
+      const reuse = p.reuse as { referenceId?: string } | null;
+      let id =
+        reuse?.referenceId ??
+        (typeof p.referenceId === "string" ? p.referenceId : null);
+      const seen = new Set<string>();
+      while (patterns && id && !seen.has(id)) {
+        if (seen.size >= 16) fail();
+        seen.add(id);
+        const v = await patterns.read(id);
+        if (!v) break;
+        orderIds.add(v.orderId);
+        customers.add(v.customerId);
+        wearers.add(v.wearerId);
+        id = v.source?.referenceId ?? null;
+      }
     }
     if (record.workflow === "measurement.session") {
       if (typeof p.customerId === "string") customers.add(p.customerId);
@@ -136,8 +157,33 @@ export async function prepareServiceDraftReads(
         typeof ref === "object" &&
         "sourceId" in ref &&
         typeof ref.sourceId === "string"
-      )
+      ) {
         orderIds.add(ref.sourceId);
+        if (patterns && record.workflow === "order.repeat") {
+          const selected = await patterns.selected(ref.sourceId);
+          patternSources.set(
+            ref.sourceId,
+            selected
+              .map((v) => v.id)
+              .sort()
+              .join(),
+          );
+          for (const source of selected) {
+            let v: typeof source | undefined = source;
+            const seen = new Set<string>();
+            while (v && !seen.has(v.id)) {
+              if (seen.size >= 16) fail();
+              seen.add(v.id);
+              orderIds.add(v.orderId);
+              customers.add(v.customerId);
+              wearers.add(v.wearerId);
+              v = v.source
+                ? await patterns.read(v.source.referenceId)
+                : undefined;
+            }
+          }
+        }
+      }
       if (typeof p.customerId === "string") customers.add(p.customerId);
       if (typeof p.wearerId === "string") wearers.add(p.wearerId);
     }
@@ -202,6 +248,15 @@ export async function prepareServiceDraftReads(
     for (const o of b?.revision.sources ?? []) orderIds.add(o.id);
   }
   for (const id of [...orderIds].sort()) await repo.lockOrder(id);
+  for (const [id, expected] of patternSources)
+    if (
+      patterns &&
+      (await patterns.selected(id))
+        .map((v) => v.id)
+        .sort()
+        .join() !== expected
+    )
+      fail(412);
   for (const [id, member] of memberships)
     if ((await repo.bookings.membership(id)) !== member) fail();
   for (const id of orderIds) {

@@ -373,7 +373,7 @@ for (const [path, method] of [
     document.paths[`/api/shops/{shopId}/design-references/${path}`]?.[method],
     `Missing reference contract ${method} ${path}`,
   );
-for (const path of ["list", "compare"])
+for (const path of ["list", "compare", "assets", "read", "reuse"])
   assert(
     document.paths[`/api/shops/{shopId}/manual-patterns/${path}`]?.post,
     `Missing private pattern query contract ${path}`,

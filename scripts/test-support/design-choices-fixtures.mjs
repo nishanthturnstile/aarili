@@ -58,13 +58,19 @@ export async function designOk(r) {
   assert.equal(r.status, 200, await r.clone().text());
   return r.json();
 }
-export async function saveDesign(f, v, workflow = "design.choices", who = f.a) {
+export async function saveDesign(
+  f,
+  v,
+  workflow = "design.choices",
+  who = f.a,
+  schemaVersion = 1,
+) {
   const raw = randomUUID();
   const draftId = `${raw.slice(0, 14)}7${raw.slice(15)}`;
   const { draft } = await designOk(
     await designRequest(f, `drafts/${draftId}`, {
       method: "PUT",
-      body: { workflow, schemaVersion: 1, payload: v },
+      body: { workflow, schemaVersion, payload: v },
       who,
     }),
   );

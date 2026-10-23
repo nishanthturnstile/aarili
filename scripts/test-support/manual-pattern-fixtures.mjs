@@ -12,10 +12,12 @@ import {
   saveDesign,
 } from "./design-choices-fixtures.mjs";
 import { specificationSources } from "./design-specification-fixtures.mjs";
+import { withMediaProcessing } from "./media-processing.mjs";
 import { seedQuickOrder } from "./seed-quick-order.mjs";
 import { withTenantFixture } from "./tenant-isolation.mjs";
 export async function withPatterns(run, options = {}) {
-  return withTenantFixture(
+  const host = options.media ? withMediaProcessing : withTenantFixture;
+  return host(
     async (f) => {
       const owner = { ...f.owner, commandLimit: async () => 0 };
       for (const name of ["withOwnerDraft", "withOwnerManualPatterns"])
@@ -70,7 +72,7 @@ export async function withPatterns(run, options = {}) {
 export const patternPage = (f, extra = {}) =>
   designRequest(f, "manual-patterns/list", {
     method: "POST",
-    body: { ...f.scope, ...extra },
+    body: { ...f.scope, readerVersion: 2, ...extra },
   }).then(designOk);
 export async function publishPatternCapability(f, extra = {}) {
   const p = await patternPage(f);
@@ -111,16 +113,17 @@ export async function physicalPattern(f, extra = {}) {
   };
 }
 export async function publishPattern(f, v) {
-  return promoteDesign(f, await saveDesign(f, v, "pattern.reference")).then(
-    designOk,
-  );
+  return promoteDesign(
+    f,
+    await saveDesign(f, v, "pattern.reference", f.a, "assetId" in v ? 2 : 1),
+  ).then(designOk);
 }
 export async function referenceAction(f, id, operation, extra = {}) {
   const p = await patternPage(f),
     ref = p.state.versions.find((v) => v.id === id) ?? p.selected;
   const comparison = await designRequest(f, "manual-patterns/compare", {
     method: "POST",
-    body: { ...f.scope, referenceId: id },
+    body: { ...f.scope, referenceId: id, readerVersion: 2 },
   }).then(designOk);
   return physicalPattern(f, {
     operation,
@@ -131,5 +134,6 @@ export async function referenceAction(f, id, operation, extra = {}) {
     evidence: "SYNTHETIC reference-only review; scale and formula unverified",
     reason: "SYNTHETIC explicit reference decision",
     ...extra,
+    ...(ref.output || ref.source ? { assetId: null, reuse: null } : {}),
   });
 }
