@@ -1,5 +1,30 @@
 # Delivery measurements
 
+## Issue #157 — approved Next.js 16.4.1 baseline correction
+
+- Owner approved a separate issue/PR in the existing checkout on **23 October
+  2026 IST**. Published and selected #157 with no blockers; preserved measurement
+  branch/PR #156, stopped its temporary review host, updated development at
+  `2aa1b12` and branched `codex/next-16.4.1-security`. No worktree or merge/deploy.
+- Implementation clock: **00:02:54 UTC**, before the first edit attempt. Active
+  coding/rework stopwatch time is **unknown**. Package baseline/lockfile and
+  architecture correction only; [acceptance/evidence](Next_16_4_1_Baseline_Correction_Evidence.md).
+- Pre-change audit **exit 1 / 1.621s**; post-change audit **exit 0 / 0.875s**,
+  no known vulnerabilities. Frozen install **exit 0 / 0.499s**; one Next 16.4.1
+  instance and unchanged native sharp resolution verified. `verify:fast` **exit
+  0 / 127.825s** (288 units), smoke **0 / 13.265s**, artifact scan **0 / 0.687s**
+  and focused root PDF browser **2 passed / 75.175s**. Both independent reviews
+  found no concrete blocker. Scoped clean native portability passed **0 / 167.894s**
+  after two retained Windows overlong-path harness failures (**56.884s**, **158.091s**).
+- Broad root browser started **00:12:53.980 UTC** and remains running. Its phone
+  booking-group review assertion failed (confirmation absent within two seconds;
+  review/save HTTP responses 200); this is unresolved, not a broad green result.
+  A fresh synthetic production review host/account/shop is ready at localhost
+  **64543**; credentials stay private. Draft packet prepared **00:24 UTC**; exact
+  final validation/review-ready, CI, merge and post-merge times remain pending.
+- Measurement A adoption remains gated on this correction's owner-reviewed merge;
+  B/C remain unstarted. Timing entries below retain earlier delivery evidence.
+
 ## Issue #148 / 1.3.1c — private versioned design references
 
 - Owner selected B after A2 PR #150 merged **22 October 2026, 10:13:32 UTC**.
