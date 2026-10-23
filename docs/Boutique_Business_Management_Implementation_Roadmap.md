@@ -783,7 +783,10 @@ B [#154](https://github.com/nishanthturnstile/aarili/issues/154) was selected on
 [PR #161](https://github.com/nishanthturnstile/aarili/pull/161). Its
 [evidence](agents/Measurement_History_Implementation_Evidence.md) records the full
 verification and 243-case browser pass with human/pilot qualifications.
-C [#155](https://github.com/nishanthturnstile/aarili/issues/155) remains unselected;
+C [#155](https://github.com/nishanthturnstile/aarili/issues/155) was selected on
+23 October after all direct blockers merged;
+[C implementation evidence](agents/Measurement_Fit_Implementation_Evidence.md)
+records optional exact-version private references and governed purge work;
 its B prerequisite is merged. Human acceptance, production policy/activation
 and full 1.3.2/AC-06 completion remain open.
 

@@ -11,7 +11,9 @@ Full-browser and human/pilot qualifications remain separate; see
 B merged in [PR #161](https://github.com/nishanthturnstile/aarili/pull/161) on
 23 October; [implementation evidence](Measurement_History_Implementation_Evidence.md)
 records full verification and all 243 browser passes with remaining human/pilot
-qualifications. C remains unselected; B's prerequisite merge is satisfied.**
+qualifications. The owner selected C #155 on 23 October after all direct blockers
+merged; [C implementation evidence](Measurement_Fit_Implementation_Evidence.md)
+records the current work and remaining gates.**
 [Design](Measurement_Versions_Design.md), [REA evidence](Measurement_Versions_REA_Evidence.md),
 [validation and baseline](Measurement_Versions_Implementation_Evidence.md).
 
@@ -37,7 +39,7 @@ Software review/publication/selection, production business policy approval,
 merge and live activation are distinct. The owner approved proceeding with this
 software packet. All three issues were published with `enhancement` and
 `ready-for-agent` using the installed to-tickets workflow; native blockers were
-read back. A and B were selected and merged. C remains unselected. Deployment,
+read back. A and B were selected and merged. C is selected and in implementation. Deployment,
 production policy and live activation remain separate. A/B/C retain their stable
 local ticket identities.
 

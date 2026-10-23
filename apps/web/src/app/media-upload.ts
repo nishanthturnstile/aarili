@@ -40,6 +40,7 @@ export function createPrivateUpload(options: {
   subjectId: string;
   purpose: MediaPurpose;
   guard?: ReturnType<typeof createWorkGuard>;
+  onAccessDenied?: () => void;
 }) {
   let epoch = 0,
     active = true,
@@ -117,7 +118,16 @@ export function createPrivateUpload(options: {
         pending = null;
         grant = null;
       }
-    } catch {
+    } catch (error) {
+      if (
+        current(expected) &&
+        options.onAccessDenied &&
+        error instanceof MediaRequestError &&
+        [401, 403, 404].includes(error.status)
+      ) {
+        options.onAccessDenied();
+        return;
+      }
       if (current(expected)) emit({ error: "STATUS_UNAVAILABLE" });
     } finally {
       if (current(expected)) emit({ busy: false });
@@ -235,6 +245,15 @@ export function createPrivateUpload(options: {
           processingState: "queued",
         });
       } catch (error) {
+        if (
+          current(expected) &&
+          options.onAccessDenied &&
+          error instanceof MediaRequestError &&
+          [401, 403, 404].includes(error.status)
+        ) {
+          options.onAccessDenied();
+          return;
+        }
         const rejected =
           error instanceof MediaRequestError &&
           error.status >= 400 &&

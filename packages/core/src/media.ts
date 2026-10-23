@@ -23,6 +23,7 @@ import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
 export type MediaPolicy = {
   prepare?(subjectId: string): Promise<void>;
+  protectAcceptedWrites?(subjectId: string): Promise<boolean>;
   authorizeRead?(assetId: string): Promise<void>;
   authorize(input: {
     action: "upload" | "complete" | "read" | "process";
@@ -452,7 +453,14 @@ export async function processMedia(
       requestId: attemptId,
       key: attemptId,
     });
-    return { a, attempt, fence, storage: ctx.storage };
+    return {
+      a,
+      attempt,
+      fence,
+      storage: ctx.storage,
+      protectedWrites:
+        (await ctx.policy.protectAcceptedWrites?.(a.subjectId)) ?? false,
+    };
   });
   if (!claim) return "ignored" as const;
   try {
@@ -541,7 +549,30 @@ export async function processMedia(
         (b) => b.toString(16).padStart(2, "0"),
       ).join("");
     const seal = async (value: Uint8Array, type: MediaType) => {
-      const key = await claim.storage.seal(prefix, value, type);
+      // Fitting erasure must not finish while an old claimant can still create
+      // a retained output. Keep its identity/media/restore barriers through I/O.
+      const key = claim.protectedWrites
+        ? await host.transaction(async (ctx) => {
+            await lockAsset(ctx, assetId);
+            const a = await ctx.repository.read(assetId),
+              attempt = await ctx.repository.attempt(assetId),
+              control = await ctx.repository.control(),
+              now = await ctx.repository.now();
+            if (
+              a?.status !== "processing" ||
+              attempt?.id !== attemptId ||
+              !sameAttemptInitiator(ctx, attempt) ||
+              attempt.fence !== claim.fence ||
+              !attempt.leaseUntil ||
+              Date.parse(attempt.leaseUntil) <= now.getTime() ||
+              !control?.outbound ||
+              control.epoch !== attempt.epoch
+            )
+              fail(409, "MEDIA_ATTEMPT_STALE");
+            await authority(ctx, a, "process");
+            return ctx.storage.seal(prefix, value, type);
+          })
+        : await claim.storage.seal(prefix, value, type);
       const suffix = key.startsWith(`${prefix}/`)
         ? key.slice(prefix.length + 1)
         : "";

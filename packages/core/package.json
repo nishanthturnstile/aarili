@@ -143,6 +143,22 @@
     "./measurement-sessions": {
       "types": "./dist/measurement-sessions.d.ts",
       "import": "./dist/measurement-sessions.js"
+    },
+    "./measurement-fit": {
+      "types": "./dist/measurement-fit.d.ts",
+      "import": "./dist/measurement-fit.js"
+    },
+    "./measurement-access": {
+      "types": "./dist/measurement-access.d.ts",
+      "import": "./dist/measurement-access.js"
+    },
+    "./measurement-media-policy": {
+      "types": "./dist/measurement-media-policy.d.ts",
+      "import": "./dist/measurement-media-policy.js"
+    },
+    "./measurement-fit-purge": {
+      "types": "./dist/measurement-fit-purge.d.ts",
+      "import": "./dist/measurement-fit-purge.js"
     }
   },
   "scripts": {

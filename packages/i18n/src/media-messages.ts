@@ -2,6 +2,11 @@ export const mediaMessages = {
   en: {
     title: "Private attachment",
     choose: "Choose a photo or file",
+    choosePhoto: "Choose a private photo",
+    imageLimits:
+      "Photos: JPEG, PNG or WebP, up to 20 MiB and 40 MP. Photos are resized for mobile data.",
+    unsupportedImage:
+      "Choose JPEG, PNG or WebP. Convert unsupported camera photos to JPEG or PNG.",
     limits:
       "Photos: JPEG, PNG or WebP, up to 20 MiB and 40 MP. PDF, MP3, M4A or WAV: up to 25 MiB. Photos are resized for mobile data.",
     upload: "Upload privately",
@@ -43,6 +48,11 @@ export const mediaMessages = {
   ta: {
     title: "தனிப்பட்ட இணைப்பு",
     choose: "புகைப்படம் அல்லது கோப்பைத் தேர்ந்தெடுக்கவும்",
+    choosePhoto: "தனிப்பட்ட படத்தைத் தேர்ந்தெடுக்கவும்",
+    imageLimits:
+      "படங்கள்: JPEG, PNG அல்லது WebP; அதிகபட்சம் 20 MiB மற்றும் 40 MP. மொபைல் தரவுக்காகப் படத்தின் அளவு குறைக்கப்படும்.",
+    unsupportedImage:
+      "JPEG, PNG அல்லது WebP படத்தைத் தேர்ந்தெடுக்கவும். ஆதரிக்கப்படாத கேமராப் படத்தை JPEG அல்லது PNG ஆக மாற்றவும்.",
     limits:
       "புகைப்படங்கள்: JPEG, PNG அல்லது WebP; அதிகபட்சம் 20 MiB மற்றும் 40 MP. PDF, MP3, M4A அல்லது WAV: அதிகபட்சம் 25 MiB. மொபைல் தரவுக்காகப் புகைப்பட அளவு குறைக்கப்படும்.",
     upload: "தனிப்பட்ட முறையில் பதிவேற்றவும்",

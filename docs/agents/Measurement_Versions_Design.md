@@ -8,7 +8,9 @@ owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156)
 after required CI passed. B merged in [PR #161](https://github.com/nishanthturnstile/aarili/pull/161)
 on 23 October. [B implementation evidence](Measurement_History_Implementation_Evidence.md)
 records the final full verification and 243-case browser pass, retained failures
-and human/pilot qualifications. C remains unselected; its B prerequisite is merged.** [Research](Measurement_Versions_REA_Evidence.md),
+and human/pilot qualifications. The owner selected C after all blockers merged;
+[C implementation evidence](Measurement_Fit_Implementation_Evidence.md) records
+current work and remaining gates.** [Research](Measurement_Versions_REA_Evidence.md),
 [concrete tickets](Measurement_Versions_Ticket_Packet.md),
 [baseline and validation](Measurement_Versions_Implementation_Evidence.md).
 
@@ -23,7 +25,7 @@ No product/technology baseline amendment is proposed.
 
 ### Selected A implementation boundary
 
-The approved issues are #153/#154/#155; A and B are merged. C remains unselected.
+The approved issues are #153/#154/#155; A and B are merged. C is selected and in implementation.
 The following records the original A boundary, extended by B's reviewed
 lineage/reuse contract and minimum-reader decision. A uses a
 new immutable first-version event ID as the session's first saved version.

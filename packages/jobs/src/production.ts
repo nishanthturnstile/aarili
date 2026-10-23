@@ -1,7 +1,12 @@
 import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { documentLocatorSchema } from "@aarili/contracts/documents";
+import { measurementFitPurgeLocatorSchema } from "@aarili/contracts/measurement-fit";
 import { mediaJobLocatorSchema } from "@aarili/contracts/media";
 import { type DocumentRenderer, processDocument } from "@aarili/core/documents";
+import {
+  type MeasurementFitErasureStorage,
+  purgeMeasurementFit,
+} from "@aarili/core/measurement-fit-purge";
 import {
   inspectMediaProcessing,
   type MediaContext,
@@ -14,7 +19,7 @@ import {
   validatePrivateMedia,
 } from "@aarili/platform/media-validation";
 import { type DocumentAdapters, documentProcessingHost } from "./documents.js";
-import { mediaProcessingHost } from "./media.js";
+import { measurementFitPurgeHost, mediaProcessingHost } from "./media.js";
 import type { RuntimeComposition } from "./runtime.js";
 
 export type PrivateMediaAdapters = (
@@ -24,6 +29,7 @@ export type PrivateMediaAdapters = (
 ) => Pick<MediaContext, "policy" | "storage" | "jobs"> & {
   wearerPolicy?: CustomerPolicy;
   guardianPolicy?: CustomerPolicy;
+  erasureStorage?: MeasurementFitErasureStorage;
 };
 // Same factory in both runtime modes. No synthetic queue, ambient storage,
 // environment consent claim, or provider activation. Integrators must supply
@@ -75,6 +81,26 @@ export function productionJobComposition(
           input: unknown,
           beforeCommit: () => Promise<void>,
         ) => {
+          const purge = measurementFitPurgeLocatorSchema.safeParse(input);
+          if (purge.success) {
+            if (!adapters) throw Error("Fitting erasure adapter unavailable");
+            const p = purge.data;
+            try {
+              return await purgeMeasurementFit(
+                measurementFitPurgeHost(
+                  db,
+                  p.shopId,
+                  p.initiatorId,
+                  (tx) => adapters(tx, p.shopId, p.initiatorId).erasureStorage,
+                ),
+                p,
+                beforeCommit,
+              );
+            } catch (e) {
+              if (e instanceof ShopAccessError) return "ignored";
+              throw e;
+            }
+          }
           const parsed = mediaJobLocatorSchema.safeParse(input);
           if (!parsed.success) return "ignored";
           if (!adapters)

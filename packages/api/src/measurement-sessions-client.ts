@@ -1,5 +1,12 @@
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  measurementFitAssetsSchema,
+  measurementFitPageSchema,
+  measurementFitQuerySchema,
+  measurementFitReadQuerySchema,
+  measurementFitReadSchema,
+} from "@aarili/contracts/measurement-fit";
+import {
   measurementQuerySchema,
   measurementReviewQuerySchema,
   measurementReviewSchema,
@@ -107,6 +114,45 @@ export async function readMeasurement(shopId: string, id: string) {
       (s) =>
         client().shops[":shopId"].measurements.versions[":id"].$get(
           { param: { shopId, id } },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
+export async function readMeasurementFit(shopId: string, input: unknown) {
+  return measurementFitPageSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].measurements.fit.list.$post(
+          { param: { shopId }, json: measurementFitQuerySchema.parse(input) },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
+export async function readMeasurementFitAssets(shopId: string, input: unknown) {
+  return measurementFitAssetsSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].measurements.fit.assets.$post(
+          { param: { shopId }, json: measurementFitQuerySchema.parse(input) },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
+export async function readMeasurementFitBytes(shopId: string, input: unknown) {
+  return measurementFitReadSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].measurements.fit.read.$post(
+          {
+            param: { shopId },
+            json: measurementFitReadQuerySchema.parse(input),
+          },
           { init: init(s) },
         ),
       result,

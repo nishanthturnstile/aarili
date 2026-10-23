@@ -12,7 +12,7 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
-  "measurementSessionsRepository exact form-use approval, wearer session lineage/values/private replay, immutable garment selection history/CAS, reviewed reuse and audited erasure; measurement.use/measurement.session, order.repeat@2 and private body-query review/history routes",
+  "measurementSessionsRepository exact form-use approval, wearer session lineage/values/private replay, immutable garment selection history/CAS and reviewed reuse; measurementFitRepository exact session/version photo authority, immutable fitting references, private replay/erasure and transactional retained/staging purge; measurement.use/measurement.session/measurement.fit-subject/measurement.fit-reference, order.repeat@2 and private body-query review/history routes",
   "designReferencesRepository typed subjects/library/ownership and exact version references; current web/worker rights, private replay, audited erasure and signed association reads",
   "designSpecificationsRepository exact scope/version/answer/selection and privacy; design.specification save/select/reuse, current authority and history",
   "designChoicesRepository exact choice/profile history, typed dependencies, availability, preview and design.choices draft promotion",

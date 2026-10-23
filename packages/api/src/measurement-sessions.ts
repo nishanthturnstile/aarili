@@ -1,6 +1,13 @@
 import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
+  measurementFitAssetsSchema,
+  measurementFitPageSchema,
+  measurementFitQuerySchema,
+  measurementFitReadQuerySchema,
+  measurementFitReadSchema,
+} from "@aarili/contracts/measurement-fit";
+import {
   measurementQuerySchema,
   measurementReviewQuerySchema,
   measurementReviewSchema,
@@ -13,12 +20,18 @@ import {
 } from "@aarili/contracts/measurement-sessions";
 import { DraftFailure } from "@aarili/core/drafts";
 import {
+  readMeasurementFit,
+  readMeasurementFitAssets,
+  readMeasurementFitBytes,
+} from "@aarili/core/measurement-fit";
+import {
   readMeasurement,
   readMeasurements,
   readMeasurementTarget,
   readMeasurementUse,
   reviewMeasurementSelection,
 } from "@aarili/core/measurement-sessions";
+import { MediaFailure } from "@aarili/core/media";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
@@ -48,7 +61,10 @@ const body = <S extends z.ZodType>(schema: S) => ({
 export function createMeasurementSessionsRoutes(
   owner: Pick<
     OwnerAuth,
-    "origin" | "commandLimit" | "withOwnerMeasurementSessions"
+    | "origin"
+    | "commandLimit"
+    | "withOwnerMeasurementSessions"
+    | "withOwnerMeasurementFit"
   >,
 ) {
   const app = new OpenAPIHono<{ Variables: { requestId: string } }>({
@@ -125,6 +141,68 @@ export function createMeasurementSessionsRoutes(
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/measurements/fit/list",
+        request: { params, body: body(measurementFitQuerySchema) },
+        responses: { 200: response(measurementFitPageSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerMeasurementFit(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readMeasurementFit(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/measurements/fit/assets",
+        request: { params, body: body(measurementFitQuerySchema) },
+        responses: { 200: response(measurementFitAssetsSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerMeasurementFit(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => readMeasurementFitAssets(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/measurements/fit/read",
+        request: { params, body: body(measurementFitReadQuerySchema) },
+        responses: { 200: response(measurementFitReadSchema), ...failures },
+      }),
+      async (c) => {
+        const q = c.req.valid("json");
+        const r = await owner.withOwnerMeasurementFit(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx, media) =>
+            readMeasurementFitBytes(
+              ctx,
+              media,
+              q.measurementVersionId,
+              q.referenceId,
+              q.variant,
+            ),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",
@@ -217,6 +295,16 @@ export function createMeasurementSessionsRoutes(
       },
     );
   app.onError((e, c) => {
+    if (e instanceof MediaFailure)
+      return c.json(
+        {
+          error: {
+            code: e.code,
+            message: "Private fitting image is unavailable",
+          },
+        },
+        e.status,
+      );
     if (e instanceof DraftFailure) {
       return c.json(e.body, e.status);
     }

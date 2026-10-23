@@ -7,10 +7,14 @@ export function PrivateUploadForm({
   controller,
   locale,
   accept,
+  idPrefix = "media",
+  imageOnly = false,
 }: {
   controller: PrivateUpload;
   locale: "en" | "ta";
   accept?: string;
+  idPrefix?: string;
+  imageOnly?: boolean;
 }) {
   const state = useSyncExternalStore(
       controller.subscribe,
@@ -28,7 +32,9 @@ export function PrivateUploadForm({
           : state.error === "PREPARATION_FAILED"
             ? t.prepareFailed
             : state.error === "FILE_UNSUPPORTED"
-              ? t.unsupported
+              ? imageOnly
+                ? t.unsupportedImage
+                : t.unsupported
               : state.error === "STATUS_UNAVAILABLE"
                 ? t.statusFailed
                 : state.error === "UPLOAD_CLOSED"
@@ -52,28 +58,32 @@ export function PrivateUploadForm({
     <section
       className="owner-content"
       lang={locale}
-      aria-labelledby="media-heading"
+      aria-labelledby={`${idPrefix}-heading`}
     >
-      <h2 id="media-heading">{t.title}</h2>
+      <h2 id={`${idPrefix}-heading`}>{t.title}</h2>
       <div className="owner-form">
-        <label htmlFor="private-file">{t.choose}</label>
+        <label
+          htmlFor={idPrefix === "media" ? "private-file" : `${idPrefix}-file`}
+        >
+          {imageOnly ? t.choosePhoto : t.choose}
+        </label>
         <input
           className="ui-input"
-          id="private-file"
+          id={idPrefix === "media" ? "private-file" : `${idPrefix}-file`}
           type="file"
           accept={
             accept ??
             "image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,audio/mpeg,audio/mp4,audio/wav"
           }
           disabled={state.busy || state.state === "accessEnded"}
-          aria-describedby="media-limits"
+          aria-describedby={`${idPrefix}-limits`}
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];
             event.currentTarget.value = "";
             if (file) void controller.select(file);
           }}
         />
-        <p id="media-limits">{t.limits}</p>
+        <p id={`${idPrefix}-limits`}>{imageOnly ? t.imageLimits : t.limits}</p>
         <p role="status" aria-live="polite">
           {t[state.state]}
         </p>
@@ -99,14 +109,16 @@ export function PrivateUploadForm({
             </Button>
           ) : null}
         </div>
-        <details>
-          <summary className="ui-button">
-            {locale === "ta"
-              ? "ஆதரிக்கப்படும் கோப்பு வகைகள்"
-              : "Supported file profiles"}
-          </summary>
-          <p>{t.guidance}</p>
-        </details>
+        {!imageOnly && (
+          <details>
+            <summary className="ui-button">
+              {locale === "ta"
+                ? "ஆதரிக்கப்படும் கோப்பு வகைகள்"
+                : "Supported file profiles"}
+            </summary>
+            <p>{t.guidance}</p>
+          </details>
+        )}
       </div>
     </section>
   );

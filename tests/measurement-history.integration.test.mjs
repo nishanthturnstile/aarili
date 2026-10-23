@@ -156,7 +156,9 @@ test("MV-B01/07 populated 0046→0047 upgrade preserves real V1 selection/values
           return result;
         };
         const before = await snapshot();
-        await migrateDatabase(f.migrationConnectionString);
+        await migrateDatabase(f.migrationConnectionString, {
+          through: "0047_measurement_history.sql",
+        });
         assert.deepEqual(await snapshot(), before);
         await assertIsolationCatalog(f.runtime.db);
         await assert.rejects(
@@ -171,7 +173,9 @@ test("MV-B01/07 populated 0046→0047 upgrade preserves real V1 selection/values
           0,
           "Missing context and pooled rollback stay closed",
         );
-        await migrateDatabase(f.migrationConnectionString);
+        await migrateDatabase(f.migrationConnectionString, {
+          through: "0047_measurement_history.sql",
+        });
         assert.deepEqual(await snapshot(), before);
         f.api = createApi(async () => true, {
           ...f.owner,
