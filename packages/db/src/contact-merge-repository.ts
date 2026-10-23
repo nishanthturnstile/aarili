@@ -30,9 +30,24 @@ export function contactMergeRepository(
         ).rows[0]?.installed
       )
         return false;
-      return !!(
+      const measurements = !!(
         await tx.execute(
           sql`select 1 from measurement_event where shop_id=${shopId}::uuid and customer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[]) union all select 1 from measurement_draft_value where shop_id=${shopId}::uuid and customer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[]) limit 1`,
+        )
+      ).rowCount;
+      if (measurements) return true;
+      // Fileless pattern values/drafts are also wearer-private associations.
+      if (
+        !(
+          await tx.execute(
+            sql`select to_regclass('pattern_scope') as installed`,
+          )
+        ).rows[0]?.installed
+      )
+        return false;
+      return !!(
+        await tx.execute(
+          sql`select 1 from pattern_scope where shop_id=${shopId}::uuid and customer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[]) union all select 1 from pattern_draft_value where shop_id=${shopId}::uuid and customer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[]) limit 1`,
         )
       ).rowCount;
     },

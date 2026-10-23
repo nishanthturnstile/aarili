@@ -14,6 +14,7 @@ export { designSpecificationMessages } from "./design-specification-messages.js"
 export { documentMessages } from "./document-messages.js";
 export { groupIntakeMessages } from "./group-intake-messages.js";
 export { identityReviewMessages } from "./identity-review-messages.js";
+export { manualPatternMessages } from "./manual-pattern-messages.js";
 export { measurementFitMessages } from "./measurement-fit-messages.js";
 export { measurementFormsMessages } from "./measurement-forms-messages.js";
 export { measurementSessionMessages } from "./measurement-session-messages.js";

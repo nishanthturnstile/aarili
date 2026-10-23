@@ -1688,6 +1688,30 @@
 .reference-hash {
   overflow-wrap: anywhere;
 }
+.pattern-reference {
+  overflow-wrap: anywhere;
+  padding-block: var(--space-page);
+  border-block-start: 1px solid var(--border);
+}
+.pattern-reference dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-control);
+}
+.pattern-reference dl > div {
+  display: contents;
+}
+.pattern-reference dt {
+  font-weight: var(--font-weight-medium);
+}
+.pattern-reference dd {
+  margin-inline-start: 0;
+}
+.pattern-reference [role="note"] {
+  margin-block: var(--space-control);
+  padding-inline-start: var(--space-control);
+  border-inline-start: 2px solid var(--border);
+}
 .design-reference-edit-layout,
 .reference-comparison-pair {
   display: grid;

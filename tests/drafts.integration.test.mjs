@@ -63,6 +63,8 @@ async function fixture(run) {
               "order.service",
               "order.service-change",
               "order.services-intake",
+              "pattern.capability",
+              "pattern.reference",
               "service.catalogue",
               "service.commitment-bindings",
               "service.intake-profile",

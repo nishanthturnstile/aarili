@@ -159,6 +159,10 @@
     "./measurement-fit-purge": {
       "types": "./dist/measurement-fit-purge.d.ts",
       "import": "./dist/measurement-fit-purge.js"
+    },
+    "./manual-patterns": {
+      "types": "./dist/manual-patterns.d.ts",
+      "import": "./dist/manual-patterns.js"
     }
   },
   "scripts": {

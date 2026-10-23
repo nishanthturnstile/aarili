@@ -60,7 +60,7 @@ export const contactMergeMessages = {
     conflicts: {
       "alias-conflict": "An existing contact alias conflicts with this merge.",
       "measurement-association":
-        "Private measurement records or drafts are linked to this contact. Contact merge cannot reassign them.",
+        "Private measurement or pattern records or drafts are linked to this contact. Contact merge cannot reassign them.",
       "wearer-conflict":
         "Current wearer authority is unavailable or shared wearer relationships disagree.",
       "too-many-records":
@@ -127,7 +127,7 @@ export const contactMergeMessages = {
     conflicts: {
       "alias-conflict": "ஏற்கனவே உள்ள தொடர்பு இணைப்பு முரண்படுகிறது.",
       "measurement-association":
-        "இந்தத் தொடர்புடன் தனிப்பட்ட அளவுப் பதிவுகள் அல்லது வரைவுகள் உள்ளன. தொடர்பு இணைப்பு அவற்றை மாற்ற முடியாது.",
+        "இந்தத் தொடர்புடன் தனிப்பட்ட அளவு அல்லது பேட்டர்ன் பதிவுகள் அல்லது வரைவுகள் உள்ளன. தொடர்பு இணைப்பு அவற்றை மாற்ற முடியாது.",
       "wearer-conflict":
         "தற்போதைய அணிபவர் அனுமதி இல்லை அல்லது பொதுவான அணிபவரின் உறவில் முரண்பாடு உள்ளது.",
       "too-many-records": "ஒரே சரிபார்ப்பிற்கு அதிக தொடர்புகள் உள்ளன. இணைக்கப்படவில்லை.",

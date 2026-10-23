@@ -9,6 +9,7 @@ import { createDesignReferencesRoutes } from "@aarili/api/design-references";
 import { createDesignSpecificationsRoutes } from "@aarili/api/design-specifications";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
+import { createManualPatternsRoutes } from "@aarili/api/manual-patterns";
 import { createMediaRoutes } from "@aarili/api/media";
 import { createBookingRoutes, createOrderRoutes } from "@aarili/api/orders";
 import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
@@ -21,6 +22,15 @@ import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createManualPatternsRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerManualPatterns: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createDesignReferencesRoutes({
@@ -362,6 +372,11 @@ for (const [path, method] of [
   assert(
     document.paths[`/api/shops/{shopId}/design-references/${path}`]?.[method],
     `Missing reference contract ${method} ${path}`,
+  );
+for (const path of ["list", "compare"])
+  assert(
+    document.paths[`/api/shops/{shopId}/manual-patterns/${path}`]?.post,
+    `Missing private pattern query contract ${path}`,
   );
 await writeFile(
   "test-results/openapi.json",

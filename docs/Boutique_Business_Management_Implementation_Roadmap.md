@@ -805,6 +805,31 @@ and full 1.3.2/AC-06 completion remain open.
 
 ##### Vertical Slice 1.3.3 — Record a Manual or External Pattern Path
 
+**REA delivery brief (23 October 2026):** the
+[Manual and External Pattern prompt](agents/Manual_Pattern_REA_Prompt.md) scopes
+manual/external capability, physical or uploaded references, exact input provenance
+and versioned review. Nool's attachments/item notes and TailorMan's exposed type/
+item context are partial research candidates; no dedicated pattern workflow is
+claimed. Unverified scale/formula assumptions remain visible, and later generation,
+cutting-release and job-slip scope stays separate. No scope or approval gate changes.
+
+**Approved preparation packet (23 October 2026):**
+[bounded REA observations and gaps](agents/Manual_Pattern_REA_Evidence.md),
+[independent design](agents/Manual_Pattern_Design.md),
+[concrete A → B tickets](agents/Manual_Pattern_Ticket_Packet.md) and
+[fresh baseline/verification](agents/Manual_Pattern_Implementation_Evidence.md)
+define fileless manual/external references with exact or explicitly unknown
+inputs, immutable revision/review/selection history, then private sketches/PDFs
+and deliberate reuse. Reference review never authorizes cutting; scale/formula
+limitations remain visible. Design/measurement prerequisites through #155 / PR
+#163 are merged in development `c04020a`; earlier in-progress headings are dated
+history. Human/pilot activation remains open. The owner approved publication and
+selected [A #164](https://github.com/nishanthturnstile/aarili/issues/164);
+A is implemented with local verification recorded; required CI and owner review
+remain open.
+[B #165](https://github.com/nishanthturnstile/aarili/issues/165) has A as a native
+blocker and awaits its own selection. A alone cannot close PAT-03 or the whole slice.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** PAT-01, PAT-03. Scenarios: AC-07, AC-08.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.3. Architecture constraints in §9 apply in addition to business dependencies.

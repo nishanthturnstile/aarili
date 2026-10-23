@@ -167,6 +167,14 @@
     "./measurement-sessions-client": {
       "types": "./dist/measurement-sessions-client.d.ts",
       "import": "./dist/measurement-sessions-client.js"
+    },
+    "./manual-patterns": {
+      "types": "./dist/manual-patterns.d.ts",
+      "import": "./dist/manual-patterns.js"
+    },
+    "./manual-patterns-client": {
+      "types": "./dist/manual-patterns-client.d.ts",
+      "import": "./dist/manual-patterns-client.js"
     }
   },
   "scripts": {

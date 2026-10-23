@@ -75,6 +75,12 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    // Pattern reads participate in the same aggregate-before-identity lock order.
+    if (record.workflow === "pattern.reference") {
+      if (typeof p.orderId === "string") orderIds.add(p.orderId);
+      if (typeof p.customerId === "string") customers.add(p.customerId);
+      if (typeof p.wearerId === "string") wearers.add(p.wearerId);
+    }
     if (record.workflow === "measurement.session") {
       if (typeof p.customerId === "string") customers.add(p.customerId);
       if (typeof p.wearerId === "string") wearers.add(p.wearerId);
