@@ -11,6 +11,7 @@ import {
 import {
   approveMeasurementForm,
   measurementDraft,
+  measurementSelectionDraft,
   measurementSources,
   publishMeasurement,
 } from "./test-support/measurement-session-fixtures.mjs";
@@ -18,10 +19,15 @@ import { withOwnerWeb } from "./test-support/owner-web.mjs";
 import { seedQuickOrder } from "./test-support/seed-quick-order.mjs";
 import { seedSmallServices } from "./test-support/small-services.mjs";
 
-const directory = resolve(".scratch/measurement-sessions-review-host");
+const history = process.argv[2] === "history";
+const directory = resolve(
+  history
+    ? ".scratch/measurement-history-review-host"
+    : ".scratch/measurement-sessions-review-host",
+);
 const file = (name) => resolve(directory, name);
 await mkdir(directory, { recursive: true });
-if (process.argv[2] === "stop") {
+if (process.argv.at(-1) === "stop") {
   await writeFile(file("stop"), "requested");
   console.info("Measurement-session review stop requested.");
 } else {
@@ -175,6 +181,32 @@ if (process.argv[2] === "stop") {
           i === 0 ? value : { ...value, rawText: "", unit: null },
         );
         const saved = await publishMeasurement(fixture, observed);
+        let reviewTarget = target,
+          correctedVersionId = null;
+        if (history) {
+          const original = await setup(
+            `measurements/versions/${saved.result.draft.result.id}`,
+            { method: "GET" },
+          );
+          await publishMeasurement(
+            fixture,
+            measurementSelectionDraft(original, {
+              orderId: target.order.id,
+              pieceId,
+            }),
+          );
+          const corrected = await publishMeasurement(fixture, {
+            ...observed,
+            correctionId: original.id,
+            values: observed.values.map((v, i) =>
+              i === 0 ? { ...v, rawText: "12 1/2" } : v,
+            ),
+            reason:
+              "SYNTHETIC transcription correction; observation date unchanged",
+          });
+          correctedVersionId = corrected.result.draft.result.id;
+          reviewTarget = await base.accept();
+        }
         const small = await seedSmallServices({
           setup,
           runtime,
@@ -189,7 +221,10 @@ if (process.argv[2] === "stop") {
             origin,
             email,
             password,
-            url: `${origin}/orders?order=${target.order.id}`,
+            url: `${origin}/orders?order=${reviewTarget.order.id}`,
+            originalUrl: `${origin}/orders?order=${target.order.id}`,
+            repeatTargetOrderId: history ? reviewTarget.order.id : null,
+            correctedVersionId,
             customerId: identity.customerId,
             wearerId: identity.wearerId,
             secondWearerId: second.wearerId,
@@ -204,7 +239,7 @@ if (process.argv[2] === "stop") {
           { mode: 0o600 },
         );
         console.info(
-          `Measurement-session review ready: ${origin}/orders?order=${target.order.id}`,
+          `Measurement-session review ready: ${origin}/orders?order=${reviewTarget.order.id}`,
         );
         console.info(
           `Private sign-in: ${directory}/private.json (never publish).`,

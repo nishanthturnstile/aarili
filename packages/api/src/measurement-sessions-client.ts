@@ -1,6 +1,8 @@
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
   measurementQuerySchema,
+  measurementReviewQuerySchema,
+  measurementReviewSchema,
   measurementSelectionSchema,
   measurementStateSchema,
   measurementTargetQuerySchema,
@@ -33,6 +35,24 @@ async function result(r: Response, generation: number) {
   return data;
 }
 const init = (signal: AbortSignal) => ({ cache: "no-store" as const, signal });
+export async function reviewMeasurementSelection(
+  shopId: string,
+  input: unknown,
+) {
+  return measurementReviewSchema.parse(
+    await authenticatedResult(
+      (s) =>
+        client().shops[":shopId"].measurements.review.$post(
+          {
+            param: { shopId },
+            json: measurementReviewQuerySchema.parse(input),
+          },
+          { init: init(s) },
+        ),
+      result,
+    ),
+  );
+}
 export async function readMeasurements(
   shopId: string,
   input: { customerId: string; wearerId: string; before?: string },
@@ -50,7 +70,7 @@ export async function readMeasurements(
 }
 export async function readMeasurementTarget(
   shopId: string,
-  input: { orderId: string; pieceId: string | null },
+  input: { orderId: string; pieceId: string | null; beforeVersion?: number },
 ) {
   return measurementSelectionSchema.parse(
     await authenticatedResult(

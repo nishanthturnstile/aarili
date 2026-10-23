@@ -135,11 +135,12 @@ export function customerHistoryRepository(
       if (!row) throw Error("History boundary unavailable");
       return row;
     },
-    async page(q, wearers, window, keys) {
+    async page(q, wearers, window, keys, measurementWearers = []) {
       const allowed = JSON.stringify(wearers),
         pos = window.position;
       const r = await tx.execute<Record<string, unknown>>(sql`
 with allowed_wearers as (select value::uuid as id from jsonb_array_elements_text(${allowed}::jsonb)),
+allowed_measurement_wearers as (select value::uuid as id from jsonb_array_elements_text(${JSON.stringify(measurementWearers)}::jsonb)),
 visible_orders as materialized (
  select o.* from garment_order o where o.shop_id=${shopId}::uuid and (o.customer_id=${q.customerId}::uuid or (o.wearer_id is null and (select a.current_customer_id from customer_order_attribution a where (a.shop_id,a.order_id)=(o.shop_id,o.id) order by version desc limit 1)=${q.customerId}::uuid))
  and (o.wearer_id in(select id from allowed_wearers) or (o.wearer_id is null and ${q.wearerId === null} and o.intake_kind='service' and exists(select 1 from order_acceptance_snapshot snap where (snap.shop_id,snap.order_id)=(o.shop_id,o.id) and snap.content#>>'{service,profile,content,wearerRequirement}'='not-required')))
@@ -158,6 +159,11 @@ audits as materialized (
 events as (
  select a.*, 'customer'::text as kind, null::uuid as order_id,null::uuid as booking_id,null::uuid as wearer_id
  from audits a where a.entity_type='customer' and ${q.wearerId === null} and ((a.entity_id=${q.customerId}::uuid and a.action in('customer.create','customer.correct')) or (a.action='customer.pair-review' and exists(select 1 from customer_pair_review r where (r.shop_id,r.id)=(a.shop_id,a.id) and ${q.customerId}::uuid in(r.first_id,r.second_id))) or (a.action in('customer.merge','customer.restore') and exists(select 1 from customer_merge_event m where (m.shop_id,m.id)=(a.shop_id,a.id) and ${q.customerId}::uuid in(m.source_id,m.survivor_id))))
+ union all
+ select a.*,'measurement',null::uuid,null::uuid,m.wearer_id from audits a
+ join measurement_event m on (m.shop_id,m.audit_id)=(a.shop_id,a.id)
+ where m.customer_id=${q.customerId}::uuid and m.wearer_id in(select id from allowed_measurement_wearers)
+ and measurement_authority(m.shop_id,m.customer_id,m.wearer_id)
  union all
  select a.*, 'wearer',null::uuid,null::uuid,a.entity_id from audits a
  where a.entity_type='wearer' and a.entity_id in(select id from allowed_wearers) and (a.action like 'wearer.%' or a.action like 'guardian.%')
@@ -240,7 +246,7 @@ select * from details e where
             : "order"
           : kind === "booking"
             ? "booking"
-            : kind === "wearer"
+            : kind === "wearer" || kind === "measurement"
               ? "wearer"
               : "customer";
         const fields: Record<string, string[]> = {
@@ -280,6 +286,8 @@ select * from details e where
           "booking.commercial.propose": ["commercialBasis", "scope"],
           "service.line.complete": ["lineProgress"],
           "service.line.correct": ["lineProgress"],
+          "measurement.save": ["measurementVersion"],
+          "measurement.select": ["measurementSelection"],
         };
         const redacted =
           row.identity_redacted === true ||
@@ -297,6 +305,9 @@ select * from details e where
             : (row.identity_reason ?? row.note ?? row.reason ?? null),
           fields: row.identity_fields ?? fields[row.action as string] ?? [],
           facts: Object.entries({
+            ...(kind === "measurement"
+              ? { measurementEventId: row.entity_id }
+              : {}),
             ...(["customer.merge", "customer.restore"].includes(
               row.action as string,
             )
@@ -359,7 +370,10 @@ select * from details e where
             .map(([field, value]) => ({ field, value: String(value) })),
           source: {
             kind: sourceKind,
-            id: order ?? row.booking_id ?? row.entity_id,
+            id:
+              kind === "measurement"
+                ? row.wearer_id
+                : (order ?? row.booking_id ?? row.entity_id),
             version: String(row.action).startsWith("design.specification.")
               ? null
               : (row.revision ?? null),

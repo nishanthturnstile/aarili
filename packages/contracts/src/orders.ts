@@ -50,13 +50,22 @@ export const repeatSourceRefSchema = z.strictObject({
   scopeDigest: z.string().regex(/^[a-f0-9]{64}$/),
   reuseInstructions: z.boolean(),
 });
-export const repeatOrderDraftSchema = quickOrderDraftSchema.extend({
+export const repeatMeasurementReferenceSchema = z.strictObject({
+  selectedId: z.uuid(),
+  sourcePieceId: z.uuid().nullable(),
+  pieceKey: z.string().min(1).max(160).nullable(),
+  reviewed: z.literal(true),
+});
+export const repeatOrderDraftV1Schema = quickOrderDraftSchema.extend({
   repeat: repeatSourceRefSchema,
+});
+export const repeatOrderDraftSchema = repeatOrderDraftV1Schema.extend({
+  measurementReuse: repeatMeasurementReferenceSchema.optional(),
 });
 export type RepeatOrderDraft = z.infer<typeof repeatOrderDraftSchema>;
 export type RepeatSourceRef = z.infer<typeof repeatSourceRefSchema>;
 export function repeatIntake(value: RepeatOrderDraft): QuickOrderDraft {
-  const { repeat: _origin, ...intake } = value;
+  const { repeat: _origin, measurementReuse: _measurements, ...intake } = value;
   return quickOrderDraftSchema.parse(intake);
 }
 export const createRepeatOrderSchema = z.strictObject({
@@ -64,6 +73,7 @@ export const createRepeatOrderSchema = z.strictObject({
   snapshotDigest: repeatSourceRefSchema.shape.snapshotDigest,
   scopeDigest: repeatSourceRefSchema.shape.scopeDigest,
   reuseInstructions: z.boolean(),
+  measurementReuse: repeatMeasurementReferenceSchema.optional(),
 });
 export const quickOrderCommandSchema = quickOrderDraftSchema.superRefine(
   (v, c) => {

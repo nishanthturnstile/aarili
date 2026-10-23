@@ -73,7 +73,14 @@ const reference = z.strictObject({
 });
 export const customerHistoryEventSchema = z.strictObject({
   id: z.uuid(),
-  kind: z.enum(["customer", "wearer", "order", "booking", "service-progress"]),
+  kind: z.enum([
+    "customer",
+    "wearer",
+    "order",
+    "booking",
+    "service-progress",
+    "measurement",
+  ]),
   action: z.string().max(120),
   recordedAt: z.iso.datetime(),
   actorId: z.uuid(),
@@ -104,7 +111,6 @@ export const unavailableHistoryDomains = [
   "documents",
   "money",
   "custody",
-  "measurements",
   "fit",
 ] as const;
 export const customerHistoryPageSchema = z.strictObject({

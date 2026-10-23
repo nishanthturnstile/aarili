@@ -68,6 +68,10 @@ export {
 } from "./repeat-orders.js";
 
 export type QuickOrderContext = {
+  measurements?: {
+    repository: import("@aarili/db/repositories/measurement-sessions").MeasurementSessionsRepository;
+    consequences: import("@aarili/db/repositories/design-specifications").DesignSpecificationsRepository;
+  };
   customers: CustomerContext;
   wearers: WearerContext;
   guardians: GuardianContext;

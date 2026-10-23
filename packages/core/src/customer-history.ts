@@ -15,7 +15,9 @@ import type {
 } from "@aarili/db/repositories/customer-history";
 import { searchKeysV1 } from "@aarili/i18n/search";
 import { readCustomer } from "./customers.js";
+import { DraftFailure } from "./drafts.js";
 import { readGuardians } from "./guardians.js";
+import { authorizeMeasurementWearer } from "./measurement-sessions.js";
 import type { QuickOrderContext } from "./orders.js";
 import { requestHash } from "./request-binding.js";
 import { parseExpectedVersion } from "./request-version.js";
@@ -244,6 +246,7 @@ export async function customerHistory(
   const candidates = await ctx.repository.wearers(c.id);
   for (const id of candidates.sort()) await wearers.repository.lockWearer(id);
   const allowed: string[] = [],
+    measurementAllowed: string[] = [],
     versions: unknown[] = [];
   for (const id of candidates) {
     const w = await wearers.repository.read(c.id, id);
@@ -265,6 +268,18 @@ export async function customerHistory(
       versions.push([w.id, w.version, w.displayName]);
     }
     if (eligible) allowed.push(w.id);
+    if (eligible && ctx.identities.measurements) {
+      try {
+        await authorizeMeasurementWearer(
+          { orders: ctx.identities, ...ctx.identities.measurements },
+          { customerId: c.id, wearerId: w.id },
+        );
+        measurementAllowed.push(w.id);
+      } catch (e) {
+        if (!(e instanceof DraftFailure) || ![404, 409].includes(e.status))
+          throw e;
+      }
+    }
   }
   if (q.wearerId && !allowed.includes(q.wearerId))
     throw new HistoryFailure(404, "NOT_FOUND");
@@ -277,6 +292,7 @@ export async function customerHistory(
     privacy: await ctx.repository.privacyVersion(),
     corrections: await ctx.repository.merges.state(c.id, c.id),
     allowed,
+    measurementAllowed,
     wearer: q.wearerId,
     query: q.query,
     limit: q.limit,
@@ -313,6 +329,9 @@ export async function customerHistory(
     q.wearerId ? [q.wearerId] : allowed,
     window,
     searchKeysV1(q.query, /^[\s+().\-\p{Nd}]+$/u.test(q.query) ? q.query : ""),
+    q.wearerId
+      ? measurementAllowed.filter((id) => id === q.wearerId)
+      : measurementAllowed,
   );
   return customerHistoryPageSchema.parse({
     events: page.events,

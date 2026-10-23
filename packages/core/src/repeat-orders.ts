@@ -6,9 +6,11 @@ import {
   type RepeatSourceRef,
   repeatIntake,
   repeatOrderDraftSchema,
+  repeatOrderDraftV1Schema,
 } from "@aarili/contracts/orders";
 import { idempotencyHeaderSchema } from "@aarili/contracts/request";
 import { DraftFailure, type DraftWorkflow, mutateDraft } from "./drafts.js";
+import { validateRepeatMeasurement } from "./measurement-sessions.js";
 import type { QuickOrderContext } from "./orders.js";
 import {
   acceptResolvedOrder,
@@ -97,6 +99,7 @@ async function authorise(ctx: QuickOrderContext, v: RepeatOrderDraft) {
   )
     fail(404);
   await orderReferences(ctx, repeatIntake(v));
+  if (v.measurementReuse) await validateRepeatMeasurement(ctx, v);
   return source;
 }
 async function resolve(ctx: QuickOrderContext, v: RepeatOrderDraft) {
@@ -107,8 +110,16 @@ async function resolve(ctx: QuickOrderContext, v: RepeatOrderDraft) {
   resolved.review.fingerprint = await requestHash({
     base: resolved.review.fingerprint,
     repeat: v.repeat,
+    ...(v.measurementReuse ? { measurementReuse: v.measurementReuse } : {}),
   });
-  return { ...resolved, snapshot: { ...resolved.snapshot, repeat: v.repeat } };
+  return {
+    ...resolved,
+    snapshot: {
+      ...resolved.snapshot,
+      repeat: v.repeat,
+      ...(v.measurementReuse ? { measurementReuse: v.measurementReuse } : {}),
+    },
+  };
 }
 export async function reviewRepeatOrder(
   ctx: QuickOrderContext,
@@ -118,19 +129,32 @@ export async function reviewRepeatOrder(
   if (!parsed.success) fail(422);
   return (await resolve(ctx, parsed.data)).review;
 }
-export function repeatOrderWorkflow(ctx: QuickOrderContext): DraftWorkflow {
+export function repeatOrderWorkflow(
+  ctx: QuickOrderContext,
+  schemaVersion = 1,
+): DraftWorkflow {
   let resolved: Awaited<ReturnType<typeof resolve>> | undefined;
   return {
-    schemaVersion: 1,
-    draftSchema: repeatOrderDraftSchema,
-    commandSchema: repeatOrderDraftSchema,
+    schemaVersion,
+    draftSchema:
+      schemaVersion === 1
+        ? repeatOrderDraftV1Schema
+        : repeatOrderDraftSchema.required({ measurementReuse: true }),
+    commandSchema:
+      schemaVersion === 1
+        ? repeatOrderDraftV1Schema
+        : repeatOrderDraftSchema.required({ measurementReuse: true }),
     validateEdit(before, after) {
       const a = repeatOrderDraftSchema.parse(before).repeat,
         b = repeatOrderDraftSchema.parse(after).repeat;
       if (
         a.sourceId !== b.sourceId ||
         a.snapshotDigest !== b.snapshotDigest ||
-        a.reuseInstructions !== b.reuseInstructions
+        a.reuseInstructions !== b.reuseInstructions ||
+        JSON.stringify(
+          repeatOrderDraftSchema.parse(before).measurementReuse,
+        ) !==
+          JSON.stringify(repeatOrderDraftSchema.parse(after).measurementReuse)
       )
         fail();
     },
@@ -231,16 +255,20 @@ export async function createRepeatOrder(
   if (source.order.snapshotDigest !== v.snapshotDigest) fail();
   if (!origin && source.scopeDigest !== v.scopeDigest) fail();
   const initial = initialRepeatOrder(source.order, ref);
+  if (v.measurementReuse) initial.measurementReuse = v.measurementReuse;
+  const schemaVersion = v.measurementReuse ? 2 : 1;
   const result = await mutateDraft(
     {
       shopId: ctx.templates.shopId,
       actor: { type: "user", id: ctx.templates.actorId },
       repository: repeats.drafts,
-      workflows: new Map([["order.repeat", repeatOrderWorkflow(ctx)]]),
+      workflows: new Map([
+        ["order.repeat", repeatOrderWorkflow(ctx, schemaVersion)],
+      ]),
     },
     v.draftId,
     "save",
-    { workflow: "order.repeat", schemaVersion: 1, payload: initial },
+    { workflow: "order.repeat", schemaVersion, payload: initial },
     { key: headers.key, requestId: headers.requestId },
   );
   if (!origin)

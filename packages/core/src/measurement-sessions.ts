@@ -4,6 +4,7 @@ import {
   type MeasurementUseDraft,
   type MeasurementVersion,
   measurementQuerySchema,
+  measurementReviewQuerySchema,
   measurementSessionCommandSchema,
   measurementSessionDraftSchema,
   measurementTargetQuerySchema,
@@ -17,6 +18,7 @@ import {
   matchesIncrement,
   parseLength,
 } from "@aarili/contracts/measurement-values";
+import type { RepeatOrderDraft } from "@aarili/contracts/orders";
 import type { DesignSpecificationsRepository } from "@aarili/db/repositories/design-specifications";
 import type { MeasurementSessionsRepository } from "@aarili/db/repositories/measurement-sessions";
 import { DraftFailure, type DraftWorkflow } from "./drafts.js";
@@ -26,6 +28,7 @@ import {
   readAcceptedOrder,
   readOrderPieces,
 } from "./orders.js";
+import { requestHash } from "./request-binding.js";
 
 export type MeasurementSessionsContext = {
   orders: QuickOrderContext;
@@ -47,7 +50,7 @@ function fail(status: 404 | 409 | 412 | 422 = 409): never {
     },
   });
 }
-async function wearer(
+export async function authorizeMeasurementWearer(
   ctx: MeasurementSessionsContext,
   v: { customerId: string; wearerId: string },
 ) {
@@ -87,7 +90,9 @@ async function wearer(
       fail(404);
   }
   if (await ctx.repository.erased(v.wearerId)) fail(404);
+  return p;
 }
+const wearer = authorizeMeasurementWearer;
 async function config(
   ctx: MeasurementSessionsContext,
   ref: { entryId: string; revisionId: string },
@@ -157,6 +162,7 @@ async function target(
     customerId: order.intake.customerId,
     wearerId: order.intake.wearerId,
     form: { entryId: form.entryId, revisionId: form.revisionId },
+    orderVersion: order.version,
   };
 }
 async function authorised(
@@ -170,6 +176,16 @@ async function authorised(
   } else await wearer(ctx, v);
   if (v.selectedId) {
     const s = await ctx.repository.read(v.selectedId);
+    if (
+      !s ||
+      s.customerId !== v.customerId ||
+      s.wearerId !== v.wearerId ||
+      s.redacted
+    )
+      fail(404);
+  }
+  if (v.correctionId) {
+    const s = await ctx.repository.read(v.correctionId);
     if (
       !s ||
       s.customerId !== v.customerId ||
@@ -298,8 +314,7 @@ async function resolve(
         v.target.pieceId,
       );
     if (state.version !== v.baseVersion) fail(412);
-    if (state.selectedId || (await ctx.consequences.governed(v.target.orderId)))
-      fail();
+    if (await ctx.consequences.governed(v.target.orderId)) fail();
     const s = await ctx.repository.read(v.selectedId);
     if (
       !s ||
@@ -311,14 +326,47 @@ async function resolve(
     await config(ctx, t.form);
     const a = await ctx.repository.latestApproval(t.form.revisionId);
     if (a?.operation !== "approve" || a.id !== s.approval.id) fail();
-    // A records the first use only. Contextual cross-garment reuse belongs to B.
-    if ((await ctx.repository.used([s.id])).length) fail();
+    if (
+      state.selectedId ||
+      (await ctx.repository.used([s.id])).length ||
+      v.reuseReview
+    ) {
+      if (!v.reuseReview) fail();
+      const review = await reviewMeasurementSelection(ctx, {
+        selectedId: s.id,
+        target: v.target,
+        impact: v.reuseReview.impact,
+      });
+      if (review.blocked.length) fail();
+      if (review.digest !== v.reuseReview.digest) fail(412);
+    }
     return null;
   }
   if (!v.form || !v.approvalId) fail(422);
   const f = await config(ctx, v.form),
     a = await ctx.repository.latestApproval(v.form.revisionId);
   if (a?.operation !== "approve" || a.id !== v.approvalId) fail();
+  if (v.correctionId) {
+    const prior = await ctx.repository.read(v.correctionId);
+    if (!prior || prior.redacted) fail(404);
+    await ctx.repository.lockSession(prior.sessionId);
+    const head = await ctx.repository.read(prior.id);
+    if (head?.headId !== prior.id) fail(412);
+    // A different observation belongs to a fresh session. Corrections retain
+    // the observed date and exact form; neither the actor nor compilation time
+    // becomes a newly measured fact.
+    if (
+      prior.form.id !== f.definition.id ||
+      prior.source.date !== v.source.date ||
+      prior.source.kind !== v.source.kind ||
+      v.values.some(
+        (a) =>
+          a.source?.date !==
+          prior.values.find((b) => b.fieldId === a.fieldId)?.source?.date,
+      )
+    )
+      fail(422);
+  }
   return {
     form: f.definition,
     approval: a,
@@ -387,6 +435,7 @@ export function measurementSessionWorkflow(
         x.customerId !== y.customerId ||
         x.wearerId !== y.wearerId ||
         x.operation !== y.operation ||
+        x.correctionId !== y.correctionId ||
         JSON.stringify(x.target) !== JSON.stringify(y.target) ||
         x.erased
       )
@@ -440,9 +489,17 @@ export async function readMeasurements(
 export async function readMeasurement(
   ctx: MeasurementSessionsContext,
   id: string,
+  expected?: { customerId: string; wearerId: string },
 ) {
-  const v = await ctx.repository.read(id);
+  // Resolve non-personal ownership before hydrating values or taking an authority
+  // lock. A rejected foreign source must not invert the target's wearer lock.
+  const v = await ctx.repository.identity(id);
   if (!v) fail(404);
+  if (
+    expected &&
+    (v.customerId !== expected.customerId || v.wearerId !== expected.wearerId)
+  )
+    fail(404);
   await wearer(ctx, v);
   const current = await ctx.repository.read(id);
   if (!current) fail(404);
@@ -456,9 +513,126 @@ export async function readMeasurementTarget(
   if (!q.success) fail(422);
   const t = await target(ctx, q.data);
   return {
-    ...q.data,
-    ...(await ctx.repository.selection(q.data.orderId, q.data.pieceId)),
+    orderId: q.data.orderId,
+    pieceId: q.data.pieceId,
+    ...(await ctx.repository.selection(
+      q.data.orderId,
+      q.data.pieceId,
+      q.data.beforeVersion,
+    )),
     form: t.form,
+  };
+}
+
+export async function reviewMeasurementSelection(
+  ctx: MeasurementSessionsContext,
+  input: unknown,
+) {
+  const parsed = measurementReviewQuerySchema.safeParse(input);
+  if (!parsed.success) fail(422);
+  const q = parsed.data;
+  const t = await target(ctx, q.target),
+    version = await readMeasurement(ctx, q.selectedId, t);
+  if (
+    version.wearerId !== t.wearerId ||
+    version.customerId !== t.customerId ||
+    version.redacted
+  )
+    fail(404);
+  const authority = await wearer(ctx, version),
+    selection = await ctx.repository.selection(
+      q.target.orderId,
+      q.target.pieceId,
+    );
+  const sources = [];
+  let sourceContextUnavailable = false;
+  for (const u of await ctx.repository.usages(version.id)) {
+    // Source garment access is independent of access to this personal version.
+    // Do not reveal a link when current identity no longer matches its owner.
+    if (
+      u.customerId !== version.customerId ||
+      u.wearerId !== version.wearerId
+    ) {
+      sourceContextUnavailable = true;
+      continue;
+    }
+    try {
+      await readAcceptedOrder(ctx.orders, u.orderId);
+      await readOrderPieces(ctx.orders, u.orderId);
+      sources.push({ orderId: u.orderId, pieceId: u.pieceId, code: u.code });
+    } catch (e) {
+      if (e instanceof DraftFailure && e.status === 404)
+        sourceContextUnavailable = true;
+      else throw e;
+    }
+  }
+  const blocked: (
+    | "incompatible"
+    | "unavailable"
+    | "unsupported-impact"
+    | "already-selected"
+  )[] = [];
+  if (
+    t.form.revisionId !== version.form.id ||
+    t.form.entryId !== version.form.entryId
+  )
+    blocked.push("incompatible");
+  try {
+    await config(ctx, t.form);
+    const a = await ctx.repository.latestApproval(t.form.revisionId);
+    if (a?.operation !== "approve" || a.id !== version.approval.id)
+      blocked.push("unavailable");
+  } catch (e) {
+    if (e instanceof DraftFailure && e.status === 409)
+      blocked.push("unavailable");
+    else throw e;
+  }
+  if (
+    (await ctx.consequences.governed(q.target.orderId)) ||
+    q.impact.physical !== "not-started" ||
+    q.impact.commercial !== "none"
+  )
+    blocked.push("unsupported-impact");
+  if (selection.selectedId === version.id) blocked.push("already-selected");
+  const state = { ...q.target, ...selection, form: t.form };
+  const profile = await ctx.orders.acceptance?.profile.current();
+  const asOfDate = profile
+    ? new Intl.DateTimeFormat("en-CA", {
+        timeZone: profile.profile.timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date())
+    : null;
+  const ageDays =
+    asOfDate && version.source.date
+      ? (Date.parse(`${asOfDate}T00:00:00Z`) -
+          Date.parse(`${version.source.date}T00:00:00Z`)) /
+        86400000
+      : null;
+  const digest = await requestHash({
+    actor: ctx.orders.templates.actorId,
+    shop: ctx.orders.templates.shopId,
+    source: version.id,
+    head: version.headId,
+    authority: authority.version,
+    target: state,
+    orderVersion: t.orderVersion,
+    impact: q.impact,
+    asOfDate,
+    sources,
+    sourceContextUnavailable,
+    blocked,
+  });
+  return {
+    version,
+    target: state,
+    sources,
+    sourceContextUnavailable,
+    digest,
+    asOfDate,
+    ageDays,
+    blocked,
   };
 }
 export async function readMeasurementUse(
@@ -469,4 +643,52 @@ export async function readMeasurementUse(
   return {
     approval: (await ctx.repository.latestApproval(form.revisionId)) ?? null,
   };
+}
+
+export async function validateRepeatMeasurement(
+  orders: QuickOrderContext,
+  draft: RepeatOrderDraft,
+) {
+  const ref = draft.measurementReuse;
+  if (!ref || !orders.measurements || !draft.manifest) fail();
+  const ctx: MeasurementSessionsContext = { orders, ...orders.measurements };
+  const source = await target(ctx, {
+    orderId: draft.repeat.sourceId,
+    pieceId: ref.sourcePieceId,
+  });
+  const state = await ctx.repository.selection(
+    draft.repeat.sourceId,
+    ref.sourcePieceId,
+  );
+  if (state.selectedId !== ref.selectedId) fail(404);
+  const v = await readMeasurement(ctx, ref.selectedId, {
+    customerId: source.customerId,
+    wearerId: source.wearerId,
+  });
+  if (
+    state.selectedId !== v.id ||
+    v.redacted ||
+    v.customerId !== draft.customerId ||
+    v.wearerId !== draft.wearerId
+  )
+    fail(404);
+  const pieces = await readOrderPieces(orders, draft.repeat.sourceId);
+  const piece = pieces.identities.find((p) => p.id === ref.sourcePieceId);
+  if ((piece?.key ?? null) !== ref.pieceKey) fail();
+  const manifest = await orders.templates.repository.definition(
+    draft.manifest.definitionId,
+  );
+  if (manifest?.content.kind !== "service-template") fail();
+  const bindings = manifest.content.forms.filter(
+    (f) => f.pieceKey === ref.pieceKey,
+  );
+  if (
+    bindings.length !== 1 ||
+    bindings[0]?.revisionId !== v.form.id ||
+    source.form.revisionId !== v.form.id
+  )
+    fail();
+  await config(ctx, { entryId: v.form.entryId, revisionId: v.form.id });
+  const a = await ctx.repository.latestApproval(v.form.id);
+  if (a?.operation !== "approve" || a.id !== v.approval.id) fail();
 }

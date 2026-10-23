@@ -1,5 +1,44 @@
 export const measurementSessionMessages = {
   en: {
+    conflictHelp:
+      "Your draft has not been merged. Reload measurements to compare the current head or selection, then deliberately start from the reviewed state.",
+    incompatible:
+      "The exact form or piece binding is incompatible. No replacement mapping is approved.",
+    unavailable:
+      "The exact form or its measurement-use approval is no longer available.",
+    unsupportedImpact:
+      "Cutting/dispatch or commercial impact is unknown or governed. This workflow cannot approve that replacement.",
+    alreadySelected: "This exact version is already selected for this scope.",
+    moreSelections: "Load earlier selections",
+    currentHead:
+      "Current lineage head — comparison only; your draft is unchanged",
+    age: "Days since the stated observation / compilation date",
+    asOf: "As of shop date",
+    correct: "Correct this observation",
+    correctionHelp:
+      "Correct an error in this observation. Keep its observed date and source. For a new measurement or date, start a new wearer session. Earlier garment selections stay unchanged.",
+    compare: "Compare original and proposed values",
+    previous: "Previous version",
+    proposed: "Proposed version",
+    unchanged: "Unchanged",
+    lineage: "Session",
+    head: "A newer correction exists. Open the current head before correcting.",
+    reuse: "Review this version for this garment",
+    sources: "Garments that have used this exact version",
+    unavailableSource:
+      "Some source garment context is unavailable with current access.",
+    noSource: "No source garment recorded for this version.",
+    physical: "Physical cutting or dispatch for this target",
+    notStarted: "I report that cutting and dispatch have not started",
+    commercial: "Effect on the agreed price or size band",
+    noEffect:
+      "I reviewed the price basis; this selection has no commercial effect",
+    inspect: "Check compatibility and impact",
+    impactHelp:
+      "These statements record your review. They do not verify physical work or approve a price change. Unknown or unsupported impact blocks selection.",
+    blockedReuse:
+      "Selection is blocked. Review the exact form, current approval and work/price impact. An existing selection stays intact.",
+    selectionHistory: "Garment selection history",
     minimum: "Minimum",
     maximum: "Maximum",
     comparison: "When both values are entered",
@@ -52,7 +91,7 @@ export const measurementSessionMessages = {
     whole: "Whole garment",
     unselected: "No measurement selected",
     selected: "Selected observation",
-    used: "Already used for a garment. Review and reuse is not available in this shop yet.",
+    used: "Used by a garment. Any reuse needs a fresh suitability review.",
     noTarget:
       "This scope has no supported single measurement-form mapping. Choose its native piece or review the manifest. A service marked not required needs no measurements.",
     useTitle: "Review this form for synthetic measurement use",
@@ -82,6 +121,42 @@ export const measurementSessionMessages = {
       "Saving does not select this version for any garment. Blank values stay unknown. Changing display units preserves the original entry.",
   },
   ta: {
+    conflictHelp:
+      "உங்கள் வரைவு ஒன்றிணைக்கப்படவில்லை. தற்போதைய பதிப்பு அல்லது தேர்வை ஒப்பிட அளவுகளை மீளேற்றவும். பிறகு ஆய்வு செய்த நிலையிலிருந்து தொடங்கவும்.",
+    incompatible:
+      "சரியான படிவம் அல்லது ஆடைப் பகுதி பொருந்தவில்லை. மாற்று இணைப்பு ஒப்புக்கொள்ளப்படவில்லை.",
+    unavailable:
+      "இந்தப் படிவம் அல்லது அதன் அளவுப் பயன்பாட்டு ஒப்புதல் தற்போது கிடைக்கவில்லை.",
+    unsupportedImpact:
+      "வெட்டுதல், அனுப்புதல் அல்லது விலை விளைவு தெரியவில்லை அல்லது தனி ஒப்புதல் தேவை. இந்தச் செயல்முறை அந்த மாற்றத்தை ஒப்புக்கொள்ளாது.",
+    alreadySelected: "இந்தப் பகுதிக்கு இந்தப் பதிப்பு ஏற்கனவே தேர்ந்தெடுக்கப்பட்டுள்ளது.",
+    moreSelections: "முந்தைய தேர்வுகளை ஏற்று",
+    currentHead: "தற்போதைய கடைசிப் பதிப்பு — ஒப்பீடு மட்டும்; உங்கள் வரைவு மாறாது",
+    age: "குறிப்பிட்ட அளவு அல்லது தொகுப்புத் தேதியிலிருந்து நாட்கள்",
+    asOf: "கடையின் தற்போதைய தேதி",
+    correct: "இந்த அளவுப் பதிவின் பிழையைத் திருத்து",
+    correctionHelp:
+      "இந்தப் பதிவின் பிழையை மட்டும் திருத்தவும். அளந்த தேதியும் மூலமும் மாறாது. புதிய அளவு அல்லது தேதிக்கு புதிய அணிபவர் பதிவைத் தொடங்கவும். முந்தைய ஆடைகளின் தேர்வுகள் மாறாது.",
+    compare: "முந்தைய மற்றும் புதிய அளவுகளை ஒப்பிடு",
+    previous: "முந்தைய பதிப்பு",
+    proposed: "புதிய பதிப்பு",
+    unchanged: "மாற்றமில்லை",
+    lineage: "அளவுப் பதிவு",
+    head: "புதிய திருத்தம் உள்ளது. திருத்துவதற்கு தற்போதைய பதிப்பைத் திறக்கவும்.",
+    reuse: "இந்த ஆடைக்காக இந்தப் பதிப்பை ஆய்வு செய்",
+    sources: "இந்தப் பதிப்பைப் பயன்படுத்திய ஆடைகள்",
+    unavailableSource: "சில மூல ஆடைகளின் விவரங்களுக்கு தற்போது அணுகல் இல்லை.",
+    noSource: "இந்தப் பதிப்புக்கு மூல ஆடை பதிவு செய்யப்படவில்லை.",
+    physical: "இந்த ஆடையின் துணி வெட்டுதல் அல்லது வெளியே அனுப்புதல்",
+    notStarted: "வெட்டுதலும் வெளியே அனுப்புதலும் தொடங்கவில்லை எனப் பதிவு செய்கிறேன்",
+    commercial: "ஒப்புக்கொண்ட விலை அல்லது அளவு வகுப்பில் விளைவு",
+    noEffect: "விலை அடிப்படையை ஆய்வு செய்தேன்; இந்தத் தேர்வால் விலையில் விளைவில்லை",
+    inspect: "பொருத்தத்தையும் விளைவையும் சரிபார்",
+    impactHelp:
+      "இவை உங்கள் ஆய்வைப் பதிவு செய்கின்றன. உடல் வேலை நிலையை உறுதி செய்யவோ விலை மாற்றத்தை ஒப்புக்கொள்ளவோ இல்லை. தெரியாத அல்லது ஆதரிக்கப்படாத விளைவு தேர்வைத் தடுக்கும்.",
+    blockedReuse:
+      "தேர்வு தடுக்கப்பட்டுள்ளது. சரியான படிவம், தற்போதைய ஒப்புதல், வேலை மற்றும் விலை விளைவை ஆய்வு செய்யவும். முந்தைய தேர்வு மாறாது.",
+    selectionHistory: "ஆடையின் அளவுத் தேர்வு வரலாறு",
     minimum: "குறைந்தபட்சம்",
     maximum: "அதிகபட்சம்",
     comparison: "இரண்டு அளவுகளும் பதிவாகியிருந்தால்",
@@ -134,7 +209,7 @@ export const measurementSessionMessages = {
     whole: "முழு ஆடை",
     unselected: "அளவுப் பதிவு தேர்ந்தெடுக்கப்படவில்லை",
     selected: "தேர்ந்தெடுத்த அளவுப் பதிவு",
-    used: "ஓர் ஆடைக்கு ஏற்கனவே பயன்படுத்தப்பட்டது. ஆய்வு செய்து மீண்டும் பயன்படுத்தும் வசதி இந்தக் கடையில் இன்னும் இல்லை.",
+    used: "ஓர் ஆடைக்குப் பயன்படுத்தப்பட்டது. மறுபயன்பாட்டிற்குப் புதிய பொருத்த ஆய்வு தேவை.",
     noTarget:
       "இந்தப் பகுதிக்கு ஆதரிக்கப்படும் ஒற்றை அளவுப் படிவ இணைப்பு இல்லை. உரிய ஆடைப் பகுதியைத் தேர்ந்தெடுக்கவும் அல்லது சேவை அமைப்பை ஆய்வு செய்யவும். அளவுகள் தேவையற்ற சேவைக்கு பதிவு தேவையில்லை.",
     useTitle: "செயற்கை அளவுப் பயன்பாட்டிற்குப் படிவத்தை ஆய்வு செய்க",

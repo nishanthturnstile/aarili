@@ -334,6 +334,22 @@ test("MV-A01–10 wearer observation, exact conversion, recovery, save-only and 
           .first();
         await saved.locator("summary").click();
         await saved
+          .getByRole("button", { name: en.reuse, exact: true })
+          .click();
+        const useReview = region().getByRole("region", {
+          name: en.compare,
+          exact: true,
+        });
+        await useReview
+          .getByLabel(en.physical, { exact: true })
+          .selectOption("not-started");
+        await useReview
+          .getByLabel(en.commercial, { exact: true })
+          .selectOption("none");
+        await useReview
+          .getByRole("button", { name: en.inspect, exact: true })
+          .click();
+        await useReview
           .getByRole("button", { name: en.select, exact: true })
           .click();
         await expect(

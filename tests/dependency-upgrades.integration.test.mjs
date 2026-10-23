@@ -30,8 +30,14 @@ test("#28 pg-boss 45→46 preserves pending jobs, migration history and runtime 
         /setup missing or incompatible/,
       );
       await Promise.all([
-        migrateDatabase(c.migrationConnectionString),
-        migrateDatabase(c.migrationConnectionString),
+        // Freeze this historical pg-boss upgrade at its reviewed migration;
+        // later feature migrations have their own populated-upgrade fixtures.
+        migrateDatabase(c.migrationConnectionString, {
+          through: "0046_pgboss_12_38.sql",
+        }),
+        migrateDatabase(c.migrationConnectionString, {
+          through: "0046_pgboss_12_38.sql",
+        }),
       ]);
       assert.equal(
         (await owner.query("SELECT version FROM pgboss.version")).rows[0]

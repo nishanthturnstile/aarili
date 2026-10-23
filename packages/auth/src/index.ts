@@ -1326,6 +1326,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         repeatOrderWorkflow(quickOrderContext(tx, shopId, userId)),
       );
       workflows.set(
+        "order.repeat@2",
+        repeatOrderWorkflow(quickOrderContext(tx, shopId, userId), 2),
+      );
+      workflows.set(
         "service.intake-profile",
         serviceProfileDraftWorkflow(smallServiceContext(tx, shopId, userId)),
       );
@@ -1510,6 +1514,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
   ): QuickOrderContext {
     const actor = { type: "user" as const, id: actorId };
     return {
+      measurements: {
+        repository: measurementSessionsRepository(tx, shopId),
+        consequences: designSpecificationsRepository(tx, shopId),
+      },
       customers: {
         shopId,
         actor,

@@ -2,6 +2,8 @@ import { OwnerAccessError, type OwnerAuth } from "@aarili/auth";
 import { draftErrorSchema } from "@aarili/contracts/drafts";
 import {
   measurementQuerySchema,
+  measurementReviewQuerySchema,
+  measurementReviewSchema,
   measurementSelectionSchema,
   measurementStateSchema,
   measurementTargetQuerySchema,
@@ -15,6 +17,7 @@ import {
   readMeasurements,
   readMeasurementTarget,
   readMeasurementUse,
+  reviewMeasurementSelection,
 } from "@aarili/core/measurement-sessions";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
@@ -122,6 +125,24 @@ export function createMeasurementSessionsRoutes(
     await next();
   });
   const routes = app
+    .openapi(
+      createRoute({
+        method: "post",
+        path: "/shops/{shopId}/measurements/review",
+        request: { params, body: body(measurementReviewQuerySchema) },
+        responses: { 200: response(measurementReviewSchema), ...failures },
+      }),
+      async (c) => {
+        const r = await owner.withOwnerMeasurementSessions(
+          c.req.raw.headers,
+          c.req.valid("param").shopId,
+          (ctx) => reviewMeasurementSelection(ctx, c.req.valid("json")),
+        );
+        for (const cookie of r.headers.getSetCookie())
+          c.header("Set-Cookie", cookie, { append: true });
+        return c.json(r.data, 200);
+      },
+    )
     .openapi(
       createRoute({
         method: "post",

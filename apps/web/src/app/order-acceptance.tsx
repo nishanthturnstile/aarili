@@ -608,7 +608,7 @@ export function AcceptedOrderDetail({
       </details>
       <p>{t.next}</p>
       <OrderServiceAdditions
-        key={order.id}
+        key={`services-${order.id}`}
         order={order}
         shopId={shopId}
         locale={locale}
@@ -617,7 +617,7 @@ export function AcceptedOrderDetail({
       />
       {order.intake.customerId && order.intake.wearerId && (
         <MeasurementSessions
-          key={order.id}
+          key={`measurements-${order.id}`}
           order={order}
           shopId={shopId}
           customerId={order.intake.customerId}
