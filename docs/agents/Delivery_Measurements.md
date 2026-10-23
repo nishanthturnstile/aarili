@@ -39,7 +39,9 @@
   covers **843 files**. Frozen native installs and export/type portability passed;
   prior failed/stopped copies remain recorded separately.
 - Review packet ready **14:28:42 UTC** after local verification and documentation
-  validation. PR/CI, owner review and merge timings remain pending. Active coding time was
+  validation. Draft [PR #166](https://github.com/nishanthturnstile/aarili/pull/166)
+  created **14:30:02 UTC**, implementation commit `97feeb1`, targeting development.
+  Hosted CI, owner review and merge timings remain pending. Active coding time was
   not instrumented and is not reconstructed from wall-clock elapsed time.
   [Evidence](Manual_Pattern_Implementation_Evidence.md).
 

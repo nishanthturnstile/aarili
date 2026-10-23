@@ -8,6 +8,12 @@ with native blockers read back. A's ten direct prerequisites are merged; its
 branch `codex/manual-pattern-fileless` starts at latest development `c04020a`.
 B remains blocked by A and is not implemented. No worktree or dependency change.
 
+Draft [PR #166](https://github.com/nishanthturnstile/aarili/pull/166) targets
+`development`, created **14:30:02 UTC** on 23 October 2026 with implementation
+commit `97feeb13d9f8825ae770420452480103a3a2e3e6`. It is registered to this
+thread. Required Fast verification/Dependency audit and owner acceptance remain
+open; no merge or deployment occurred.
+
 ## A implementation and review boundary
 
 - Contracts/core/repository/API and typed private-query client implement exact
@@ -142,8 +148,8 @@ were checked at **14:01:14.312 UTC**. Native T3 snapshots twice timed out at 15s
 the documented repository Playwright path confirmed the refreshed host instead.
 Final documentation validation at **14:25:57.081 UTC** checked all **24 local
 links** across the four new preparation/evidence documents and UTF-8 integrity.
-The review packet was ready at **14:28:42 UTC**; PR creation, hosted CI and owner
-acceptance remain separate delivery milestones.
+The review packet was ready at **14:28:42 UTC**; draft PR creation followed at
+**14:30:02 UTC**. Hosted CI and owner acceptance remain separate milestones.
 
 ## Preparation baseline (before owner approval)
 
