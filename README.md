@@ -16,9 +16,9 @@ release promotion PR targets `main`.
 
 ## Native Windows development
 
-Use Node **24.21.0 LTS** and pnpm **12.11.2** on Windows/PowerShell. The exact
+Use Node **24.22.1 LTS** and pnpm **12.15.0** on Windows/PowerShell. The exact
 runtime is in .node-version; packageManager and engines reject version drift.
-Install the pinned pnpm with `npm install --global pnpm@12.11.2` if needed.
+Install the pinned pnpm with `npm install --global pnpm@12.15.0` if needed.
 Quote the checkout path when changing directories.
 
 ~~~powershell

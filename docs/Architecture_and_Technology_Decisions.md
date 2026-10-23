@@ -125,16 +125,16 @@ These rules govern how each core technology is used.
 |---|---|---|---|---|
 | Runtime | Node.js LTS | 24.x LTS | P1 | Same runtime for web, worker, tests and CI |
 | Language | TypeScript, strict mode | **7.0.2 (pinned)** | P1 | Recorded owner-approved workspace correction; strict declarations and Next typed routes verified in 0.1.1a |
-| Package manager / monorepo | pnpm workspaces + Turborepo | pnpm: current release, pinned in `packageManager`; turbo 2.11.7 | P1 | Allows the API to be extracted later |
-| Web framework | Next.js App Router, `output: 'standalone'`, Node runtime | 16.4.1 | P1 | Owner-approved security patch correction, 23 October 2026; public gallery server rendering; one deployable |
-| UI runtime | React | 19.3.0 | P1 | ? |
+| Package manager / monorepo | pnpm workspaces + Turborepo | pnpm: current release, pinned in `packageManager`; turbo 2.11.10 | P1 | Allows the API to be extracted later |
+| Web framework | Next.js App Router, `output: 'standalone'`, Node runtime | 16.4.2 | P1 | Owner-approved security patch correction, 23 October 2026; public gallery server rendering; one deployable |
+| UI runtime | React | 19.3.1 | P1 | ? |
 | API layer | Hono in a Next.js route handler + `@hono/zod-openapi` | hono 4.13.x (pin 4.x); zod-openapi 1.6.3 | P1 | Middleware, typed clients and OpenAPI; extractable later |
-| Validation | Zod | 4.6.6 | P1 | Shared request/response contracts and form validation |
+| Validation | Zod | 4.6.7 | P1 | Shared request/response contracts and form validation |
 | Database | PostgreSQL (Railway official image) | 18 preferred, otherwise 17 | P1 | Transactions, constraints, row-level security, trigram search, job queue |
 | Data access and migrations | Drizzle ORM + drizzle-kit + node-postgres (`pg`) | 0.45.4 / 0.31.11 / 8.23.1 | P1 | SQL-first; row-level security policies declared in the schema; pg-boss adapter. Use the SQL-style builder and avoid the v1 relational query API, to keep the Drizzle 1.0 upgrade easy |
-| Background jobs | pg-boss, run in a separate worker service | 12.37.1 | P1 | Jobs queued in the same transaction via `fromDrizzle(tx, sql)`, singleton keys, cron with a time zone, dead-letter queues |
-| Authentication | Better Auth (email + password, Google sign-in) | 1.7.7 | P1 | Self-hosted; data stays in our PostgreSQL |
-| Object storage | Railway Storage Buckets (S3-compatible), accessed through `@aws-sdk/client-s3` + `s3-request-presigner` | SDK 3.1149.0 | P1 | Managed, Singapore region, free egress |
+| Background jobs | pg-boss, run in a separate worker service | 12.38.0 | P1 | Jobs queued in the same transaction via `fromDrizzle(tx, sql)`, singleton keys, cron with a time zone, dead-letter queues |
+| Authentication | Better Auth (email + password, Google sign-in) | 1.7.12 | P1 | Self-hosted; data stays in our PostgreSQL |
+| Object storage | Railway Storage Buckets (S3-compatible), accessed through `@aws-sdk/client-s3` + `s3-request-presigner` | SDK 3.1156.0 | P1 | Managed, Singapore region, free egress |
 | Off-site backup | Backblaze B2 with a key that cannot delete; `pg_dump`, `age` encryption and `rclone copy` | ? | P1 | Recovery that does not depend on Railway (TRU-10) |
 | Hosting | Railway, Singapore (`asia-southeast1-eqsg3a`), dev and prod environments in one project; workspace on Hobby during synthetic development and **on Pro before real data** | ? | P1 | Buckets, cron, point-in-time recovery and private networking |
 
@@ -166,16 +166,30 @@ version or compiler setting; strict checking and `skipLibCheck=false` remain.
 the original failure and repaired verification. This does not approve upgrades
 or activation of later queue/provider capabilities.
 
+**Recorded dependency maintenance approval (23 October 2026):** The owner
+selected all updates listed in [Renovate dashboard #28](https://github.com/nishanthturnstile/aarili/issues/28),
+including its major upgrades. Node remains on LTS 24 (24.22.1), pnpm is 12.15.0,
+and the installed package baselines above/below reflect that selection. GitHub
+Actions use SHA-pinned checkout 7.0.1, setup-node 7.1.0 and pnpm/action-setup
+6.1.0 on Ubuntu 26.04. Append-only migration 0046 upgrades pg-boss schema 45
+to 46 under migration authority; runtime DDL stays disabled. The pg-boss
+declaration patch is rebased to 12.38.0;
+both restored interfaces still exactly match that upstream tag. Existing
+strict compiler, tenant, history and dependency-build-script controls remain.
+This maintenance approval installs no future-phase capability and does not
+change the requirement for deliberate approval of future major updates.
+See [scope and verification](agents/Issue_28_Dependency_Updates_Evidence.md).
+
 ### 5.2 User interface
 
 | Concern | Choice | Version | Phase | Notes |
 |---|---|---|---|---|
 | Components | shadcn/ui with **Base UI** primitives | shadcn CLI 4.21.4; `@base-ui/react` 1.9.0 | P1 | One primitive family only. Base UI uses `render` props, not Radix `asChild`, so check any third-party "shadcn blocks" for compatibility |
 | Styling | Tailwind CSS v4 (`@tailwindcss/postcss`) | 4.3.3 | P1 | CSS-first `@theme` tokens; container queries for components; `:lang(ta)` typography rules |
-| Icons and toasts | lucide-react; sonner | 1.55.0; 2.0.8 | P1 | — |
+| Icons and toasts | lucide-react; sonner | 1.61.0; 2.0.8 | P1 | — |
 | Date picker | react-day-picker (shadcn Calendar) | 10.0.2 | P1 | New major version; check the shadcn recipe matches it |
-| Server state | TanStack Query | 5.104.2 | P1 | Query keys include the shop; the cache is cleared when the user or shop changes |
-| Forms | React Hook Form + `@hookform/resolvers` + shadcn Field | 7.90.0 / 5.9.1 | P1 | Uncontrolled inputs are fast on low-end phones. Debounced draft auto-save to the server (USE-03) |
+| Server state | TanStack Query | 5.104.5 | P1 | Query keys include the shop; the cache is cleared when the user or shop changes |
+| Forms | React Hook Form + `@hookform/resolvers` + shadcn Field | 7.90.0 / 6.0.0 | P1 | Uncontrolled inputs are fast on low-end phones. Debounced draft auto-save to the server (USE-03) |
 | Tables | TanStack Table | 9.2.8 | P1 | Use v9 consistently. Shown as cards on phones (Section 7) |
 | Long lists | TanStack Virtual | 3.14.17 | Only if measured to be needed | Virtualised rows complicate screen readers and variable-height Tamil text |
 | URL state | nuqs (App Router adapter) | 2.10.2 | P1 | No personal data in URLs |
@@ -194,20 +208,20 @@ or activation of later queue/provider capabilities.
 | QR codes on job slips and labels | A small QR generator library (choose and pin when building) | — | P1 Should (ORD-10) | The QR holds only an opaque garment ID, which resolves only for a signed-in, authorised user |
 | Server image processing | sharp | 0.35.5 | P1 | Rotate, strip metadata, make thumbnails, check file type by content |
 | Client image compression | Native `createImageBitmap` + canvas re-encode (strips EXIF and GPS); `compressorjs` 1.4.0 as a fallback | — | P1 | — |
-| PDF rendering | HTML/CSS templates rendered by headless Chromium through `playwright-core` in the worker | 1.64.0 | P1 | Correct Tamil shaping (Section 9.3) |
+| PDF rendering | HTML/CSS templates rendered by headless Chromium through `playwright-core` in the worker | 1.64.1 | P1 | Correct Tamil shaping (Section 9.3) |
 | PDF merge and later tiling | `@cantoo/pdf-lib` (maintained fork of pdf-lib) | 2.11.1 | P1 (merge only) / P3 | — |
 | Search | PostgreSQL `pg_trgm` + stored search keys built by an in-house function; `@indic-transliteration/sanscript` optional for the Tamil-to-Latin step | sanscript 1.3.3 | P1 | Section 9.1 |
 | Environment validation | `@t3-oss/env-nextjs` / `env-core` | 0.13.11 | P1 | Server secrets never go in `NEXT_PUBLIC_*` variables |
 | Logging | pino (JSON to stdout); pino-pretty in dev | 10.4.0 | P1 | Redact names, phone numbers, tokens, cookies and measurement values |
-| Error tracking | Sentry SaaS, Developer (free) plan | `@sentry/nextjs` / `@sentry/node` 11.6.0 | P1 | Explicit deny-all `dataCollection`, `includeServerName: false`, a scrubber, no session replay (owner-approved Sentry 11.6.0 configuration correction, 16 October 2026; replaces removed `sendDefaultPii`) |
+| Error tracking | Sentry SaaS, Developer (free) plan | `@sentry/nextjs` / `@sentry/node` 11.8.0 | P1 | Explicit deny-all `dataCollection`, `includeServerName: false`, a scrubber, no session replay (owner-approved Sentry 11.6.0 configuration correction, 16 October 2026; replaces removed `sendDefaultPii`) |
 | Pilot metrics | An in-house `product_event` table | — | P1 | Pilot measures (product plan §28) need joins with business data; keeps personal data in-house |
-| Rate limiting | Better Auth's built-in limiter, stored in the database, plus `rate-limiter-flexible` with a PostgreSQL store | 11.2.1 | P1 | No Redis |
+| Rate limiting | Better Auth's built-in limiter, stored in the database, plus `rate-limiter-flexible` with a PostgreSQL store | 11.2.3 | P1 | No Redis |
 | Transactional email | Resend | SDK 6.32.1 | P1 | Email verification and password reset only (free tier) |
 | Uptime and heartbeats | A free hosted monitor (healthchecks.io, Better Stack or UptimeRobot) | — | P1 | Choose at setup |
-| Lint, format and hygiene | Biome + Knip; `tsc --noEmit` as the type gate | 2.5.15 / 6.41.0 | P1 | Module boundaries enforced with Biome `noRestrictedImports` (or dependency-cruiser if needed) |
-| Unit and property tests | Vitest + fast-check | 5.0.4 / 4.10.2 | P1 | Money, allocation, search keys, state transitions |
-| Integration tests | Testcontainers (PostgreSQL) | 12.2.0 | P1 | Real row-level security and queue tests, including cross-shop leak tests |
-| End-to-end tests | Playwright Test with phone, tablet and desktop projects; `@axe-core/playwright` | 1.64.0 / 4.13.0 | P1 | Plus manual checks on a physical low-end Android phone |
+| Lint, format and hygiene | Biome + Knip; `tsc --noEmit` as the type gate | 2.6.2 / 6.42.1 | P1 | Module boundaries enforced with Biome `noRestrictedImports` (or dependency-cruiser if needed) |
+| Unit and property tests | Vitest + fast-check | 5.0.5 / 4.10.2 | P1 | Money, allocation, search keys, state transitions |
+| Integration tests | Testcontainers (PostgreSQL) | 12.2.1 | P1 | Real row-level security and queue tests, including cross-shop leak tests |
+| End-to-end tests | Playwright Test with phone, tablet and desktop projects; `@axe-core/playwright` | 1.64.1 / 4.14.0 | P1 | Plus manual checks on a physical low-end Android phone |
 | Client mocks | MSW | 3.0.3 | P1 | — |
 | Dependency updates | Renovate | — | P1 | Weekly grouped updates; security updates immediately |
 | AI orchestration | Vercel AI SDK (`ai`) | 7.0.137 | P2 | Provider-agnostic structured output. Not installed in Phase 1 |

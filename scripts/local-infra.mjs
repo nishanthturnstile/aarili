@@ -186,8 +186,8 @@ async function doctor() {
   );
   assert.equal(
     process.versions.node,
-    "24.21.0",
-    "Use repository Node 24.21.0 pin.",
+    "24.22.1",
+    "Use repository Node 24.22.1 pin.",
   );
   console.info(
     `Port override file: ${existsSync(resolve(root, "infra/.env")) ? "present" : "absent"}; process overrides: ${["AARILI_PG_PORT", "AARILI_S3_PORT"].filter((key) => process.env[key] !== undefined).join(", ") || "absent"}`,
