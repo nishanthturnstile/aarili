@@ -1,6 +1,12 @@
 # Proposed baseline correction: Next.js 16.4.1
 
-23 October 2026 IST. **Proposed, not adopted.** No dependency or lockfile change.
+23 October 2026 IST. **Historical proposal — subsequently owner-approved and
+implemented as #157 / merged PR #158.** The identical dependency graph first
+merged via #152; later approved maintenance #159 advances the active Next pin
+to 16.4.2. [Correction evidence](Next_16_4_1_Baseline_Correction_Evidence.md)
+and [current validation recovery](Measurement_Versions_Validation_Recovery.md)
+record the disposition. The original proposal below is retained for traceability;
+it made no dependency/lockfile change when prepared.
 Discovered during [measurement A / PR #156](https://github.com/nishanthturnstile/aarili/pull/156).
 
 ## Concrete trigger and evidence

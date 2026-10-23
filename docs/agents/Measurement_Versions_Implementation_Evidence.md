@@ -484,9 +484,12 @@ remains unverified on a corrected baseline. No application source changed after
 the frozen static/PG/build evidence; later source edits are only the explained
 measurement browser fixture. No full-green root verify/browser claim is made.
 
-### Running owner review surface
+### Historical owner review surface — stopped
 
-The final synthetic host is running from the unchanged production application:
+The final pre-merge synthetic host ran from the unchanged production application.
+It was stopped before baseline dependency relinking/builds; the URL below is
+inactive and the private file was removed. A fresh review surface is recorded in
+[validation recovery](Measurement_Versions_Validation_Recovery.md).
 
 - Open [prepared adult garment](http://127.0.0.1:51165/orders?order=01a16536-7f06-7619-9e4d-341645293833).
   The collaborative browser checked the protected route redirect to Sign in.
@@ -507,5 +510,10 @@ The final synthetic host is running from the unchanged production application:
   Stop removes the disposable database, process and private file. Restart creates
   a fresh scenario/port/credentials; record that new URL rather than reusing this one.
 
-Human acceptance, baseline correction/audit, full browser and owner merge remain
-pending. No merge, deploy or live-data activation; #154/#155 are unstarted.
+At that checkpoint, human acceptance, baseline correction/audit, full browser
+and owner merge were pending. The owner subsequently merged baseline PR #158
+and measurement PR #156; final required Fast verification/audit passed for #156
+on `ba9c5a3` ([run 39895867446](https://github.com/nishanthturnstile/aarili/actions/runs/39895867446)).
+The measurement merge was **03:38:18 UTC, 23 October 2026**, commit `824304b`.
+The agent did not merge or deploy. Full-browser and human/pilot qualifications
+are tracked separately in the recovery evidence; #154/#155 remain unselected.
