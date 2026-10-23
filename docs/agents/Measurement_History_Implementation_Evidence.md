@@ -4,7 +4,10 @@ Implementation started 23 October 2026, 05:14:47 UTC, at the owner's explicit
 selection of [#154](https://github.com/nishanthturnstile/aarili/issues/154).
 Existing checkout; `development` pulled with `--ff-only` to `43fa1b3`, then
 `codex/measurement-history-reuse`. No worktree, baseline upgrade, live data,
-deployment or automatic merge is included.
+deployment or automatic merge is included. GitHub records #161 merged at
+**08:20:22 UTC**, squash `d2cd8c9`, and #154 closed at 08:20:23 UTC. The agent
+did not merge it. The final command ended six seconds after the recorded merge;
+its tested tree and the integrated `development` tree are identical, as below.
 
 ## Authority and baseline
 
@@ -26,7 +29,7 @@ ended with six successful browser shards, three failed shards and cancelled
 scaffold verification. All three failures report duplicate service landmarks.
 The same failure was reproduced locally during this slice, before correction.
 
-## Implemented boundaries under verification
+## Implemented boundaries
 
 - Session identity is the initial saved version ID. Corrections append an exact
   form-bound predecessor/sequence with actor, time and private reason. Expected
@@ -93,9 +96,9 @@ schema; an A-only rollback is unsupported. No rollout is performed by this issue
 
 ## Verification ledger
 
-Development results below are bounded to their then-current inputs; the final
-fingerprinted result remains pending. The acceptance matrix below distinguishes
-automated observations from the remaining human findings.
+Development results below are bounded to their then-current inputs. The final
+fingerprinted full result supersedes those checkpoints; historical failures stay
+visible. The acceptance matrix distinguishes automation from human findings.
 
 | Command / input | Observed result |
 | --- | --- |
@@ -183,9 +186,45 @@ was dispatched at **06:57:43 UTC** on that same commit:
   browser helper or browser test input changed from the 243-pass candidate;
   that full browser evidence is reused rather than repeated.
 
-A fresh frozen full `pnpm verify` is required on the corrected test inputs; its
-start/end fingerprint and final outcome will be recorded before handoff. Human
-review, production activation and owner merge remain separate.
+### Final frozen verification and integration
+
+Actual **`pnpm verify` exited 0**, **07:31:43.524 to 08:20:28.556 UTC**, **2925.032s**,
+on clean candidate **`d8265a8ea9784fcecaddfc0db88f8726fe302ebb`**. All **811**
+code/config/test files had identical start/end SHA-256:
+**`6e1a3f191a2fa5649dc3e26d7a454a1e5b2adb41ceaaca74e1453a44e74344de`**.
+Raw output/metadata remain in ignored
+`.scratch/measurement-history-validation/verify-2026-10-23T07-31-43.524Z.*`.
+
+- Biome, architecture boundaries (411 source files), canonical tokens/PWA,
+  Knip, 23 strict-type tasks, negative type checks and OpenAPI passed.
+  Existing unrelated Biome warnings/infos remain disclosed.
+- **311 unit tests / 67 files**, **14.87s**, and **276 PostgreSQL integration
+  tests / 52 files**, **2784.04s**, passed. This includes A/B, full guardian,
+  identity/contact merge, history, repeat, design and migration regressions.
+- Linux namespace/seccomp PDF goldens passed with four fonts, 50 synthetic
+  strings and five A4/A3 pages. Fluent Tamil remains human acceptance.
+- Production build passed **12 tasks / 13.975s**; real PostgreSQL production
+  readiness/outage, typed client and worker-shutdown smoke passed; the final
+  private-artifact scan checked **29 browser artifacts** successfully.
+
+Required hosted Fast verification and Dependency audit also passed on `d8265a8`
+in [run 39918350342](https://github.com/nishanthturnstile/aarili/actions/runs/39918350342).
+The full 243-case hosted browser result above is reused only because the
+follow-up changed three PostgreSQL test fixtures and documentation; all browser
+and application inputs were unchanged. The timed-out hosted Scaffold and its
+unreached private-configuration canary remain explicitly incomplete; the local
+full pass does not relabel that hosted run.
+
+After the observed merge, the same checkout pulled `development --ff-only` to
+**`d2cd8c94ff3046954c75ea984108d983352790cf`**. Both that commit and tested
+`d8265a8` have exact Git tree **`ea99d8c0b0f02b0eba37d8747eac3029f87d5998`**.
+No integrated-code rerun is needed for an identical tree. Final evidence and
+merged-state traceability are a documentation-only follow-up, without another
+capability change, deployment or selection of C.
+
+Human findings and production activation remain separate from these automated
+results. Merge metadata is not evidence of fluent-Tamil, real-device,
+assistive-technology or production-policy acceptance.
 
 Scenario sources:
 [PostgreSQL](../../tests/measurement-history.integration.test.mjs),
@@ -219,18 +258,27 @@ was fetched through Context7; the axe rule remains enabled.
 | MV-B02 | PG competing lineage and selection writes yield one success and one 412; same-key replay returns the original ID; injected writes roll back audit/key/version/selection. B UI retains `12 3/4` after a competing head commits and compares without merge. |
 | MV-B03 | Body-based current-authority/exact-form review exposes source/date/age/method/measurer, authorised exact-version garment context and explicit unknown impact. Suitability is unchecked. Retirement blocks pending use while historical detail and original selection stay intact. A covers foreign/same-phone wearer denial and exact arithmetic. |
 | MV-B04 | Real PG schema-2 repeat creates independent draft/order IDs, carries only exact reviewed IDs/piece key, rechecks access/manifest at acceptance, and leaves the new scope unselected until its own review. v1 remains compatible; the new chooser/draft reference works in both languages at all three sizes. |
-| MV-B05 | Session/wearer and target/piece keys remain independent; no Apply-all exists. Measurement history computes current private permission before filtering/pagination, with a second SQL authority check. Payer merge/relink guards remain in the incumbent event/draft paths; their full regressions are included in final verification. |
+| MV-B05 | Session/wearer and target/piece keys remain independent; no Apply-all exists. Measurement history computes current private permission before filtering/pagination, with a second SQL authority check. Payer merge/relink guards remain in the incumbent event/draft paths; their full regressions passed in the final 276-test integration run. |
 | MV-B06 | Unknown physical/commercial impact yields an explicit unsupported-impact state; governed work remains denied. Source versions, original selections, price/date/design/accepted snapshots remain unchanged on denial. No approval, cutting/dispatch, output-staleness or price-change engine is claimed. |
-| MV-B07 | Populated migration/reapplication, forced RLS, incompatible-reader denial, current permission/erasure, private-copy redaction, immutable references, injected rollback and correction/erasure barrier are real PG tests. Common A guardian/age/form barriers and identity/history/repeat regressions remain required in the full run. |
-| MV-B08 | Focused current bilingual three-size browser/axe/reflow/keyboard and private-capture audits passed. Full root verification/browser coverage and the running human review packet remain separately tracked; automation is not fluent-Tamil/physical-device/screen-reader acceptance. |
+| MV-B07 | Populated migration/reapplication, forced RLS, incompatible-reader denial, current permission/erasure, private-copy redaction, immutable references, injected rollback and correction/erasure barrier are real PG tests. Common A guardian/age/form barriers and identity/history/repeat regressions passed in the final full run. |
+| MV-B08 | Focused current bilingual three-size browser/axe/reflow/keyboard and private-capture audits passed. Full root verification and all 243 browser cases passed; the running human review packet remains separate; automation is not fluent-Tamil/physical-device/screen-reader acceptance. |
 
 No physical-device, fluent-Tamil, assistive-technology or live policy acceptance
-is inferred from automation. C / #155 remains unselected and blocked on B's merge;
+is inferred from automation. C / #155 remains unselected; its B merge prerequisite is now satisfied.
 B alone does not complete private fit media or the whole 1.3.2 feature.
 
 ## Manual review packet
 
-Fresh host observed ready **23 October 2026, 06:56 UTC**:
+Fresh host observed ready **23 October 2026, 06:56 UTC**; checked again at
+**08:23:13.280 UTC**. A private-file-driven loopback check signed in, verified
+O1 still selects immutable V1 (`12 1/4`), V2 appends `12 1/2` with the same source
+date, O2 is unselected, the same-phone second adult has no versions and the
+unconsented minor gets 404; it then signed out its own session. Credentials,
+cookies and personal response bodies stayed in process memory. The first probe
+used GET for the POST-only piece-read endpoint and got 404; correcting the probe
+method passed without a product change. The sign-in page also returned HTTP 200.
+
+Review links:
 
 - **O2 / unselected:** [http://127.0.0.1:54642/orders?order=01a1678b-4e41-72d2-a79f-e2157e54154b](http://127.0.0.1:54642/orders?order=01a1678b-4e41-72d2-a79f-e2157e54154b).
 - **O1 / original V1:** [http://127.0.0.1:54642/orders?order=01a1678b-483b-7e13-b9c8-434d89cf215c](http://127.0.0.1:54642/orders?order=01a1678b-483b-7e13-b9c8-434d89cf215c).

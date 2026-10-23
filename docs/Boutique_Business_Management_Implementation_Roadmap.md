@@ -779,11 +779,13 @@ public form observations are separated from vendor claims. Direct
 packet and proceeding on 22 October: A [#153](https://github.com/nishanthturnstile/aarili/issues/153)
 was owner-merged in [PR #156](https://github.com/nishanthturnstile/aarili/pull/156).
 B [#154](https://github.com/nishanthturnstile/aarili/issues/154) was selected on
-23 October after every direct blocker merged and is in implementation; its
-[evidence](agents/Measurement_History_Implementation_Evidence.md) tracks validation
-and review. C [#155](https://github.com/nishanthturnstile/aarili/issues/155) remains
-unselected and blocked on B's merge. Full-browser/human acceptance, production
-policy/activation and full 1.3.2/AC-06 completion remain open.
+23 October after every direct blocker merged, then merged in
+[PR #161](https://github.com/nishanthturnstile/aarili/pull/161). Its
+[evidence](agents/Measurement_History_Implementation_Evidence.md) records the full
+verification and 243-case browser pass with human/pilot qualifications.
+C [#155](https://github.com/nishanthturnstile/aarili/issues/155) remains unselected;
+its B prerequisite is merged. Human acceptance, production policy/activation
+and full 1.3.2/AC-06 completion remain open.
 
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** MEA-01, MEA-02, MEA-03, MEA-04, MEA-05, MEA-06, MEA-07, MEA-11. Scenarios: AC-06, AC-07, AC-08.
