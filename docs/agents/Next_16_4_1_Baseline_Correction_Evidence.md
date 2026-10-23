@@ -1,9 +1,14 @@
 # Next.js 16.4.1 baseline correction — issue #157
 
-23 October 2026. **Owner-approved implementation, validation in progress.**
+23 October 2026. **Owner-merged baseline correction; historical validation record.**
 [Selected issue #157](https://github.com/nishanthturnstile/aarili/issues/157).
 This is independent of [measurement PR #156](https://github.com/nishanthturnstile/aarili/pull/156).
-No merge, deployment, live data or worktree is authorised or performed.
+The owner merged PR #158 at **03:34:20 UTC** (`8acc9e7`), after both required
+checks passed. The agent did not merge or deploy. No live data or worktree was used.
+The later approved dependency maintenance (#159) advances the active framework
+to 16.4.2; the 16.4.1 checks below retain their original tested inputs.
+See [validation recovery](Measurement_Versions_Validation_Recovery.md) for the
+current integrated follow-up; this record does not assert that older runs cover it.
 
 ## Authority, baseline and patch boundary
 
@@ -80,7 +85,9 @@ Windows uses pinned Node **24.21.0**, pnpm **12.11.2** (ambient plain Node is ol
 | Scoped clean native copy, first attempt | **Exit 1**, **00:10:17.705–00:11:14.589 UTC**, **56.884s**. Frozen installation passed, then Turbo's Windows executable spawn failed `ENOENT` under the long tool-managed evidence path. The disposable copy was removed. A shorter temporary drive alias of the same managed copy is being checked; no repository/configuration bypass. |
 | Scoped clean native copy, alias attempt | **Exit 1**, **00:13:48.310–00:16:26.401 UTC**, **158.091s**. Frozen installation passed; native resolution expanded the alias back to the same overlong executable path. Alias and copy removed. The next attempt uses the repository's established short OS-temporary clean-copy location; raw output remains managed. No global long-path setting or package policy changed. |
 | Scoped clean native copy, repository temp location | **Exit 0**, **00:17:07.325–00:19:55.219 UTC**, **167.894s**. Frozen install, 10 package builds, Next 16.4.1 production build and 29-artifact private-canary scan pass. Lock/source unchanged; exact owned temporary directory removed. This is the workflow's scoped portability check, not a second full verification run. |
-| Full root `pnpm test:ui` | Started **00:12:53.980 UTC**, still running. One runner, existing one-worker/no-retry configuration, 237 applicable cases. Phone booking-group review failed its two-second confirmation-button assertion; trace shows review HTTP 200 (1096ms) followed by draft save HTTP 200 (866ms). Cause remains unresolved; this is not a claim of an unrelated defect or a broad green result. Original results will be retained. |
+| Full root `pnpm test:ui` | Started **00:12:53.980 UTC**; deliberately interrupted between **03:36:06 and 03:36:53 UTC** before changing checkout inputs after the owner merges. One worker, zero retries, 237 planned cases: **101 passed, 2 failed, 134 unfinished**. Phone booking-group confirmation was absent within two seconds (review/save HTTP 200, 1096ms/866ms). Tablet identity-review hit test/context-teardown timeouts, with a 2.2-hour wall duration and heartbeat gap; sleep/resume was not established. This is not a full-green result or measurement A coverage. Exact interruption instant was not logged. Raw results were retained. |
+| Linux PR CI on `97b1bc0` | [Run 39877946812](https://github.com/nishanthturnstile/aarili/actions/runs/39877946812): required **Fast verification** passed **00:24:43–00:26:49 UTC**; **Dependency audit** passed **00:24:42–00:24:58 UTC**. Full scaffold/browser jobs are correctly **skipped** for this development-target PR, not passing. |
+| Final Linux CI on `8c28ae8` | [Run 39895340044](https://github.com/nishanthturnstile/aarili/actions/runs/39895340044): required Fast verification passed **03:30:07–03:32:06 UTC**; audit passed **03:30:07–03:30:24 UTC**. Git tree equals `97b1bc0` (`8cda39f3a550e47174b8e8e87c4bbe74a1dad6f2`). Owner had merged the identical dependency graph via #152 at **03:29:37 UTC**, so #158's final diff was documentation only. |
 
 One diagnostic mistakenly included a generated build encryption key. Its
 disposable cached key was removed after checking the exact resolved path, then
@@ -90,7 +97,8 @@ reports only versions/counts. The old key is not retained in the evidence packet
 
 Post-change application/configuration fingerprint: **790 files**,
 `4d8155180cd112ca47f03e740544372cfa454313f8d2ea40c7c4bd62e6f09a93`;
-base HEAD above, dirty pin/lock changes. Documentation is excluded from that hash.
+base HEAD above, with the pin/lock changes committed in `97b1bc0`. Documentation
+is excluded from that hash.
 No passed command is reused after a relevant input change.
 
 ## Acceptance and remaining gates
@@ -100,9 +108,9 @@ No passed command is reused after a relevant input change.
 | NX-01 | Exact graph, frozen install, native resolution and scoped clean-copy install/build/export/canary pass. Original long-path harness failures retained above. |
 | NX-02 | Original audit reproduced; corrected graph audit passes. No Aarili exploitability claim. |
 | NX-03 | Fast checks/build, smoke, artifact scan, existing native/media unit controls and clean-copy portability pass. |
-| NX-04 | Fresh shared-dev and disposable PDF component controls pass; full browser validation running with an unresolved booking-group assertion failure. No suppression, assertion relaxation or installed-package patch. |
+| NX-04 | Fresh shared-dev/PDF controls passed; broad browser was interrupted with the exact qualifications above. Follow-up uses the newly approved integrated baseline. No rule suppression or installed-package patch. |
 | NX-05 | Independent pre-patch and candidate reviews complete with no concrete blocker. Built-artifact version/count inspection passes; upstream exploit reproduction and Linux native verification are not established by Windows checks. |
-| NX-06 | Architecture baseline updated with owner authority. PR, final review entry, CI and owner acceptance pending. Measurement adoption awaits this PR's merge; B/C unstarted. |
+| NX-06 | Architecture/evidence and [PR #158](https://github.com/nishanthturnstile/aarili/pull/158) are owner-merged; both final required checks passed. Measurement A subsequently merged via #156 at **03:38:18 UTC** (`824304b`) after required checks passed on `ba9c5a3`. Full browser/human/pilot qualifications remain separate. B/C are unselected and unstarted. |
 
 No production, physical-device, fluent-Tamil, assistive-technology or pilot
 acceptance is implied by dependency or emulation checks. Full browser results and
@@ -110,12 +118,14 @@ original failures will be recorded when observed.
 
 ## Local manual review entry
 
-The existing synthetic owner-access review host is running the current production
-build at **http://127.0.0.1:64543/sign-in**. The owner and shop have been prepared
+The historical synthetic owner-access review host used
+**http://127.0.0.1:64543/sign-in**. It was stopped through the cleanup command;
+its disposable PostgreSQL and private access were removed. That URL is inactive.
+The owner and shop had been prepared
 through the real setup, verification, sign-in and completion HTTP commands. Private
-sign-in details are in `.scratch/access-review/private.json`; do not copy them
-into Git/chat. The collaborative browser's Aarili tab is at that sign-in page;
-the Nool research tab was left untouched. Startup is `pnpm exec node
+sign-in details were in `.scratch/access-review/private.json`; they were never
+copied into Git/chat. The collaborative browser checked that sign-in page;
+the Nool research tab was left untouched. Historical startup is `pnpm exec node
 scripts/review-owner-access.mjs` if a fresh host is needed (the URL then changes).
 
 1. **NX-03/04:** sign in, open the owner dashboard and shop settings, switch

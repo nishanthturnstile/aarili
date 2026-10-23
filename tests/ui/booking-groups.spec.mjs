@@ -139,11 +139,16 @@ test("GB-B01/03/04/06/07/08/09 recover grouping draft, retry lost success, retai
           throw Error("Save admission did not recover");
         }
         async function inspectUntil() {
+          const review = page.getByRole("button", {
+            name: t.review,
+            exact: true,
+          });
           for (let attempt = 0; attempt < 4; attempt++) {
             await waitAdmission();
-            await page
-              .getByRole("button", { name: t.review, exact: true })
-              .click();
+            await review.click();
+            // Review persists the fingerprint after the HTTP review. Wait for
+            // both operations before checking confirmation or admission failure.
+            await expect(review).toBeEnabled({ timeout: 15000 });
             try {
               await expect(
                 page.getByRole("button", { name: t.confirm, exact: true }),

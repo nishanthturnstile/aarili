@@ -109,7 +109,7 @@ export function WorkspaceNavigation({
                   !label
                     ?.toLocaleLowerCase()
                     .includes(short.toLocaleLowerCase())
-                    ? `${label} (${short})`
+                    ? `${label}, ${short}`
                     : label
                 }
               >

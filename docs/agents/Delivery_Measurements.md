@@ -1,5 +1,46 @@
 # Delivery measurements
 
+## Measurement validation recovery — follow-up to #153/#157
+
+- Owner confirmed exclusive checkout access and requested fixes/evidence recovery
+  on **23 October 2026**. Pulled development `83a6559`, created
+  `codex/measurement-validation-recovery`. No worktree or direct protected push.
+  Existing recovery stashes are retained; no conflicted ledger/PNG stash was popped.
+- Frozen install **exit 0 / 0.684s**, **04:23:50.415–04:23:51.099 UTC**.
+  Baseline focused booking/identity phone/tablet browser **exit 1 / 325.462s**,
+  **04:24:08.155–04:29:33.617 UTC**, **2 pass / 2 fail**. Both phone cases
+  exposed the axe 4.14 dashboard label defect; both tablet cases passed.
+- Corrected the dashboard accessible name and synchronized the booking test with
+  review completion. Active coding/rework stopwatch time is **unknown**.
+  Corrected four-file three-size browser **exit 0 / 15 passed / 893.105s**,
+  **04:30:22.112–04:45:15.217 UTC**, source unchanged. Full root `pnpm verify`
+  started **04:45:53.437 UTC**; result, review-ready, CI and merge remain pending.
+  [Current evidence](Measurement_Versions_Validation_Recovery.md).
+
+## Issue #157 — Next.js 16.4.1 correction closeout
+
+- Owner approved and selected the separate correction on **23 October 2026**;
+  branch `codex/next-16.4.1-security`, base `2aa1b12`. Implementation clock
+  **00:02:54 UTC**; active coding/rework time is **unknown**.
+- Before audit **exit 1 / 1.621s** (two critical/one high); after audit
+  **exit 0 / 0.875s**, no known vulnerabilities. Frozen install **0 / 0.499s**;
+  fast verification **0 / 127.825s** (288 units), smoke **0 / 13.265s**, artifact
+  scan **0 / 0.687s**, PDF browser **2 pass / 75.175s**, clean native portability
+  **0 / 167.894s**. Original long-path failures **56.884s / 158.091s** retained.
+- Broad baseline browser started **00:12:53.980 UTC**, interrupted between
+  **03:36:06–03:36:53 UTC** after owner merges and before input changes:
+  **101 passed / 2 failed / 134 unfinished**. Exact stop instant was not recorded.
+  Booking confirmation timing and tablet identity timeouts remain original failures;
+  no full-green or measurement coverage claim. Temporary review hosts were stopped
+  and disposable PG/private access removed. [Evidence](Next_16_4_1_Baseline_Correction_Evidence.md).
+- Owner merged identical dependency graph #152 at **03:29:37 UTC**; #158's final
+  diff was documentation only. Required checks on `8c28ae8` passed in
+  [run 39895340044](https://github.com/nishanthturnstile/aarili/actions/runs/39895340044).
+  Owner merged #158 **03:34:20 UTC** (`8acc9e7`) and measurement #156
+  **03:38:18 UTC** (`824304b`), after its required checks passed on `ba9c5a3`
+  ([run 39895867446](https://github.com/nishanthturnstile/aarili/actions/runs/39895867446)).
+  The agent did not merge/deploy. B/C remain unselected; human/pilot gates stay open.
+
 ## Issue #28 — approved dependency dashboard updates
 
 - Owner selected all listed updates, including major upgrades, on **23 October
