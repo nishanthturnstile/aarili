@@ -9,6 +9,7 @@ import { createDesignReferencesRoutes } from "@aarili/api/design-references";
 import { createDesignSpecificationsRoutes } from "@aarili/api/design-specifications";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
+import { createJobSlipRoutes } from "@aarili/api/job-slips";
 import { createManualPatternsRoutes } from "@aarili/api/manual-patterns";
 import { createMediaRoutes } from "@aarili/api/media";
 import { createBookingRoutes, createOrderRoutes } from "@aarili/api/orders";
@@ -22,6 +23,16 @@ import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createJobSlipRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => 0,
+    withOwnerJobSlips: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createManualPatternsRoutes({

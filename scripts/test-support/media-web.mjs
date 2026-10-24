@@ -154,15 +154,17 @@ export async function withMediaWeb(
     );
     await writeFile(
       join(directory, "app/page.tsx"),
-      surface === "manual-patterns"
-        ? `import Host from "../../../apps/web/test-support/manual-pattern-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
-        : surface === "measurement-fit"
-          ? `import Host from "../../../apps/web/test-support/measurement-fit-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} customerId=${JSON.stringify(f.identity.customerId)} wearerId=${JSON.stringify(f.identity.wearerId)} order={${JSON.stringify(f.target.order)}}/>}`
-          : surface === "design-references"
-            ? `import Host from "../../../apps/web/test-support/design-reference-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
-            : surface === "shop-profile"
-              ? 'import {OwnerFlow} from "../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}'
-              : `import Host from "../../../apps/web/test-support/media-host-app";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} subjectId=${JSON.stringify(f.subjectId)}/>}`,
+      surface === "job-slips"
+        ? `import Host from "../../../apps/web/test-support/job-slip-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} orderId=${JSON.stringify(f.scope.orderId)}/>} `
+        : surface === "manual-patterns"
+          ? `import Host from "../../../apps/web/test-support/manual-pattern-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
+          : surface === "measurement-fit"
+            ? `import Host from "../../../apps/web/test-support/measurement-fit-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} customerId=${JSON.stringify(f.identity.customerId)} wearerId=${JSON.stringify(f.identity.wearerId)} order={${JSON.stringify(f.target.order)}}/>}`
+            : surface === "design-references"
+              ? `import Host from "../../../apps/web/test-support/design-reference-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
+              : surface === "shop-profile"
+                ? 'import {OwnerFlow} from "../../../apps/web/src/app/owner-flow";export default function Page(){return <OwnerFlow mode="settings"/>}'
+                : `import Host from "../../../apps/web/test-support/media-host-app";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} subjectId=${JSON.stringify(f.subjectId)}/>}`,
     );
     if (surface === "shop-profile") {
       await mkdir(join(directory, "app/settings"), { recursive: true });
@@ -174,7 +176,8 @@ export async function withMediaWeb(
     if (
       surface === "design-references" ||
       surface === "measurement-fit" ||
-      surface === "manual-patterns"
+      surface === "manual-patterns" ||
+      surface === "job-slips"
     ) {
       await mkdir(join(directory, "app/sign-in"), { recursive: true });
       await writeFile(
@@ -185,11 +188,13 @@ export async function withMediaWeb(
         await mkdir(join(directory, `app/${route}`), { recursive: true });
         await writeFile(
           join(directory, `app/${route}/page.tsx`),
-          surface === "manual-patterns"
-            ? `import Host from "../../../../apps/web/test-support/manual-pattern-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
-            : surface === "measurement-fit"
-              ? `import Host from "../../../../apps/web/test-support/measurement-fit-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} customerId=${JSON.stringify(f.identity.customerId)} wearerId=${JSON.stringify(f.identity.wearerId)} order={${JSON.stringify(f.target.order)}}/>}`
-              : `import Host from "../../../../apps/web/test-support/design-reference-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`,
+          surface === "job-slips"
+            ? `import Host from "../../../../apps/web/test-support/job-slip-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} orderId=${JSON.stringify(f.scope.orderId)}/>} `
+            : surface === "manual-patterns"
+              ? `import Host from "../../../../apps/web/test-support/manual-pattern-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`
+              : surface === "measurement-fit"
+                ? `import Host from "../../../../apps/web/test-support/measurement-fit-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} customerId=${JSON.stringify(f.identity.customerId)} wearerId=${JSON.stringify(f.identity.wearerId)} order={${JSON.stringify(f.target.order)}}/>}`
+                : `import Host from "../../../../apps/web/test-support/design-reference-host";export default function Page(){return <Host shopId=${JSON.stringify(f.a.shop)} order={${JSON.stringify(f.target.order)}}/>}`,
         );
       }
     }

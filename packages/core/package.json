@@ -163,6 +163,18 @@
     "./manual-patterns": {
       "types": "./dist/manual-patterns.d.ts",
       "import": "./dist/manual-patterns.js"
+    },
+    "./job-slips": {
+      "types": "./dist/job-slips.d.ts",
+      "import": "./dist/job-slips.js"
+    },
+    "./job-slip-sources": {
+      "types": "./dist/job-slip-sources.d.ts",
+      "import": "./dist/job-slip-sources.js"
+    },
+    "./job-slip-purge": {
+      "types": "./dist/job-slip-purge.d.ts",
+      "import": "./dist/job-slip-purge.js"
     }
   },
   "scripts": {

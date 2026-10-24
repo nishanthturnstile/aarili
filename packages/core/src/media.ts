@@ -55,6 +55,7 @@ export type MediaStorage = {
     now: Date,
   ): Promise<string>;
   snapshot(key: string, maxBytes: number): Promise<Uint8Array>;
+  snapshotPrivate?(key: string, maxBytes: number): Promise<Uint8Array>;
   seal(prefix: string, bytes: Uint8Array, type: MediaType): Promise<string>;
   removeStaging(key: string): Promise<void>;
 };

@@ -389,6 +389,7 @@ export function SmallServices({
             }}
           />
           <ServiceOrderDetail
+            guard={guard}
             shopId={shopId}
             key={order.id}
             order={order}

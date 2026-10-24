@@ -46,6 +46,11 @@ import {
 import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
+import { jobSlipSources } from "@aarili/core/job-slip-sources";
+import {
+  type JobSlipsContext,
+  jobSlipDocumentContext,
+} from "@aarili/core/job-slips";
 import {
   type ManualPatternsContext,
   patternCapabilityWorkflow,
@@ -149,6 +154,7 @@ import { designReferencesRepository } from "@aarili/db/design-references-reposit
 import { designSpecificationsRepository } from "@aarili/db/design-specifications-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { jobSlipsRepository } from "@aarili/db/job-slips-repository";
 import { manualPatternsRepository } from "@aarili/db/manual-patterns-repository";
 import { measurementFitRepository } from "@aarili/db/measurement-fit-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
@@ -388,6 +394,17 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: DocumentContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerJobSlips: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: JobSlipsContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  // Worker composition supplies an already authorized app_user/withShop transaction.
+  jobSlipDocuments: (
+    tx: Transaction,
+    shopId: string,
+    userId: string,
+  ) => DocumentContext;
   withOwnerMedia: <T>(
     headers: Headers,
     shopId: string,
@@ -2086,23 +2103,57 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     run: (ctx: DocumentContext) => Promise<T>,
   ) {
     shopId = shopId.toLowerCase();
-    return withOwnerTransaction(headers, shopId, (tx, userId) => {
-      const unavailable = async (): Promise<never> => {
-        throw Error("Private document adapter unavailable");
-      };
-      const adapters = configuration.documentAdapters?.(tx, shopId, userId) ?? {
-        templates: { resolve: async () => undefined },
-        policy: { authorize: async () => false },
-        storage: { put: unavailable, signGet: unavailable, read: unavailable },
-        jobs: { enqueue: unavailable, phase: unavailable },
-      };
-      return run({
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run(jobSlipDocuments(tx, shopId, userId)),
+    );
+  }
+  function jobSlipDocuments(
+    tx: Transaction,
+    shopId: string,
+    userId: string,
+  ): DocumentContext {
+    const unavailable = async (): Promise<never> => {
+      throw Error("Private document adapter unavailable");
+    };
+    const adapters = configuration.documentAdapters?.(tx, shopId, userId) ?? {
+      templates: { resolve: async () => undefined },
+      policy: { authorize: async () => false },
+      storage: { put: unavailable, signGet: unavailable, read: unavailable },
+      jobs: { enqueue: unavailable, phase: unavailable },
+    };
+    return jobSlipDocumentContext(
+      {
         shopId,
         actor: { type: "user", id: userId },
         repository: documentRepository(tx, shopId),
         ...adapters,
-      });
-    });
+      },
+      jobSlipsRepository(tx, shopId),
+      jobSlipSources(
+        manualPatternsContext(tx, shopId, userId),
+        smallServiceContext(tx, shopId, userId),
+        designReferencesContext(tx, shopId, userId),
+        ownerMediaContext(tx, shopId, userId),
+      ),
+    );
+  }
+  async function withOwnerJobSlips<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: JobSlipsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run({
+        documents: jobSlipDocuments(tx, shopId, userId),
+        repository: jobSlipsRepository(tx, shopId),
+        sources: jobSlipSources(
+          manualPatternsContext(tx, shopId, userId),
+          smallServiceContext(tx, shopId, userId),
+          designReferencesContext(tx, shopId, userId),
+          ownerMediaContext(tx, shopId, userId),
+        ),
+      }),
+    );
   }
   async function withOwnerCommand<T>(
     headers: Headers,
@@ -2432,6 +2483,8 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCalendar,
     withOwnerMedia,
     withOwnerDocument,
+    withOwnerJobSlips,
+    jobSlipDocuments,
     commandLimit: () => guard(commandLimit),
     googleConnection,
     disconnectGoogle,

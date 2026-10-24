@@ -54,7 +54,16 @@ export type DocumentAdapters = (
   tx: Transaction,
   shopId: string,
   userId: string,
-) => Pick<DocumentContext, "templates" | "policy" | "storage" | "jobs">;
+) => Pick<
+  DocumentContext,
+  | "templates"
+  | "policy"
+  | "storage"
+  | "jobs"
+  | "prepare"
+  | "renderAssets"
+  | "storageBarrier"
+>;
 export function documentProcessingHost(
   db: Database,
   shopId: string,

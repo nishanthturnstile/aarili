@@ -40,7 +40,7 @@ assert.match(evidence.sandbox.report, /adequately sandboxed/);
 const golden = resolve("tests/goldens/documents"),
   update = process.argv.includes("--update");
 const files = (await readdir(output))
-  .filter((x) => /^(A3|A4)-\d+\.png$/.test(x))
+  .filter((x) => /^(A3|A4|JS-en|JS-ta)-\d+\.png$/.test(x))
   .sort();
 assert(files.length >= 4);
 const sharp = createRequire(

@@ -335,6 +335,14 @@
     "./repositories/manual-patterns": {
       "types": "./dist/repositories/manual-patterns.d.ts",
       "import": "./dist/repositories/manual-patterns.js"
+    },
+    "./job-slips-repository": {
+      "types": "./dist/job-slips-repository.d.ts",
+      "import": "./dist/job-slips-repository.js"
+    },
+    "./repositories/job-slips": {
+      "types": "./dist/repositories/job-slips.d.ts",
+      "import": "./dist/repositories/job-slips.js"
     }
   },
   "scripts": {

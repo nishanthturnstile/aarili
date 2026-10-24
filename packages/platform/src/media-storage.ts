@@ -47,6 +47,38 @@ export function createMediaStorage(config: {
     )
       throw Error("Media storage key rejected");
   };
+  async function readBounded(key: string, maxBytes: number) {
+    if (maxBytes < 1 || maxBytes > 25 * 1024 * 1024)
+      throw Error("Media snapshot rejected");
+    try {
+      const r = await client.send(
+        new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+      );
+      if (!r.Body) throw Error();
+      const body = r.Body;
+      if ((r.ContentLength ?? Infinity) > maxBytes) {
+        if ("destroy" in body && typeof body.destroy === "function")
+          body.destroy();
+        throw Error();
+      }
+      const chunks: Uint8Array[] = [];
+      let length = 0;
+      for await (const chunk of body as AsyncIterable<Uint8Array>) {
+        length += chunk.length;
+        if (length > maxBytes) throw Error();
+        chunks.push(chunk);
+      }
+      const bytes = new Uint8Array(length);
+      let offset = 0;
+      for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return bytes;
+    } catch {
+      throw Error("Private storage read failed");
+    }
+  }
   return {
     async signPut(key: string, type: string, expires: number, now: Date) {
       keyAllowed(key, "staging");
@@ -97,36 +129,11 @@ export function createMediaStorage(config: {
     },
     async snapshot(key: string, maxBytes: number) {
       keyAllowed(key, "staging");
-      if (maxBytes < 1 || maxBytes > 25 * 1024 * 1024)
-        throw Error("Media snapshot rejected");
-      try {
-        const r = await client.send(
-          new GetObjectCommand({ Bucket: config.bucket, Key: key }),
-        );
-        if (!r.Body) throw Error();
-        const body = r.Body;
-        if ((r.ContentLength ?? Infinity) > maxBytes) {
-          if ("destroy" in body && typeof body.destroy === "function")
-            body.destroy();
-          throw Error();
-        }
-        const chunks: Uint8Array[] = [];
-        let length = 0;
-        for await (const chunk of body as AsyncIterable<Uint8Array>) {
-          length += chunk.length;
-          if (length > maxBytes) throw Error();
-          chunks.push(chunk);
-        }
-        const bytes = new Uint8Array(length);
-        let offset = 0;
-        for (const chunk of chunks) {
-          bytes.set(chunk, offset);
-          offset += chunk.length;
-        }
-        return bytes;
-      } catch {
-        throw Error("Private storage read failed");
-      }
+      return readBounded(key, maxBytes);
+    },
+    async snapshotPrivate(key: string, maxBytes: number) {
+      keyAllowed(key, "private");
+      return readBounded(key, maxBytes);
     },
     async seal(prefix: string, bytes: Uint8Array, type: string) {
       keyAllowed(prefix, "seal-prefix");

@@ -1,5 +1,34 @@
 # Delivery measurements
 
+## #169 / 1.3.4a - private garment/native-piece job slips
+
+- Approved preparation PR #168 merged as `aea6e31`; development pulled in the
+  existing checkout and branch `codex/169-private-job-slips` created. All nine
+  direct blockers were merged. Implementation checkpoint **24 October 2026,
+  03:19:49 UTC**. No worktree, package or toolchain migration.
+- First complete three-path real PG issuance/bytes/erasure pass: **55.92s**,
+  started **04:07:56 UTC** (approximately **04:08:52** completion). This is an
+  observed runnable outcome, not human acceptance. Active coding time was not
+  separately instrumented.
+- Final `verify:fast` log interval **04:42:16-04:44:34 UTC**, **exit 0**:
+  lint, import boundaries/tokens, Knip, types, **321 unit passes**, negative
+  types, OpenAPI and production build. Earlier concurrent verification caused
+  three existing five-second timeouts; unchanged tests passed in this later run.
+  No timeout or baseline was changed. Initial integration failures exposed scope
+  projection, shared-trigger record fields, staging/private storage seam and
+  fixture setup errors; corrected with fresh affected checks.
+- Combined document/sharing/bootstrap/new-slip PostgreSQL verification:
+  **29 passed / 559.06s**, exit 0. First combined run was **26 passed / 2 failed**
+  (obsolete test history route and expected RLS table ordering); both corrected.
+- Final affected three-size browser/axe workflows: **6 passed / 6.2m**, English/
+  Tamil, existing sharing plus source comparison, uncertain request, activated
+  cancellation, download and access/purpose clearing. Linux sandbox PDF:
+  **13 page goldens passed**, uid 1000, four self-hosted fonts; **eight new A4
+  job-slip pages** visually inspected (two English, six Tamil), old five unchanged.
+- Final frozen-code fast log interval **04:54:48-04:57:43 UTC**, **exit 0**, again **321 units** after the last source-omission/privacy change. Three existing source-privacy cases passed; a fourth new service case exposed a missing audit-insert policy. Corrected narrowly, then final service/asset/RLS edge checks **3 passed / 52.97s / exit 0**. Production smoke and **29-artifact scan** both exit 0.
+- Review-ready checkpoint **05:00 UTC**; actual synthetic host URL and teardown are in [#169 implementation evidence](Job_Slips_Implementation_169.md). Owner/fluent Tamil/physical Android/pilot acceptance and merge remain separate. #170 labels cannot start until A merges and is selected. Hosted PR/CI timings remain pending.
+
+
 ## 1.3.4 preparation — 24 October 2026 (not an implementation delivery)
 
 - REA observation window approximately **02:52–03:03 UTC**; design/ticket/layout

@@ -9,6 +9,7 @@
         "scripts/test-support/google-transport.mjs",
         "scripts/test-support/runtime-child.mjs",
         "scripts/test-support/document-sharing-host-process.mjs",
+        "scripts/test-support/job-slip-host-process.mjs",
         "tests/*.test.ts",
         "tests/*.test.mjs"
       ],
@@ -21,7 +22,8 @@
         "test-support/media-host-app.tsx",
         "test-support/design-reference-host.tsx",
         "test-support/document-status-host.tsx",
-        "test-support/document-sharing-host.tsx"
+        "test-support/document-sharing-host.tsx",
+        "test-support/job-slip-host.tsx"
       ],
       "ignoreExportsUsedInFile": true,
       "project": ["src/**/*.{ts,tsx,css}"]

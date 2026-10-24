@@ -42,6 +42,9 @@ export type DocumentJobs = {
   ): Promise<"pending" | "rendering" | "failed" | "unavailable">;
 };
 export type DocumentContext = {
+  prepare?: () => Promise<void>;
+  storageBarrier?: (revision: DocumentRevision) => boolean;
+  renderAssets?: (revision: DocumentRevision) => Promise<DocumentRenderAsset[]>;
   shopId: string;
   actor: Actor;
   repository: DocumentRepository;
@@ -206,6 +209,7 @@ export async function issueDocument(
   input: unknown,
   key: string,
 ) {
+  await ctx.prepare?.();
   const parsed = documentIssueSchema.safeParse(input);
   if (!parsed.success) fail(422, "VALIDATION_FAILED");
   const d = { ...parsed.data, docId: parsed.data.docId.toLowerCase() };
@@ -282,6 +286,7 @@ async function find(
   revision: number,
   action: "read" | "retry" | "cleanup",
 ) {
+  await ctx.prepare?.();
   locator(id, revision);
   await ctx.repository.lock(id, revision);
   const d = await ctx.repository.read(id, revision),
@@ -363,6 +368,7 @@ export async function recordDocumentShare(
   input: unknown,
   key: string,
 ) {
+  await ctx.prepare?.();
   locator(id, revision);
   id = id.toLowerCase();
   key = key.toLowerCase();
@@ -415,6 +421,7 @@ export async function retryDocument(
   key: string,
   ifMatch: string | null,
 ) {
+  await ctx.prepare?.();
   locator(id, revision);
   id = id.toLowerCase();
   key = key.toLowerCase();
@@ -456,8 +463,17 @@ export async function retryDocument(
   await ctx.repository.persist(key, b, result);
   return result;
 }
+export type DocumentRenderAsset = {
+  id: string;
+  bytes: Uint8Array;
+  sha256: string;
+  contentType: "image/jpeg" | "image/png" | "image/webp";
+};
 export type DocumentRenderer = {
-  render(revision: DocumentRevision): Promise<Uint8Array>;
+  render(
+    revision: DocumentRevision,
+    assets?: DocumentRenderAsset[],
+  ): Promise<Uint8Array>;
 };
 export async function processDocument(
   host: DocumentHost,
@@ -469,6 +485,7 @@ export async function processDocument(
   if (!parsed.success) return "ignored";
   const p = parsed.data;
   const inspect = async (ctx: DocumentContext) => {
+    await ctx.prepare?.();
     await ctx.repository.lock(p.docId, p.revision);
     const d = await ctx.repository.read(p.docId, p.revision),
       a = await ctx.repository.attempt(p.docId, p.revision),
@@ -505,7 +522,13 @@ export async function processDocument(
       new Date(found.now.getTime() + 300000).toISOString(),
     );
     await audit(ctx, fence, "document.claim", p.docId);
-    return { ...found, fence, storage: ctx.storage, ready: false as const };
+    return {
+      ...found,
+      fence,
+      storage: ctx.storage,
+      barrier: ctx.storageBarrier?.(found.d) ?? false,
+      ready: false as const,
+    };
   });
   if (!claim) return "quarantined";
   if (claim.ready) return "accepted";
@@ -521,8 +544,12 @@ export async function processDocument(
   try {
     if ((await requestHash(claim.d.model)) !== claim.d.modelHash)
       throw Error("DOCUMENT_MODEL_HASH_MISMATCH");
+    const assets = await host.transaction(async (ctx) => {
+      if (!(await owned(ctx))) throw Error("DOCUMENT_AUTHORITY_CHANGED");
+      return ctx.renderAssets ? ctx.renderAssets(claim.d) : [];
+    });
     const bytes = new Uint8Array(
-      await renderer.render(structuredClone(claim.d)),
+      await renderer.render(structuredClone(claim.d), assets),
     );
     if (
       bytes.length < 8 ||
@@ -559,7 +586,14 @@ export async function processDocument(
       return o;
     });
     if (!planned) return "quarantined";
-    await claim.storage.put(planned.key, bytes, sha256);
+    if (claim.barrier) {
+      const stored = await host.transaction(async (ctx) => {
+        if (!(await owned(ctx))) return false;
+        await ctx.storage.put(planned.key, bytes, sha256);
+        return true;
+      });
+      if (!stored) return "quarantined";
+    } else await claim.storage.put(planned.key, bytes, sha256);
     return await host.transaction(async (ctx) => {
       const found = await owned(ctx);
       if (!found) return "quarantined";
