@@ -359,6 +359,14 @@
     "./repositories/quotation-rates": {
       "types": "./dist/repositories/quotation-rates.d.ts",
       "import": "./dist/repositories/quotation-rates.js"
+    },
+    "./garment-estimates-repository": {
+      "types": "./dist/garment-estimates-repository.d.ts",
+      "import": "./dist/garment-estimates-repository.js"
+    },
+    "./repositories/garment-estimates": {
+      "types": "./dist/repositories/garment-estimates.d.ts",
+      "import": "./dist/repositories/garment-estimates.js"
     }
   },
   "scripts": {

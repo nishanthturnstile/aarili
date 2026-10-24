@@ -17,7 +17,12 @@ import {
   serviceProfileDraftSchema,
   serviceRepeatDraftSchema,
 } from "@aarili/contracts/small-services";
-import { draftMessages, type Locale, smallServiceMessages } from "@aarili/i18n";
+import {
+  draftMessages,
+  estimateMessages,
+  type Locale,
+  smallServiceMessages,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { useEffect, useRef, useState } from "react";
 import { v7 } from "uuid";
@@ -365,6 +370,16 @@ export function SmallServices({
       {busy && <p role="status">{t.loading}</p>}
       {order ? (
         <>
+          <Button
+            variant="outline"
+            onClick={() =>
+              window.location.assign(
+                `/orders?section=estimates&estimateOrder=${order.id}`,
+              )
+            }
+          >
+            {estimateMessages[locale].title}
+          </Button>
           <ServiceRepeatPanel
             shopId={shopId}
             orderId={order.id}

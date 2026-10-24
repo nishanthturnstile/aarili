@@ -1,7 +1,8 @@
 # 1.4.1 — Concrete quotation ticket packet
 
 24 October 2026. **Approved and published after the owner's “approved and
-proceed”. A1 #173 selected; A2/B/C wait for their direct blockers.** [Design/QD-01–12/Q-01–14](Quotations_Design.md),
+proceed”. A1 #173 merged in PR #177; the owner selected A2 #174 after pulling
+development. B/C wait for their direct blockers.** [Design/QD-01–12/Q-01–14](Quotations_Design.md),
 [research](Quotations_REA_Evidence.md),
 [preparation verification](Quotations_Implementation_Evidence.md).
 
