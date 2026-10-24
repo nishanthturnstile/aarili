@@ -27,6 +27,10 @@ export const documentStatusSchema = z.strictObject({
   state: z.enum(["pending", "rendering", "failed", "ready"]),
   version: z.number().int().positive(),
   canRetry: z.boolean(),
+  layoutFailure: z
+    .string()
+    .regex(/^label-(?:[1-9]|[1-5][0-9]|6[0-4])$/)
+    .optional(),
   failure: z
     .enum([
       "RENDER_RETRYABLE",

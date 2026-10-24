@@ -26,6 +26,7 @@ type Props = {
   locale: "en" | "ta";
   recipient: { phone: string };
   requirePreview?: boolean;
+  reviewAcknowledgement?: string;
   allowExternalShare?: boolean;
 };
 export function PrivateDocumentSharing(props: Props) {
@@ -43,6 +44,7 @@ function SelectedDocument({
   locale,
   recipient,
   requirePreview = false,
+  reviewAcknowledgement,
   allowExternalShare = true,
 }: Props & { selection: Selection }) {
   const t = sharingMessages[locale],
@@ -421,7 +423,7 @@ function SelectedDocument({
                   checked={reviewed}
                   onChange={(e) => setReviewed(e.target.checked)}
                 />{" "}
-                {t.reviewPrivate}
+                {reviewAcknowledgement ?? t.reviewPrivate}
               </label>
             ) : null}
             {inlinePreview ? (

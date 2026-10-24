@@ -19,6 +19,7 @@ export type DocumentTemplate = {
   validate(model: unknown): boolean;
   body(model: unknown): string;
   assetIds?(model: unknown): string[];
+  boundedBoxes?: readonly string[];
 };
 // Registries are supplied by reviewed server code. No default synthetic or
 // business template is registered, and no browser/file supplies executable HTML.
@@ -38,6 +39,7 @@ export function documentTemplates(
         body: d.body.toString(),
         validate: d.validate.toString(),
         ...(d.assetIds ? { assetIds: d.assetIds.toString() } : {}),
+        ...(d.boundedBoxes ? { boundedBoxes: d.boundedBoxes } : {}),
       }),
     );
     entries.set(key, Object.freeze({ ...d, templateHash }));
@@ -249,6 +251,25 @@ export function createDocumentRenderer(
               throw Error("DOCUMENT_IMAGE_NOT_READY");
           }
         });
+      if (definition.boundedBoxes) {
+        const overflow = await page.evaluate(
+          (selectors) => {
+            for (const selector of selectors)
+              for (const box of document.querySelectorAll<HTMLElement>(
+                selector,
+              )) {
+                if (
+                  box.scrollHeight > box.clientHeight + 1 ||
+                  box.scrollWidth > box.clientWidth + 1
+                )
+                  return box.dataset.field ?? "label";
+              }
+            return null;
+          },
+          [...definition.boundedBoxes],
+        );
+        if (overflow) throw Error(`DOCUMENT_LAYOUT_OVERFLOW:${overflow}`);
+      }
       const pdf = new Uint8Array(
         await page.pdf({
           preferCSSPageSize: true,

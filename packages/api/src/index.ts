@@ -15,6 +15,7 @@ import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
 import { createJobSlipRoutes } from "./job-slips.js";
 import { createManualPatternsRoutes } from "./manual-patterns.js";
+import { createMaterialLabelRoutes } from "./material-labels.js";
 import { createMeasurementSessionsRoutes } from "./measurement-sessions.js";
 import { createMediaRoutes } from "./media.js";
 import { createOrderRoutes } from "./orders.js";
@@ -94,6 +95,7 @@ export function createApi(
   });
   if (owner) {
     app.route("/", createJobSlipRoutes(owner));
+    app.route("/", createMaterialLabelRoutes(owner));
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));
     app.route("/", createCustomerHistoryRoutes(owner));

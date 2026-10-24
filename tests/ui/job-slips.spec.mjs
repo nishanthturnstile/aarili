@@ -1,5 +1,9 @@
 ﻿import { mkdir } from "node:fs/promises";
-import { jobSlipMessages, sharingMessages } from "@aarili/i18n";
+import {
+  jobSlipMessages,
+  materialLabelMessages,
+  sharingMessages,
+} from "@aarili/i18n";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { withJobSlipBrowserHost } from "../../scripts/test-support/job-slip-browser.mjs";
@@ -181,7 +185,7 @@ test("JS-A01/02/08/09/10 exact source issue, uncertain replay, stored preview, d
           .getByLabel(t.audience, { exact: true })
           .selectOption("print-shop");
         await expect(
-          region.getByText(t.printShopHelp, { exact: true }),
+          region.getByText(materialLabelMessages[locale].help, { exact: true }),
         ).toBeVisible();
         await expect(page.getByTestId("pdf-preview")).toHaveCount(0);
         await page

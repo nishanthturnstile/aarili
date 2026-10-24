@@ -24,6 +24,7 @@ export type DocumentAttempt = {
   version: number;
   fence: string | null;
   leaseUntil: string | null;
+  layoutFailure?: string | null;
 };
 export type DocumentOutput = {
   id: string;
@@ -69,7 +70,11 @@ export interface DocumentRepository extends RequestRepository<unknown> {
   ): Promise<DocumentOutput | undefined>;
   issue(value: DocumentRevision, attempt: DocumentAttempt): Promise<void>;
   claim(attempt: DocumentAttempt, fence: string, until: string): Promise<void>;
-  failed(attempt: DocumentAttempt, fence: string): Promise<void>;
+  failed(
+    attempt: DocumentAttempt,
+    fence: string,
+    layoutFailure?: string,
+  ): Promise<void>;
   retry(attempt: DocumentAttempt, jobId: string, epoch: string): Promise<void>;
   plan(output: Omit<DocumentOutput, "createdAt">): Promise<void>;
   accept(attempt: DocumentAttempt, output: DocumentOutput): Promise<void>;

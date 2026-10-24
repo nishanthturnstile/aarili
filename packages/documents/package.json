@@ -11,6 +11,10 @@
     "./job-slip": {
       "types": "./dist/job-slip.d.ts",
       "import": "./dist/job-slip.js"
+    },
+    "./material-labels": {
+      "types": "./dist/material-labels.d.ts",
+      "import": "./dist/material-labels.js"
     }
   },
   "scripts": {

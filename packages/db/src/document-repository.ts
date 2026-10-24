@@ -88,7 +88,7 @@ export function documentRepository(
     },
     async attempt(id, revision) {
       const r = await tx.execute(
-        sql`select doc_id as "docId",revision,job_id as "jobId",initiator_id as "initiatorId",restore_epoch as epoch,state,version,fence,lease_until as "leaseUntil" from document_attempt where shop_id=${shopId}::uuid and doc_id=${id}::uuid and revision=${revision}`,
+        sql`select doc_id as "docId",revision,job_id as "jobId",initiator_id as "initiatorId",restore_epoch as epoch,state,version,fence,lease_until as "leaseUntil",layout_failure as "layoutFailure" from document_attempt where shop_id=${shopId}::uuid and doc_id=${id}::uuid and revision=${revision}`,
       );
       const a = r.rows[0];
       return a
@@ -116,17 +116,17 @@ export function documentRepository(
     },
     async claim(a, fence, until) {
       await tx.execute(
-        sql`update document_attempt set state='rendering',version=version+1,fence=${fence}::uuid,lease_until=${until}::timestamptz where shop_id=${shopId}::uuid and doc_id=${a.docId}::uuid and revision=${a.revision} and job_id=${a.jobId}::uuid`,
+        sql`update document_attempt set state='rendering',layout_failure=null,version=version+1,fence=${fence}::uuid,lease_until=${until}::timestamptz where shop_id=${shopId}::uuid and doc_id=${a.docId}::uuid and revision=${a.revision} and job_id=${a.jobId}::uuid`,
       );
     },
-    async failed(a, fence) {
+    async failed(a, fence, layoutFailure) {
       await tx.execute(
-        sql`update document_attempt set state='failed',version=version+1,lease_until=clock_timestamp() where shop_id=${shopId}::uuid and doc_id=${a.docId}::uuid and revision=${a.revision} and job_id=${a.jobId}::uuid and fence=${fence}::uuid and state='rendering'`,
+        sql`update document_attempt set state='failed',layout_failure=${layoutFailure ?? null},version=version+1,lease_until=clock_timestamp() where shop_id=${shopId}::uuid and doc_id=${a.docId}::uuid and revision=${a.revision} and job_id=${a.jobId}::uuid and fence=${fence}::uuid and state='rendering'`,
       );
     },
     async retry(a, jobId, epoch) {
       await tx.execute(
-        sql`update document_attempt set state='pending',version=version+1,job_id=${jobId}::uuid,restore_epoch=${epoch}::uuid,fence=null,lease_until=null where shop_id=${shopId}::uuid and doc_id=${a.docId}::uuid and revision=${a.revision}`,
+        sql`update document_attempt set state='pending',layout_failure=null,version=version+1,job_id=${jobId}::uuid,restore_epoch=${epoch}::uuid,fence=null,lease_until=null where shop_id=${shopId}::uuid and doc_id=${a.docId}::uuid and revision=${a.revision}`,
       );
     },
     async plan(o) {

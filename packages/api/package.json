@@ -183,6 +183,14 @@
     "./job-slips-client": {
       "types": "./dist/job-slips-client.d.ts",
       "import": "./dist/job-slips-client.js"
+    },
+    "./material-labels-client": {
+      "types": "./dist/material-labels-client.d.ts",
+      "import": "./dist/material-labels-client.js"
+    },
+    "./material-labels": {
+      "types": "./dist/material-labels.d.ts",
+      "import": "./dist/material-labels.js"
     }
   },
   "scripts": {

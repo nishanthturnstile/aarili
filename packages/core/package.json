@@ -175,6 +175,10 @@
     "./job-slip-purge": {
       "types": "./dist/job-slip-purge.d.ts",
       "import": "./dist/job-slip-purge.js"
+    },
+    "./material-labels": {
+      "types": "./dist/material-labels.d.ts",
+      "import": "./dist/material-labels.js"
     }
   },
   "scripts": {

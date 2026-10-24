@@ -11,6 +11,9 @@ function inspect(directory) {
       const output = readFileSync(path, "utf8");
       for (const privateSymbol of [
         "issueJobSlip",
+        "issueMaterialLabels",
+        "materialLabelsRepository",
+        "redact_material_labels",
         "jobSlipSources",
         "jobSlipsRepository",
         "jobSlipPurgeRepository",

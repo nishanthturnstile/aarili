@@ -7,12 +7,17 @@ import {
 } from "@aarili/api/job-slips-client";
 import { readOrderPieces } from "@aarili/api/orders-client";
 import type { JobSlipIssue, JobSlipReview } from "@aarili/contracts/job-slips";
-import { jobSlipMessages, type Locale } from "@aarili/i18n";
+import {
+  jobSlipMessages,
+  type Locale,
+  materialLabelMessages,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { Field, FieldLabel } from "@aarili/ui/components/field";
 import { Input } from "@aarili/ui/components/input";
 import { useEffect, useId, useRef, useState } from "react";
 import { PrivateDocumentSharing } from "./document-sharing";
+import { MaterialLabels } from "./material-labels";
 import type { OwnerGuard } from "./owner-feedback";
 
 export function JobSlips({
@@ -28,7 +33,8 @@ export function JobSlips({
   service?: boolean;
   guard?: OwnerGuard;
 }) {
-  const [open, setOpen] = useState(false),
+  const [purpose, setPurpose] = useState("job-slip"),
+    [open, setOpen] = useState(false),
     [pieces, setPieces] = useState<{ id: string; label: string }[]>([]),
     [pieceId, setPieceId] = useState<string | null>(null),
     [scopeSafe, setScopeSafe] = useState(true);
@@ -75,6 +81,25 @@ export function JobSlips({
         <Button onClick={() => void start()}>{t.open}</Button>
       ) : (
         <>
+          <Field>
+            <FieldLabel htmlFor={`${heading}-purpose`}>
+              {materialLabelMessages[locale].purpose}
+            </FieldLabel>
+            <select
+              id={`${heading}-purpose`}
+              className="ui-input"
+              value={purpose}
+              disabled={!scopeSafe}
+              onChange={(e) => setPurpose(e.target.value)}
+            >
+              <option value="job-slip">
+                {materialLabelMessages[locale].slip}
+              </option>
+              <option value="labels">
+                {materialLabelMessages[locale].labels}
+              </option>
+            </select>
+          </Field>
           {pieces.length ? (
             <Field>
               <FieldLabel htmlFor={`${heading}-piece`}>{t.scope}</FieldLabel>
@@ -97,26 +122,40 @@ export function JobSlips({
               </select>
             </Field>
           ) : null}
-          <ScopedJobSlip
-            key={`${shopId}:${orderId}:${pieceId}`}
-            shopId={shopId}
-            orderId={orderId}
-            pieceId={pieceId}
-            locale={locale}
-            {...(guard ? { guard } : {})}
-          />
+          {purpose === "labels" ? (
+            <MaterialLabels
+              key={`labels:${shopId}:${orderId}:${pieceId}`}
+              shopId={shopId}
+              orderId={orderId}
+              pieceId={pieceId}
+              locale={locale}
+              {...(guard ? { guard } : {})}
+            />
+          ) : (
+            <ScopedJobSlip
+              onPrintShop={() => setPurpose("labels")}
+              key={`${shopId}:${orderId}:${pieceId}`}
+              shopId={shopId}
+              orderId={orderId}
+              pieceId={pieceId}
+              locale={locale}
+              {...(guard ? { guard } : {})}
+            />
+          )}
         </>
       )}
     </section>
   );
 }
 function ScopedJobSlip({
+  onPrintShop,
   shopId,
   orderId,
   pieceId,
   locale,
   guard,
 }: {
+  onPrintShop: () => void;
   shopId: string;
   orderId: string;
   pieceId: string | null;
@@ -435,6 +474,10 @@ function ScopedJobSlip({
               className="ui-input"
               value={audience}
               onChange={(e) => {
+                if (e.target.value === "print-shop") {
+                  onPrintShop();
+                  return;
+                }
                 setAudience(e.target.value);
                 setPhone("");
               }}

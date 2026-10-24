@@ -9,6 +9,7 @@ import {
   documentTemplates,
 } from "../dist/index.js";
 import { jobSlipProof } from "./job-slip.mjs";
+import { materialLabelProof } from "./material-labels.mjs";
 import { syntheticDocumentTemplates, tamilGoldenStrings } from "./template.mjs";
 
 const fonts = await documentFonts(),
@@ -201,6 +202,7 @@ try {
       await idle.close();
     }
     await jobSlipProof(root);
+    await materialLabelProof(root);
     observations.nodePeakRssKiB = process.resourceUsage().maxRSS;
     await writeFile(
       `${root}/evidence.json`,

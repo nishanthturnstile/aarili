@@ -202,6 +202,9 @@ async function status(
               ? "RENDER_RETRYABLE"
               : null,
     sha256: artifact?.sha256 ?? null,
+    ...(!artifact && a.state === "failed" && a.layoutFailure
+      ? { layoutFailure: a.layoutFailure }
+      : {}),
   });
 }
 export async function issueDocument(
@@ -615,7 +618,14 @@ export async function processDocument(
     try {
       await host.transaction(async (ctx) => {
         if (!(await owned(ctx))) return;
-        await ctx.repository.failed(claim.a, claim.fence);
+        const layoutFailure =
+          error instanceof Error &&
+          /^DOCUMENT_LAYOUT_OVERFLOW:label-(?:[1-9]|[1-5][0-9]|6[0-4])$/.test(
+            error.message,
+          )
+            ? error.message.slice("DOCUMENT_LAYOUT_OVERFLOW:".length)
+            : undefined;
+        await ctx.repository.failed(claim.a, claim.fence, layoutFailure);
         await audit(
           ctx,
           await ctx.repository.id(),

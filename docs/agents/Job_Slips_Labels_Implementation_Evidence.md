@@ -8,7 +8,7 @@ merge, and selected A to proceed.**
 [concrete tickets](Job_Slips_Labels_Ticket_Packet.md),
 [interactive review artifact](job-slips-labels-review.html).
 
-Current implementation follows the approved preparation: PR [#168](https://github.com/nishanthturnstile/aarili/pull/168) merged, A is [#169](https://github.com/nishanthturnstile/aarili/issues/169), and B is [#170](https://github.com/nishanthturnstile/aarili/issues/170). See [A implementation evidence and manual review](Job_Slips_Implementation_169.md). The dated preparation observations below remain historical evidence, not current implementation status.
+Current implementation follows the approved preparation: PR [#168](https://github.com/nishanthturnstile/aarili/pull/168) merged, A is [#169](https://github.com/nishanthturnstile/aarili/issues/169), and B is [#170](https://github.com/nishanthturnstile/aarili/issues/170). A merged in PR #171 and the owner separately selected B. See [A implementation evidence and manual review](Job_Slips_Implementation_169.md) and [B implementation/evidence](Material_Labels_Implementation_170.md). The dated preparation observations below remain historical evidence, not current implementation status.
 
 ## Checkout and readiness
 

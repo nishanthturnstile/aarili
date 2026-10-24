@@ -14,6 +14,7 @@ await withJobSlipWeb(async (f) => {
     origin: f.origin,
     cookie: f.a.cookie,
     pieceId: f.scope.pieceId,
+    orderId: f.scope.orderId,
   });
   await new Promise((resolve) => {
     stop = resolve;

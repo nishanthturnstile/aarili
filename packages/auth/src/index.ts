@@ -61,6 +61,10 @@ import {
   readPatternRepeatContext,
 } from "@aarili/core/manual-patterns";
 import {
+  type MaterialLabelsContext,
+  materialLabelDocumentContext,
+} from "@aarili/core/material-labels";
+import {
   type MeasurementFitContext,
   measurementFitReferenceWorkflow,
   measurementFitSubjectWorkflow,
@@ -156,6 +160,7 @@ import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { jobSlipsRepository } from "@aarili/db/job-slips-repository";
 import { manualPatternsRepository } from "@aarili/db/manual-patterns-repository";
+import { materialLabelsRepository } from "@aarili/db/material-labels-repository";
 import { measurementFitRepository } from "@aarili/db/measurement-fit-repository";
 import { measurementFormsRepository } from "@aarili/db/measurement-forms-repository";
 import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
@@ -394,6 +399,11 @@ export type OwnerAuth = {
     shopId: string,
     run: (ctx: DocumentContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
+  withOwnerMaterialLabels: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MaterialLabelsContext) => Promise<T>,
+  ) => Promise<{ data: T; headers: Headers }>;
   withOwnerJobSlips: <T>(
     headers: Headers,
     shopId: string,
@@ -2121,20 +2131,37 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       storage: { put: unavailable, signGet: unavailable, read: unavailable },
       jobs: { enqueue: unavailable, phase: unavailable },
     };
-    return jobSlipDocumentContext(
-      {
-        shopId,
-        actor: { type: "user", id: userId },
-        repository: documentRepository(tx, shopId),
-        ...adapters,
-      },
-      jobSlipsRepository(tx, shopId),
-      jobSlipSources(
-        manualPatternsContext(tx, shopId, userId),
-        smallServiceContext(tx, shopId, userId),
-        designReferencesContext(tx, shopId, userId),
-        ownerMediaContext(tx, shopId, userId),
+    return materialLabelDocumentContext(
+      jobSlipDocumentContext(
+        {
+          shopId,
+          actor: { type: "user", id: userId },
+          repository: documentRepository(tx, shopId),
+          ...adapters,
+        },
+        jobSlipsRepository(tx, shopId),
+        jobSlipSources(
+          manualPatternsContext(tx, shopId, userId),
+          smallServiceContext(tx, shopId, userId),
+          designReferencesContext(tx, shopId, userId),
+          ownerMediaContext(tx, shopId, userId),
+        ),
       ),
+      materialLabelsRepository(tx, shopId),
+      quickOrderContext(tx, shopId, userId),
+    );
+  }
+  async function withOwnerMaterialLabels<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: MaterialLabelsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run({
+        documents: jobSlipDocuments(tx, shopId, userId),
+        repository: materialLabelsRepository(tx, shopId),
+        identities: quickOrderContext(tx, shopId, userId),
+      }),
     );
   }
   async function withOwnerJobSlips<T>(
@@ -2484,6 +2511,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerMedia,
     withOwnerDocument,
     withOwnerJobSlips,
+    withOwnerMaterialLabels,
     jobSlipDocuments,
     commandLimit: () => guard(commandLimit),
     googleConnection,
