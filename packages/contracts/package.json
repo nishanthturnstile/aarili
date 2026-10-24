@@ -139,6 +139,10 @@
     "./garment-estimates": {
       "types": "./dist/garment-estimates.d.ts",
       "import": "./dist/garment-estimates.js"
+    },
+    "./booking-quotations": {
+      "types": "./dist/booking-quotations.d.ts",
+      "import": "./dist/booking-quotations.js"
     }
   },
   "scripts": {

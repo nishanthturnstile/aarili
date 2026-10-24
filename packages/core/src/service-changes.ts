@@ -78,6 +78,8 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    if (record.workflow === "pricing.quotation" && Array.isArray(p.orderIds))
+      for (const id of p.orderIds) if (typeof id === "string") orderIds.add(id);
     if (record.workflow === "pricing.estimate") {
       const t = p.target as
         | { orderId?: string; customerId?: string; wearerId?: string }

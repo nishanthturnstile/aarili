@@ -1,5 +1,12 @@
 # Quotations — preparation and A1 verification evidence
 
+**B follow-up, 24 October 2026:** A2 PR #178 merged at 12:24:46 UTC as
+`df5f3265c719afe38e1613a2c9144befd4ea7a33`; required checks passed in
+[run 40092740832](https://github.com/nishanthturnstile/aarili/actions/runs/40092740832).
+Owner-selected B #175 now has [implementation and fresh verification evidence](Booking_Quotations_Implementation_175.md).
+The preparation/A1 observations below retain their historical timestamps.
+Issued documents and whole-feature acceptance remain pending C #176.
+
 24 October 2026. **Owner approved publication and selected A1 #173. A1 delivery
 and fresh checks are recorded below; whole 1.4.1 is not implemented or accepted.** [Brief](Quotations_REA_Prompt.md),
 [research/access limits](Quotations_REA_Evidence.md),

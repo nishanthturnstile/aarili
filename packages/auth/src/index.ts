@@ -19,6 +19,10 @@ import {
 } from "@aarili/contracts";
 import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { readShop } from "@aarili/core";
+import {
+  type BookingQuotationsContext,
+  quotationDraftWorkflow,
+} from "@aarili/core/booking-quotations";
 import type { CommandContext } from "@aarili/core/commands";
 import type { CustomerHistoryContext } from "@aarili/core/customer-history";
 import {
@@ -159,6 +163,7 @@ import {
   withShop,
 } from "@aarili/db";
 import * as schema from "@aarili/db/auth-schema";
+import { bookingQuotationsRepository } from "@aarili/db/booking-quotations-repository";
 import { commandRepository } from "@aarili/db/command-repository";
 import { customerHistoryRepository } from "@aarili/db/customer-history-repository";
 import { customerRepository } from "@aarili/db/customer-repository";
@@ -320,6 +325,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerBookingQuotations: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: BookingQuotationsContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerManualPatterns: <T>(
     headers: Headers,
     shopId: string,
@@ -1397,6 +1407,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
         estimateDraftWorkflow(garmentEstimatesContext(tx, shopId, userId)),
       );
       workflows.set(
+        "pricing.quotation",
+        quotationDraftWorkflow(bookingQuotationsContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "pricing.rate",
         rateDraftWorkflow(quotationRatesContext(tx, shopId, userId)),
       );
@@ -2039,6 +2053,27 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       specifications: designSpecificationsContext(tx, shopId, actorId),
     };
   }
+  function bookingQuotationsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): BookingQuotationsContext {
+    shopId = shopId.toLowerCase();
+    return {
+      actorId,
+      repository: bookingQuotationsRepository(tx, shopId),
+      estimates: garmentEstimatesContext(tx, shopId, actorId),
+    };
+  }
+  async function withOwnerBookingQuotations<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: BookingQuotationsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(bookingQuotationsContext(tx, shopId, actorId)),
+    );
+  }
   async function withOwnerGarmentEstimates<T>(
     headers: Headers,
     shopId: string,
@@ -2575,6 +2610,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopPolicies,
     withOwnerQuotationRates,
     withOwnerGarmentEstimates,
+    withOwnerBookingQuotations,
     withOwnerShopDirectory,
     withOwnerManualPatterns,
     withOwnerMeasurementFit,

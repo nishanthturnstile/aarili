@@ -963,10 +963,10 @@ async function legacyFixture(f) {
   );
   const references = (
     await f.admin.query(
-      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass,'design_spec_scope'::regclass,'design_spec_draft_value'::regclass,'design_media_order_subject'::regclass,'measurement_selection'::regclass,'measurement_draft_value'::regclass,'pattern_scope'::regclass,'pattern_media_subject'::regclass,'garment_estimate_revision'::regclass,'job_slip_revision'::regclass,'material_label_member'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
+      "select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in('service_property_subject'::regclass,'order_service_change_line'::regclass,'service_repeat_selection'::regclass,'design_spec_scope'::regclass,'design_spec_draft_value'::regclass,'design_media_order_subject'::regclass,'measurement_selection'::regclass,'measurement_draft_value'::regclass,'pattern_scope'::regclass,'pattern_media_subject'::regclass,'garment_estimate_revision'::regclass,'job_slip_revision'::regclass,'material_label_member'::regclass,'booking_quotation_line'::regclass) and confrelid='order_piece'::regclass order by conrelid,conname",
     )
   ).rows;
-  assert.equal(references.length, 13);
+  assert.equal(references.length, 14);
   for (const reference of references) {
     assert(
       [
@@ -983,6 +983,7 @@ async function legacyFixture(f) {
         "garment_estimate_revision",
         "job_slip_revision",
         "material_label_member",
+        "booking_quotation_line",
       ].includes(reference.relation),
     );
     assert.match(reference.conname, /^[a-z_][a-z0-9_]*$/);

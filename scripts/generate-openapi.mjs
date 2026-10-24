@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createApi, createShopPoliciesRoutes } from "@aarili/api";
+import { createBookingQuotationsRoutes } from "@aarili/api/booking-quotations";
 import { createCommandRoutes } from "@aarili/api/commands";
 import { createCustomerHistoryRoutes } from "@aarili/api/customer-history";
 import { createCustomerRoutes } from "@aarili/api/customers";
@@ -26,6 +27,15 @@ import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createBookingQuotationsRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerBookingQuotations: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createGarmentEstimatesRoutes({

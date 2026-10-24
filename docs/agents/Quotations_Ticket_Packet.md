@@ -2,7 +2,7 @@
 
 24 October 2026. **Approved and published after the owner's “approved and
 proceed”. A1 #173 merged in PR #177; the owner selected A2 #174 after pulling
-development. A2 is implemented in [draft PR #178](https://github.com/nishanthturnstile/aarili/pull/178), pending CI/owner review. B/C wait for their direct blockers.** [Design/QD-01–12/Q-01–14](Quotations_Design.md),
+development. A2 merged in [PR #178](https://github.com/nishanthturnstile/aarili/pull/178). Owner-selected B #175 is implemented in [draft PR #179](https://github.com/nishanthturnstile/aarili/pull/179); [verification and owner review](Booking_Quotations_Implementation_175.md) are recorded. C #176 waits for B to merge.** [Design/QD-01–12/Q-01–14](Quotations_Design.md),
 [research](Quotations_REA_Evidence.md),
 [preparation verification](Quotations_Implementation_Evidence.md).
 

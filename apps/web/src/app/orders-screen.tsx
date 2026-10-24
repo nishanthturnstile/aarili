@@ -30,6 +30,7 @@ import {
   type Locale,
   orderAcceptanceMessages,
   orderMessages,
+  quotationMessages,
   serviceAdditionMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
@@ -40,6 +41,7 @@ import { useLocale } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { BookingGroups } from "./booking-groups";
+import { BookingQuotations } from "./booking-quotations";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
@@ -724,6 +726,12 @@ export function OrdersScreen({
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
   const [grouping, setGrouping] = useState(false);
+  const [quoting, setQuoting] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URL(window.location.href).searchParams.get("section") ===
+        "quotations",
+  );
   const [estimating, setEstimating] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -883,7 +891,12 @@ export function OrdersScreen({
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial URL read belongs to this scope lifetime
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("section") === "estimates") return;
+    if (
+      ["estimates", "quotations"].includes(
+        url.searchParams.get("section") ?? "",
+      )
+    )
+      return;
     const historyBooking = url.searchParams.get("historyBooking");
     if (historyBooking && /^[0-9a-f-]{36}$/i.test(historyBooking)) {
       setGroupBooking(historyBooking);
@@ -1035,6 +1048,20 @@ export function OrdersScreen({
       void refreshOrders();
     }
   }
+  if (quoting)
+    return (
+      <BookingQuotations
+        shopId={shopId}
+        guard={guard}
+        onBack={() => {
+          setQuoting(false);
+          const u = new URL(window.location.href);
+          u.searchParams.delete("section");
+          u.searchParams.delete("quotationDraft");
+          window.history.replaceState(null, "", u.pathname + u.search);
+        }}
+      />
+    );
   if (estimating)
     return (
       <GarmentEstimates
@@ -1135,6 +1162,18 @@ export function OrdersScreen({
         {bookingMessages[locale].title}
       </Button>
       <div className="owner-actions">
+        <Button
+          variant="outline"
+          disabled={working || !safe || !!controller}
+          onClick={() => {
+            setQuoting(true);
+            const u = new URL(window.location.href);
+            u.searchParams.set("section", "quotations");
+            window.history.replaceState(null, "", u.pathname + u.search);
+          }}
+        >
+          {quotationMessages[locale].title}
+        </Button>
         <Button
           variant="outline"
           disabled={working || !safe || !!controller}
