@@ -1,7 +1,7 @@
 # Payments: independent design for 1.4.2
 
-24 October 2026. **Proposed for owner review; no implementation ticket selected
-or approved.** [Research](Payments_REA_Evidence.md), [concrete packet](Payments_Ticket_Packet.md),
+24 October 2026. **Owner approved PD-01–08 and the A–C packet; A / #181 selected
+for implementation.** [Research](Payments_REA_Evidence.md), [concrete packet](Payments_Ticket_Packet.md),
 [verification/status](Payments_Implementation_Evidence.md), [brief](Payments_REA_Prompt.md).
 This design does not approve business policies, accounting mappings or live use.
 
@@ -14,8 +14,9 @@ Receipt PDFs/bills (1.4.4), general agreements (1.4.3), refunds/adjustments (1.4
 and day-close reconciliation retain their own gates. No baseline amendment.
 
 Development `94d6dfa` includes quotation PRs #177–#180, all freshly confirmed
-merged. Only Dependency Dashboard #28 was open in the current all-open issue
-inventory. There is no approved payment issue to implement. Old pending headings
+merged. The preparation inventory originally contained only Dependency Dashboard #28.
+After owner approval, #181–#183 were published with native blockers; A is the
+selected issue. Old pending headings
 in prerequisite evidence are historical, not current merge authority.
 
 Reuse [quotation design](Quotations_Design.md), [quotation evidence](Quotations_Implementation_Evidence.md),

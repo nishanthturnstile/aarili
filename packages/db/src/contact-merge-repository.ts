@@ -19,6 +19,21 @@ export function contactMergeRepository(
         sql`select pg_advisory_xact_lock(hashtextextended(${`order:${shopId}:${id}`},0))`,
       );
     },
+    async hasPaymentAssociations(customerIds) {
+      if (
+        !(
+          await tx.execute(
+            sql`select to_regclass('payment_receipt') as installed`,
+          )
+        ).rows[0]?.installed
+      )
+        return false;
+      return !!(
+        await tx.execute(
+          sql`select 1 from payment_receipt where shop_id=${shopId}::uuid and (customer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[]) or payer_id=any(ARRAY(select jsonb_array_elements_text(${JSON.stringify(customerIds)}::jsonb))::uuid[])) limit 1`,
+        )
+      ).rowCount;
+    },
     async hasMeasurementAssociations(customerIds) {
       // Populated upgrade fixtures and compatible old-schema readers have no
       // measurement records until the atomic additive migration is installed.

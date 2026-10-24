@@ -105,6 +105,7 @@ export function journalRepository(
     async positions(subjectId) {
       const result: Record<JournalAccount, number> = {
         cash: 0,
+        electronic: 0,
         receivable: 0,
         revenue: 0,
         deposit: 0,

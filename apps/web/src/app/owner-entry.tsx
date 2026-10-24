@@ -18,6 +18,7 @@ export type EntryMode =
   | "dashboard"
   | "connections"
   | "settings"
+  | "payments"
   | "orders"
   | "customers"
   | "customer-new"

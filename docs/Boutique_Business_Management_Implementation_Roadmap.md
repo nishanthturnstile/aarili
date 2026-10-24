@@ -930,17 +930,21 @@ source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments
 
-**Preparation checkpoint (24 October 2026):**
+**Implementation checkpoint (24 October 2026):**
 [REA evidence](agents/Payments_REA_Evidence.md) distinguishes observed Nool payment
 entry from public documentation and documented-only Zoho Invoice credit flows.
-The [proposed design](agents/Payments_Design.md) and
+The [approved design](agents/Payments_Design.md) and
 [A–C ticket packet](agents/Payments_Ticket_Packet.md) cover explicit receipt
 confirmation, credit, FIN-05 against attested service-addition charges, reasoned
 pre-bill allocation changes, split components and private evidence. Ordinary
 intake/package quotations remain unagreed; general base/package agreement is
 1.4.3. [Fresh foundation verification and remaining gates](agents/Payments_Implementation_Evidence.md)
-are recorded separately. No payment issue is approved/selected or implemented;
-the concrete packet requires owner review before publication and selection.
+are recorded separately. The owner approved PD-01–08 and the packet; published
+issues #181 (A), #182 (B) and #183 (C) retain sequential merge gates. Selected A
+implements pending/confirmed cash and UPI receipts, immutable customer credit,
+UTR uniqueness and retry-safe journal posting. It does not complete 1.4.2: exact
+agreed-charge allocation/reallocation remains B and split batches/private evidence
+remain C. No live money, receipt PDFs, governed agreements or refunds activated.
 
 **REA delivery brief (24 October 2026):** the
 [Payments prompt](agents/Payments_REA_Prompt.md) uses Nool's payment entry as

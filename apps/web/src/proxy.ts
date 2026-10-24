@@ -64,6 +64,7 @@ export const config = {
     "/connections",
     "/settings",
     "/orders",
+    "/payments",
     "/customers/:path*",
   ],
 };

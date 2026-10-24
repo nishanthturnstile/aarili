@@ -97,6 +97,10 @@ import {
   repeatOrderWorkflow,
 } from "@aarili/core/orders";
 import {
+  type PaymentsContext,
+  paymentReceiptWorkflow,
+} from "@aarili/core/payments";
+import {
   type QuotationIssuesContext,
   quotationDocumentContext,
 } from "@aarili/core/quotation-issues";
@@ -178,6 +182,7 @@ import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
 import { garmentEstimatesRepository } from "@aarili/db/garment-estimates-repository";
 import { jobSlipsRepository } from "@aarili/db/job-slips-repository";
+import { journalRepository } from "@aarili/db/journal-repository";
 import { manualPatternsRepository } from "@aarili/db/manual-patterns-repository";
 import { materialLabelsRepository } from "@aarili/db/material-labels-repository";
 import { measurementFitRepository } from "@aarili/db/measurement-fit-repository";
@@ -185,10 +190,12 @@ import { measurementFormsRepository } from "@aarili/db/measurement-forms-reposit
 import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import { ordersRepository } from "@aarili/db/orders-repository";
+import { paymentsRepository } from "@aarili/db/payments-repository";
 import { quotationIssuesRepository } from "@aarili/db/quotation-issues-repository";
 import { quotationRatesRepository } from "@aarili/db/quotation-rates-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
+import { restoreRepository } from "@aarili/db/restore-repository";
 import {
   approvedCategoryResolver,
   serviceCatalogueRepository,
@@ -364,6 +371,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: ShopCommitmentsContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerPayments: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: PaymentsContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   withOwnerQuotationRates: <T>(
     headers: Headers,
@@ -1413,6 +1425,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "payment.receipt",
+        paymentReceiptWorkflow(paymentsContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "pricing.estimate",
         estimateDraftWorkflow(garmentEstimatesContext(tx, shopId, userId)),
       );
@@ -2035,6 +2051,34 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       run(commitmentContext(tx, shopId, actorId)),
     );
   }
+  function paymentsContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): PaymentsContext {
+    shopId = shopId.toLowerCase();
+    actorId = actorId.toLowerCase();
+    return {
+      shopId,
+      actorId,
+      synthetic: configuration.customerPolicy?.synthetic === true,
+      repository: paymentsRepository(tx, shopId),
+      drafts: draftRepository(tx, shopId),
+      journal: journalRepository(tx, shopId),
+      restore: restoreRepository(tx, shopId),
+      directory: shopDirectoryRepository(tx, shopId),
+      profile: shopProfileRepository(tx, shopId),
+    };
+  }
+  async function withOwnerPayments<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: PaymentsContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(paymentsContext(tx, shopId, actorId)),
+    );
+  }
   function quotationRatesContext(
     tx: Transaction,
     shopId: string,
@@ -2635,6 +2679,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopProfile,
     withOwnerShopCommitments,
     withOwnerShopPolicies,
+    withOwnerPayments,
     withOwnerQuotationRates,
     withOwnerGarmentEstimates,
     withOwnerBookingQuotations,

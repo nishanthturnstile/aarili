@@ -17,7 +17,13 @@ export function WorkspaceNavigation({
   shopName,
   labels,
 }: {
-  current: "owner" | "connections" | "customers" | "orders" | "settings";
+  current:
+    | "owner"
+    | "connections"
+    | "customers"
+    | "orders"
+    | "settings"
+    | "payments";
   shopName: string;
   labels: {
     navigation: string;

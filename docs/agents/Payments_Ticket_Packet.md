@@ -1,11 +1,13 @@
 # Payments 1.4.2: concrete ticket packet
 
-24 October 2026. **Draft for approval, not published; no selected issue.**
+24 October 2026. **Owner approved PD-01–08 and this complete packet; published
+[A / #181](https://github.com/nishanthturnstile/aarili/issues/181),
+[B / #182](https://github.com/nishanthturnstile/aarili/issues/182) and
+[C / #183](https://github.com/nishanthturnstile/aarili/issues/183). A selected.**
 Read [PD-01–08](Payments_Design.md), [research](Payments_REA_Evidence.md) and
-[verification/status](Payments_Implementation_Evidence.md). Publication and issue
-selection require the owner's concrete packet approval. Push authorization in
-this session preserves these documents; it does not publish issues or approve
-application implementation. No merge, deployment or live activation is requested.
+[verification/status](Payments_Implementation_Evidence.md). Native blockers were
+installed and read back. A's nine prerequisites are merged into development.
+B waits for A's merge and C waits for B's merge; no merge/deployment/live approval.
 
 ## Proposed sequence and decisions
 
@@ -39,7 +41,7 @@ architecture §§6–11, 13, 15; roadmap 1.4.2 and PD-01–05/08.
 FIN-05 and journal), #16 (command/idempotency), #55/#56 (draft/recovery), #86
 (receiving directory), #36 (restore guards). All are currently closed; recheck
 their actual merge ancestry and CI/comments before starting. Read current native
-dependencies, not historical evidence headings. No open issue is selected today.
+dependencies, not historical evidence headings. A / #181 is selected; admission verified every prerequisite merge in ancestry.
 
 **Outcome:** owner saves an incomplete server draft, records a pending report or
 deliberately confirms actual cash/UPI receipt, resolves lost responses, reopens
@@ -101,7 +103,7 @@ limited AC-03/04/60/62. Same source sections as A plus PD-05–06/08.
 
 **Direct blockers:** A merged; #125 accepted service additions, #119/#120 booking/
 package provenance and #34 journal, #33 FIN-05. Existing prerequisites are closed;
-A does not exist yet. 1.4.3 is a **capability gate for base/package agreed charges**,
+A / #181 is on its review branch, not merged. 1.4.3 is a **capability gate for base/package agreed charges**,
 not an excuse to prevent supported service-addition allocation or receipt entry.
 Recheck source evidence/merge/CI and native relationships before admission.
 

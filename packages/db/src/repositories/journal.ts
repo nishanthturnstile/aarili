@@ -1,6 +1,7 @@
 // Framework/vendor-free contracts for an already authorised shop transaction.
 export type JournalAccount =
   | "cash"
+  | "electronic"
   | "receivable"
   | "revenue"
   | "deposit"

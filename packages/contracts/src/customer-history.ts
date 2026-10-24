@@ -174,6 +174,7 @@ export const contactMergePreviewSchema = z.strictObject({
       "alias-conflict",
       "wearer-conflict",
       "measurement-association",
+      "payment-association",
       "too-many-records",
       "not-merged",
     ]),

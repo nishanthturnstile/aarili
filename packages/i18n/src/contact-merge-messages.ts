@@ -59,6 +59,8 @@ export const contactMergeMessages = {
     },
     conflicts: {
       "alias-conflict": "An existing contact alias conflicts with this merge.",
+      "payment-association":
+        "Payment ownership needs a separately reviewed financial relink.",
       "measurement-association":
         "Private measurement or pattern records or drafts are linked to this contact. Contact merge cannot reassign them.",
       "wearer-conflict":
@@ -126,6 +128,7 @@ export const contactMergeMessages = {
     },
     conflicts: {
       "alias-conflict": "ஏற்கனவே உள்ள தொடர்பு இணைப்பு முரண்படுகிறது.",
+      "payment-association": "பணம் தொடர்பான உரிமையை மாற்ற தனி ஒப்புதல் தேவை.",
       "measurement-association":
         "இந்தத் தொடர்புடன் தனிப்பட்ட அளவு அல்லது பேட்டர்ன் பதிவுகள் அல்லது வரைவுகள் உள்ளன. தொடர்பு இணைப்பு அவற்றை மாற்ற முடியாது.",
       "wearer-conflict":

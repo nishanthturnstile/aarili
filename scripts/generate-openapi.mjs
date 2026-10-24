@@ -16,6 +16,7 @@ import { createManualPatternsRoutes } from "@aarili/api/manual-patterns";
 import { createMaterialLabelRoutes } from "@aarili/api/material-labels";
 import { createMediaRoutes } from "@aarili/api/media";
 import { createBookingRoutes, createOrderRoutes } from "@aarili/api/orders";
+import { createPaymentsRoutes } from "@aarili/api/payments";
 import { createQuotationIssueRoutes } from "@aarili/api/quotation-issues";
 import { createQuotationRatesRoutes } from "@aarili/api/quotation-rates";
 import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
@@ -310,6 +311,16 @@ api.route(
     origin: "http://127.0.0.1:3103",
     commandLimit: async () => 0,
     withOwnerQuotationIssues: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+
+api.route(
+  "/",
+  createPaymentsRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerPayments: async () => {
       throw Error("Offline schema only");
     },
   }),
