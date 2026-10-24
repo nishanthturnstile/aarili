@@ -26,6 +26,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { DesignSpecifications } from "./design-specifications";
 import type { DraftRecovery } from "./draft-recovery";
+import { JobSlips } from "./job-slips";
 import { ManualPatterns } from "./manual-patterns";
 import { MeasurementSessions } from "./measurement-sessions";
 import { OrderPiecesDetail } from "./order-pieces";
@@ -636,6 +637,13 @@ export function AcceptedOrderDetail({
       <ManualPatterns
         order={order}
         shopId={shopId}
+        locale={locale}
+        guard={guard}
+      />
+      <JobSlips
+        key={`slip:${shopId}:${order.id}`}
+        shopId={shopId}
+        orderId={order.id}
         locale={locale}
         guard={guard}
       />

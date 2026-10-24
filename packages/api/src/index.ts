@@ -13,6 +13,7 @@ import { createDesignReferencesRoutes } from "./design-references.js";
 import { createDesignSpecificationsRoutes } from "./design-specifications.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
+import { createJobSlipRoutes } from "./job-slips.js";
 import { createManualPatternsRoutes } from "./manual-patterns.js";
 import { createMeasurementSessionsRoutes } from "./measurement-sessions.js";
 import { createMediaRoutes } from "./media.js";
@@ -92,6 +93,7 @@ export function createApi(
     );
   });
   if (owner) {
+    app.route("/", createJobSlipRoutes(owner));
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));
     app.route("/", createCustomerHistoryRoutes(owner));

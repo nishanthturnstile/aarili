@@ -272,3 +272,28 @@ test("ENTRY-03/11 Next proxy is a server entry, but a client cannot import its c
     ]),
   );
 });
+
+test("JS-A07 typed job-slip client erases route types and rejects transitive private source runtime", () => {
+  const sources = new Map([
+    [
+      "apps/web/src/app/job-slips.tsx",
+      '"use client"; import "@aarili/api/job-slips-client";',
+    ],
+    [
+      "packages/api/src/job-slips-client.ts",
+      'import type { Routes } from "./job-slips.js";',
+    ],
+    ["packages/api/src/job-slips.ts", 'import "@aarili/core/job-slips";'],
+    ["packages/core/src/job-slips.ts", "export const privateRuntime = true;"],
+  ]);
+  expect(checkBoundaries(sources)).toEqual([]);
+  sources.set(
+    "packages/api/src/job-slips-client.ts",
+    'import "./job-slips.js";',
+  );
+  expect(checkBoundaries(sources)).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining("browser graph reaches server package"),
+    ]),
+  );
+});

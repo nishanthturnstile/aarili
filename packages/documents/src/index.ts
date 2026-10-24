@@ -18,6 +18,7 @@ export type DocumentTemplate = {
   fontRevision: string;
   validate(model: unknown): boolean;
   body(model: unknown): string;
+  assetIds?(model: unknown): string[];
 };
 // Registries are supplied by reviewed server code. No default synthetic or
 // business template is registered, and no browser/file supplies executable HTML.
@@ -36,6 +37,7 @@ export function documentTemplates(
         protocol: "aarili.static-pdf.v1",
         body: d.body.toString(),
         validate: d.validate.toString(),
+        ...(d.assetIds ? { assetIds: d.assetIds.toString() } : {}),
       }),
     );
     entries.set(key, Object.freeze({ ...d, templateHash }));
@@ -140,7 +142,16 @@ export function createDocumentRenderer(
     }, idle);
     timer.unref();
   }
-  async function perform(d: Revision, proof: boolean): Promise<RenderProof> {
+  async function perform(
+    d: Revision,
+    proof: boolean,
+    assets: {
+      id: string;
+      bytes: Uint8Array;
+      sha256: string;
+      contentType: "image/jpeg" | "image/png" | "image/webp";
+    }[] = [],
+  ): Promise<RenderProof> {
     const definition = await registry.resolve(d.template, d.templateRevision);
     const fonts = await documentFonts();
     if (
@@ -150,15 +161,50 @@ export function createDocumentRenderer(
       fonts.revision !== d.fontRevision
     )
       throw Error("DOCUMENT_TEMPLATE_UNAVAILABLE");
-    const body = definition.body(structuredClone(d.model));
-    if (body.length > 1000000) throw Error("DOCUMENT_TEMPLATE_LIMIT");
+    const expected = definition.assetIds?.(d.model) ?? [];
+    if (
+      assets.length !== expected.length ||
+      expected.length > 20 ||
+      new Set(expected).size !== expected.length
+    )
+      throw Error("DOCUMENT_ASSETS_UNAVAILABLE");
+    const images = new Map<string, string>();
+    let assetBytes = 0;
+    for (const a of assets) {
+      assetBytes += a.bytes.length;
+      if (
+        !expected.includes(a.id) ||
+        images.has(a.id) ||
+        !/^[a-f0-9-]{36}$/.test(a.id) ||
+        !["image/jpeg", "image/png", "image/webp"].includes(a.contentType) ||
+        a.bytes.length > 8 * 1024 * 1024 ||
+        assetBytes > 20 * 1024 * 1024 ||
+        digest(a.bytes) !== a.sha256
+      )
+        throw Error("DOCUMENT_ASSET_REJECTED");
+      images.set(
+        a.id,
+        `data:${a.contentType};base64,${Buffer.from(a.bytes).toString("base64")}`,
+      );
+    }
+    let body = definition.body(structuredClone(d.model));
+    body = body.replace(
+      /src="aarili-asset:([a-f0-9-]{36})"/g,
+      (_, id: string) => {
+        const image = images.get(id);
+        if (!image) throw Error("DOCUMENT_ASSETS_UNAVAILABLE");
+        return `src="${image}"`;
+      },
+    );
+    if (body.length > (expected.length ? 30 * 1024 * 1024 : 1000000))
+      throw Error("DOCUMENT_TEMPLATE_LIMIT");
     const css = Object.entries(fonts.files)
       .map(
         ([name, bytes]) =>
           `@font-face{font-family:"${name.includes("-tamil-") ? "Noto Sans Tamil" : "Noto Sans"}";font-weight:${name.includes("-600-") ? 600 : 400};src:url(data:font/woff2;base64,${bytes.toString("base64")}) format("woff2");font-display:block}`,
       )
       .join("");
-    const html = `<!doctype html><html lang="${d.language}"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src 'none'; script-src 'none'; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'"><style>${css}@page{size:${d.paper};margin:15mm}*{box-sizing:border-box}body{margin:0;font:12pt/1.7 "Noto Sans Tamil","Noto Sans",sans-serif;color:black;background:white;overflow-wrap:anywhere}h1,h2{font-weight:600;break-after:avoid}table{border-collapse:collapse;width:100%;table-layout:fixed}thead{display:table-header-group}tr{break-inside:avoid}th,td{padding:2mm;text-align:left;vertical-align:top;border:0.2mm solid black}p{orphans:3;widows:3}a{color:inherit;text-decoration:none}</style></head><body>${body}</body></html>`;
+    const html = `<!doctype html><html lang="${d.language}"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src ${expected.length ? "data:" : "'none'"}; script-src 'none'; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'"><style>${css}@page{size:${d.paper};margin:15mm}*{box-sizing:border-box}body{margin:0;font:12pt/1.7 "Noto Sans Tamil","Noto Sans",sans-serif;color:black;background:white;overflow-wrap:anywhere}h1,h2{font-weight:600;break-after:avoid}table{border-collapse:collapse;width:100%;table-layout:fixed}thead{display:table-header-group}tr{break-inside:avoid}th,td{padding:2mm;text-align:left;vertical-align:top;border:0.2mm solid black}p{orphans:3;widows:3}a{color:inherit;text-decoration:none}</style></head><body>${body}</body></html>`;
     const b = await ensureBrowser();
     const context = await b.newContext({
       javaScriptEnabled: false,
@@ -195,6 +241,14 @@ export function createDocumentRenderer(
           throw Error("DOCUMENT_FONTS_NOT_READY");
         return fonts.length;
       });
+      if (expected.length)
+        await page.evaluate(async () => {
+          for (const img of Array.from(document.images)) {
+            await img.decode();
+            if (!img.complete || !img.naturalWidth || !img.naturalHeight)
+              throw Error("DOCUMENT_IMAGE_NOT_READY");
+          }
+        });
       const pdf = new Uint8Array(
         await page.pdf({
           preferCSSPageSize: true,
@@ -223,9 +277,11 @@ export function createDocumentRenderer(
     }
   }
   return {
-    render: (d: Revision) => serial(async () => (await perform(d, false)).pdf),
+    render: (d: Revision, assets?: Parameters<typeof perform>[2]) =>
+      serial(async () => (await perform(d, false, assets)).pdf),
     // Private verification seam; never exposed through an API or browser client.
-    proof: (d: Revision) => serial(() => perform(d, true)),
+    proof: (d: Revision, assets?: Parameters<typeof perform>[2]) =>
+      serial(() => perform(d, true, assets)),
     observation: () => ({
       launches,
       connected: browser?.isConnected() ?? false,

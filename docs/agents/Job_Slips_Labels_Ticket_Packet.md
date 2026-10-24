@@ -6,8 +6,7 @@ Issue publication is recorded in the implementation evidence once complete.
 [Design and field/audience matrix](Job_Slips_Labels_Design.md),
 [REA evidence](Job_Slips_Labels_REA_Evidence.md),
 [readiness/verification](Job_Slips_Labels_Implementation_Evidence.md).
-No GitHub issue is created by this packet. Reuse existing approvals only when
-they actually cover this breakdown and selection.
+Published after owner approval as [A #169](https://github.com/nishanthturnstile/aarili/issues/169) and [B #170](https://github.com/nishanthturnstile/aarili/issues/170), with native blockers. A is selected; B remains separately selectable after A merges. [A implementation/evidence](Job_Slips_Implementation_169.md).
 
 ## Sequence and common contract
 

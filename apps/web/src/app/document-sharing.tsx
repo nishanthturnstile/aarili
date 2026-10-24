@@ -25,6 +25,8 @@ type Props = {
   selection: Selection | null;
   locale: "en" | "ta";
   recipient: { phone: string };
+  requirePreview?: boolean;
+  allowExternalShare?: boolean;
 };
 export function PrivateDocumentSharing(props: Props) {
   const s = props.selection;
@@ -40,6 +42,8 @@ function SelectedDocument({
   selection: s,
   locale,
   recipient,
+  requirePreview = false,
+  allowExternalShare = true,
 }: Props & { selection: Selection }) {
   const t = sharingMessages[locale],
     heading = useId();
@@ -51,7 +55,9 @@ function SelectedDocument({
     [history, setHistory] = useState<DocumentShareEvent[] | null>(null),
     [pending, setPending] = useState(false),
     [canShare, setCanShare] = useState(false),
-    [inlinePreview, setInlinePreview] = useState(false);
+    [inlinePreview, setInlinePreview] = useState(false),
+    [reviewed, setReviewed] = useState(false);
+  const canPublish = allowExternalShare && (!requirePreview || reviewed);
   const resource = useRef<{ file: File; url: string; expires: number } | null>(
       null,
     ),
@@ -63,6 +69,7 @@ function SelectedDocument({
     retry = useRef<{ key: string; version: number } | null>(null),
     working = useRef(false);
   const release = useCallback(() => {
+    setReviewed(false);
     request.current?.abort();
     request.current = null;
     if (timer.current) clearTimeout(timer.current);
@@ -217,7 +224,7 @@ function SelectedDocument({
   }
   function share() {
     const r = live();
-    if (!r || !prepared || pending || working.current) return;
+    if (!r || !prepared || pending || working.current || !canPublish) return;
     // No awaited work precedes this native call: the tap retains activation.
     working.current = true;
     setBusy(true);
@@ -262,7 +269,7 @@ function SelectedDocument({
     setNotice("manual");
   }
   function openText() {
-    if (!live() || !prepared) return;
+    if (!live() || !prepared || !canPublish) return;
     if (!/^\+?[1-9][0-9]{7,14}$/.test(recipient.phone)) {
       setNotice("error");
       return;
@@ -329,9 +336,11 @@ function SelectedDocument({
       />
       <section className="owner-content" aria-labelledby={heading}>
         <h2 id={heading}>{t.title}</h2>
-        <p>
-          {t.recipient}: {recipient.phone}
-        </p>
+        {recipient.phone ? (
+          <p>
+            {t.recipient}: {recipient.phone}
+          </p>
+        ) : null}
         <p role="status" aria-live="polite">
           {notice ? t[notice] : t.honest}
         </p>
@@ -354,7 +363,7 @@ function SelectedDocument({
           ) : null}
           {prepared && url ? (
             <>
-              {canShare ? (
+              {canShare && canPublish ? (
                 <Button disabled={busy || pending} onClick={share}>
                   {t.share}
                 </Button>
@@ -362,22 +371,26 @@ function SelectedDocument({
               <Button disabled={busy || pending} onClick={download}>
                 {t.download}
               </Button>
-              <Button disabled={busy || pending} onClick={openText}>
-                {t.text}
-              </Button>
-              <Button
-                disabled={busy || pending}
-                onClick={() => {
-                  if (working.current || action.current || !live()) return;
-                  action.current = {
-                    key: crypto.randomUUID(),
-                    input: { kind: "marked-sent", preparedId: prepared },
-                  };
-                  void run(confirm);
-                }}
-              >
-                {t.mark}
-              </Button>
+              {canPublish && recipient.phone ? (
+                <Button disabled={busy || pending} onClick={openText}>
+                  {t.text}
+                </Button>
+              ) : null}
+              {canPublish ? (
+                <Button
+                  disabled={busy || pending}
+                  onClick={() => {
+                    if (working.current || action.current || !live()) return;
+                    action.current = {
+                      key: crypto.randomUUID(),
+                      input: { kind: "marked-sent", preparedId: prepared },
+                    };
+                    void run(confirm);
+                  }}
+                >
+                  {t.mark}
+                </Button>
+              ) : null}
             </>
           ) : null}
           <Button
@@ -401,6 +414,16 @@ function SelectedDocument({
         {url && prepared ? (
           <div className="document-preview" data-testid="pdf-preview">
             <p>{t.previewHelp}</p>
+            {requirePreview && allowExternalShare ? (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={reviewed}
+                  onChange={(e) => setReviewed(e.target.checked)}
+                />{" "}
+                {t.reviewPrivate}
+              </label>
+            ) : null}
             {inlinePreview ? (
               <iframe
                 title={t.preview}

@@ -123,6 +123,10 @@
     "./manual-patterns": {
       "types": "./dist/manual-patterns.d.ts",
       "import": "./dist/manual-patterns.js"
+    },
+    "./job-slips": {
+      "types": "./dist/job-slips.d.ts",
+      "import": "./dist/job-slips.js"
     }
   },
   "scripts": {

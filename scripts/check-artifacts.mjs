@@ -9,6 +9,18 @@ function inspect(directory) {
     if (entry.isDirectory()) inspect(path);
     else {
       const output = readFileSync(path, "utf8");
+      for (const privateSymbol of [
+        "issueJobSlip",
+        "jobSlipSources",
+        "jobSlipsRepository",
+        "jobSlipPurgeRepository",
+        "redact_job_slip",
+        "PRIVATE-FITTING-SENTINEL-169",
+      ])
+        assert(
+          !output.includes(privateSymbol),
+          "Private job-slip runtime entered browser output",
+        );
       assert(
         !output.includes("aarili-private-probe-issue-2"),
         "Server canary entered browser output",

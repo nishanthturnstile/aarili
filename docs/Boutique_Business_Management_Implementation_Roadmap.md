@@ -861,7 +861,7 @@ for the design packet. No scope, dependency or approval gate changes.
 [fresh preparation evidence](agents/Job_Slips_Labels_Implementation_Evidence.md)
 record the preparation. The owner approved JS-D01–09 and the A → B packet on
 24 October, authorised publication/merge and selected A to proceed after the
-preparation merge. Business implementation and human/pilot acceptance remain pending.
+preparation merge. Preparation PR #168 is merged. Approved A is issue [#169](https://github.com/nishanthturnstile/aarili/issues/169), implemented in [draft PR #171](https://github.com/nishanthturnstile/aarili/pull/171), awaiting owner review and hosted checks; [A evidence/manual review](agents/Job_Slips_Implementation_169.md). B is [#170](https://github.com/nishanthturnstile/aarili/issues/170), blocked by A's merge and separate selection. Overall 1.3.4 and human/pilot acceptance remain open.
 The packet follows product §29.1: QR lookup remains outside this slice, despite
 the retained QR-Should wording in the architecture and roadmap register.
 

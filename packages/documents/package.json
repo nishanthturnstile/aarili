@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./job-slip": {
+      "types": "./dist/job-slip.d.ts",
+      "import": "./dist/job-slip.js"
     }
   },
   "scripts": {

@@ -35,6 +35,10 @@
     "./documents": {
       "types": "./dist/documents.d.ts",
       "import": "./dist/documents.js"
+    },
+    "./job-slips": {
+      "types": "./dist/job-slips.d.ts",
+      "import": "./dist/job-slips.js"
     }
   },
   "scripts": {

@@ -175,6 +175,14 @@
     "./manual-patterns-client": {
       "types": "./dist/manual-patterns-client.d.ts",
       "import": "./dist/manual-patterns-client.js"
+    },
+    "./job-slips": {
+      "types": "./dist/job-slips.d.ts",
+      "import": "./dist/job-slips.js"
+    },
+    "./job-slips-client": {
+      "types": "./dist/job-slips-client.d.ts",
+      "import": "./dist/job-slips-client.js"
     }
   },
   "scripts": {

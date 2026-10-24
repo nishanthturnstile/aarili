@@ -3,6 +3,8 @@ export const sharingMessages = {
     previewHelp:
       "If your browser cannot show the preview, download the PDF and review it in a PDF reader.",
     recipient: "WhatsApp recipient",
+    reviewPrivate:
+      "I reviewed this exact PDF and chose an appropriate production recipient. It may contain private measurements; downloaded copies cannot be recalled.",
     message: "Please check the attached document.",
     title: "Preview and share PDF",
     prepare: "Prepare PDF",
@@ -39,6 +41,8 @@ export const sharingMessages = {
     previewHelp:
       "உலாவியில் முன்னோட்டம் தெரியாவிட்டால், PDF பதிவிறக்கி PDF வாசிப்பானில் சரிபார்க்கவும்.",
     recipient: "WhatsApp பெறுநர்",
+    reviewPrivate:
+      "இந்தச் சரியான PDF ஐப் பார்த்து உரிய தயாரிப்பு பெறுநரைத் தேர்ந்தெடுத்தேன். தனிப்பட்ட அளவுகள் இருக்கலாம்; பதிவிறக்கிய நகல்களைத் திரும்பப் பெற முடியாது.",
     message: "இணைக்கப்பட்ட ஆவணத்தைச் சரிபார்க்கவும்.",
     title: "PDF முன்னோட்டமும் பகிர்வும்",
     prepare: "PDF தயார் செய்",

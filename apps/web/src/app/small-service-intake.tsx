@@ -44,6 +44,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { v7 } from "uuid";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
+import { JobSlips } from "./job-slips";
 import type { OwnerGuard } from "./owner-feedback";
 import { ServiceRepeatContext } from "./repeat-services";
 import { ServiceLineCompletion } from "./service-line-completion";
@@ -1249,6 +1250,7 @@ export function ServiceIntakeEditor({
 }
 
 export function ServiceOrderDetail({
+  guard,
   shopId,
   order,
   locale,
@@ -1257,6 +1259,7 @@ export function ServiceOrderDetail({
 }: {
   shopId: string;
   order: AcceptedServiceOrder;
+  guard?: OwnerGuard;
   locale: Locale;
   back: () => void;
   reload: () => void;
@@ -1356,6 +1359,14 @@ export function ServiceOrderDetail({
         </dl>
       </details>
       <p>{serviceLineMessages[locale].boundary}</p>
+      <JobSlips
+        key={`slip:${shopId}:${order.id}`}
+        {...(guard ? { guard } : {})}
+        shopId={shopId}
+        orderId={order.id}
+        locale={locale}
+        service
+      />
       <ServiceLineCompletion
         key={`${shopId}:${order.id}:${order.version}`}
         shopId={shopId}

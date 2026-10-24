@@ -1,9 +1,11 @@
 import type { CustomerPolicy } from "@aarili/contracts/customers";
 import { documentLocatorSchema } from "@aarili/contracts/documents";
+import { jobSlipPurgeLocatorSchema } from "@aarili/contracts/job-slips";
 import { patternPurgeLocatorSchema } from "@aarili/contracts/manual-patterns";
 import { measurementFitPurgeLocatorSchema } from "@aarili/contracts/measurement-fit";
 import { mediaJobLocatorSchema } from "@aarili/contracts/media";
 import { type DocumentRenderer, processDocument } from "@aarili/core/documents";
+import { purgeJobSlips } from "@aarili/core/job-slip-purge";
 import { purgePatternOutputs } from "@aarili/core/manual-patterns";
 import {
   type MeasurementFitErasureStorage,
@@ -21,6 +23,7 @@ import {
   validatePrivateMedia,
 } from "@aarili/platform/media-validation";
 import { type DocumentAdapters, documentProcessingHost } from "./documents.js";
+import { jobSlipPurgeHost } from "./job-slips.js";
 import { measurementFitPurgeHost, mediaProcessingHost } from "./media.js";
 import type { RuntimeComposition } from "./runtime.js";
 
@@ -42,6 +45,7 @@ export function productionJobComposition(
     adapters: DocumentAdapters;
     renderer: DocumentRenderer;
     close?: () => Promise<void>;
+    erasureStorage?: { remove(key: string): Promise<void> };
   },
 ): RuntimeComposition {
   return {
@@ -83,6 +87,27 @@ export function productionJobComposition(
           input: unknown,
           beforeCommit: () => Promise<void>,
         ) => {
+          const documentPurge = jobSlipPurgeLocatorSchema.safeParse(input);
+          if (documentPurge.success) {
+            if (!documents?.erasureStorage)
+              throw Error("Private document erasure adapter unavailable");
+            const p = documentPurge.data;
+            try {
+              return await purgeJobSlips(
+                jobSlipPurgeHost(
+                  db,
+                  p.shopId,
+                  p.initiatorId,
+                  documents.erasureStorage,
+                ),
+                p,
+                beforeCommit,
+              );
+            } catch (error) {
+              if (error instanceof ShopAccessError) return "ignored";
+              throw error;
+            }
+          }
           const patternPurge = patternPurgeLocatorSchema.safeParse(input);
           if (patternPurge.success) {
             if (!adapters) throw Error("Pattern erasure adapter unavailable");
