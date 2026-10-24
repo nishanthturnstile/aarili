@@ -69,3 +69,8 @@ Ready URL: **http://127.0.0.1:51976/sign-in**. Started from this checkout using 
 4. Review automated overflow, retry, permission/restore and erasure evidence above. Report human findings as `JS-Bxx ? pass/fail ? observation`. Fluent Tamil, physical Android file sharing and low-memory phone judgments remain pending (JS-B05/06, JS-D09).
 
 Teardown in another terminal: `node scripts/review-job-slips.mjs stop`. The launcher removes its private access/lock files and stops its disposable services. The review host is synthetic-only and loopback-only; no tunnel or deployment was created.
+
+
+### Publication checkpoint
+
+Runtime implementation committed as `628edd388ad413129e75767e8eadcf72dbea8624` and published in [draft PR #172](https://github.com/nishanthturnstile/aarili/pull/172), targeting `development`, at approximately **05:51:37 UTC**. [Hosted verification run](https://github.com/nishanthturnstile/aarili/actions/runs/40067903031) started Fast verification and Dependency audit on that runtime revision; both were running at publication. Full Scaffold/browser jobs were skipped as expected for a feature PR. This subsequent documentation-only checkpoint changes no verified runtime input. Hosted completion, owner acceptance and merge remain pending; no merge was performed.
