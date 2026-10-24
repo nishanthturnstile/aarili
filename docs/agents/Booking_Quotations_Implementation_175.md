@@ -133,3 +133,14 @@ included references, accepted package 1800.00, proposed total 1799.99 and the
 enabled “Save reviewed proposal” control. Snapshot retained outside Git as
 `manual-final-snapshot.txt`; the inspection browser was closed, host retained.
 Review-ready checkpoint: **13:50:12 UTC**. Active coding time is unknown.
+
+## Publication checkpoint
+
+[Draft PR #179](https://github.com/nishanthturnstile/aarili/pull/179) targets
+`development`, created **13:50:58 UTC** and registered with the T3 thread.
+Verified runtime commit: `96c3259a630abdfdfd6b48ac4a8895432e61819c`.
+At **13:51:08 UTC**, [run 40099912369](https://github.com/nishanthturnstile/aarili/actions/runs/40099912369)
+had Fast verification in progress and Dependency audit queued; full promotion
+jobs were skipped for this feature PR. This is an observation, not CI success.
+This publication addition is documentation-only. Owner review, CI completion,
+merge and subsequent #176 admission remain pending.
