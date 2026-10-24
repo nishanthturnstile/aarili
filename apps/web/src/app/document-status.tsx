@@ -40,6 +40,11 @@ export function PrivateDocumentStatus({
               : t.unavailable}
         </p>
         {detail ? <p>{detail}</p> : null}
+        {status?.layoutFailure ? (
+          <p>
+            {t.layoutFailure} {status.layoutFailure}
+          </p>
+        ) : null}
         <div className="owner-actions">
           <Button type="button" disabled={busy} onClick={onCheck}>
             {t.check}

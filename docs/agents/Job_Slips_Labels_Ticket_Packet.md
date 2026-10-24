@@ -6,7 +6,7 @@ Issue publication is recorded in the implementation evidence once complete.
 [Design and field/audience matrix](Job_Slips_Labels_Design.md),
 [REA evidence](Job_Slips_Labels_REA_Evidence.md),
 [readiness/verification](Job_Slips_Labels_Implementation_Evidence.md).
-Published after owner approval as [A #169](https://github.com/nishanthturnstile/aarili/issues/169) and [B #170](https://github.com/nishanthturnstile/aarili/issues/170), with native blockers. A is selected; B remains separately selectable after A merges. [A implementation/evidence](Job_Slips_Implementation_169.md).
+Published after owner approval as [A #169](https://github.com/nishanthturnstile/aarili/issues/169) and [B #170](https://github.com/nishanthturnstile/aarili/issues/170), with native blockers. A merged through PR #171; the owner selected B on 24 October 2026 after all direct blockers merged. [B implementation/evidence](Material_Labels_Implementation_170.md). [A implementation/evidence](Job_Slips_Implementation_169.md).
 
 ## Sequence and common contract
 

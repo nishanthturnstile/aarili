@@ -187,6 +187,7 @@ export function checkBoundaries(sources) {
       file === "packages/api/src/measurement-forms-client.ts" ||
       file === "packages/api/src/manual-patterns-client.ts" ||
       file === "packages/api/src/job-slips-client.ts" ||
+      file === "packages/api/src/material-labels-client.ts" ||
       file === "packages/api/src/measurement-sessions-client.ts" ||
       file === "packages/api/src/service-templates-client.ts" ||
       file === "packages/api/src/design-choices-client.ts" ||
@@ -262,6 +263,7 @@ export function checkBoundaries(sources) {
             "/design-specifications-client",
             "/manual-patterns-client",
             "/job-slips-client",
+            "/material-labels-client",
             "/measurement-sessions-client",
             "/design-references-client",
             "/orders-client",

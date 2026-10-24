@@ -343,6 +343,14 @@
     "./repositories/job-slips": {
       "types": "./dist/repositories/job-slips.d.ts",
       "import": "./dist/repositories/job-slips.js"
+    },
+    "./material-labels-repository": {
+      "types": "./dist/material-labels-repository.d.ts",
+      "import": "./dist/material-labels-repository.js"
+    },
+    "./repositories/material-labels": {
+      "types": "./dist/repositories/material-labels.d.ts",
+      "import": "./dist/repositories/material-labels.js"
     }
   },
   "scripts": {

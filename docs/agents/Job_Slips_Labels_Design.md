@@ -232,3 +232,7 @@ production threshold, garment rule or cutting tolerance is invented here.
 Select ticket A only after the concrete packet is approved/published and its
 direct blockers are rechecked. B starts after A merges and is independently
 selected. Software approval does not activate real records.
+
+## B source availability ? 24 October 2026
+
+The #170 source audit found no reviewed structured material type/colour value on accepted garments or services. The optional label fields remain omitted; no free-text or template material requirement is repurposed as received material. Existing native piece identities and controlled accepted garment/service names are used. See [B implementation/evidence](Material_Labels_Implementation_170.md).

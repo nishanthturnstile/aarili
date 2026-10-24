@@ -48,11 +48,12 @@ export async function withJobSlipBrowserHost(run) {
     });
   }
   try {
-    const { origin, cookie, pieceId } = await ready;
+    const { origin, cookie, pieceId, orderId } = await ready;
     await run({
       origin,
       cookie,
       pieceId,
+      orderId,
       sourceChange: () => control("sourceChange"),
       renderFailure: (value) => control("renderFailure", value),
     });

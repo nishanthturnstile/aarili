@@ -1,5 +1,15 @@
 # Delivery measurements
 
+## #170 / 1.3.4b ? minimal bag/material labels
+
+- Owner selected B after all six native blockers merged. Existing development and `codex/170-material-labels` aligned to **dacf56e**; implementation checkpoint **24 October 2026, 05:14:56 UTC**. No worktree, dependency upgrade or live activation. Active coding time was not separately instrumented.
+- First stored label-PDF/identity/history run started **05:22:50 UTC**, **1 passed / 26.25s** (first runnable result approximately **05:23:16 UTC**). Reviewed REA/design evidence was reused; no new competitor probing was necessary for B.
+- Final fast verification **05:40:01?05:43:12 UTC**, **exit 0**, **321 unit passes**, strict types, lint/Knip/boundaries, negative fixtures, 122 OpenAPI paths and production build. Initial compile-helper/directive and typed-client boundary issues were corrected without baseline changes.
+- A+B first combined PostgreSQL run: **14 passed / 311.54s**. Later diagnostic/erasure expansion: **13 passed / 1 failed / 438.82s**, caused by a new candidate-route test loaded after an older package build. Fresh targeted candidate check **1 passed / 40.20s**; final B file **5 passed / 130.78s**, started **05:46:21 UTC**. The nine A cases passed in the expanded combined run; no stale mixed run is claimed green.
+- Three-size English/Tamil browser/axe A+B: **6 passed / 6.6m**. Final picker/fallback/late-response B workflow **3 passed / 3.6m**, log interval **05:43:06?05:46:48 UTC**. Linux PDF **21 goldens passed**, eight new label pages visually inspected; 13 older images unchanged. Production smoke and 29-artifact scan passed.
+- Review host first available approximately **05:45 UTC**, **http://127.0.0.1:51976/sign-in**. HTTP and fallback sign-in snapshot confirmed; two embedded snapshot timeouts retained. Review-ready checkpoint **05:49 UTC**; [full evidence and cleanup](Material_Labels_Implementation_170.md). Fluent Tamil/physical Android/low-memory and owner acceptance remain pending. Publication/hosted CI/merge times will be recorded after publication; those are elapsed integration time, not coding time.
+
+
 ## #169 / 1.3.4a - private garment/native-piece job slips
 
 - Approved preparation PR #168 merged as `aea6e31`; development pulled in the

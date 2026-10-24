@@ -127,6 +127,10 @@
     "./job-slips": {
       "types": "./dist/job-slips.d.ts",
       "import": "./dist/job-slips.js"
+    },
+    "./material-labels": {
+      "types": "./dist/material-labels.d.ts",
+      "import": "./dist/material-labels.js"
     }
   },
   "scripts": {

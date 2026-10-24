@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { createApi } from "@aarili/api";
 import { createDocumentRenderer } from "@aarili/documents";
 import { jobSlipTemplates } from "@aarili/documents/job-slip";
+import { materialLabelTemplates } from "@aarili/documents/material-labels";
 import { startSyntheticQueue } from "@aarili/jobs";
 import { documentJobWriter } from "@aarili/jobs/documents";
 import { productionJobComposition } from "@aarili/jobs/production";
@@ -29,7 +30,12 @@ import {
 import { withPatternOutputs } from "./pattern-output-fixtures.mjs";
 
 export async function withJobSlips(run) {
-  const templates = await jobSlipTemplates(),
+  const slips = await jobSlipTemplates(),
+    labels = await materialLabelTemplates(),
+    templates = {
+      resolve: async (id, revision) =>
+        (await labels.resolve(id, revision)) ?? slips.resolve(id, revision),
+    },
     native = createDocumentRenderer(templates);
   let storage, maintenance, boss;
   let failRender = false,
@@ -62,7 +68,12 @@ export async function withJobSlips(run) {
         });
         const renderer = {
           render: (d, assets) => {
-            if (failRender) throw Error("Synthetic document render failure");
+            if (failRender)
+              throw Error(
+                typeof failRender === "string"
+                  ? failRender
+                  : "Synthetic document render failure",
+              );
             return native.render(d, assets);
           },
         };
