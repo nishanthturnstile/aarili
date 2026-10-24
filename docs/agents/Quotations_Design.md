@@ -1,7 +1,7 @@
 # Itemised estimates and quotations: independent design
 
 24 October 2026. Roadmap **1.4.1**, **FIN-01–04**. **Owner-approved design and
-four-ticket packet; A1 (#173) merged, A2 (#174) selected for implementation.** [Research](Quotations_REA_Evidence.md),
+four-ticket packet; A1 (#173) merged, A2 (#174) implemented in [draft PR #178](https://github.com/nishanthturnstile/aarili/pull/178), pending CI/owner review.** [Research](Quotations_REA_Evidence.md),
 [concrete tickets](Quotations_Ticket_Packet.md),
 [fresh preparation evidence](Quotations_Implementation_Evidence.md).
 

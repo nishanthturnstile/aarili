@@ -262,3 +262,13 @@ fluent Tamil, assistive-technology and owner acceptance remain pending.
 Review-ready checkpoint: **12:07:50 UTC**. Runtime commit and draft PR/hosted CI
 checkpoint are recorded after publication. No owner acceptance, merge or live
 activation is inferred from the automated evidence.
+
+Publication: runtime commit **b20b52f27065307cdfdb3476816ef7e1dbdfe740**,
+[draft PR #178](https://github.com/nishanthturnstile/aarili/pull/178) to
+`development`, created **12:08:21 UTC**. At **12:08:33 UTC**, Fast verification
+and Dependency audit were **in progress**, started **12:08:26 UTC**, in
+[run 40092699288](https://github.com/nishanthturnstile/aarili/actions/runs/40092699288).
+Browser jobs were skipped under the development-PR workflow. This is a timed
+publication observation, not a CI pass. This documentation-only follow-up leaves
+the verified runtime unchanged; its subsequent CI, owner review and merge remain
+pending. The PR is registered with the T3 thread.
