@@ -20,3 +20,16 @@ this is not the later true-scale pattern-printing calibration requirement.
 Regeneration is explicit: `pnpm test:pdf -- --update` (or invoke the script with
 `--update`). Review every changed PDF page before committing. A missing reference
 fails the ordinary check; CI never creates or approves new references silently.
+
+## Quotation references (#176)
+
+24 October 2026: `QT-en/ta-single`, `QT-en/ta-package` and `QT-en/ta-long`
+add 38 pages (English 2/3/15, Tamil 2/3/13). Every page was rasterized and
+inspected, then a whitespace/scope-header/material-label fix batch was confirmed
+across every page before adding these references. Native A2 quantity/rate basis,
+customer materials, package references, outside services, zero selling price,
+paise discounts, long descriptions/terms and large amounts are synthetic.
+The existing references were not overwritten. The normal `pnpm test:pdf` check
+now compares all 59 pages; owner template approval, fluent Tamil and real-device
+acceptance remain separate live-use gates. See the
+[delivery evidence](../../../docs/agents/Quotation_Issuance_Implementation_176.md).

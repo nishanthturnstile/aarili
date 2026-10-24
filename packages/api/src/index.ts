@@ -22,6 +22,7 @@ import { createMeasurementSessionsRoutes } from "./measurement-sessions.js";
 import { createMediaRoutes } from "./media.js";
 import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
+import { createQuotationIssueRoutes } from "./quotation-issues.js";
 import { createQuotationRatesRoutes } from "./quotation-rates.js";
 import { createRepeatOrderRoutes } from "./repeat-orders.js";
 import { createServiceRepeatRoutes } from "./repeat-services.js";
@@ -97,7 +98,9 @@ export function createApi(
     );
   });
   if (owner) {
-    app.route("/", createJobSlipRoutes(owner));
+    app
+      .route("/", createJobSlipRoutes(owner))
+      .route("/", createQuotationIssueRoutes(owner));
     app.route("/", createMaterialLabelRoutes(owner));
     app.route("/", createOwnerRoutes(owner));
     app.route("/", createCustomerRoutes(owner));

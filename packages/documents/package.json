@@ -15,6 +15,10 @@
     "./material-labels": {
       "types": "./dist/material-labels.d.ts",
       "import": "./dist/material-labels.js"
+    },
+    "./quotation": {
+      "types": "./dist/quotation.d.ts",
+      "import": "./dist/quotation.js"
     }
   },
   "scripts": {

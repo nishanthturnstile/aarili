@@ -1,7 +1,7 @@
 # Itemised estimates and quotations: independent design
 
 24 October 2026. Roadmap **1.4.1**, **FIN-01–04**. **Owner-approved design and
-four-ticket packet; A1 (#173) and A2 (#174, [PR #178](https://github.com/nishanthturnstile/aarili/pull/178)) merged. Owner-selected B (#175) is implemented with [fresh evidence](Booking_Quotations_Implementation_175.md); C (#176) remains gated on B merging.** [Research](Quotations_REA_Evidence.md),
+four-ticket packet; A1 (#173) and A2 (#174, [PR #178](https://github.com/nishanthturnstile/aarili/pull/178)) merged. B (#175) merged as PR #179. Owner-selected C (#176) is implemented with [fresh evidence and manual review](Quotation_Issuance_Implementation_176.md); owner/CI/activation gates remain pending.** [Research](Quotations_REA_Evidence.md),
 [concrete tickets](Quotations_Ticket_Packet.md),
 [fresh preparation evidence](Quotations_Implementation_Evidence.md).
 

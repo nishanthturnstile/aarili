@@ -1,5 +1,59 @@
 # Delivery measurements
 
+## #176 / 1.4.1d — issued quotation documents and manual responses
+
+- Owner selected C after B merged. Existing checkout pulled development to
+  **f062de2**; branch `codex/quotation-issuance-c`, no worktree. Admission
+  **24 October 2026, 14:25:12 UTC**. All six native blockers closed, merged and
+  verified in ancestry; PR #179 required checks passed before its 14:22:51 merge.
+- First builds failed because new imports displaced the leading Bun declaration
+  reference; correcting placement restored the existing baseline. Frozen install
+  passed; no dependency/lockfile change. First successful package build **16.611s**.
+- Real PG development run: three initial failures **177.04s**; corrected source
+  case reached its final isolation assertion but used a pool instead of Drizzle
+  (**79.55s**). Later run exposed the missing narrow privacy audit allowance and
+  an expected-table ordering issue. After correction, three C cases passed
+  **208.48s**, three incumbent job-slip cases **103.43s**. Private-cost and expired
+  key confirmation **83.96s**, populated 0055 upgrade **40.58s**, current-rights
+  negatives **51.19s**, passed. Final consolidated race check follows in evidence.
+- Fast check development checkpoint: **339 tests / 25.22s**, build **42.194s**,
+  passed. Final fast check follows after the reference/fixture corrections.
+  Frozen clean install/export builds **1m2.275s**, passed, unchanged lockfile.
+- PDF: first assertion expected an overly narrow A4 regex; changed to the
+  incumbent one-point numeric tolerance. Every page of six variants was reviewed;
+  one template fix batch and full-page confirmation preceded 38 new references.
+  `pnpm test:pdf` passed **59** existing/new page goldens and Linux sandbox/font checks.
+- Browser: first phone failed a cold-read five-second assertion. A test then
+  waited for a Preview button although the incumbent automatically embeds the PDF;
+  two known-stale attempts were cancelled and only their exact owned containers
+  cleaned. Corrected phone passed **1.3m**. Combined run: tablet/desktop passed,
+  phone response-history assertion failed after its committed retry (**4.2m**).
+  A 30-second receipt assertion confirmed phone **1.4m**, retaining exact key/body
+  and one-event assertions. No quotas or integrity guards were relaxed.
+- Active coding time was not instrumented. Review-ready/first usable host/PR/CI
+  times are recorded as observed below, not inferred from elapsed test duration.
+  Physical-device, Tamil, owner review, merge and live activation remain pending.
+- Final consolidated four-case PG run **249.31s**, passed, including different-key
+  issuance and concurrent renderer retries. Recovery review found unresolved
+  issue/response/sharing state could be discarded by proposal navigation; guards
+  and exact history reopening were added. Final browser run **3 passed / 4.2m**
+  includes dirty/unresolved leave attempts, aborted prepared-history response,
+  exact retry and reload/history. No product visual restyling followed the one
+  batched six-capture review/detector pass.
+- Final fast run passed lint/Knip/types, then **337 passes / 2 unchanged 5s
+  timeouts / 19.31s** (canonical JSON property/runtime cleanup) under 73 workers.
+  Diagnosed resource contention: same suite with **maxWorkers=4**, unchanged
+  timeouts/configuration, passed **339 / 26.92s**. Negative-type and OpenAPI checks
+  passed; final build/artifact result follows in publication checkpoint.
+- First synthetic C host ready **15:17:32 UTC**, 24 October 2026. Authenticated
+  fallback inspection confirmed reviewed dates/terms without issuing a quote.
+  Review host, private access, cleanup and acceptance mapping are in
+  [C evidence](Quotation_Issuance_Implementation_176.md).
+- Review-ready observed **15:40:31 UTC**. Final production build **25.831s**, 12
+  tasks passed; artifact scan **29 browser artifacts**, passed. Working/staged
+  diff whitespace check passed. Hosted checks/publication checkpoint follows;
+  active coding and human review waiting remain unmeasured.
+
 ## #175 / 1.4.1c — consolidated quotation proposals
 
 - Owner selected B after merges. Clean existing checkout, pulled development

@@ -39,6 +39,7 @@ import { v7 } from "uuid";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
 import type { OwnerGuard } from "./owner-feedback";
+import { QuotationIssues } from "./quotation-issues";
 
 type T = (typeof quotationMessages)[Locale];
 function address(id?: string) {
@@ -839,7 +840,8 @@ export function BookingQuotations({
     t = quotationMessages[locale],
     e = estimateMessages[locale],
     alive = useRef(true),
-    request = useRef(0);
+    request = useRef(0),
+    quotationNavigation = useRef(() => true);
   const [scope] = useState(() => createDraftScope(shopId, guard)),
     [controller, setController] = useState<DraftRecovery>(),
     [drafts, setDrafts] = useState<DraftRecord[]>([]),
@@ -885,6 +887,7 @@ export function BookingQuotations({
   function open(v: QuotationDraft, record?: DraftRecord) {
     if (
       !alive.current ||
+      !quotationNavigation.current() ||
       (controller && !controller.confirmLeave(() => window.confirm(e.discard)))
     )
       return;
@@ -994,6 +997,7 @@ export function BookingQuotations({
       <Button
         variant="outline"
         onClick={() => {
+          if (!quotationNavigation.current()) return;
           if (
             controller &&
             !controller.confirmLeave(() => window.confirm(e.discard))
@@ -1193,6 +1197,16 @@ export function BookingQuotations({
             </Button>
           </div>
           <PublicView value={version.customer} t={t} locale={locale} />
+          {(!controller || controller.snapshot().status === "promoted") && (
+            <QuotationIssues
+              key={version.id}
+              shopId={shopId}
+              proposalId={version.id}
+              locale={locale}
+              guard={guard}
+              navigation={quotationNavigation}
+            />
+          )}
           <details>
             <summary>{t.private}</summary>
             <p>
@@ -1224,6 +1238,7 @@ export function BookingQuotations({
               variant="outline"
               onClick={() =>
                 void attempt(async () => {
+                  if (!quotationNavigation.current()) return;
                   const read = await readBookingQuotation(shopId, r.id);
                   if (alive.current) {
                     setVersion(read.version);
@@ -1263,6 +1278,7 @@ export function BookingQuotations({
           variant="outline"
           onClick={() =>
             void attempt(async () => {
+              if (!quotationNavigation.current()) return;
               const read = await readBookingQuotation(shopId, r.id);
               if (alive.current) {
                 setVersion(read.version);

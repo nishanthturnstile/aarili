@@ -41,7 +41,9 @@ const golden = resolve("tests/goldens/documents"),
   update = process.argv.includes("--update");
 const files = (await readdir(output))
   .filter((x) =>
-    /^(A3|A4|JS-en|JS-ta|LBL-en-[189]|LBL-ta-[189])-\d+\.png$/.test(x),
+    /^(A3|A4|JS-en|JS-ta|LBL-en-[189]|LBL-ta-[189]|QT-(?:en|ta)-(?:single|package|long))-\d+\.png$/.test(
+      x,
+    ),
   )
   .sort();
 assert(files.length >= 4);

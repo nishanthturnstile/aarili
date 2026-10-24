@@ -12,6 +12,7 @@ import { withPostgres } from "./postgres.mjs";
 // exposing another repository/indirect path; future search/export/media/jobs/AI
 // deliberately have no entries until their implementations exist.
 export const tenantPaths = [
+  "quotationIssuesRepository binding/number/history/response; quotation issue/read/response, canonical document web/worker sharing and audited quotation purge",
   "bookingQuotationsRepository/read/history/selection and pricing.quotation commands",
   "garmentEstimatesRepository revision/lines/privateCosts/history/origin; pricing.estimate guarded recovery; estimate read/review/customer routes with current subject authority",
   "quotationRatesRepository current/read/list/history/sourceDraft/policyCurrent/policyHistory; pricing.rate/pricing.policy-review durable drafts; private rate source/resolve/history routes",
@@ -275,6 +276,7 @@ export async function withTenantFixture(
           childA,
           childB,
           migrationConnectionString,
+          privateOwnerAccess: { email: "a@example.test", password },
         });
       } finally {
         await owner.close();

@@ -191,6 +191,14 @@
     "./booking-quotations": {
       "types": "./dist/booking-quotations.d.ts",
       "import": "./dist/booking-quotations.js"
+    },
+    "./quotation-issues": {
+      "types": "./dist/quotation-issues.d.ts",
+      "import": "./dist/quotation-issues.js"
+    },
+    "./quotation-purge": {
+      "types": "./dist/quotation-purge.d.ts",
+      "import": "./dist/quotation-purge.js"
     }
   },
   "scripts": {

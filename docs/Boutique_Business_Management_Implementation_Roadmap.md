@@ -923,8 +923,9 @@ A1 merged as PR #177. The owner selected A2 #174 from updated development:
 recoverable garment estimates, private costs and exact source comparison. A2
 merged as PR #178. Owner-selected B #175 implements consolidated unissued
 proposals and exact discounts; [B evidence and review](agents/Booking_Quotations_Implementation_175.md)
-records verification and remaining human gates. C #176 remains unimplemented
-and blocked on B merging. Whole 1.4.1 acceptance,
+records verification and remaining human gates. B merged as PR #179. Owner-selected
+C #176 implements immutable issued non-tax quotations, stored Tamil/English PDFs,
+manual sharing and exact-revision owner attestations; [C evidence and review](agents/Quotation_Issuance_Implementation_176.md) records fresh checks and pending acceptance. Whole 1.4.1 acceptance,
 source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments

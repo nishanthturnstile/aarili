@@ -14,6 +14,7 @@ function inspect(directory) {
         "quotationRatesRepository",
         "garmentEstimatesRepository",
         "bookingQuotationsRepository",
+        "quotationIssuesRepository",
         "estimateDraftWorkflow",
         "rateDraftWorkflow",
         "quotePolicyReviewWorkflow",
