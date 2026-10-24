@@ -1,8 +1,10 @@
 # Job slips and material labels: design for owner review
 
 24 October 2026. Roadmap **1.3.4**, ORD-10, USE-07 and the **job-slip portion
-only** of AC-64. **Draft; no ticket publication, implementation selection or
-production policy approval is implied.** [Research](Job_Slips_Labels_REA_Evidence.md),
+only** of AC-64. **Owner approved JS-D01–09 and the A → B software packet on
+24 October 2026, authorised publication/merge and selected A to proceed.**
+Physical-device, production template and live-data acceptance remain separate.
+[Research](Job_Slips_Labels_REA_Evidence.md),
 [ticket packet](Job_Slips_Labels_Ticket_Packet.md),
 [preparation evidence](Job_Slips_Labels_Implementation_Evidence.md).
 
@@ -48,8 +50,8 @@ rooted source inspection was used without installing or indexing anything.
 
 ## Proposed field and audience policy
 
-The following **JS-D01–09** are concrete proposals for owner approval, not
-configured business policy. Approval of the packet should name any changes.
+The following **JS-D01–09** are owner-approved software decisions. They do not
+configure production rules, retention periods or activate live-data use.
 
 **JS-D01 — Two document purposes.** The private production slip is for the owner
 and a deliberately chosen authorised production recipient. The bag/material

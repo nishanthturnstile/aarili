@@ -859,7 +859,9 @@ for the design packet. No scope, dependency or approval gate changes.
 [A → B ticket packet](agents/Job_Slips_Labels_Ticket_Packet.md),
 [interactive layout proposals](agents/job-slips-labels-review.html) and
 [fresh preparation evidence](agents/Job_Slips_Labels_Implementation_Evidence.md)
-are draft review artifacts. No 1.3.4 issue is published/selected or implemented.
+record the preparation. The owner approved JS-D01–09 and the A → B packet on
+24 October, authorised publication/merge and selected A to proceed after the
+preparation merge. Business implementation and human/pilot acceptance remain pending.
 The packet follows product §29.1: QR lookup remains outside this slice, despite
 the retained QR-Should wording in the architecture and roadmap register.
 

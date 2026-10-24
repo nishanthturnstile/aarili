@@ -1,6 +1,8 @@
 # Job slips and labels: preparation and verification evidence
 
-24 October 2026. **Preparation only; 1.3.4 is not implemented.**
+24 October 2026. **Preparation only; 1.3.4 is not implemented. Owner has now
+approved JS-D01–09/the A → B packet, authorised publication and the preparation
+merge, and selected A to proceed.**
 [REA ledger](Job_Slips_Labels_REA_Evidence.md),
 [design/field matrix](Job_Slips_Labels_Design.md),
 [concrete tickets](Job_Slips_Labels_Ticket_Packet.md),
@@ -111,11 +113,11 @@ Android/WhatsApp, print hardware, production restore drill or live activation
 has occurred. No library setup/API syntax was changed, so no Context7 lookup was
 needed for source review and documentation drafting.
 
-The installed skill roots were searched for the workflow's `to-tickets` skill;
-no SKILL.md was found there. This packet follows the repository's concrete
-outcome/blocker/acceptance format. No tool or skill was installed and no issues
-published; resolve that workflow prerequisite before authorised publication if
-the owner wants the named skill used for that stage.
+The initial installed-skill search did not locate `to-tickets`. A fresh search
+after owner approval located `.agents/skills/to-tickets/SKILL.md`; it was read
+and applies to publication of this approved packet. No installation was needed.
+The owner's explicit approval supersedes the earlier unpublished/unselected
+status below; actual issue URLs will be recorded after publication.
 
 ## Requirement-by-requirement status
 

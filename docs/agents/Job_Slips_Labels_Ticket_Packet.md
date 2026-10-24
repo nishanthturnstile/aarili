@@ -1,6 +1,8 @@
 # 1.3.4 job slips and material labels: concrete ticket packet
 
-24 October 2026. **Draft for owner review; unpublished and unselected.**
+24 October 2026. **Owner approved this A → B packet and JS-D01–09, authorised
+publication and selected A to proceed after the preparation merge.**
+Issue publication is recorded in the implementation evidence once complete.
 [Design and field/audience matrix](Job_Slips_Labels_Design.md),
 [REA evidence](Job_Slips_Labels_REA_Evidence.md),
 [readiness/verification](Job_Slips_Labels_Implementation_Evidence.md).
