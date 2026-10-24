@@ -1,5 +1,27 @@
 # Delivery measurements
 
+## 1.4.2 — payment preparation checkpoint, 24 October 2026
+
+- Existing checkout preserved/pushed initial payment brief and quotation closeout,
+  pulled development to **94d6dfa**, then branched `codex/payments-preparation`.
+  No worktree, issue publication or application implementation. This preparation
+  is not counted as a completed implementation delivery in the five-delivery sample.
+- Research admission observed **16:34:42 UTC** (first passive login capture).
+  Owner private sign-in exposed the authenticated dedicated target on rediscovered
+  CDP 9227. T3 snapshot timeouts and REA scenario execution failure required a
+  bounded diagnostic and agent-browser actions with passive REA captures.
+  No payment save or external notification was tested. Active research/coding
+  time and human sign-in wait were not instrumented; no inferred total duration.
+- `pnpm verify:fast` passed **339 tests / 73 files**, unit phase **56.18s**;
+  production build **39.539s** (12 tasks, 11 cached). Real PostgreSQL foundation
+  journal/restore run passed **13 tests / 2 files, 253.60s**. No new payment
+  behaviour is certified by these existing-foundation checks.
+- Design, complete A–C packet and requirement/evidence ledger are prepared.
+  No usable Aarili payment host, first implementation PR, payment CI, merge or
+  human feature acceptance exists at this checkpoint. Local Node **24.20.0**
+  differs from the **24.22.1** pin; no toolchain correction was adopted.
+  See [payment evidence](Payments_Implementation_Evidence.md) for checks/limits.
+
 ## #176 / 1.4.1d — issued quotation documents and manual responses
 
 - Owner selected C after B merged. Existing checkout pulled development to
