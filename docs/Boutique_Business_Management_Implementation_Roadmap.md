@@ -845,6 +845,24 @@ human/pilot acceptance remain explicit gaps before full PAT-03/slice closure.
 
 ##### Vertical Slice 1.3.4 — Produce Job Slips and Material Labels
 
+**REA delivery brief (23 October 2026):** the
+[Job Slips and Material Labels prompt](agents/Job_Slips_Labels_REA_Prompt.md)
+uses Nool's documented garment job sheet and exposed TailorMan item/print context
+as research candidates. It reuses the versioned PDF/manual-sharing foundations,
+separates private production content from minimal labels, and preserves exact
+source versions and Tamil/A4 verification. QR lookup and AC-64 pattern tiling
+remain later scope; the product/architecture QR allocation discrepancy is flagged
+for the design packet. No scope, dependency or approval gate changes.
+
+**Preparation, 24 October 2026:** [REA observations/gaps](agents/Job_Slips_Labels_REA_Evidence.md),
+[independent design and field/audience matrix](agents/Job_Slips_Labels_Design.md),
+[A → B ticket packet](agents/Job_Slips_Labels_Ticket_Packet.md),
+[interactive layout proposals](agents/job-slips-labels-review.html) and
+[fresh preparation evidence](agents/Job_Slips_Labels_Implementation_Evidence.md)
+are draft review artifacts. No 1.3.4 issue is published/selected or implemented.
+The packet follows product §29.1: QR lookup remains outside this slice, despite
+the retained QR-Should wording in the architecture and roadmap register.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** ORD-10, USE-07. Scenarios: AC-64.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
