@@ -886,6 +886,15 @@ the retained QR-Should wording in the architecture and roadmap register.
 
 ##### Vertical Slice 1.4.1 — Prepare Itemised Estimates and Quotations
 
+**REA delivery brief (24 October 2026):** the
+[Estimates and Quotations prompt](agents/Quotations_REA_Prompt.md) uses Zoho
+Invoice's documented quote workflow as a focused comparison and Nool's garment
+pricing as tailoring context, distinguishing runtime evidence from documentation.
+It sequences effective-dated rates, recoverable estimates, booking consolidation
+and immutable non-tax PDFs, preserving exact arithmetic and private costs.
+Payments, governed agreements and billing retain their later gates. No scope,
+dependency, commercial-policy or publication approval is changed.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** FIN-01, FIN-02, FIN-03, FIN-04. Scenarios: Requirement-derived checks; apply §33.1.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1, 0.4.4. Architecture constraints in §9 apply in addition to business dependencies.
@@ -896,6 +905,21 @@ the retained QR-Should wording in the architecture and roadmap register.
 - **Dependencies:** 1.1.1, 1.2.2–1.2.3, 1.3.1.
 - **Acceptance criteria:** Customer-supplied materials are not charged as shop stock. Bundled/complimentary lines retain real costs. Catalogue changes do not rewrite old quotes; booking and garment charges are counted once.
 - **Deliverable:** Versioned, itemised non-tax quotations.
+
+**Preparation packet (24 October 2026; not implementation acceptance):**
+[REA evidence and access gaps](agents/Quotations_REA_Evidence.md),
+[independent design QD-01–12 / Q-01–14](agents/Quotations_Design.md),
+[four approved vertical tickets](agents/Quotations_Ticket_Packet.md) and
+[fresh preparation checks](agents/Quotations_Implementation_Evidence.md).
+Approved sequence: effective-dated rates/policy review → recoverable garment
+estimates/private costs → booking consolidation/exact discounts → immutable
+non-tax quotation issue, exact-revision response and Tamil/A4 manual sharing.
+FIN-05 is reused arithmetic; 1.4.2 payments, 1.4.3 agreement/change effects and
+1.4.4–1.4.5 billing/corrections retain their scope. Issues #173–#176 are published
+with native blockers. A1 #173 implements recoverable effective-dated rate review
+and exact quotation-only policy bindings; its review evidence is linked above.
+A2/B/C remain unimplemented and blocked sequentially. Whole 1.4.1 acceptance,
+source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments
 

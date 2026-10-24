@@ -20,6 +20,7 @@ import { createMeasurementSessionsRoutes } from "./measurement-sessions.js";
 import { createMediaRoutes } from "./media.js";
 import { createOrderRoutes } from "./orders.js";
 import { createOwnerRoutes } from "./owner.js";
+import { createQuotationRatesRoutes } from "./quotation-rates.js";
 import { createRepeatOrderRoutes } from "./repeat-orders.js";
 import { createServiceRepeatRoutes } from "./repeat-services.js";
 import { createServiceTemplatesRoutes } from "./service-templates.js";
@@ -107,6 +108,7 @@ export function createApi(
     app.route("/", createShopProfileRoutes(owner));
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));
+    app.route("/", createQuotationRatesRoutes(owner));
     app.route("/", createShopCommitmentsRoutes(owner));
     app.route("/", createShopDirectoryRoutes(owner));
     app.route("/", createServiceCatalogueRoutes(owner));

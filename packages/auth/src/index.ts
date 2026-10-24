@@ -89,6 +89,11 @@ import {
   repeatOrderWorkflow,
 } from "@aarili/core/orders";
 import {
+  type QuotationRatesContext,
+  quotePolicyReviewWorkflow,
+  rateDraftWorkflow,
+} from "@aarili/core/quotation-rates";
+import {
   type ServiceCatalogueContext,
   serviceCatalogueDraftWorkflow,
 } from "@aarili/core/service-catalogue";
@@ -166,6 +171,7 @@ import { measurementFormsRepository } from "@aarili/db/measurement-forms-reposit
 import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import { ordersRepository } from "@aarili/db/orders-repository";
+import { quotationRatesRepository } from "@aarili/db/quotation-rates-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
 import {
@@ -333,6 +339,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: ShopCommitmentsContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerQuotationRates: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuotationRatesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   withOwnerShopPolicies: <T>(
     headers: Headers,
@@ -1372,6 +1383,14 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "pricing.rate",
+        rateDraftWorkflow(quotationRatesContext(tx, shopId, userId)),
+      );
+      workflows.set(
+        "pricing.policy-review",
+        quotePolicyReviewWorkflow(quotationRatesContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "pattern.capability",
         patternCapabilityWorkflow(manualPatternsContext(tx, shopId, userId)),
       );
@@ -1978,6 +1997,30 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       run(commitmentContext(tx, shopId, actorId)),
     );
   }
+  function quotationRatesContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): QuotationRatesContext {
+    return {
+      shopId,
+      actorId,
+      repository: quotationRatesRepository(tx, shopId),
+      drafts: draftRepository(tx, shopId),
+      profile: shopProfileRepository(tx, shopId),
+      catalogue: catalogueContext(tx, shopId, actorId),
+      synthetic: configuration.customerPolicy?.synthetic === true,
+    };
+  }
+  async function withOwnerQuotationRates<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuotationRatesContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(quotationRatesContext(tx, shopId, actorId)),
+    );
+  }
   async function withOwnerShopPolicies<T>(
     headers: Headers,
     shopId: string,
@@ -2494,6 +2537,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopProfile,
     withOwnerShopCommitments,
     withOwnerShopPolicies,
+    withOwnerQuotationRates,
     withOwnerShopDirectory,
     withOwnerManualPatterns,
     withOwnerMeasurementFit,

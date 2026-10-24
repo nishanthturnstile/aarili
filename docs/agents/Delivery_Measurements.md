@@ -1,5 +1,55 @@
 # Delivery measurements
 
+## #173 / 1.4.1a — effective-dated rates and quotation-only policy review
+
+- Owner approved the prepared QD decisions/four-ticket packet and proceeding.
+  Published #173–#176 with native blockers; selected A1 only after its five direct
+  prerequisites were verified merged. Runtime work began approximately
+  **24 October 2026, 07:42:35 UTC**, on `codex/quotation-rates-a1` from latest
+  development **9418067**, in the existing checkout. Active coding time was not
+  separately instrumented; no worktree or live activation.
+- First passing three-case real PostgreSQL checkpoint was approximately
+  **07:59 UTC**. Expanded tests, immutable content hashes and UI recovery/admission
+  diagnostics followed. Earlier failures and scoped corrections are retained in
+  [A1 evidence](Quotations_Implementation_Evidence.md).
+- First owner-usable synthetic host: **08:19:57 UTC**, port 59494. It was stopped
+  before the last UI rebuild. Intermediate host at **08:24:52 UTC**, port 56311,
+  was HTTP/snapshot checked **08:25:43 UTC**, then stopped for the final visual
+  empty-history fix. Final-build host: **08:31:58 UTC**,
+  **http://127.0.0.1:60245/settings?section=rates**, HTTP 200 verified.
+  Access and teardown are in the evidence packet.
+- Local verification overlaps implementation/rework. A complete fast run passed
+  326 units before the final retry-handler correction; its latest aggregate hit
+  two existing 5s timeouts, with all 12 cases in those files passing in isolation.
+  Final affected PG **5 passes / 61.49s**; clean package export build stage
+  **32.194s**; final production build **18.362s**. These durations are not summed
+  into active coding or total delivery time.
+- The three-size browser workflow first passed **3 tests / 4.2m**, followed by
+  one batched six-capture review and an empty-history feedback fix. Fresh affected
+  lint/Knip/strict types and production build passed; final build **17.679s**.
+- Final empty/recorded history browser confirmation: **3 passes / 4.2m** across
+  all three sizes and both languages; six fresh screenshots inspected in one
+  confirmation pass. Review-ready checkpoint **08:36:02 UTC**. PR/hosted CI
+  queue/execution, human review and merge timestamps remain pending until their
+  actual checkpoints. Fluent Tamil, physical Android,
+  assistive technology and owner acceptance remain distinct from automation.
+
+## 1.4.1 quotation preparation — historical pre-approval checkpoint
+
+- Research/design preparation began approximately **24 October 2026, 06:54 UTC**;
+  reviewable document checkpoint **07:13:21 UTC**. Active time was not separately
+  instrumented; elapsed preparation is not implementation time.
+- Four proposed tickets (A1/A2/B/C) and QD-01–12/Q-01–14 are in the
+  [quotation packet](Quotations_Ticket_Packet.md). The tracker has no approved
+  selected 1.4.1 issue, so implementation start, first usable feature, PR/CI queue,
+  owner review/merge and rework measurements are **not started**, not zero.
+- Fresh baseline checks and the original fast-run timeout/isolated recovery are
+  in [preparation evidence](Quotations_Implementation_Evidence.md). Verification
+  overlaps document preparation and is not added to active coding time. No new
+  implementation delivery is counted toward the five-delivery comparison.
+- Preserve these checkpoints; begin a separate prospective issue delivery entry
+  only after packet approval/selection and merged direct blockers.
+
 ## #170 / 1.3.4b ? minimal bag/material labels
 
 - Owner selected B after all six native blockers merged. Existing development and `codex/170-material-labels` aligned to **dacf56e**; implementation checkpoint **24 October 2026, 05:14:56 UTC**. No worktree, dependency upgrade or live activation. Active coding time was not separately instrumented.

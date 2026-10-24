@@ -179,6 +179,10 @@
     "./material-labels": {
       "types": "./dist/material-labels.d.ts",
       "import": "./dist/material-labels.js"
+    },
+    "./quotation-rates": {
+      "types": "./dist/quotation-rates.d.ts",
+      "import": "./dist/quotation-rates.js"
     }
   },
   "scripts": {
