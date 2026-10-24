@@ -211,6 +211,18 @@ together for the single confirmation pass; no further UI change was needed.
 This is browser automation and visual inspection, not fluent-language or physical
 device acceptance. Review-ready checkpoint: **08:36:02 UTC, 24 October 2026**.
 
+### Publication checkpoint
+
+Runtime/preparation commit **58b10b7e6524078e7b41603006b3220a5fdca6bf** was pushed
+to `codex/quotation-rates-a1`. [Draft PR #177](https://github.com/nishanthturnstile/aarili/pull/177)
+was created **08:36:39 UTC**, targeting `development`, and registered with this
+T3 thread. At **08:36:46 UTC**, [run 40078714336](https://github.com/nishanthturnstile/aarili/actions/runs/40078714336)
+had Fast verification and Dependency audit **in progress**, both started
+**08:36:44 UTC**. Scaffold/full browser jobs were skipped under the development
+PR workflow. These are pending hosted gates, not successful results. A following
+documentation-only commit records this checkpoint; runtime verification inputs
+remain unchanged. No merge, promotion, deployment or later-slice implementation.
+
 No supplementary local Linux image was run: export/package changes were covered
 by the scoped native clean frozen installation/import test. Hosted Linux Fast
 verification and dependency audit remain PR gates; full promotion/browser matrix
