@@ -1,5 +1,9 @@
 import type { OwnerEntry } from "@aarili/contracts";
-import { type Locale, smallServiceMessages } from "@aarili/i18n";
+import {
+  type Locale,
+  quotationRateMessages,
+  smallServiceMessages,
+} from "@aarili/i18n";
 import { Button } from "@aarili/ui/components/button";
 import { WorkspaceNavigation } from "@aarili/ui/components/workspace-navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -15,6 +19,7 @@ import {
   type OwnerRequest,
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { QuotationRates } from "./quotation-rates";
 import { ServiceCatalogueScreen } from "./service-catalogue-screen";
 import { ServiceTemplatesScreen } from "./service-templates-screen";
 import { ShopCalendarScreen } from "./shop-calendar-screen";
@@ -54,6 +59,7 @@ export function OwnerWorkspace({
   const t = useTranslations();
   const locale = useLocale() as Locale;
   const [section, setSection] = useState<
+    | "rates"
     | "profile"
     | "calendar"
     | "policies"
@@ -69,6 +75,7 @@ export function OwnerWorkspace({
     const params = new URL(window.location.href).searchParams;
     const selected = params.get("section");
     if (
+      selected === "rates" ||
       selected === "commitments" ||
       selected === "serviceTemplates" ||
       selected === "serviceProfiles" ||
@@ -85,6 +92,7 @@ export function OwnerWorkspace({
   });
   function selectSection(
     next:
+      | "rates"
       | "profile"
       | "calendar"
       | "policies"
@@ -160,6 +168,13 @@ export function OwnerWorkspace({
             <nav className="calendar-actions" aria-label={t("settings.title")}>
               <Button
                 variant="outline"
+                aria-pressed={section === "rates"}
+                onClick={() => selectSection("rates")}
+              >
+                {quotationRateMessages[locale].title}
+              </Button>
+              <Button
+                variant="outline"
                 aria-pressed={section === "serviceProfiles"}
                 onClick={() => selectSection("serviceProfiles")}
               >
@@ -206,7 +221,13 @@ export function OwnerWorkspace({
                 </Button>
               ))}
             </nav>
-            {section === "serviceProfiles" ? (
+            {section === "rates" ? (
+              <QuotationRates
+                shopId={entry.shop.shopId}
+                queries={queries}
+                guard={guard}
+              />
+            ) : section === "serviceProfiles" ? (
               <SmallServices
                 key={entry.shop.shopId}
                 shopId={entry.shop.shopId}

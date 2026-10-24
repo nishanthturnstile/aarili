@@ -351,6 +351,14 @@
     "./repositories/material-labels": {
       "types": "./dist/repositories/material-labels.d.ts",
       "import": "./dist/repositories/material-labels.js"
+    },
+    "./quotation-rates-repository": {
+      "types": "./dist/quotation-rates-repository.d.ts",
+      "import": "./dist/quotation-rates-repository.js"
+    },
+    "./repositories/quotation-rates": {
+      "types": "./dist/repositories/quotation-rates.d.ts",
+      "import": "./dist/repositories/quotation-rates.js"
     }
   },
   "scripts": {
