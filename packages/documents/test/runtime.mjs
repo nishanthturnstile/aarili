@@ -10,6 +10,7 @@ import {
 } from "../dist/index.js";
 import { jobSlipProof } from "./job-slip.mjs";
 import { materialLabelProof } from "./material-labels.mjs";
+import { quotationProof } from "./quotation.mjs";
 import { syntheticDocumentTemplates, tamilGoldenStrings } from "./template.mjs";
 
 const fonts = await documentFonts(),
@@ -43,7 +44,10 @@ const make = (paper) => ({
   },
 });
 try {
-  if (process.argv.includes("--one")) {
+  if (process.argv.includes("--quotation-proof")) {
+    await mkdir("/proof", { recursive: true });
+    await quotationProof("/proof");
+  } else if (process.argv.includes("--one")) {
     const bytes = await renderer.render(await stdin());
     process.stdout.write(Buffer.from(bytes).toString("base64"));
   } else {
@@ -203,6 +207,7 @@ try {
     }
     await jobSlipProof(root);
     await materialLabelProof(root);
+    await quotationProof(root);
     observations.nodePeakRssKiB = process.resourceUsage().maxRSS;
     await writeFile(
       `${root}/evidence.json`,

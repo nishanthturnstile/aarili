@@ -28,6 +28,10 @@ type Props = {
   requirePreview?: boolean;
   reviewAcknowledgement?: string;
   allowExternalShare?: boolean;
+  onWorkChange?: (state: {
+    inFlight: boolean;
+    outcomeUnknown: boolean;
+  }) => void;
 };
 export function PrivateDocumentSharing(props: Props) {
   const s = props.selection;
@@ -46,6 +50,7 @@ function SelectedDocument({
   requirePreview = false,
   reviewAcknowledgement,
   allowExternalShare = true,
+  onWorkChange,
 }: Props & { selection: Selection }) {
   const t = sharingMessages[locale],
     heading = useId();
@@ -60,6 +65,13 @@ function SelectedDocument({
     [inlinePreview, setInlinePreview] = useState(false),
     [reviewed, setReviewed] = useState(false);
   const canPublish = allowExternalShare && (!requirePreview || reviewed);
+  useEffect(() => {
+    onWorkChange?.({ inFlight: busy, outcomeUnknown: pending });
+  }, [onWorkChange, busy, pending]);
+  useEffect(
+    () => () => onWorkChange?.({ inFlight: false, outcomeUnknown: false }),
+    [onWorkChange],
+  );
   const resource = useRef<{ file: File; url: string; expires: number } | null>(
       null,
     ),

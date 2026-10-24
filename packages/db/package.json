@@ -375,6 +375,14 @@
     "./repositories/booking-quotations": {
       "types": "./dist/repositories/booking-quotations.d.ts",
       "import": "./dist/repositories/booking-quotations.js"
+    },
+    "./quotation-issues-repository": {
+      "types": "./dist/quotation-issues-repository.d.ts",
+      "import": "./dist/quotation-issues-repository.js"
+    },
+    "./repositories/quotation-issues": {
+      "types": "./dist/repositories/quotation-issues.d.ts",
+      "import": "./dist/repositories/quotation-issues.js"
     }
   },
   "scripts": {

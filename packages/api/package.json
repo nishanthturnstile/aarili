@@ -215,6 +215,14 @@
     "./booking-quotations-client": {
       "types": "./dist/booking-quotations-client.d.ts",
       "import": "./dist/booking-quotations-client.js"
+    },
+    "./quotation-issues": {
+      "types": "./dist/quotation-issues.d.ts",
+      "import": "./dist/quotation-issues.js"
+    },
+    "./quotation-issues-client": {
+      "types": "./dist/quotation-issues-client.d.ts",
+      "import": "./dist/quotation-issues-client.js"
     }
   },
   "scripts": {

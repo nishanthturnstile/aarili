@@ -11,7 +11,8 @@
         "scripts/test-support/document-sharing-host-process.mjs",
         "scripts/test-support/job-slip-host-process.mjs",
         "tests/*.test.ts",
-        "tests/*.test.mjs"
+        "tests/*.test.mjs",
+        "scripts/test-support/quotation-issue-host-process.mjs"
       ],
       "project": ["scripts/**/*.mjs", "tests/**/*.{ts,mjs}"],
       "ignore": ["tests/fixtures/**"]
@@ -23,7 +24,8 @@
         "test-support/design-reference-host.tsx",
         "test-support/document-status-host.tsx",
         "test-support/document-sharing-host.tsx",
-        "test-support/job-slip-host.tsx"
+        "test-support/job-slip-host.tsx",
+        "test-support/quotation-issue-host.tsx"
       ],
       "ignoreExportsUsedInFile": true,
       "project": ["src/**/*.{ts,tsx,css}"]

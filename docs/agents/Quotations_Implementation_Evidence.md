@@ -5,10 +5,10 @@
 [run 40092740832](https://github.com/nishanthturnstile/aarili/actions/runs/40092740832).
 Owner-selected B #175 now has [implementation and fresh verification evidence](Booking_Quotations_Implementation_175.md).
 The preparation/A1 observations below retain their historical timestamps.
-Issued documents and whole-feature acceptance remain pending C #176.
+B merged as PR #179; owner-selected C #176 now has [issued-document implementation and fresh verification](Quotation_Issuance_Implementation_176.md). Whole-feature acceptance and human/live gates remain pending.
 
 24 October 2026. **Owner approved publication and selected A1 #173. A1 delivery
-and fresh checks are recorded below; whole 1.4.1 is not implemented or accepted.** [Brief](Quotations_REA_Prompt.md),
+and fresh checks are recorded below; this historical A1 checkpoint does not claim whole-feature acceptance.** [Brief](Quotations_REA_Prompt.md),
 [research/access limits](Quotations_REA_Evidence.md),
 [independent design](Quotations_Design.md),
 [complete four-ticket packet](Quotations_Ticket_Packet.md).

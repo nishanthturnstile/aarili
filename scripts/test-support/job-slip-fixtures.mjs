@@ -4,6 +4,7 @@ import { createApi } from "@aarili/api";
 import { createDocumentRenderer } from "@aarili/documents";
 import { jobSlipTemplates } from "@aarili/documents/job-slip";
 import { materialLabelTemplates } from "@aarili/documents/material-labels";
+import { quotationTemplates } from "@aarili/documents/quotation";
 import { startSyntheticQueue } from "@aarili/jobs";
 import { documentJobWriter } from "@aarili/jobs/documents";
 import { productionJobComposition } from "@aarili/jobs/production";
@@ -30,11 +31,14 @@ import {
 import { withPatternOutputs } from "./pattern-output-fixtures.mjs";
 
 export async function withJobSlips(run) {
-  const slips = await jobSlipTemplates(),
+  const quotes = await quotationTemplates(),
+    slips = await jobSlipTemplates(),
     labels = await materialLabelTemplates(),
     templates = {
       resolve: async (id, revision) =>
-        (await labels.resolve(id, revision)) ?? slips.resolve(id, revision),
+        (await quotes.resolve(id, revision)) ??
+        (await labels.resolve(id, revision)) ??
+        slips.resolve(id, revision),
     },
     native = createDocumentRenderer(templates);
   let storage, maintenance, boss;

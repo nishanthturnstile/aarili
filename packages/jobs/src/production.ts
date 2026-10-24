@@ -4,6 +4,7 @@ import { jobSlipPurgeLocatorSchema } from "@aarili/contracts/job-slips";
 import { patternPurgeLocatorSchema } from "@aarili/contracts/manual-patterns";
 import { measurementFitPurgeLocatorSchema } from "@aarili/contracts/measurement-fit";
 import { mediaJobLocatorSchema } from "@aarili/contracts/media";
+import { quotePurgeLocatorSchema } from "@aarili/contracts/quotation-issues";
 import { type DocumentRenderer, processDocument } from "@aarili/core/documents";
 import { purgeJobSlips } from "@aarili/core/job-slip-purge";
 import { purgePatternOutputs } from "@aarili/core/manual-patterns";
@@ -17,13 +18,14 @@ import {
   MediaValidationFailure,
   processMedia,
 } from "@aarili/core/media";
+import { purgeQuotations } from "@aarili/core/quotation-purge";
 import { type Database, ShopAccessError, type Transaction } from "@aarili/db";
 import {
   MediaContentRejected,
   validatePrivateMedia,
 } from "@aarili/platform/media-validation";
 import { type DocumentAdapters, documentProcessingHost } from "./documents.js";
-import { jobSlipPurgeHost } from "./job-slips.js";
+import { jobSlipPurgeHost, quotationPurgeHost } from "./job-slips.js";
 import { measurementFitPurgeHost, mediaProcessingHost } from "./media.js";
 import type { RuntimeComposition } from "./runtime.js";
 
@@ -87,6 +89,27 @@ export function productionJobComposition(
           input: unknown,
           beforeCommit: () => Promise<void>,
         ) => {
+          const quotationPurge = quotePurgeLocatorSchema.safeParse(input);
+          if (quotationPurge.success) {
+            if (!documents?.erasureStorage)
+              throw Error("Private document erasure adapter unavailable");
+            const p = quotationPurge.data;
+            try {
+              return await purgeQuotations(
+                quotationPurgeHost(
+                  db,
+                  p.shopId,
+                  p.initiatorId,
+                  documents.erasureStorage,
+                ),
+                p,
+                beforeCommit,
+              );
+            } catch (error) {
+              if (error instanceof ShopAccessError) return "ignored";
+              throw error;
+            }
+          }
           const documentPurge = jobSlipPurgeLocatorSchema.safeParse(input);
           if (documentPurge.success) {
             if (!documents?.erasureStorage)

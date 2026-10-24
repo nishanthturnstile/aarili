@@ -16,6 +16,7 @@ import { createManualPatternsRoutes } from "@aarili/api/manual-patterns";
 import { createMaterialLabelRoutes } from "@aarili/api/material-labels";
 import { createMediaRoutes } from "@aarili/api/media";
 import { createBookingRoutes, createOrderRoutes } from "@aarili/api/orders";
+import { createQuotationIssueRoutes } from "@aarili/api/quotation-issues";
 import { createQuotationRatesRoutes } from "@aarili/api/quotation-rates";
 import { createServiceCatalogueRoutes } from "@aarili/api/service-catalogue";
 import { createServiceTemplatesRoutes } from "@aarili/api/service-templates";
@@ -302,6 +303,18 @@ api.route(
     },
   }),
 );
+
+api.route(
+  "/",
+  createQuotationIssueRoutes({
+    origin: "http://127.0.0.1:3103",
+    commandLimit: async () => 0,
+    withOwnerQuotationIssues: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
+
 const document = api.getOpenAPI31Document({
   openapi: "3.1.0",
   info: { title: "Aarili development contracts", version: "0.2.3" },

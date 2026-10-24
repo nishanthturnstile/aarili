@@ -97,6 +97,10 @@ import {
   repeatOrderWorkflow,
 } from "@aarili/core/orders";
 import {
+  type QuotationIssuesContext,
+  quotationDocumentContext,
+} from "@aarili/core/quotation-issues";
+import {
   type QuotationRatesContext,
   quotePolicyReviewWorkflow,
   rateDraftWorkflow,
@@ -181,6 +185,7 @@ import { measurementFormsRepository } from "@aarili/db/measurement-forms-reposit
 import { measurementSessionsRepository } from "@aarili/db/measurement-sessions-repository";
 import { mediaRepository } from "@aarili/db/media-repository";
 import { ordersRepository } from "@aarili/db/orders-repository";
+import { quotationIssuesRepository } from "@aarili/db/quotation-issues-repository";
 import { quotationRatesRepository } from "@aarili/db/quotation-rates-repository";
 import type { ShopRepository } from "@aarili/db/repositories/shop";
 import { requestRepository } from "@aarili/db/request-repository";
@@ -325,6 +330,11 @@ export class OwnerAccessError extends Error {
 
 type SessionResult<T> = { data: T; headers: Headers };
 export type OwnerAuth = {
+  withOwnerQuotationIssues: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuotationIssuesContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
   withOwnerBookingQuotations: <T>(
     headers: Headers,
     shopId: string,
@@ -2245,24 +2255,41 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       storage: { put: unavailable, signGet: unavailable, read: unavailable },
       jobs: { enqueue: unavailable, phase: unavailable },
     };
-    return materialLabelDocumentContext(
-      jobSlipDocumentContext(
-        {
-          shopId,
-          actor: { type: "user", id: userId },
-          repository: documentRepository(tx, shopId),
-          ...adapters,
-        },
-        jobSlipsRepository(tx, shopId),
-        jobSlipSources(
-          manualPatternsContext(tx, shopId, userId),
-          smallServiceContext(tx, shopId, userId),
-          designReferencesContext(tx, shopId, userId),
-          ownerMediaContext(tx, shopId, userId),
+    return quotationDocumentContext(
+      materialLabelDocumentContext(
+        jobSlipDocumentContext(
+          {
+            shopId,
+            actor: { type: "user", id: userId },
+            repository: documentRepository(tx, shopId),
+            ...adapters,
+          },
+          jobSlipsRepository(tx, shopId),
+          jobSlipSources(
+            manualPatternsContext(tx, shopId, userId),
+            smallServiceContext(tx, shopId, userId),
+            designReferencesContext(tx, shopId, userId),
+            ownerMediaContext(tx, shopId, userId),
+          ),
         ),
+        materialLabelsRepository(tx, shopId),
+        quickOrderContext(tx, shopId, userId),
       ),
-      materialLabelsRepository(tx, shopId),
-      quickOrderContext(tx, shopId, userId),
+      quotationIssuesRepository(tx, shopId),
+      bookingQuotationsContext(tx, shopId, userId),
+    );
+  }
+  async function withOwnerQuotationIssues<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: QuotationIssuesContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, userId) =>
+      run({
+        documents: jobSlipDocuments(tx, shopId, userId),
+        repository: quotationIssuesRepository(tx, shopId),
+        proposals: bookingQuotationsContext(tx, shopId, userId),
+      }),
     );
   }
   async function withOwnerMaterialLabels<T>(
@@ -2611,6 +2638,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerQuotationRates,
     withOwnerGarmentEstimates,
     withOwnerBookingQuotations,
+    withOwnerQuotationIssues,
     withOwnerShopDirectory,
     withOwnerManualPatterns,
     withOwnerMeasurementFit,
