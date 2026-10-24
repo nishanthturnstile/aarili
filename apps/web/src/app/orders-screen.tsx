@@ -25,6 +25,7 @@ import { presentServiceRequirements } from "@aarili/contracts/service-templates"
 import type { WearerProfile } from "@aarili/contracts/wearers";
 import {
   bookingMessages,
+  estimateMessages,
   groupIntakeMessages,
   type Locale,
   orderAcceptanceMessages,
@@ -42,6 +43,7 @@ import { BookingGroups } from "./booking-groups";
 import { DraftForm } from "./draft-form";
 import type { DraftRecovery } from "./draft-recovery";
 import { createDraftScope } from "./draft-scope";
+import { GarmentEstimates } from "./garment-estimates";
 import { GroupIntake } from "./group-intake";
 import { AcceptedOrderDetail, CommitmentReview } from "./order-acceptance";
 import type { OwnerGuard } from "./owner-feedback";
@@ -722,6 +724,18 @@ export function OrdersScreen({
   const locale = useLocale() as Locale,
     t = orderMessages[locale];
   const [grouping, setGrouping] = useState(false);
+  const [estimating, setEstimating] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URL(window.location.href).searchParams.get("section") === "estimates",
+  );
+  const [estimateOrderId, setEstimateOrderId] = useState<string | undefined>(
+    () =>
+      typeof window !== "undefined"
+        ? (new URL(window.location.href).searchParams.get("estimateOrder") ??
+          undefined)
+        : undefined,
+  );
   const [services, setServices] = useState(false),
     [serviceDraft, setServiceDraft] = useState<string>(),
     [serviceOrder, setServiceOrder] = useState<string>();
@@ -869,6 +883,7 @@ export function OrdersScreen({
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial URL read belongs to this scope lifetime
   useEffect(() => {
     const url = new URL(window.location.href);
+    if (url.searchParams.get("section") === "estimates") return;
     const historyBooking = url.searchParams.get("historyBooking");
     if (historyBooking && /^[0-9a-f-]{36}$/i.test(historyBooking)) {
       setGroupBooking(historyBooking);
@@ -1020,6 +1035,22 @@ export function OrdersScreen({
       void refreshOrders();
     }
   }
+  if (estimating)
+    return (
+      <GarmentEstimates
+        shopId={shopId}
+        guard={guard}
+        initialOrderId={estimateOrderId}
+        onBack={() => {
+          setEstimating(false);
+          const u = new URL(window.location.href);
+          u.searchParams.delete("section");
+          u.searchParams.delete("estimateOrder");
+          u.searchParams.delete("estimateDraft");
+          window.history.replaceState(null, "", `${u.pathname}${u.search}`);
+        }}
+      />
+    );
   if (services)
     return (
       <SmallServices
@@ -1104,6 +1135,20 @@ export function OrdersScreen({
         {bookingMessages[locale].title}
       </Button>
       <div className="owner-actions">
+        <Button
+          variant="outline"
+          disabled={working || !safe || !!controller}
+          onClick={() => {
+            setEstimateOrderId(accepted?.id);
+            setEstimating(true);
+            const u = new URL(window.location.href);
+            u.searchParams.set("section", "estimates");
+            if (accepted) u.searchParams.set("estimateOrder", accepted.id);
+            window.history.replaceState(null, "", `${u.pathname}${u.search}`);
+          }}
+        >
+          {estimateMessages[locale].title}
+        </Button>
         <Button
           variant="outline"
           disabled={working || !safe || !!controller}

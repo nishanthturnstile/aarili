@@ -918,7 +918,10 @@ FIN-05 is reused arithmetic; 1.4.2 payments, 1.4.3 agreement/change effects and
 1.4.4–1.4.5 billing/corrections retain their scope. Issues #173–#176 are published
 with native blockers. A1 #173 implements recoverable effective-dated rate review
 and exact quotation-only policy bindings; its review evidence is linked above.
-A2/B/C remain unimplemented and blocked sequentially. Whole 1.4.1 acceptance,
+A1 merged as PR #177. The owner selected A2 #174 from updated development:
+[A2 evidence and review](agents/Garment_Estimates_Implementation_174.md) records
+recoverable garment estimates, private costs and exact source comparison. B/C
+remain unimplemented and blocked sequentially. Whole 1.4.1 acceptance,
 source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments

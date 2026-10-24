@@ -13,6 +13,7 @@ import { createDesignReferencesRoutes } from "./design-references.js";
 import { createDesignSpecificationsRoutes } from "./design-specifications.js";
 import { createDocumentRoutes } from "./documents.js";
 import { createDraftRoutes } from "./drafts.js";
+import { createGarmentEstimatesRoutes } from "./garment-estimates.js";
 import { createJobSlipRoutes } from "./job-slips.js";
 import { createManualPatternsRoutes } from "./manual-patterns.js";
 import { createMaterialLabelRoutes } from "./material-labels.js";
@@ -109,6 +110,7 @@ export function createApi(
     app.route("/", createShopCalendarRoutes(owner));
     app.route("/", createShopPoliciesRoutes(owner));
     app.route("/", createQuotationRatesRoutes(owner));
+    app.route("/", createGarmentEstimatesRoutes(owner));
     app.route("/", createShopCommitmentsRoutes(owner));
     app.route("/", createShopDirectoryRoutes(owner));
     app.route("/", createServiceCatalogueRoutes(owner));

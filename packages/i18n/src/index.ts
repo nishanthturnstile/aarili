@@ -12,6 +12,7 @@ export { designChoicesMessages } from "./design-choices-messages.js";
 export { designReferenceMessages } from "./design-reference-messages.js";
 export { designSpecificationMessages } from "./design-specification-messages.js";
 export { documentMessages } from "./document-messages.js";
+export { estimateMessages, formatEstimatePaise } from "./estimate-messages.js";
 export { groupIntakeMessages } from "./group-intake-messages.js";
 export { identityReviewMessages } from "./identity-review-messages.js";
 export { jobSlipMessages } from "./job-slip-messages.js";

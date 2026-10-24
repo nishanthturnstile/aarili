@@ -12,6 +12,8 @@ function inspect(directory) {
       for (const privateSymbol of [
         "issueJobSlip",
         "quotationRatesRepository",
+        "garmentEstimatesRepository",
+        "estimateDraftWorkflow",
         "rateDraftWorkflow",
         "quotePolicyReviewWorkflow",
         "issueMaterialLabels",

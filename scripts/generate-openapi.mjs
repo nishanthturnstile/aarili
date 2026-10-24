@@ -9,6 +9,7 @@ import { createDesignReferencesRoutes } from "@aarili/api/design-references";
 import { createDesignSpecificationsRoutes } from "@aarili/api/design-specifications";
 import { createDocumentRoutes } from "@aarili/api/documents";
 import { createDraftRoutes } from "@aarili/api/drafts";
+import { createGarmentEstimatesRoutes } from "@aarili/api/garment-estimates";
 import { createJobSlipRoutes } from "@aarili/api/job-slips";
 import { createManualPatternsRoutes } from "@aarili/api/manual-patterns";
 import { createMaterialLabelRoutes } from "@aarili/api/material-labels";
@@ -25,6 +26,15 @@ import { createGuardianRoutes, createWearerRoutes } from "@aarili/api/wearers";
 
 // Offline schema generation: no DB connection, credentials or external effect.
 const api = createApi(async () => false);
+api.route(
+  "/",
+  createGarmentEstimatesRoutes({
+    origin: "http://127.0.0.1:3103",
+    withOwnerGarmentEstimates: async () => {
+      throw Error("Offline schema only");
+    },
+  }),
+);
 api.route(
   "/",
   createQuotationRatesRoutes({

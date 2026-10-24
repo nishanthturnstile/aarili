@@ -199,6 +199,14 @@
     "./quotation-rates-client": {
       "types": "./dist/quotation-rates-client.d.ts",
       "import": "./dist/quotation-rates-client.js"
+    },
+    "./garment-estimates": {
+      "types": "./dist/garment-estimates.d.ts",
+      "import": "./dist/garment-estimates.js"
+    },
+    "./garment-estimates-client": {
+      "types": "./dist/garment-estimates-client.d.ts",
+      "import": "./dist/garment-estimates-client.js"
     }
   },
   "scripts": {

@@ -46,6 +46,10 @@ import {
 import type { DocumentContext } from "@aarili/core/documents";
 import type { DraftContext } from "@aarili/core/drafts";
 import { productionDraftRegistry } from "@aarili/core/drafts";
+import {
+  estimateDraftWorkflow,
+  type GarmentEstimatesContext,
+} from "@aarili/core/garment-estimates";
 import { jobSlipSources } from "@aarili/core/job-slip-sources";
 import {
   type JobSlipsContext,
@@ -163,6 +167,7 @@ import { designReferencesRepository } from "@aarili/db/design-references-reposit
 import { designSpecificationsRepository } from "@aarili/db/design-specifications-repository";
 import { documentRepository } from "@aarili/db/document-repository";
 import { draftRepository } from "@aarili/db/draft-repository";
+import { garmentEstimatesRepository } from "@aarili/db/garment-estimates-repository";
 import { jobSlipsRepository } from "@aarili/db/job-slips-repository";
 import { manualPatternsRepository } from "@aarili/db/manual-patterns-repository";
 import { materialLabelsRepository } from "@aarili/db/material-labels-repository";
@@ -344,6 +349,11 @@ export type OwnerAuth = {
     headers: Headers,
     shopId: string,
     run: (ctx: QuotationRatesContext) => Promise<T>,
+  ) => Promise<SessionResult<T>>;
+  withOwnerGarmentEstimates: <T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: GarmentEstimatesContext) => Promise<T>,
   ) => Promise<SessionResult<T>>;
   withOwnerShopPolicies: <T>(
     headers: Headers,
@@ -1383,6 +1393,10 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     return withOwnerTransaction(headers, shopId, (tx, userId) => {
       const workflows = new Map(productionDraftRegistry());
       workflows.set(
+        "pricing.estimate",
+        estimateDraftWorkflow(garmentEstimatesContext(tx, shopId, userId)),
+      );
+      workflows.set(
         "pricing.rate",
         rateDraftWorkflow(quotationRatesContext(tx, shopId, userId)),
       );
@@ -2012,6 +2026,28 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
       synthetic: configuration.customerPolicy?.synthetic === true,
     };
   }
+  function garmentEstimatesContext(
+    tx: Transaction,
+    shopId: string,
+    actorId: string,
+  ): GarmentEstimatesContext {
+    return {
+      actorId,
+      repository: garmentEstimatesRepository(tx, shopId),
+      rates: quotationRatesContext(tx, shopId, actorId),
+      services: smallServiceContext(tx, shopId, actorId),
+      specifications: designSpecificationsContext(tx, shopId, actorId),
+    };
+  }
+  async function withOwnerGarmentEstimates<T>(
+    headers: Headers,
+    shopId: string,
+    run: (ctx: GarmentEstimatesContext) => Promise<T>,
+  ) {
+    return withOwnerTransaction(headers, shopId, (tx, actorId) =>
+      run(garmentEstimatesContext(tx, shopId, actorId)),
+    );
+  }
   async function withOwnerQuotationRates<T>(
     headers: Headers,
     shopId: string,
@@ -2538,6 +2574,7 @@ export function createOwnerAuth(configuration: AuthConfiguration): OwnerAuth {
     withOwnerShopCommitments,
     withOwnerShopPolicies,
     withOwnerQuotationRates,
+    withOwnerGarmentEstimates,
     withOwnerShopDirectory,
     withOwnerManualPatterns,
     withOwnerMeasurementFit,

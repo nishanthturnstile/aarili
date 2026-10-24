@@ -78,6 +78,14 @@ export async function prepareServiceDraftReads(
   };
   for (const record of records) {
     const p = record.payload;
+    if (record.workflow === "pricing.estimate") {
+      const t = p.target as
+        | { orderId?: string; customerId?: string; wearerId?: string }
+        | undefined;
+      if (t?.orderId) orderIds.add(t.orderId);
+      if (t?.customerId) customers.add(t.customerId);
+      if (t?.wearerId) wearers.add(t.wearerId);
+    }
     // Pattern reads participate in the same aggregate-before-identity lock order.
     if (
       record.workflow === "pattern.reference" ||

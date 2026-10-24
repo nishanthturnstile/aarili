@@ -1,5 +1,58 @@
 # Delivery measurements
 
+## #174 / 1.4.1b — garment estimates and private costs
+
+- Owner selected A2 after merges and requested latest development. Existing
+  checkout fast-forwarded to **286c80b** (PR #177); all eight blockers and merged
+  ancestry verified. Branch `codex/garment-estimates-a2`. Admission/implementation
+  checkpoint observed **24 October 2026, 10:54:26 UTC**. No worktree or live
+  activation; active coding/rework time was not separately instrumented.
+- Baseline **36 passes / 1.05s**. First new arithmetic run **5 passes / 801ms**;
+  expanded unit suite **6 passes / 1.08s**, including 200 exact price/cost pairs.
+  Initial PG **2 passed / 1 invalid-fixture failure / 38.58s**; corrected permission
+  fixture **4 passed / 42.73s**; expanded native service/RLS **6 passed / 75.08s**.
+- First full fast verification passed **332 tests**, unit stage **19.93s**,
+  production build **29.812s**. Second full fast passed **332**, unit **17.36s**,
+  build **18.362s**. Clean export build stage **34.218s**. Verification overlaps
+  coding and is not summed into active implementation or total delivery time.
+- Initial browser cases found an incorrect use of the unsaved-work guard as an
+  access flag. Its correction retains the existing controller. Subsequent
+  uncertain-response status copy was corrected to avoid claiming a committed
+  operation had failed. Original failures stay in the [evidence](Garment_Estimates_Implementation_174.md).
+- Owner-usable synthetic host observed **11:53:30 UTC**, authenticated inspection
+  afterward; disposed for fixture correction. Intermediate corrected host ready
+  **11:57:00 UTC**, HTTP/authenticated draft checked by **11:58:12 UTC**, then
+  stopped for final source-comparison build. Final host/review-ready and
+  publication/CI checkpoints are recorded below when observed.
+- First complete three-size workflow **3 passed / 1.3m**, six bilingual captures
+  reviewed together. Final source-comparison self-review produced one UI fix
+  batch. Latest fast rerun reached **330 passes / 2 existing 5s unit timeouts**
+  (command canonicalization and retired-route test); complete serial unit
+  confirmation and affected downstream checks follow in the evidence packet.
+  No timeout, dependency or worker configuration baseline was changed.
+- Review waiting, human review and merge checkpoints remain pending.
+  Fluent Tamil, physical Android/low-memory and assistive-technology acceptance
+  remain separate from automation.
+- Final verification: all **332 units / 73.77s** passed with serial file
+  execution; negative fixtures/OpenAPI and build passed (**24.19s**). Final
+  browser confirmation **3 passes / 1.6m**, six fresh captures checked once.
+  A2/RLS PG **6 / 71.31s**; existing Quick/small-service **23 / 332.31s**.
+  Existing money/group/custom run **44 passes / 2 legacy-fixture failures /
+  624.73s**; corrected all 13 FK references in its reconstruction fixture,
+  affected confirmation **2 passes / 31.36s**. Original failures retained.
+- Final-build host ready **12:04:47 UTC**, port **61960**, HTTP/authenticated
+  editor checked by **12:06:58 UTC**; access/teardown in the evidence packet.
+  Publication and review-ready checkpoints follow; no extra coding duration is
+  inferred from these elapsed checks.
+- Review-ready checkpoint **12:07:50 UTC**. Runtime commit and PR/CI publication
+  observation are recorded after publication; merge/review remain pending.
+- Published runtime **b20b52f** as [draft PR #178](https://github.com/nishanthturnstile/aarili/pull/178)
+  at **12:08:21 UTC**. Fast verification/Dependency audit started **12:08:26 UTC**
+  and were in progress at **12:08:33 UTC** in
+  [run 40092699288](https://github.com/nishanthturnstile/aarili/actions/runs/40092699288).
+  This metadata-only follow-up records that observation; subsequent CI/review/
+  merge times remain pending and are not counted as active coding.
+
 ## #173 / 1.4.1a — effective-dated rates and quotation-only policy review
 
 - Owner approved the prepared QD decisions/four-ticket packet and proceeding.

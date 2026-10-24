@@ -6,6 +6,13 @@ and fresh checks are recorded below; whole 1.4.1 is not implemented or accepted.
 [independent design](Quotations_Design.md),
 [complete four-ticket packet](Quotations_Ticket_Packet.md).
 
+**Merged follow-up, 24 October 2026:** A1 PR #177 merged at **10:49:47 UTC**
+as `286c80b523e70b2579d32a8a022bf6a9399b827f`. Required Fast verification and
+Dependency audit succeeded in [run 40078759286](https://github.com/nishanthturnstile/aarili/actions/runs/40078759286).
+The publication-time pending observations below remain historical. The owner
+then selected [A2 #174](Garment_Estimates_Implementation_174.md) from updated
+development; whole 1.4.1 and pilot/human gates are not inferred complete.
+
 ## A1 #173 — implementation scope and review contract
 
 The owner's subsequent **“approved and proceed”** approved QD-01–12 and the
