@@ -62,6 +62,8 @@ async function prepare(ctx: CustomerHistoryContext, q: ContactMergeQuery) {
   const blocked: ContactMergePreview["blocked"] = [];
   if (await repo.hasMeasurementAssociations([q.sourceId, q.survivorId]))
     blocked.push("measurement-association");
+  if (await repo.hasPaymentAssociations?.([q.sourceId, q.survivorId]))
+    blocked.push("payment-association");
   if (associations.length > 100) blocked.push("too-many-records");
   const active = state.aliases.find((a) => a.sourceId === q.sourceId);
   if (q.mode === "restore") {

@@ -1,5 +1,72 @@
 # Delivery measurements
 
+## #181 / 1.4.2a - payment receipts and explicit confirmation, 24 October 2026
+
+- Owner approved the complete A-C packet/PD-01 through PD-08 and selected A.
+  Published #181-#183 with native blockers; all nine A prerequisites verified
+  merged in development **94d6dfa**. Existing checkout, focused
+  `codex/payment-receipts-a`, no worktree. Implementation start was not separately
+  timed; preparation commits carried at 22:27:52 IST are not an active-time timer.
+- Usable manual-review host confirmed **23:16:54 IST / 17:46:54 UTC** after
+  adding the missing owner entry route to the disposable harness. Sign-in and
+  the production Payments screen were exercised; local synthetic access details
+  are in [payment evidence](Payments_Implementation_Evidence.md). No human
+  acceptance is inferred from automated inspection.
+- Pinned Node **24.22.1** was already installed; final commands prepend its path,
+  with pnpm **12.15.0**. Earlier 24.20.0 runs remain development observations.
+- Payment/transaction PostgreSQL tests: **5 / 2 files, 120.29s**, passed. Populated
+  predecessor upgrade/reversal-gate test: **1 / 22.25s**, passed. Earlier fixture
+  identity overwrite and a browser status-label false positive were diagnosed and
+  fixed. Fault injection and deterministic restore barriers cover real commits.
+- Clean frozen install/export probe passed, unchanged lockfile, **46.965s** package
+  build. Fast verification passed **342 tests / 74 files, 30.96s** unit phase;
+  production build **39.899s** (12 tasks, 10 cached). Initial final attempts caught
+  a typed-client boundary registration, unused helper export and TS narrowing.
+- Bilingual browser run passed **3 projects / 2.7m**. Live visual review produced
+  one spacing fix batch using existing tokens; affected lint/build/browser checks
+  rerun. Final supplementary build **21.665s** (12 tasks, 11 cached); final browser
+  confirmation **3/3 passed, 2.2m** (34.9s/34.0s/35.2s).
+- Expanded PG run: **2133.25s**, 80 cases; 74 passed in seven other files, four
+  draft cases exposed an outdated exact workflow inventory (including existing
+  quotation adapters). Targeted diagnosis **37.73s** passed after complete inventory
+  correction; full affected file **6/6 passed, 143.56s**. No rerun of unchanged
+  successful regression files. Final profile-edge browser **3/3 passed, 5.4m**.
+- Default-worker fast verification hit five unchanged 5s unit timeouts even
+  after heavy checks ended. Four workers reduced this to one API inventory timeout
+  (341/342); a serial local run followed. No timeout/assertion/isolation or CI
+  setting was relaxed. Latest default fast command is not a passing claim.
+  Serial units then passed **342/342, 116.38s**. Current-source lint/Knip/types,
+  negative types, OpenAPI (148 paths) and production build passed separately;
+  final build **42.439s** (12 tasks, 11 cached). Active totals were not
+  instrumented; do not add overlapping command times. Hosted CI queue/execution,
+  owner review/acceptance and merge remain pending. Review-ready observed
+  **23:54:41 IST / 18:24:41 UTC** after the final verification process exited 0.
+  PR publication follows this commit; its own createdAt is the publication record.
+  B/C implementation remains
+  blocked on each preceding issue's merge.
+
+## 1.4.2 — payment preparation checkpoint, 24 October 2026
+
+- Existing checkout preserved/pushed initial payment brief and quotation closeout,
+  pulled development to **94d6dfa**, then branched `codex/payments-preparation`.
+  No worktree, issue publication or application implementation. This preparation
+  is not counted as a completed implementation delivery in the five-delivery sample.
+- Research admission observed **16:34:42 UTC** (first passive login capture).
+  Owner private sign-in exposed the authenticated dedicated target on rediscovered
+  CDP 9227. T3 snapshot timeouts and REA scenario execution failure required a
+  bounded diagnostic and agent-browser actions with passive REA captures.
+  No payment save or external notification was tested. Active research/coding
+  time and human sign-in wait were not instrumented; no inferred total duration.
+- `pnpm verify:fast` passed **339 tests / 73 files**, unit phase **56.18s**;
+  production build **39.539s** (12 tasks, 11 cached). Real PostgreSQL foundation
+  journal/restore run passed **13 tests / 2 files, 253.60s**. No new payment
+  behaviour is certified by these existing-foundation checks.
+- Design, complete A–C packet and requirement/evidence ledger are prepared.
+  No usable Aarili payment host, first implementation PR, payment CI, merge or
+  human feature acceptance exists at this checkpoint. Local Node **24.20.0**
+  differs from the **24.22.1** pin; no toolchain correction was adopted.
+  See [payment evidence](Payments_Implementation_Evidence.md) for checks/limits.
+
 ## #176 / 1.4.1d — issued quotation documents and manual responses
 
 - Owner selected C after B merged. Existing checkout pulled development to

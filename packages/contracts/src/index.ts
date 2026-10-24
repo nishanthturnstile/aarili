@@ -30,6 +30,7 @@ export const apiErrorSchema = z.strictObject({
       "AUTHENTICATION_STALE",
       "INVALID_RESET",
       "REQUEST_CONFLICT",
+      "PAYMENT_REFERENCE_DUPLICATE",
       "VALIDATION_FAILED",
       "UNSAFE_ORIGIN",
       "INVALID_REQUEST",

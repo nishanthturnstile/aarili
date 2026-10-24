@@ -62,6 +62,7 @@ export interface ContactMergeRepository
   lock(): Promise<void>;
   lockOrder(id: string): Promise<void>;
   hasMeasurementAssociations(customerIds: string[]): Promise<boolean>;
+  hasPaymentAssociations?(customerIds: string[]): Promise<boolean>;
   inventory(
     sourceId: string,
     survivorId: string,

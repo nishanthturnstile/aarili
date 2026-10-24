@@ -1,6 +1,7 @@
 import type { OwnerEntry } from "@aarili/contracts";
 import {
   type Locale,
+  paymentMessages,
   quotationRateMessages,
   smallServiceMessages,
 } from "@aarili/i18n";
@@ -19,6 +20,7 @@ import {
   type OwnerRequest,
 } from "./owner-feedback";
 import type { createOwnerQueries } from "./owner-query";
+import { PaymentsScreen } from "./payments-screen";
 import { QuotationRates } from "./quotation-rates";
 import { ServiceCatalogueScreen } from "./service-catalogue-screen";
 import { ServiceTemplatesScreen } from "./service-templates-screen";
@@ -43,6 +45,7 @@ export function OwnerWorkspace({
     | "dashboard"
     | "connections"
     | "settings"
+    | "payments"
     | "orders"
     | "customers"
     | "customer-new"
@@ -119,15 +122,17 @@ export function OwnerWorkspace({
     <>
       <WorkspaceNavigation
         current={
-          mode === "dashboard"
-            ? "owner"
-            : mode === "connections"
-              ? "connections"
-              : mode === "settings"
-                ? "settings"
-                : mode === "orders"
-                  ? "orders"
-                  : "customers"
+          mode === "payments"
+            ? "payments"
+            : mode === "dashboard"
+              ? "owner"
+              : mode === "connections"
+                ? "connections"
+                : mode === "settings"
+                  ? "settings"
+                  : mode === "orders"
+                    ? "orders"
+                    : "customers"
         }
         shopName={entry.shop.name}
         labels={{
@@ -151,17 +156,19 @@ export function OwnerWorkspace({
             ? t("connections")
             : mode === "settings"
               ? t("settings.title")
-              : mode === "dashboard"
-                ? entry.shop.name
-                : mode === "orders"
-                  ? t("orders.title")
-                  : t(
-                      mode === "customer-new"
-                        ? "customers.newTitle"
-                        : mode === "customer-profile"
-                          ? "customers.profileTitle"
-                          : "customers.title",
-                    )}
+              : mode === "payments"
+                ? paymentMessages[locale].title
+                : mode === "dashboard"
+                  ? entry.shop.name
+                  : mode === "orders"
+                    ? t("orders.title")
+                    : t(
+                        mode === "customer-new"
+                          ? "customers.newTitle"
+                          : mode === "customer-profile"
+                            ? "customers.profileTitle"
+                            : "customers.title",
+                      )}
         </h1>
         {mode === "settings" ? (
           <>
@@ -300,6 +307,12 @@ export function OwnerWorkspace({
               />
             )}
           </>
+        ) : mode === "payments" ? (
+          <PaymentsScreen
+            shopId={entry.shop.shopId}
+            queries={queries}
+            guard={guard}
+          />
         ) : mode === "orders" ? (
           <OrdersScreen
             key={entry.shop.shopId}
@@ -323,6 +336,7 @@ export function OwnerWorkspace({
         ) : (
           <>
             <p className="entry-intro">{t("dashboardWelcome")}</p>
+            <a href="/payments">{paymentMessages[locale].title}</a>
             <a href="/orders">{t("orders.resume")}</a>
             <OwnerFeedback request={request} />
             <section
@@ -345,6 +359,9 @@ export function OwnerWorkspace({
               </a>
             </section>
           </>
+        )}
+        {(mode === "orders" || mode.startsWith("customer")) && (
+          <a href="/payments">{paymentMessages[locale].title}</a>
         )}
         {mode === "dashboard" && (
           <a href="/reauthenticate">{t("reauthenticateLink")}</a>

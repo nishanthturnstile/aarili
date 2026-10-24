@@ -18,6 +18,7 @@ export class JournalFailure extends Error {
 }
 const accounts = new Set([
   "cash",
+  "electronic",
   "receivable",
   "revenue",
   "deposit",

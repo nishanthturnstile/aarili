@@ -38,6 +38,7 @@ type Mode =
   | "connections"
   | "settings"
   | "dashboard"
+  | "payments"
   | "orders"
   | "customers"
   | "customer-new"
@@ -140,6 +141,7 @@ export function OwnerFlow({
             mode === "connections" ||
             mode === "settings" ||
             mode === "onboarding" ||
+            mode === "payments" ||
             mode === "orders" ||
             mode === "customers" ||
             mode === "customer-new" ||

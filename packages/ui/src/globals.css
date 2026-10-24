@@ -758,6 +758,63 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+  .payment-surface,
+  .payment-editor,
+  .payment-detail {
+    display: grid;
+    gap: var(--space-control);
+    min-width: 0;
+  }
+  .payment-editor,
+  .payment-detail,
+  .payment-review {
+    padding-block: var(--space-page);
+    border-block-start: 1px solid var(--border);
+  }
+  .payment-fields {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    display: grid;
+    gap: var(--space-control);
+  }
+  .payment-pair {
+    display: grid;
+    gap: var(--space-control);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  .payment-check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-control);
+    min-height: var(--control-height);
+  }
+  .payment-check input {
+    flex-shrink: 0;
+  }
+  .payment-surface select {
+    width: 100%;
+    min-height: var(--control-height);
+    padding: var(--space-control);
+    color: var(--foreground);
+    background: var(--card);
+    border: 1px solid var(--input);
+    border-radius: var(--radius);
+  }
+  .payment-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-control);
+  }
+  .payment-list button {
+    width: 100%;
+    min-height: var(--control-height);
+    height: auto;
+    text-align: start;
+    white-space: normal;
+  }
   .entry-auth {
     margin-block: var(--space-page);
     padding: calc(var(--space-control) * 3);

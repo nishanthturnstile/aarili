@@ -383,6 +383,14 @@
     "./repositories/quotation-issues": {
       "types": "./dist/repositories/quotation-issues.d.ts",
       "import": "./dist/repositories/quotation-issues.js"
+    },
+    "./payments-repository": {
+      "types": "./dist/payments-repository.d.ts",
+      "import": "./dist/payments-repository.js"
+    },
+    "./repositories/payments": {
+      "types": "./dist/repositories/payments.d.ts",
+      "import": "./dist/repositories/payments.js"
     }
   },
   "scripts": {

@@ -251,6 +251,7 @@ test("0.3.1c C2/C3/C4/C7 FIN-13/14/21 AC-18–20 synthetic operational sequence 
     assert.equal(settled.refundLiabilityPaise, 0);
     assert.deepEqual(settled.balances, {
       cash: 0,
+      electronic: 0,
       receivable: 0,
       revenue: 0,
       deposit: 0,
@@ -506,6 +507,7 @@ test("0.3.1c C5 TRU-01/TRU-12 AC-38 catalog, bidirectional repository/write/link
           assert.equal(await r.replay(randomUUID()), undefined);
           assert.deepEqual(await r.positions(foreign.subjectId), {
             cash: 0,
+            electronic: 0,
             receivable: 0,
             revenue: 0,
             deposit: 0,

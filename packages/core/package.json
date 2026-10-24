@@ -199,6 +199,10 @@
     "./quotation-purge": {
       "types": "./dist/quotation-purge.d.ts",
       "import": "./dist/quotation-purge.js"
+    },
+    "./payments": {
+      "types": "./dist/payments.d.ts",
+      "import": "./dist/payments.js"
     }
   },
   "scripts": {

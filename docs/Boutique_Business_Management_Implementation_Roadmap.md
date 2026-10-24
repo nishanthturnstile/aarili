@@ -930,6 +930,31 @@ source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments
 
+**Implementation checkpoint (24 October 2026):**
+[REA evidence](agents/Payments_REA_Evidence.md) distinguishes observed Nool payment
+entry from public documentation and documented-only Zoho Invoice credit flows.
+The [approved design](agents/Payments_Design.md) and
+[A–C ticket packet](agents/Payments_Ticket_Packet.md) cover explicit receipt
+confirmation, credit, FIN-05 against attested service-addition charges, reasoned
+pre-bill allocation changes, split components and private evidence. Ordinary
+intake/package quotations remain unagreed; general base/package agreement is
+1.4.3. [Fresh foundation verification and remaining gates](agents/Payments_Implementation_Evidence.md)
+are recorded separately. The owner approved PD-01–08 and the packet; published
+issues #181 (A), #182 (B) and #183 (C) retain sequential merge gates. Selected A
+implements pending/confirmed cash and UPI receipts, immutable customer credit,
+UTR uniqueness and retry-safe journal posting. It does not complete 1.4.2: exact
+agreed-charge allocation/reallocation remains B and split batches/private evidence
+remain C. No live money, receipt PDFs, governed agreements or refunds activated.
+
+**REA delivery brief (24 October 2026):** the
+[Payments prompt](agents/Payments_REA_Prompt.md) uses Nool's payment entry as
+the primary research candidate and Zoho Invoice's offline/partial payments and
+credit handling as a focused comparison. It requires explicit owner confirmation,
+authoritative agreed-charge sources, atomic journal/idempotency, source locks and
+the existing FIN-05 rule. Quotations alone cannot establish allocation authority;
+receipt PDFs, governed adjustments and day-close reconciliation retain their later
+scope. No dependency, business-policy or approval gate changes.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** FIN-05, FIN-10, FIN-11, FIN-12, FIN-13. Scenarios: AC-03, AC-04, AC-17, AC-18, AC-49, AC-60, AC-61, AC-62.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.

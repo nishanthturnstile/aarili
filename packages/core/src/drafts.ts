@@ -30,6 +30,13 @@ export interface DraftSchema {
 // Revalidate locks/reads current authority and dependencies; saved flags are data,
 // never approval. Promote enlists its business writes/audit/jobs in that transaction.
 export interface DraftWorkflow {
+  // Optional financial lock preparation runs before the shared command/draft
+  // locks. Revalidation still owns business permission/state checks.
+  prepareCommand?(
+    payload: Record<string, unknown>,
+    draftId: string,
+    key: string,
+  ): Promise<void>;
   prepareDraftRead?(record: DraftRecord): Promise<void>;
   // Private workflows cache only operation metadata; hydrate content under current
   // authority, including privacy redaction, rather than replaying personal values.
@@ -242,6 +249,13 @@ export async function mutateDraft(
     }),
   };
   const repo = ctx.repository;
+  const lockSource = save?.success ? save.data : await repo.read(id);
+  if (lockSource)
+    await adapter(
+      ctx,
+      lockSource.workflow,
+      lockSource.schemaVersion,
+    )?.prepareCommand?.(lockSource.payload, id, key);
   await repo.lockKey(key);
   const prior = await repo.replay(key);
   if (prior) {

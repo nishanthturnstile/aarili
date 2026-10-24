@@ -223,6 +223,14 @@
     "./quotation-issues-client": {
       "types": "./dist/quotation-issues-client.d.ts",
       "import": "./dist/quotation-issues-client.js"
+    },
+    "./payments": {
+      "types": "./dist/payments.d.ts",
+      "import": "./dist/payments.js"
+    },
+    "./payments-client": {
+      "types": "./dist/payments-client.d.ts",
+      "import": "./dist/payments-client.js"
     }
   },
   "scripts": {
