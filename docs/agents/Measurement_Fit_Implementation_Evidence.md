@@ -148,8 +148,20 @@ Teardown: `pnpm exec node scripts/review-measurement-fit.mjs stop`; the host cle
 its loopback web process, disposable PG/S3 and private access file. It does not
 delete the owner's ordinary development database or use external/live data.
 
-Final full command/browser evidence and PR remain pending. No completion, human
-acceptance or live-readiness claim is made yet.
+Draft [PR #163](https://github.com/nishanthturnstile/aarili/pull/163) opened
+**10:13:26 UTC**, candidate `62affe3`. Required checks run in
+[39937564037](https://github.com/nishanthturnstile/aarili/actions/runs/39937564037);
+both required checks passed on `62affe3`: Fast verification ran
+**10:13:32–10:15:45 UTC (133s)** and Dependency audit
+**10:13:32–10:13:54 UTC (22s)**, after **3s** queue time.
+the explicit full browser/manual verification dispatch is
+[39937575943](https://github.com/nishanthturnstile/aarili/actions/runs/39937575943),
+created **10:13:35 UTC**. Both target the same application candidate. Full local
+command/browser results remain pending. Fresh enumeration verifies **82 tests per
+device**, partitioned **28/29/25** across the three file-level shards, with complete
+union and no duplicates for phone/tablet/desktop (**246 total executions**).
+This proves enumeration, not execution. No completion, human acceptance or
+live-readiness claim is made yet.
 
 **UI review.** Reviewed `measurement-fit.tsx`, `media-upload-form.tsx`, incumbent
 `measurement-sessions.tsx` and `packages/ui/src/globals.css` against all six

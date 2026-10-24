@@ -1,5 +1,19 @@
 # Delivery measurements
 
+## 1.3.4 preparation — 24 October 2026 (not an implementation delivery)
+
+- REA observation window approximately **02:52–03:03 UTC**; design/ticket/layout
+  preparation and verification followed. Active coding time is unknown; no
+  implementation issue is selected, no PR is opened, and no implementation
+  delivery slot is consumed by this preparation record.
+- [Preparation evidence](Job_Slips_Labels_Implementation_Evidence.md) records
+  fresh foundation checks and remaining review gates. Owner subsequently
+  authorised a backup/reapply and local documentation check-in: development was
+  pulled to `7bdeebc`, branch `codex/job-slips-labels-preparation` created, and all
+  nine pending files preserved. Earlier #155/#165 evidence/timing edits are included
+  under that instruction. Preparation packet review-ready checkpoint: **03:07 UTC**.
+  First runnable business outcome and merge remain pending.
+
 ## #165 / 1.3.3b — private pattern outputs and deliberate reuse
 
 - Owner selected B on 23 October 2026 after #166 merged. Existing checkout
@@ -113,7 +127,12 @@
   to JPEG; seeding now precedes the live worker to avoid competing claims.
   This launcher-only change occurred after the disposable clean verification copy;
   feature/config/test inputs are identical in that copy (hash comparison retained).
-- Review-ready, PR, hosted CI, owner review and merge timestamps remain pending.
+- Draft [PR #163](https://github.com/nishanthturnstile/aarili/pull/163) opened
+  **10:13:26 UTC**, `62affe3`; required CI created **10:13:29 UTC** and full
+  manual dispatch created **10:13:35 UTC**. Required Fast/audit passed after a
+  **3s** queue: Fast **10:13:32–10:15:45 UTC / 133s**; audit
+  **10:13:32–10:13:54 UTC / 22s**. Full verification/review-ready, full browser
+  outcomes, owner review and merge timestamps remain pending.
   Active coding time was not instrumented; command elapsed time is not added to it.
   [Evidence](Measurement_Fit_Implementation_Evidence.md). Human/pilot gates remain.
 
