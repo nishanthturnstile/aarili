@@ -930,6 +930,15 @@ source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments
 
+**REA delivery brief (24 October 2026):** the
+[Payments prompt](agents/Payments_REA_Prompt.md) uses Nool's payment entry as
+the primary research candidate and Zoho Invoice's offline/partial payments and
+credit handling as a focused comparison. It requires explicit owner confirmation,
+authoritative agreed-charge sources, atomic journal/idempotency, source locks and
+the existing FIN-05 rule. Quotations alone cannot establish allocation authority;
+receipt PDFs, governed adjustments and day-close reconciliation retain their later
+scope. No dependency, business-policy or approval gate changes.
+
 - **Scope:** P1 Must base; scoped Should expansions follow the requirement register.
 - **Traceability:** FIN-05, FIN-10, FIN-11, FIN-12, FIN-13. Scenarios: AC-03, AC-04, AC-17, AC-18, AC-49, AC-60, AC-61, AC-62.
 - **Technical prerequisites:** 0.2.3, 0.4.1, 0.3.1. Architecture constraints in §9 apply in addition to business dependencies.
