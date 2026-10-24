@@ -146,3 +146,12 @@ Only documentation/publication metadata follows. The complete fast command's uni
 timeout failure remains recorded above; its remaining stages and all unit tests
 passed separately, with bounded unit worker concurrency. Required hosted fast/audit
 checks and owner review must pass before merge. No full promotion suite is claimed.
+
+Draft [PR #180](https://github.com/nishanthturnstile/aarili/pull/180) was created
+**15:41:14 UTC**, targets development and is linked to this T3 thread. Verified
+runtime commit: `31b8a955a7bfc8034257b824920d74d676d48890`. At **15:41:27 UTC**,
+Fast verification and Dependency audit were in progress in
+[run 40108112092](https://github.com/nishanthturnstile/aarili/actions/runs/40108112092).
+Browser jobs were skipped under the feature-PR policy; local browser evidence is
+above. This follow-up changes publication documentation only. Hosted results,
+owner review, merge and activation remain pending; no watcher or deployment started.
