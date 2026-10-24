@@ -28,6 +28,7 @@ export {
   orderMessages,
 } from "./order-messages.js";
 export { orderPieceMessages } from "./order-piece-messages.js";
+export { quotationMessages } from "./quotation-messages.js";
 export { quotationRateMessages } from "./quotation-rate-messages.js";
 export { repeatOrderMessages } from "./repeat-order-messages.js";
 export { repeatServiceMessages } from "./repeat-service-messages.js";

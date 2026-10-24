@@ -13,6 +13,7 @@ function inspect(directory) {
         "issueJobSlip",
         "quotationRatesRepository",
         "garmentEstimatesRepository",
+        "bookingQuotationsRepository",
         "estimateDraftWorkflow",
         "rateDraftWorkflow",
         "quotePolicyReviewWorkflow",

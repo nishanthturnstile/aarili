@@ -920,8 +920,11 @@ with native blockers. A1 #173 implements recoverable effective-dated rate review
 and exact quotation-only policy bindings; its review evidence is linked above.
 A1 merged as PR #177. The owner selected A2 #174 from updated development:
 [A2 evidence and review](agents/Garment_Estimates_Implementation_174.md) records
-recoverable garment estimates, private costs and exact source comparison. B/C
-remain unimplemented and blocked sequentially. Whole 1.4.1 acceptance,
+recoverable garment estimates, private costs and exact source comparison. A2
+merged as PR #178. Owner-selected B #175 implements consolidated unissued
+proposals and exact discounts; [B evidence and review](agents/Booking_Quotations_Implementation_175.md)
+records verification and remaining human gates. C #176 remains unimplemented
+and blocked on B merging. Whole 1.4.1 acceptance,
 source/policy/template/live activation and human/device review remain gated.
 
 ##### Vertical Slice 1.4.2 — Record, Verify and Allocate Payments

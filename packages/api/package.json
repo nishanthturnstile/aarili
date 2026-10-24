@@ -207,6 +207,14 @@
     "./garment-estimates-client": {
       "types": "./dist/garment-estimates-client.d.ts",
       "import": "./dist/garment-estimates-client.js"
+    },
+    "./booking-quotations": {
+      "types": "./dist/booking-quotations.d.ts",
+      "import": "./dist/booking-quotations.js"
+    },
+    "./booking-quotations-client": {
+      "types": "./dist/booking-quotations-client.d.ts",
+      "import": "./dist/booking-quotations-client.js"
     }
   },
   "scripts": {

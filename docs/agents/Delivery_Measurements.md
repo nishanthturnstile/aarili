@@ -1,5 +1,26 @@
 # Delivery measurements
 
+## #175 / 1.4.1c — consolidated quotation proposals
+
+- Owner selected B after merges. Clean existing checkout, pulled development
+  **df5f326**, branch `codex/booking-quotations-b`; all four direct blockers
+  closed/merged/ancestry checked. Admission observed **12:25:50 UTC**,
+  24 October 2026. Active coding time not separately instrumented.
+- Baseline affected arithmetic/estimate tests: **20 passed / 1.03s**.
+  First ten-package compile **29.1s**, passed.
+- Final fast check: **337 passes / 17.79s**, build **18.091s**, all stages exit 0.
+  Fresh real-PG combined run: five passes / one fixture failure (185.86s);
+  corrected affected source case passes **38.08s**. Concurrency/retention two
+  passes **89.03s**; incumbent regressions eight passes **137.38s**. Clean
+  export build **49.066s**, passed. Browser final: three passes **5.2m**.
+  [Evidence](Booking_Quotations_Implementation_175.md) records failed attempts,
+  correction boundaries and pending human checks; elapsed runs are not coding time.
+- First synthetic host observed ready **13:15:11 UTC**; final-build review host
+  **13:48:15 UTC**, 24 October. Earlier host replaced after fixes. Review-ready
+  checkpoint **13:50:12 UTC**. Final authenticated fallback inspection confirmed
+  1799.99 and preserved package references. PR/CI publication follows below;
+  merge/review waiting pending. Active coding time remains unknown.
+
 ## #174 / 1.4.1b — garment estimates and private costs
 
 - Owner selected A2 after merges and requested latest development. Existing

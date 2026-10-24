@@ -5,6 +5,7 @@ import {
   healthUnavailableSchema,
 } from "@aarili/contracts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createBookingQuotationsRoutes } from "./booking-quotations.js";
 import { createBookingRoutes } from "./bookings.js";
 import { createCustomerHistoryRoutes } from "./customer-history.js";
 import { createCustomerRoutes } from "./customers.js";
@@ -111,6 +112,7 @@ export function createApi(
     app.route("/", createShopPoliciesRoutes(owner));
     app.route("/", createQuotationRatesRoutes(owner));
     app.route("/", createGarmentEstimatesRoutes(owner));
+    app.route("/", createBookingQuotationsRoutes(owner));
     app.route("/", createShopCommitmentsRoutes(owner));
     app.route("/", createShopDirectoryRoutes(owner));
     app.route("/", createServiceCatalogueRoutes(owner));
