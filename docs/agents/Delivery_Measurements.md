@@ -26,7 +26,7 @@
   **13 page goldens passed**, uid 1000, four self-hosted fonts; **eight new A4
   job-slip pages** visually inspected (two English, six Tamil), old five unchanged.
 - Final frozen-code fast log interval **04:54:48-04:57:43 UTC**, **exit 0**, again **321 units** after the last source-omission/privacy change. Three existing source-privacy cases passed; a fourth new service case exposed a missing audit-insert policy. Corrected narrowly, then final service/asset/RLS edge checks **3 passed / 52.97s / exit 0**. Production smoke and **29-artifact scan** both exit 0.
-- Review-ready checkpoint **05:00 UTC**; actual synthetic host URL and teardown are in [#169 implementation evidence](Job_Slips_Implementation_169.md). Owner/fluent Tamil/physical Android/pilot acceptance and merge remain separate. #170 labels cannot start until A merges and is selected. Hosted PR/CI timings remain pending.
+- Review-ready checkpoint **05:00 UTC**; actual synthetic host URL and teardown are in [#169 implementation evidence](Job_Slips_Implementation_169.md). Owner/fluent Tamil/physical Android/pilot acceptance and merge remain separate. #170 labels cannot start until A merges and is selected. Runtime commit `22783ae` published in [draft PR #171](https://github.com/nishanthturnstile/aarili/pull/171); both required checks were running at publication. Running sign-in HTTP 200 and isolated fallback browser snapshot verified; embedded snapshot timeout retained in the evidence. Hosted CI completion timing remains pending.
 
 
 ## 1.3.4 preparation — 24 October 2026 (not an implementation delivery)

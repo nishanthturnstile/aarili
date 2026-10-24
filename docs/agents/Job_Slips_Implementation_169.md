@@ -35,6 +35,12 @@ Final commands and outcomes are recorded below after they finish. Intermediate f
 - Final frozen-code `pnpm verify:fast` - **exit 0**, log interval **04:54:48-04:57:43 UTC**: all required fast checks, **321 unit passes**, production build. It includes the final omission branch and maintenance audit policy. Source-privacy three-case passes above remain valid because the later policy is limited to the new document-erasure action; the affected service/asset/RLS cases were freshly rerun.
 - `pnpm smoke` - **exit 0**: production Next/Hono with real PostgreSQL readiness/outage, typed client and worker shutdown. `node scripts/check-artifacts.mjs` - **exit 0**, **29 browser artifacts** checked including new private job-slip symbols and fitting-data sentinel. Documentation local targets: **160 checked**. `git diff --check` reports no whitespace errors.
 
+### Pull request and running-host check
+
+[Draft PR #171](https://github.com/nishanthturnstile/aarili/pull/171) targets development. Runtime implementation commit: `22783ae5b2d756b0a796c5b15b3b1eafccc4dc5a`; subsequent documentation-only evidence updates do not alter those tested runtime inputs. PR was mergeable at publication; both required hosted checks were running, and owner review/merge remain pending. PR #168 is already merged and un-watched.
+
+The running sign-in route returns HTTP 200. The embedded T3 snapshot twice reported `Preview automation snapshot timed out after 15000ms.` The existing `agent-browser` fallback opened the exact URL in an isolated named session and confirmed the sign-in heading, email/password inputs and sign-in control; that temporary browser was closed. The review host remains running. No credentials were printed or entered during this check; the full authenticated business workflow is covered by the six passing browser tests above.
+
 ### Review-ready checkpoint
 
 **24 October 2026, 05:00 UTC.** Running synthetic review: **http://127.0.0.1:63989/sign-in**. Launcher PID 34164, private access file `.scratch/job-slip-review-host/private.json`. The host is running in the owner's existing checkout and uses disposable infrastructure; it is not a production deployment. All checks refer to the implementation working tree on `codex/169-private-job-slips` from `aea6e31`, with the committed PR head providing its immutable identifier. Owner/template review, fluent Tamil and physical Android/low-memory acceptance remain pending. The draft PR and hosted CI are separate from local verification.
